@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v8.0</title>
+<title>任务环｜GitHub云同步任务环 v8.1</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -2979,27 +2979,56 @@ td.taskName a::after,
 
 
 /* =====================================================================
-   v8.0 GitHub Gist Sync UI
+   v8.1 Soft Lock + GitHub Gist Sync UI
+   普通访问者无 Token 时只看到解锁页，不显示任务模板。
+   说明：这是前端软锁，不是服务器级鉴权；用于防普通路人。
    ===================================================================== */
-.ghSetupBtn{
-  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(238,245,255,.84))!important;
-  color:#243b6b!important;
+body.locked{min-height:100vh;overflow:hidden}
+body.locked .wrap{display:none!important}
+body:not(.locked) .lockScreen{display:none!important}
+.lockScreen{
+  position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:22px;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(52,216,255,.24), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(255,95,151,.22), transparent 28%),
+    linear-gradient(135deg, rgba(247,251,255,.84), rgba(255,241,248,.88)),
+    inherit;
+  backdrop-filter:blur(10px) saturate(1.12);-webkit-backdrop-filter:blur(10px) saturate(1.12)
 }
-.ghPill{
-  position:relative;
-  padding-left:28px!important;
+.lockCard{
+  width:min(560px,calc(100vw - 32px));border-radius:34px;padding:28px 26px 24px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.88),rgba(244,246,255,.68)),
+    radial-gradient(circle at 0 0, rgba(52,216,255,.18), transparent 35%),
+    radial-gradient(circle at 100% 0, rgba(255,95,151,.18), transparent 35%);
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 30px 88px rgba(18,28,58,.24),inset 0 0 0 1px rgba(255,255,255,.50);
+  text-align:center
 }
+.lockBadge{
+  display:inline-flex;padding:7px 14px;border-radius:999px;
+  font-family:"Arial Black","Noto Sans SC",sans-serif;font-size:12px;letter-spacing:.18em;color:#ff5f97;
+  background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.82);box-shadow:0 8px 20px rgba(123,97,255,.10)
+}
+.lockTitle{
+  margin:18px 0 10px;font-size:clamp(34px,7vw,58px);line-height:1;
+  font-family:"Arial Black","Impact","Noto Sans SC","Microsoft YaHei",sans-serif;font-style:italic;letter-spacing:.03em;
+  background:linear-gradient(90deg,#102047,#2a5fff 28%,#4fd7ff 48%,#8f61ff 68%,#ff5e98 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 18px rgba(42,95,255,.18))
+}
+.lockSub{margin:0 auto 18px;max-width:420px;color:#43546f;font-size:15px;line-height:1.6;font-weight:900}
+.lockUnlockBtn{
+  padding:12px 20px!important;border-radius:18px!important;
+  font-family:"Arial Black","Noto Sans SC",sans-serif!important;color:#17233f!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(236,243,255,.86))!important
+}
+.lockFoot{margin-top:14px;color:#6c7a91;font-size:12px;line-height:1.5;font-weight:760}
+
+.ghSetupBtn{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(238,245,255,.84))!important;color:#243b6b!important}
+.ghPill{position:relative;padding-left:28px!important}
 .ghPill::before{
-  content:"";
-  position:absolute;
-  left:12px;
-  top:50%;
-  width:9px;
-  height:9px;
-  border-radius:999px;
-  transform:translateY(-50%);
-  background:#9ca3af;
-  box-shadow:0 0 0 3px rgba(156,163,175,.14);
+  content:"";position:absolute;left:12px;top:50%;width:9px;height:9px;border-radius:999px;transform:translateY(-50%);
+  background:#9ca3af;box-shadow:0 0 0 3px rgba(156,163,175,.14)
 }
 .ghPill.on::before{background:#26c281;box-shadow:0 0 0 3px rgba(38,194,129,.16),0 0 12px rgba(38,194,129,.30)}
 .ghPill.sync::before{background:#34d8ff;box-shadow:0 0 0 3px rgba(52,216,255,.18),0 0 12px rgba(52,216,255,.30);animation:ghPulse 1s ease-in-out infinite}
@@ -3007,27 +3036,15 @@ td.taskName a::after,
 .ghPill.off{opacity:.78}
 @keyframes ghPulse{0%,100%{transform:translateY(-50%) scale(.85)}50%{transform:translateY(-50%) scale(1.22)}}
 .ghModal{
-  position:fixed;
-  inset:0;
-  z-index:100000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  background:rgba(12,18,36,.38);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(12,18,36,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
 }
 .ghModal.hidden{display:none}
 .ghModalCard{
-  width:min(620px,calc(100vw - 28px));
-  max-height:calc(100vh - 34px);
-  overflow:auto;
-  border-radius:26px;
-  padding:18px;
+  width:min(620px,calc(100vw - 28px));max-height:calc(100vh - 34px);overflow:auto;border-radius:26px;padding:18px;
   background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(239,245,255,.88));
   border:1px solid rgba(255,255,255,.86);
-  box-shadow:0 30px 86px rgba(18,28,58,.32), inset 0 0 0 1px rgba(255,255,255,.48);
+  box-shadow:0 30px 86px rgba(18,28,58,.32),inset 0 0 0 1px rgba(255,255,255,.48)
 }
 .ghModalHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
 .ghModalTitle{font-family:"Arial Black","Noto Sans SC",sans-serif;font-size:22px;color:#142040}
@@ -3040,6 +3057,9 @@ td.taskName a::after,
 .ghDangerBtn{color:#9a1532!important}
 .ghLog{margin-top:12px;padding:10px 12px;min-height:58px;max-height:160px;overflow:auto;border-radius:14px;white-space:pre-wrap;font-size:12px;line-height:1.45;color:#334155;background:rgba(245,248,255,.88);border:1px solid rgba(255,255,255,.76)}
 @media(max-width:900px){
+  .lockScreen{align-items:flex-start;padding-top:18vh}
+  .lockCard{border-radius:26px;padding:22px 18px 20px}
+  .lockSub{font-size:13px}
   .ghPill,.ghSetupBtn{font-size:11.5px!important}
   .ghPill{padding-left:24px!important}
   .ghPill::before{left:10px;width:8px;height:8px}
@@ -3049,11 +3069,22 @@ td.taskName a::after,
 
 </style>
 </head>
-<body>
+<body class="locked">
+
+<div id="lockScreen" class="lockScreen">
+  <div class="lockCard">
+    <div class="lockBadge">PRIVATE QUEST</div>
+    <h1 class="lockTitle">任务环已锁定</h1>
+    <p class="lockSub">请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。</p>
+    <button id="lockUnlockBtn" class="lockUnlockBtn">输入 Token 解锁</button>
+    <div class="lockFoot">Token 只保存在当前浏览器 localStorage，不会写进仓库或 Gist。</div>
+  </div>
+</div>
+
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.0</span></h1>
-  <p class="subtitle">GitHub 云同步任务环：手机与电脑通过 Gist 同步勾选状态。Token 只保存在本机；默认进入「只看今日未完成」。</p>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.1</span></h1>
+  <p class="subtitle">GitHub 云同步任务环：手机与电脑通过 Gist 同步勾选状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
@@ -3064,7 +3095,7 @@ td.taskName a::after,
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
 <details class="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid"><div class="refGroup"><h3>不定期执行</h3><div class="refItem">♨ 温泉</div><div class="refItem">Massage</div><div class="refItem"><a class="refLink" href="https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e" target="_blank" rel="noopener noreferrer">Femme&Sex</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841" target="_blank" rel="noopener noreferrer">INERTIA【1】整理</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436" target="_blank" rel="noopener noreferrer">Analyze_Party</a></div><div class="refItem"><a class="refLink" href="https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d" target="_blank" rel="noopener noreferrer">人生规划谈话（ChatGPT）</a></div></div><div class="refGroup"><h3>MOIS / 月度</h3><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90" target="_blank" rel="noopener noreferrer">生活雑務管理</a></div><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80338306dc606f9f2d1f" target="_blank" rel="noopener noreferrer">経済雑務管理</a></div></div><div class="refGroup"><h3>AN / 年度</h3><div class="refItem">年度任务入口：暂未设置链接</div></div><div class="refGroup"><h3>辅助入口</h3><div class="refItem"><a class="refLink" href="https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx" target="_blank" rel="noopener noreferrer">任务环HTML（辅助用）</a></div></div></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v8.0.html｜GitHub Pages + Gist 云同步；Token 仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v8.1.html｜软锁隐藏模板；GitHub Pages + Gist 云同步；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3129,13 +3160,15 @@ const cycleEnd=new Date(cycleStart);cycleEnd.setDate(cycleStart.getDate()+7);
 const cycleYmd=ymd(cycleStart);
 const prevCycleStart=new Date(cycleStart);prevCycleStart.setDate(cycleStart.getDate()-7);
 const prevCycleYmd=ymd(prevCycleStart);
-/* === v8.0 GitHub Gist Sync === */
+/* === v8.1 GitHub Gist Sync + Soft Lock === */
 const GITHUB_GIST_ID="291d0f9e8d91e2478a490645717efbcf";
 const GITHUB_STATE_FILE="taskring-state.json";
 const GH_TOKEN_KEY="taskring_gist_token_v1";
 const GH_PREFIX="taskring_github_v1_";
 let ghSaveTimer=null;
 let ghSaving=false;
+function lockApp(msg="需要 Token 解锁"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg}
+function unlockApp(){document.body.classList.remove("locked")}
 function ghLog(msg){const el=document.getElementById("ghLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus");if(!el)return;el.className=`pill ghPill ${cls}`;el.textContent=text}
 function ghToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
@@ -3148,14 +3181,14 @@ async function ghFetchGist(){const res=await fetch(`https://api.github.com/gists
 function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:1,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error("taskring-state.json 不是合法 JSON")}}
 async function ghPatchState(data){if(!ghToken())throw new Error("未设置 GitHub Token");const body={files:{[GITHUB_STATE_FILE]:{content:JSON.stringify(data,null,2)}}};const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(),"Content-Type":"application/json"},body:JSON.stringify(body)});if(!res.ok)throw new Error(`PATCH gist failed ${res.status}: ${await res.text()}`);return await res.json()}
 function applyGhStates(states){clearGhLocalStates();Object.keys(states||{}).forEach(k=>{if(states[k]==="1")localStorage.setItem(k,"1")})}
-async function ghPull(){if(!ghToken()){setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");openGhModal();return}try{setGhStatus("GitHub：读取中","sync");const gist=await ghFetchGist();const state=ghParseState(gist);const remoteCount=Object.keys(state.states||{}).length;const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;if(remoteCount===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);return}applyGhStates(state.states||{});setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${remoteCount} 项`);renderAll()}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err))}}
-async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:1,updatedAt:new Date().toISOString(),states:collectGhLocalStates()};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项`);renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
+async function ghPull(){if(!ghToken()){setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。");return}try{setGhStatus("GitHub：读取中","sync");const gist=await ghFetchGist();const state=ghParseState(gist);const remoteCount=Object.keys(state.states||{}).length;const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;if(remoteCount===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}applyGhStates(state.states||{});setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${remoteCount} 项`);unlockApp();renderAll()}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
+async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:1,updatedAt:new Date().toISOString(),states:collectGhLocalStates()};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus("GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
 function syncRemoveCycle(cycle=cycleYmd){clearGhLocalCycle(cycle);scheduleGhSave()}
 function openGhModal(){const m=document.getElementById("ghModal");if(!m)return;document.getElementById("ghTokenInput").value=ghToken();document.getElementById("ghGistInput").value=GITHUB_GIST_ID;m.classList.remove("hidden");m.setAttribute("aria-hidden","false")}
 function closeGhModal(){const m=document.getElementById("ghModal");if(!m)return;m.classList.add("hidden");m.setAttribute("aria-hidden","true")}
-function initGithubSyncUI(){document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);document.getElementById("githubStatus")?.addEventListener("click",openGhModal);document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");closeGhModal();ghPull()});document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{if(confirm("确认清除本机保存的 GitHub Token？")){setGhToken("");setGhStatus("GitHub：未设置","off");ghLog("Token 已清除")}});if(ghToken())ghPull();else setGhStatus("GitHub：未设置","off")}
+function initGithubSyncUI(){document.getElementById("lockUnlockBtn")?.addEventListener("click",openGhModal);document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);document.getElementById("githubStatus")?.addEventListener("click",openGhModal);document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");closeGhModal();ghPull()});document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{if(confirm("确认清除本机保存的 GitHub Token？")){setGhToken("");setGhStatus("GitHub：未设置","off");ghLog("Token 已清除");lockApp("Token 已清除。请输入本机 GitHub Token 解锁。")}});if(ghToken())ghPull();else{setGhStatus("GitHub：未设置","off");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。")}}
 
 function weekPos(dayId){return dayId===0?6:dayId-1}
 function sortWeekDays(arr){return [...arr].sort((a,b)=>weekPos(a)-weekPos(b))}
