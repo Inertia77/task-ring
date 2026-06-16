@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v8.5</title>
+<title>任务环｜GitHub云同步任务环 v8.6</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -3281,7 +3281,7 @@ body:not(.locked) .lockScreen{display:none!important}
 
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.5</span></h1>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.6</span></h1>
   <p class="subtitle">GitHub 云同步任务环：隐藏任务编辑器 + 配置自动加密同步 + 隐私化状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
@@ -3293,7 +3293,7 @@ body:not(.locked) .lockScreen{display:none!important}
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
 <details class="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid"><div class="refGroup"><h3>不定期执行</h3><div class="refItem">♨ 温泉</div><div class="refItem">Massage</div><div class="refItem"><a class="refLink" href="https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e" target="_blank" rel="noopener noreferrer">Femme&Sex</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841" target="_blank" rel="noopener noreferrer">INERTIA【1】整理</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436" target="_blank" rel="noopener noreferrer">Analyze_Party</a></div><div class="refItem"><a class="refLink" href="https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d" target="_blank" rel="noopener noreferrer">人生规划谈话（ChatGPT）</a></div></div><div class="refGroup"><h3>MOIS / 月度</h3><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90" target="_blank" rel="noopener noreferrer">生活雑務管理</a></div><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80338306dc606f9f2d1f" target="_blank" rel="noopener noreferrer">経済雑務管理</a></div></div><div class="refGroup"><h3>AN / 年度</h3><div class="refItem">年度任务入口：暂未设置链接</div></div><div class="refGroup"><h3>辅助入口</h3><div class="refItem"><a class="refLink" href="https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx" target="_blank" rel="noopener noreferrer">任务环HTML（辅助用）</a></div></div></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v8.5.html｜云同步任务编辑器 + 隐私化状态Key；Token仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v8.6.html｜云同步任务编辑器 + 配置重载逻辑优化；Token仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3337,7 +3337,7 @@ body:not(.locked) .lockScreen{display:none!important}
       <button id="saveConfigBtn">保存配置并同步</button>
       <button id="exportConfigBtn">导出 JSON</button>
       <button id="importConfigBtn">导入 JSON</button>
-      <button id="restoreDefaultConfigBtn" class="ghDangerBtn">恢复默认配置</button>
+      <button id="reloadSavedConfigBtn">重载已保存配置</button>
     </div>
     <div class="taskEditorHint">
       改任务名、星期、链接、分类不会影响旧勾选；不要随意改高级 ID。删除建议改成「停用」，更安全。
@@ -3525,7 +3525,7 @@ const cycleYmd=ymd(cycleStart);
 const prevCycleStart=new Date(cycleStart);prevCycleStart.setDate(cycleStart.getDate()-7);
 const prevCycleYmd=ymd(prevCycleStart);
 /* === v8.1 GitHub Gist Sync + Soft Lock === */
-const GITHUB_GIST_ID="d9abf0fb69a47f7c4114be3930894c65";
+const GITHUB_GIST_ID="291d0f9e8d91e2478a490645717efbcf";
 const GITHUB_STATE_FILE="taskring-state.json";
 const LEGACY_GH_PREFIX="taskring_github_v1_";
 const GH_TOKEN_KEY="taskring_gist_token_v1";
@@ -3839,13 +3839,47 @@ function importEditorConfig(){
     taskEditorLog("导入成功。确认无误后请点「保存配置并同步」。");showToast("导入成功，记得保存配置","ok");
   }catch(err){taskEditorLog("导入失败："+String(err.message||err));showToast("导入失败，请看日志","err")}
 }
-async function restoreDefaultEditorConfig(){
-  if(!confirm("确认恢复默认任务配置？这不会清空勾选状态，但会覆盖云端任务配置。"))return;
-  const cfg=buildDefaultConfig();
-  taskConfig=cfg;
-  renderTaskEditor();
-  await saveEditorConfig();
-  showToast("默认配置已恢复并同步","ok");
+async function reloadSavedEditorConfig(){
+  if(!confirm("确认放弃当前编辑器里尚未保存的修改，并重新载入已保存配置？"))return;
+  const btn=document.getElementById("reloadSavedConfigBtn");
+  try{
+    setBtnBusy(btn,true,"重载中…");
+    showToast("正在重载已保存配置…","warn",1300);
+    if(ghToken()){
+      setGhStatus("GitHub：读取配置中","sync");
+      const gist=await ghFetchGist();
+      const cfgResult=await ghParseConfig(gist);
+      if(cfgResult.config){
+        saveLocalTaskConfig(cfgResult.config);
+        applyTaskConfig(cfgResult.config,true);
+        renderTaskEditor();
+        setGhStatus("GitHub：已同步","on");
+        taskEditorLog("已从云端重载已保存配置。");
+        showToast("已重载云端配置","ok");
+        return;
+      }
+      taskEditorLog("云端没有可用配置，改用本机缓存配置。");
+    }
+    const localCfg=loadLocalTaskConfig();
+    if(localCfg){
+      applyTaskConfig(localCfg,true);
+      renderTaskEditor();
+      taskEditorLog("已从本机缓存重载配置。");
+      showToast("已重载本机配置","ok");
+      return;
+    }
+    const cfg=buildDefaultConfig();
+    applyTaskConfig(cfg,true);
+    renderTaskEditor();
+    taskEditorLog("没有云端/本机配置，已回到 HTML 内置初始配置。");
+    showToast("已载入内置初始配置","warn");
+  }catch(err){
+    console.error(err);
+    taskEditorLog("重载失败："+String(err.message||err));
+    showToast("重载失败，请看日志","err",3000);
+  }finally{
+    setBtnBusy(btn,false);
+  }
 }
 function initTaskEditorUI(){
   document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
@@ -3854,7 +3888,7 @@ function initTaskEditorUI(){
   document.getElementById("saveConfigBtn")?.addEventListener("click",saveEditorConfig);
   document.getElementById("exportConfigBtn")?.addEventListener("click",exportEditorConfig);
   document.getElementById("importConfigBtn")?.addEventListener("click",importEditorConfig);
-  document.getElementById("restoreDefaultConfigBtn")?.addEventListener("click",restoreDefaultEditorConfig);
+  document.getElementById("reloadSavedConfigBtn")?.addEventListener("click",reloadSavedEditorConfig);
   document.getElementById("taskEditorList")?.addEventListener("click",e=>{
     const btn=e.target.closest("button[data-op]");
     if(!btn)return;
