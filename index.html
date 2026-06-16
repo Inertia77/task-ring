@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v8.6</title>
+<title>任务环｜GitHub云同步任务环 v8.7</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -3281,8 +3281,8 @@ body:not(.locked) .lockScreen{display:none!important}
 
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.6</span></h1>
-  <p class="subtitle">GitHub 云同步任务环：隐藏任务编辑器 + 配置自动加密同步 + 隐私化状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.7</span></h1>
+  <p class="subtitle">GitHub 云同步任务环：任务配置跨设备加密同步 + 隐私化状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
@@ -3293,7 +3293,7 @@ body:not(.locked) .lockScreen{display:none!important}
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
 <details class="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid"><div class="refGroup"><h3>不定期执行</h3><div class="refItem">♨ 温泉</div><div class="refItem">Massage</div><div class="refItem"><a class="refLink" href="https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e" target="_blank" rel="noopener noreferrer">Femme&Sex</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841" target="_blank" rel="noopener noreferrer">INERTIA【1】整理</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436" target="_blank" rel="noopener noreferrer">Analyze_Party</a></div><div class="refItem"><a class="refLink" href="https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d" target="_blank" rel="noopener noreferrer">人生规划谈话（ChatGPT）</a></div></div><div class="refGroup"><h3>MOIS / 月度</h3><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90" target="_blank" rel="noopener noreferrer">生活雑務管理</a></div><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80338306dc606f9f2d1f" target="_blank" rel="noopener noreferrer">経済雑務管理</a></div></div><div class="refGroup"><h3>AN / 年度</h3><div class="refItem">年度任务入口：暂未设置链接</div></div><div class="refGroup"><h3>辅助入口</h3><div class="refItem"><a class="refLink" href="https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx" target="_blank" rel="noopener noreferrer">任务环HTML（辅助用）</a></div></div></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v8.6.html｜云同步任务编辑器 + 配置重载逻辑优化；Token仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v8.7.html｜跨设备配置同步修正版；Token仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3328,7 +3328,7 @@ body:not(.locked) .lockScreen{display:none!important}
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle">隐藏任务编辑器</div>
-        <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。状态 key 使用编号，不再暴露任务名。</div>
+        <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。不同设备可用不同 Token，仍能读取同一套任务配置。</div>
       </div>
       <button id="taskEditorCloseBtn" class="ghCloseBtn">×</button>
     </div>
@@ -3526,6 +3526,7 @@ const prevCycleStart=new Date(cycleStart);prevCycleStart.setDate(cycleStart.getD
 const prevCycleYmd=ymd(prevCycleStart);
 /* === v8.1 GitHub Gist Sync + Soft Lock === */
 const GITHUB_GIST_ID="d9abf0fb69a47f7c4114be3930894c65";
+const CONFIG_CRYPTO_KEY="INERTIA_TASK_RING_CONFIG_SYNC_KEY_v1_20260616";
 const GITHUB_STATE_FILE="taskring-state.json";
 const LEGACY_GH_PREFIX="taskring_github_v1_";
 const GH_TOKEN_KEY="taskring_gist_token_v1";
@@ -3554,7 +3555,7 @@ function migrateLegacyLocalStates(){
 
 
 
-function configCryptoSecret(){const t=ghToken();if(!t)throw new Error("缺少 GitHub Token，无法加解密任务配置");return t}
+function configCryptoSecret(){return CONFIG_CRYPTO_KEY}
 function showToast(msg,type="ok",ms=2200){
   let el=document.getElementById("toastBox");
   if(!el){
@@ -3688,13 +3689,13 @@ async function ghPull(){if(!ghToken()){setGhStatus("GitHub：未设置","off");g
 const localCfg=loadLocalTaskConfig();
 const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
 applyTaskConfig(cfgToUse,false);
-if(cfgResult.config)saveLocalTaskConfig(cfgResult.config);
+if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
 if(cfgResult.mode==="plaintext"){
   ghLog("检测到旧版明文配置，正在自动转为加密配置…");
   try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
 }
 if(cfgResult.mode==="error"&&localCfg){
-  ghLog("云端配置无法解密，已使用本机缓存配置；稍后可点任务编辑器保存重新加密同步。");
+  ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
 }
 const state=ghParseState(gist);const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;const result=applyGhStates(state.states||{});if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}`);unlockApp();renderAll();if(result.migrated>0)setTimeout(()=>ghPush(true),1200)}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
 async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),states:collectGhLocalStates()};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
