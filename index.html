@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v8.1</title>
+<title>任务环｜GitHub云同步任务环 v8.2</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -3067,6 +3067,133 @@ body:not(.locked) .lockScreen{display:none!important}
   .ghModalTitle{font-size:19px}
 }
 
+
+/* =====================================================================
+   v8.2 Hidden Task Editor + Coded State Keys
+   ===================================================================== */
+.taskEditorModal{
+  position:fixed; inset:0; z-index:100001;
+  display:flex; align-items:center; justify-content:center;
+  padding:18px;
+  background:rgba(12,18,36,.40);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.taskEditorModal.hidden{display:none}
+.taskEditorCard{
+  width:min(1080px,calc(100vw - 24px));
+  max-height:calc(100vh - 28px);
+  overflow:auto;
+  border-radius:28px;
+  padding:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,245,255,.90));
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 30px 90px rgba(18,28,58,.32), inset 0 0 0 1px rgba(255,255,255,.48);
+}
+.taskEditorHead{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;
+}
+.taskEditorTitle{
+  font-family:"Arial Black","Noto Sans SC",sans-serif;
+  font-size:24px;
+  color:#142040;
+}
+.taskEditorSub,.taskEditorHint{
+  color:#5b6980; font-weight:850; line-height:1.5; font-size:13px;
+}
+.taskEditorToolbar{
+  display:flex; flex-wrap:wrap; gap:8px; margin:12px 0;
+}
+.taskEditorList{
+  display:flex; flex-direction:column; gap:12px; margin-top:12px;
+}
+.cfgTask{
+  border-radius:20px;
+  padding:12px;
+  background:rgba(255,255,255,.76);
+  border:1px solid rgba(126,145,178,.22);
+  box-shadow:0 10px 26px rgba(31,45,90,.08), inset 0 0 0 1px rgba(255,255,255,.42);
+}
+.cfgTask.disabled{
+  opacity:.58;
+  filter:grayscale(.15);
+}
+.cfgTop{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.cfgMini{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 9px; border-radius:999px;
+  color:#5b4cc7;
+  background:rgba(123,97,255,.10);
+  font-size:11px; font-weight:1000; letter-spacing:.06em;
+}
+.cfgOps{
+  display:flex; flex-wrap:wrap; gap:6px;
+}
+.cfgGrid{
+  display:grid;
+  grid-template-columns:1.4fr .8fr 1.4fr;
+  gap:10px;
+}
+.cfgField label,.cfgDaysLabel,.cfgFlags label{
+  display:block;
+  margin:0 0 5px;
+  color:#334155;
+  font-size:12px;
+  font-weight:1000;
+}
+.cfgField input,.cfgField select,.cfgField textarea{
+  width:100%;
+  box-sizing:border-box;
+  border-radius:12px;
+  border:1px solid rgba(126,145,178,.32);
+  background:rgba(255,255,255,.88);
+  color:#17233f;
+  font-weight:850;
+  padding:9px 10px;
+  outline:none;
+}
+.cfgField textarea{
+  min-height:82px;
+  resize:vertical;
+  line-height:1.45;
+}
+.cfgDays,.cfgFlags{
+  display:flex; flex-wrap:wrap; gap:6px;
+}
+.cfgDays label,.cfgFlags label{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 9px;
+  border-radius:999px;
+  background:rgba(245,248,255,.90);
+  border:1px solid rgba(255,255,255,.75);
+  font-size:12px;
+}
+.cfgAdvanced{
+  margin-top:10px;
+}
+.cfgAdvanced summary{
+  cursor:pointer;
+  color:#64748b;
+  font-size:12px;
+  font-weight:1000;
+}
+.cfgAdvancedGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:8px;
+}
+@media(max-width:900px){
+  .taskEditorCard{border-radius:22px; padding:14px}
+  .taskEditorTitle{font-size:20px}
+  .cfgGrid{grid-template-columns:1fr}
+  .cfgOps button,.taskEditorToolbar button{font-size:11.5px!important; padding:8px 10px!important}
+}
+
 </style>
 </head>
 <body class="locked">
@@ -3083,8 +3210,8 @@ body:not(.locked) .lockScreen{display:none!important}
 
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.1</span></h1>
-  <p class="subtitle">GitHub 云同步任务环：手机与电脑通过 Gist 同步勾选状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.2</span></h1>
+  <p class="subtitle">GitHub 云同步任务环：支持隐藏任务编辑器，任务状态已隐私化保存。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
@@ -3095,7 +3222,7 @@ body:not(.locked) .lockScreen{display:none!important}
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
 <details class="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid"><div class="refGroup"><h3>不定期执行</h3><div class="refItem">♨ 温泉</div><div class="refItem">Massage</div><div class="refItem"><a class="refLink" href="https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e" target="_blank" rel="noopener noreferrer">Femme&Sex</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841" target="_blank" rel="noopener noreferrer">INERTIA【1】整理</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436" target="_blank" rel="noopener noreferrer">Analyze_Party</a></div><div class="refItem"><a class="refLink" href="https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d" target="_blank" rel="noopener noreferrer">人生规划谈话（ChatGPT）</a></div></div><div class="refGroup"><h3>MOIS / 月度</h3><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90" target="_blank" rel="noopener noreferrer">生活雑務管理</a></div><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80338306dc606f9f2d1f" target="_blank" rel="noopener noreferrer">経済雑務管理</a></div></div><div class="refGroup"><h3>AN / 年度</h3><div class="refItem">年度任务入口：暂未设置链接</div></div><div class="refGroup"><h3>辅助入口</h3><div class="refItem"><a class="refLink" href="https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx" target="_blank" rel="noopener noreferrer">任务环HTML（辅助用）</a></div></div></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v8.1.html｜软锁隐藏模板；GitHub Pages + Gist 云同步；Token 仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v8.2.html｜任务编辑器 + 隐私化状态Key；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3116,15 +3243,40 @@ body:not(.locked) .lockScreen{display:none!important}
       <button id="ghSaveTokenBtn">保存 Token 并同步</button>
       <button id="ghPullBtn">从云端读取</button>
       <button id="ghPushBtn">上传本机状态</button>
-      <button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
+      <button id="taskEditorBtn">任务编辑器</button><button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
     </div>
     <pre id="ghLog" class="ghLog">等待设置。</pre>
   </div>
 </div>
 
+
+<div id="taskEditorModal" class="taskEditorModal hidden" aria-hidden="true">
+  <div class="taskEditorCard">
+    <div class="taskEditorHead">
+      <div>
+        <div class="taskEditorTitle">隐藏任务编辑器</div>
+        <div class="taskEditorSub">普通模式不会显示任务 ID；保存后写入 Gist 的 taskring-config.json。状态 key 使用编号，不再暴露任务名。</div>
+      </div>
+      <button id="taskEditorCloseBtn" class="ghCloseBtn">×</button>
+    </div>
+    <div class="taskEditorToolbar">
+      <button id="addTaskBtn">新增任务</button>
+      <button id="saveConfigBtn">保存配置到 GitHub</button>
+      <button id="exportConfigBtn">导出 JSON</button>
+      <button id="importConfigBtn">导入 JSON</button>
+      <button id="restoreDefaultConfigBtn" class="ghDangerBtn">恢复默认配置</button>
+    </div>
+    <div class="taskEditorHint">
+      改任务名、星期、链接、分类不会影响旧勾选；不要随意改高级 ID。删除建议改成「停用」，更安全。
+    </div>
+    <div id="taskEditorList" class="taskEditorList"></div>
+    <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>
+  </div>
+</div>
+
 <script>
 const days=[{id:1,name:"月"},{id:2,name:"火"},{id:3,name:"水"},{id:4,name:"木"},{id:5,name:"金"},{id:6,name:"土"},{id:0,name:"日"}];
-const blocks=[
+const defaultBlocks=[
 {id:"base-body",cat:"life",title:"*体食顔姿*",days:[1,2,3,4,5,6,0],url:"https://app.notion.com/p/3335adb3775e802eb9d3d0e08e888bfe",core:1},
 {id:"life-chores",cat:"life",title:"*生活雑務*（可选）",days:[1,2,3],url:"https://www.notion.so/3335adb3775e80829167d154910e2ba5",optional:1},
 {id:"plan-trip",cat:"life",title:"Plan 出かけ/旅（可选）",days:[4,5],url:"https://www.notion.so/3335adb3775e809e8a08d9ed44a712ce",optional:1},
@@ -3148,7 +3300,126 @@ const blocks=[
 {id:"math-science",cat:"language",title:"数学&自然科学（可选）",days:[4],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1796228574#gid=1796228574",optional:1},
 {id:"spanish",cat:"language",title:"El Español",days:[5,6,0],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1220912483#gid=1220912483"}
 ];
-const stepTasks={"base-body":[{id:"sport",title:"体育"},{id:"skincare",title:"护肤"},{id:"sleep",title:"睡眠"}],"game-daily":[{id:"app-signin",title:"APP签到"},{id:"ww",title:"鸣潮"},{id:"zzz",title:"绝区零"},{id:"hsr",title:"崩铁"},{id:"endfield",title:"终末地"},{id:"exilium",title:"异环"}]};const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
+const defaultStepTasks={"base-body":[{id:"sport",title:"体育"},{id:"skincare",title:"护肤"},{id:"sleep",title:"睡眠"}],"game-daily":[{id:"app-signin",title:"APP签到"},{id:"ww",title:"鸣潮"},{id:"zzz",title:"绝区零"},{id:"hsr",title:"崩铁"},{id:"endfield",title:"终末地"},{id:"exilium",title:"异环"}]};
+/* === v8.2 Task Config Engine === */
+let taskConfig=null;
+let blocks=[];
+let stepTasks={};
+const CONFIG_FILE="taskring-config.json";
+
+function deepClone(obj){return JSON.parse(JSON.stringify(obj))}
+function normalizeBool(v){return v===true||v===1||v==="1"||v==="true"}
+function nextCode(prefix, used){
+  let max=0;
+  used.forEach(c=>{
+    const m=String(c||"").match(new RegExp("^"+prefix+"(\\d+)$"));
+    if(m)max=Math.max(max,Number(m[1]));
+  });
+  return prefix+String(max+1).padStart(prefix==="t"?3:2,"0");
+}
+function slugifyId(s, fallback="custom"){
+  const raw=String(s||"").trim().toLowerCase();
+  const ascii=raw.replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,42);
+  return ascii||`${fallback}-${Date.now().toString(36)}`;
+}
+function buildDefaultConfig(){
+  const usedTaskCodes=new Set();
+  const tasks=defaultBlocks.map((t,idx)=>{
+    const code="t"+String(idx+1).padStart(3,"0");
+    usedTaskCodes.add(code);
+    const steps=(defaultStepTasks[t.id]||[]).map((s,sidx)=>({
+      id:s.id,
+      code:"s"+String(sidx+1).padStart(2,"0"),
+      title:s.title,
+      enabled:s.enabled!==false
+    }));
+    return {
+      id:t.id,
+      code,
+      cat:t.cat,
+      title:t.title,
+      days:Array.isArray(t.days)?[...t.days]:[],
+      url:t.url||"",
+      core:!!t.core,
+      optional:!!t.optional,
+      important:!!t.important,
+      enabled:t.enabled!==false,
+      steps
+    }
+  });
+  return {version:2, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks};
+}
+function normalizeTaskConfig(config){
+  const fallback=buildDefaultConfig();
+  const src=config&&Array.isArray(config.tasks)?config:fallback;
+  const usedIds=new Set();
+  const usedCodes=new Set();
+  const validCats=new Set(["life","gamecreate","language"]);
+  const tasks=src.tasks.map((raw,idx)=>{
+    const title=String(raw.title||`任务 ${idx+1}`).trim()||`任务 ${idx+1}`;
+    let id=String(raw.id||slugifyId(title,"task")).trim();
+    if(usedIds.has(id)){
+      let base=id, n=2;
+      while(usedIds.has(`${base}-${n}`))n++;
+      id=`${base}-${n}`;
+    }
+    usedIds.add(id);
+    let code=String(raw.code||"").trim();
+    if(!/^t\d{3,}$/.test(code)||usedCodes.has(code)) code=nextCode("t",usedCodes);
+    usedCodes.add(code);
+    const cat=validCats.has(raw.cat)?raw.cat:"life";
+    const rawDays=Array.isArray(raw.days)?raw.days:[];
+    const daySet=new Set(rawDays.map(Number).filter(d=>[0,1,2,3,4,5,6].includes(d)));
+    const days=[1,2,3,4,5,6,0].filter(d=>daySet.has(d));
+    const usedStepIds=new Set();
+    const usedStepCodes=new Set();
+    const steps=(Array.isArray(raw.steps)?raw.steps:[]).map((st,sidx)=>{
+      const stTitle=String(st.title||`子任务 ${sidx+1}`).trim()||`子任务 ${sidx+1}`;
+      let sid=String(st.id||slugifyId(stTitle,"step")).trim();
+      if(usedStepIds.has(sid)){
+        let base=sid,n=2;
+        while(usedStepIds.has(`${base}-${n}`))n++;
+        sid=`${base}-${n}`;
+      }
+      usedStepIds.add(sid);
+      let scode=String(st.code||"").trim();
+      if(!/^s\d{2,}$/.test(scode)||usedStepCodes.has(scode)) scode=nextCode("s",usedStepCodes);
+      usedStepCodes.add(scode);
+      return {id:sid, code:scode, title:stTitle, enabled:st.enabled!==false};
+    });
+    return {
+      id, code, cat, title, days,
+      url:String(raw.url||"").trim(),
+      core:normalizeBool(raw.core),
+      optional:normalizeBool(raw.optional),
+      important:normalizeBool(raw.important),
+      enabled:raw.enabled!==false,
+      steps
+    };
+  });
+  return {version:2, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks};
+}
+function applyTaskConfig(config, shouldRender=false){
+  taskConfig=normalizeTaskConfig(config);
+  blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
+    id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
+    core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false
+  }));
+  stepTasks={};
+  taskConfig.tasks.forEach(t=>{
+    const enabledSteps=(t.steps||[]).filter(s=>s.enabled!==false).map(s=>({id:s.id, code:s.code, title:s.title}));
+    if(enabledSteps.length) stepTasks[t.id]=enabledSteps;
+  });
+  if(shouldRender && typeof renderAll==="function") renderAll();
+}
+function taskById(taskId){return taskConfig?.tasks?.find(t=>t.id===taskId)||blocks.find(t=>t.id===taskId)}
+function taskCode(taskId){return taskById(taskId)?.code||String(taskId)}
+function taskIdFromCode(code){return taskConfig?.tasks?.find(t=>t.code===code)?.id||null}
+function stepById(taskId,stepId){return (taskConfig?.tasks?.find(t=>t.id===taskId)?.steps||[]).find(s=>s.id===stepId)||(stepTasks[taskId]||[]).find(s=>s.id===stepId)}
+function stepCode(taskId,stepId){return stepById(taskId,stepId)?.code||String(stepId)}
+function stepIdFromCode(taskId,code){return (taskConfig?.tasks?.find(t=>t.id===taskId)?.steps||[]).find(s=>s.code===code)?.id||null}
+applyTaskConfig(buildDefaultConfig(),false);
+const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
 const ROLLOVER_HOUR=4;function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}const realNow=new Date();const operationalNow=getOperationalDate(realNow);const today=operationalNow.getDay();let viewMode="undone";let mobileDay=today;
 function pad(n){return String(n).padStart(2,"0")}
 function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -3163,8 +3434,9 @@ const prevCycleYmd=ymd(prevCycleStart);
 /* === v8.1 GitHub Gist Sync + Soft Lock === */
 const GITHUB_GIST_ID="291d0f9e8d91e2478a490645717efbcf";
 const GITHUB_STATE_FILE="taskring-state.json";
+const LEGACY_GH_PREFIX="taskring_github_v1_";
 const GH_TOKEN_KEY="taskring_gist_token_v1";
-const GH_PREFIX="taskring_github_v1_";
+const GH_PREFIX="taskring_github_v2_";
 let ghSaveTimer=null;
 let ghSaving=false;
 function lockApp(msg="需要 Token 解锁"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg}
@@ -3177,12 +3449,66 @@ function ghHeaders(){const h={"Accept":"application/vnd.github+json","X-GitHub-A
 function collectGhLocalStates(){const states={};Object.keys(localStorage).forEach(k=>{if(k.startsWith(GH_PREFIX)&&localStorage.getItem(k)==="1")states[k]="1"});return states}
 function clearGhLocalStates(){Object.keys(localStorage).forEach(k=>{if(k.startsWith(GH_PREFIX))localStorage.removeItem(k)})}
 function clearGhLocalCycle(cycle=cycleYmd){Object.keys(localStorage).forEach(k=>{if(k.startsWith(`${GH_PREFIX}${cycle}_`))localStorage.removeItem(k)})}
+function migrateLegacyLocalStates(){
+  const legacyKeys=Object.keys(localStorage).filter(k=>k.startsWith(LEGACY_GH_PREFIX)&&localStorage.getItem(k)==="1");
+  let migrated=0;
+  legacyKeys.forEach(k=>{
+    const nk=migrateLegacyKey(k);
+    if(nk&&!localStorage.getItem(nk)){localStorage.setItem(nk,"1");migrated++}
+  });
+  if(migrated)ghLog(`本机旧状态已转为隐私Key：${migrated} 项`);
+}
+
+
 async function ghFetchGist(){const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{headers:ghHeaders(),cache:"no-store"});if(!res.ok)throw new Error(`GET gist failed ${res.status}: ${await res.text()}`);return await res.json()}
-function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:1,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error("taskring-state.json 不是合法 JSON")}}
-async function ghPatchState(data){if(!ghToken())throw new Error("未设置 GitHub Token");const body={files:{[GITHUB_STATE_FILE]:{content:JSON.stringify(data,null,2)}}};const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(),"Content-Type":"application/json"},body:JSON.stringify(body)});if(!res.ok)throw new Error(`PATCH gist failed ${res.status}: ${await res.text()}`);return await res.json()}
-function applyGhStates(states){clearGhLocalStates();Object.keys(states||{}).forEach(k=>{if(states[k]==="1")localStorage.setItem(k,"1")})}
-async function ghPull(){if(!ghToken()){setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。");return}try{setGhStatus("GitHub：读取中","sync");const gist=await ghFetchGist();const state=ghParseState(gist);const remoteCount=Object.keys(state.states||{}).length;const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;if(remoteCount===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}applyGhStates(state.states||{});setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${remoteCount} 项`);unlockApp();renderAll()}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
-async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:1,updatedAt:new Date().toISOString(),states:collectGhLocalStates()};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
+function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:2,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error("taskring-state.json 不是合法 JSON")}}
+function ghParseConfig(gist){const file=gist.files&&gist.files[CONFIG_FILE];if(!file||!file.content)return null;try{return normalizeTaskConfig(JSON.parse(file.content))}catch(e){ghLog("任务配置读取失败，已使用内置默认配置："+e.message);return null}}
+async function ghPatchFiles(files){if(!ghToken())throw new Error("未设置 GitHub Token");const body={files:{}};Object.keys(files).forEach(name=>{body.files[name]={content:files[name]}});const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(),"Content-Type":"application/json"},body:JSON.stringify(body)});if(!res.ok)throw new Error(`PATCH gist failed ${res.status}: ${await res.text()}`);return await res.json()}
+async function ghPatchState(data){return await ghPatchFiles({[GITHUB_STATE_FILE]:JSON.stringify(data,null,2)})}
+async function ghPatchConfig(config){return await ghPatchFiles({[CONFIG_FILE]:JSON.stringify(config,null,2)})}
+function migrateLegacyKey(key){
+  if(!String(key).startsWith(LEGACY_GH_PREFIX))return null;
+  const rest=String(key).slice(LEGACY_GH_PREFIX.length);
+  const cycle=rest.slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(cycle))return null;
+  let body=rest.slice(11);
+  if(!body)return null;
+  if(body.endsWith("_ignored")){
+    body=body.slice(0,-8);
+    const parts=body.split("_");
+    const day=Number(parts.pop());
+    const taskId=parts.join("_");
+    if(![0,1,2,3,4,5,6].includes(day))return null;
+    if(!taskById(taskId))return null;
+    return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_x${day}`;
+  }
+  const parts=body.split("_");
+  const day=Number(parts.pop());
+  if(![0,1,2,3,4,5,6].includes(day))return null;
+  const stepIdx=parts.indexOf("step");
+  if(stepIdx>=0){
+    const taskId=parts.slice(0,stepIdx).join("_");
+    const stepId=parts.slice(stepIdx+1).join("_");
+    if(!taskById(taskId)||!stepById(taskId,stepId))return null;
+    return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_${stepCode(taskId,stepId)}_d${day}`;
+  }
+  const taskId=parts.join("_");
+  if(!taskById(taskId))return null;
+  return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_d${day}`;
+}
+function applyGhStates(states){
+  clearGhLocalStates();
+  let migrated=0, applied=0;
+  Object.keys(states||{}).forEach(k=>{
+    if(states[k]!=="1")return;
+    if(k.startsWith(GH_PREFIX)){localStorage.setItem(k,"1");applied++;return}
+    const nk=migrateLegacyKey(k);
+    if(nk){localStorage.setItem(nk,"1");migrated++;applied++}
+  });
+  return {applied,migrated};
+}
+async function ghPull(){if(!ghToken()){setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。");return}try{setGhStatus("GitHub：读取中","sync");migrateLegacyLocalStates();const gist=await ghFetchGist();const cfg=ghParseConfig(gist);applyTaskConfig(cfg||buildDefaultConfig(),false);const state=ghParseState(gist);const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;const result=applyGhStates(state.states||{});if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}`);unlockApp();renderAll();if(result.migrated>0)setTimeout(()=>ghPush(true),1200)}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
+async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),states:collectGhLocalStates()};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus("GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
 function syncRemoveCycle(cycle=cycleYmd){clearGhLocalCycle(cycle);scheduleGhSave()}
@@ -3190,19 +3516,193 @@ function openGhModal(){const m=document.getElementById("ghModal");if(!m)return;d
 function closeGhModal(){const m=document.getElementById("ghModal");if(!m)return;m.classList.add("hidden");m.setAttribute("aria-hidden","true")}
 function initGithubSyncUI(){document.getElementById("lockUnlockBtn")?.addEventListener("click",openGhModal);document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);document.getElementById("githubStatus")?.addEventListener("click",openGhModal);document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");closeGhModal();ghPull()});document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{if(confirm("确认清除本机保存的 GitHub Token？")){setGhToken("");setGhStatus("GitHub：未设置","off");ghLog("Token 已清除");lockApp("Token 已清除。请输入本机 GitHub Token 解锁。")}});if(ghToken())ghPull();else{setGhStatus("GitHub：未设置","off");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。")}}
 
+
+/* === v8.2 Hidden Task Editor === */
+let editorCounter=0;
+function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
+function openTaskEditor(){renderTaskEditor();document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
+function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
+function cfgEsc(v){return escapeHtml(String(v??""))}
+function makeTaskId(){editorCounter++;return `custom-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(editorCounter).padStart(3,"0")}`}
+function currentEditorCodes(){return [...document.querySelectorAll(".cfgTask")].map(row=>row.dataset.code).filter(Boolean)}
+function makeTaskCode(){return nextCode("t",new Set(currentEditorCodes()))}
+function makeStepCode(existing){return nextCode("s",new Set(existing||[]))}
+function taskEditorRowHtml(t){
+  const stepCodes=(t.steps||[]).map(s=>s.code||"");
+  const stepTitles=(t.steps||[]).filter(s=>s.enabled!==false).map(s=>s.title).join("\n");
+  const dayBoxes=[1,2,3,4,5,6,0].map(d=>`<label><input type="checkbox" class="cfgDay" value="${d}" ${t.days?.includes(d)?"checked":""}>${dayName(d)}</label>`).join("");
+  return `<div class="cfgTask ${t.enabled===false?"disabled":""}" data-id="${cfgEsc(t.id)}" data-code="${cfgEsc(t.code)}" data-stepcodes="${cfgEsc(JSON.stringify(stepCodes))}">
+    <div class="cfgTop">
+      <div><span class="cfgMini">${cfgEsc(t.code||"")}</span><span class="cfgMini">${cfgEsc(t.id||"")}</span></div>
+      <div class="cfgOps">
+        <button data-op="up">上移</button><button data-op="down">下移</button><button data-op="copy">复制</button><button data-op="remove" class="ghDangerBtn">删除</button>
+      </div>
+    </div>
+    <div class="cfgGrid">
+      <div class="cfgField"><label>任务名</label><input class="cfgTitle" value="${cfgEsc(t.title)}"></div>
+      <div class="cfgField"><label>分类</label><select class="cfgCat">
+        <option value="life" ${t.cat==="life"?"selected":""}>生活&经济</option>
+        <option value="gamecreate" ${t.cat==="gamecreate"?"selected":""}>游戏&创作</option>
+        <option value="language" ${t.cat==="language"?"selected":""}>语言&学习</option>
+      </select></div>
+      <div class="cfgField"><label>链接 URL</label><input class="cfgUrl" value="${cfgEsc(t.url||"")}" placeholder="https://..."></div>
+      <div><div class="cfgDaysLabel">执行星期</div><div class="cfgDays">${dayBoxes}</div></div>
+      <div><div class="cfgDaysLabel">标记</div><div class="cfgFlags">
+        <label><input type="checkbox" class="cfgEnabled" ${t.enabled!==false?"checked":""}>启用</label>
+        <label><input type="checkbox" class="cfgCore" ${t.core?"checked":""}>保底</label>
+        <label><input type="checkbox" class="cfgOptional" ${t.optional?"checked":""}>可选</label>
+        <label><input type="checkbox" class="cfgImportant" ${t.important?"checked":""}>重要</label>
+      </div></div>
+      <div class="cfgField"><label>子任务（一行一个）</label><textarea class="cfgSteps" placeholder="APP签到&#10;鸣潮&#10;绝区零">${cfgEsc(stepTitles)}</textarea></div>
+    </div>
+    <details class="cfgAdvanced"><summary>高级：ID / Code（一般不要改）</summary>
+      <div class="cfgAdvancedGrid">
+        <div class="cfgField"><label>任务 ID：改了会影响旧状态</label><input class="cfgId" value="${cfgEsc(t.id)}"></div>
+        <div class="cfgField"><label>隐私 Code：Gist 状态用这个</label><input class="cfgCode" value="${cfgEsc(t.code)}"></div>
+      </div>
+    </details>
+  </div>`
+}
+function renderTaskEditor(){
+  const list=document.getElementById("taskEditorList");
+  if(!list)return;
+  const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
+  list.innerHTML=cfg.tasks.map(taskEditorRowHtml).join("");
+  taskEditorLog(`已加载 ${cfg.tasks.length} 个任务。`)
+}
+function collectEditorConfig(){
+  const rows=[...document.querySelectorAll(".cfgTask")];
+  const usedStepCodesGlobal=new Map();
+  const tasks=rows.map((row,idx)=>{
+    const oldCodes=(()=>{try{return JSON.parse(row.dataset.stepcodes||"[]")}catch(e){return []}})();
+    const rawStepLines=(row.querySelector(".cfgSteps").value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    const stepUsed=new Set();
+    const steps=rawStepLines.map((title,sidx)=>{
+      let code=oldCodes[sidx]||makeStepCode(stepUsed);
+      if(stepUsed.has(code)||!/^s\d{2,}$/.test(code))code=makeStepCode(stepUsed);
+      stepUsed.add(code);
+      return {id:slugifyId(title,`step-${sidx+1}`),code,title,enabled:true}
+    });
+    const days=[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value));
+    return {
+      id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
+      code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
+      cat:row.querySelector(".cfgCat").value,
+      title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
+      days,
+      url:row.querySelector(".cfgUrl").value.trim(),
+      core:row.querySelector(".cfgCore").checked,
+      optional:row.querySelector(".cfgOptional").checked,
+      important:row.querySelector(".cfgImportant").checked,
+      enabled:row.querySelector(".cfgEnabled").checked,
+      steps
+    }
+  });
+  return normalizeTaskConfig({version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks});
+}
+async function saveEditorConfig(){
+  if(!ghToken()){openGhModal();taskEditorLog("请先设置 GitHub Token。");return}
+  try{
+    const cfg=collectEditorConfig();
+    applyTaskConfig(cfg,true);
+    setGhStatus("GitHub：保存配置中","sync");
+    await ghPatchConfig(cfg);
+    setGhStatus("GitHub：已同步","on");
+    taskEditorLog(`配置已保存：${cfg.tasks.length} 个任务。`);
+    ghLog("任务配置已保存到 taskring-config.json");
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：配置保存失败","err");
+    taskEditorLog(String(err.message||err));
+  }
+}
+function addEditorTask(){
+  const list=document.getElementById("taskEditorList");
+  const t={id:makeTaskId(),code:makeTaskCode(),cat:"life",title:"新任务",days:[today],url:"",enabled:true,core:false,optional:false,important:false,steps:[]};
+  list.insertAdjacentHTML("beforeend",taskEditorRowHtml(t));
+  taskEditorLog("已新增任务。")
+}
+function exportEditorConfig(){
+  const cfg=collectEditorConfig();
+  navigator.clipboard?.writeText(JSON.stringify(cfg,null,2)).then(()=>taskEditorLog("配置 JSON 已复制到剪贴板。")).catch(()=>taskEditorLog(JSON.stringify(cfg,null,2)));
+}
+function importEditorConfig(){
+  const raw=prompt("粘贴 taskring-config.json 内容：");
+  if(!raw)return;
+  try{
+    const cfg=normalizeTaskConfig(JSON.parse(raw));
+    taskConfig=cfg;
+    renderTaskEditor();
+    taskEditorLog("导入成功。确认无误后请点「保存配置到 GitHub」。");
+  }catch(err){taskEditorLog("导入失败："+String(err.message||err))}
+}
+async function restoreDefaultEditorConfig(){
+  if(!confirm("确认恢复默认任务配置？这不会清空勾选状态，但会覆盖 taskring-config.json。"))return;
+  const cfg=buildDefaultConfig();
+  taskConfig=cfg;
+  renderTaskEditor();
+  await saveEditorConfig();
+}
+function initTaskEditorUI(){
+  document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
+  document.getElementById("taskEditorCloseBtn")?.addEventListener("click",closeTaskEditor);
+  document.getElementById("addTaskBtn")?.addEventListener("click",addEditorTask);
+  document.getElementById("saveConfigBtn")?.addEventListener("click",saveEditorConfig);
+  document.getElementById("exportConfigBtn")?.addEventListener("click",exportEditorConfig);
+  document.getElementById("importConfigBtn")?.addEventListener("click",importEditorConfig);
+  document.getElementById("restoreDefaultConfigBtn")?.addEventListener("click",restoreDefaultEditorConfig);
+  document.getElementById("taskEditorList")?.addEventListener("click",e=>{
+    const btn=e.target.closest("button[data-op]");
+    if(!btn)return;
+    const row=btn.closest(".cfgTask");
+    if(!row)return;
+    const op=btn.dataset.op;
+    if(op==="up"&&row.previousElementSibling)row.parentNode.insertBefore(row,row.previousElementSibling);
+    if(op==="down"&&row.nextElementSibling)row.parentNode.insertBefore(row.nextElementSibling,row);
+    if(op==="remove"){if(confirm("确认从配置中删除这个任务？更推荐只是取消「启用」。"))row.remove()}
+    if(op==="copy"){
+      const cfg=collectOneEditorRow(row);
+      cfg.id=makeTaskId();cfg.code=makeTaskCode();cfg.title=cfg.title+" copy";
+      row.insertAdjacentHTML("afterend",taskEditorRowHtml(cfg));
+    }
+  });
+}
+function collectOneEditorRow(row){
+  const tmp=[...document.querySelectorAll(".cfgTask")];
+  const idx=tmp.indexOf(row);
+  const oldCodes=(()=>{try{return JSON.parse(row.dataset.stepcodes||"[]")}catch(e){return []}})();
+  const stepLines=(row.querySelector(".cfgSteps").value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const used=new Set();
+  const steps=stepLines.map((title,i)=>{let code=oldCodes[i]||makeStepCode(used);if(used.has(code))code=makeStepCode(used);used.add(code);return{id:slugifyId(title,`step-${i+1}`),code,title,enabled:true}});
+  return {
+    id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
+    code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
+    cat:row.querySelector(".cfgCat").value,
+    title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
+    days:[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value)),
+    url:row.querySelector(".cfgUrl").value.trim(),
+    core:row.querySelector(".cfgCore").checked,
+    optional:row.querySelector(".cfgOptional").checked,
+    important:row.querySelector(".cfgImportant").checked,
+    enabled:row.querySelector(".cfgEnabled").checked,
+    steps
+  }
+}
+
 function weekPos(dayId){return dayId===0?6:dayId-1}
 function sortWeekDays(arr){return [...arr].sort((a,b)=>weekPos(a)-weekPos(b))}
 function lastScheduledDay(t){const s=sortWeekDays(t.days);return s[s.length-1]}
 function isLastScheduled(t,dayId){return dayId===lastScheduledDay(t)}
 function previousScheduledBeforeToday(t){const p=sortWeekDays(t.days).filter(d=>weekPos(d)<weekPos(today));return p.length?p[p.length-1]:null}
-function storageKey(taskId,dayId,cycle=cycleYmd){return `taskring_github_v1_${cycle}_${taskId}_${dayId}`}
-function stepStorageKey(taskId,stepId,dayId,cycle=cycleYmd){return `taskring_github_v1_${cycle}_${taskId}_step_${stepId}_${dayId}`}
+
+function storageKey(taskId,dayId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_d${dayId}`}
+function stepStorageKey(taskId,stepId,dayId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_${stepCode(taskId,stepId)}_d${dayId}`}
 function hasSteps(taskId){return Array.isArray(stepTasks[taskId])&&stepTasks[taskId].length>0}
 function isStepDone(taskId,stepId,dayId,cycle=cycleYmd){return localStorage.getItem(stepStorageKey(taskId,stepId,dayId,cycle))==="1"}
 function setStepDoneRaw(taskId,stepId,dayId,val,cycle=cycleYmd){const k=stepStorageKey(taskId,stepId,dayId,cycle);syncSetItem(k,val)}
 function areAllStepsDone(taskId,dayId,cycle=cycleYmd){if(!hasSteps(taskId))return false;return stepTasks[taskId].every(s=>isStepDone(taskId,s.id,dayId,cycle))}
 function isDone(taskId,dayId,cycle=cycleYmd){return localStorage.getItem(storageKey(taskId,dayId,cycle))==="1"}
-function ignoreStorageKey(taskId,dayId,cycle=cycleYmd){return `taskring_github_v1_${cycle}_${taskId}_${dayId}_ignored`}
+function ignoreStorageKey(taskId,dayId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_x${dayId}`}
 function isIgnoredOccurrence(t,dayId,cycle=cycleYmd){return localStorage.getItem(ignoreStorageKey(t.id,dayId,cycle))==="1"}
 function setIgnoredOccurrence(t,dayId,cycle=cycleYmd,val=true){const k=ignoreStorageKey(t.id,dayId,cycle);syncSetItem(k,val)}
 function isRawExpiredDaily(t,dayId,cycle=cycleYmd){if(cycle!==cycleYmd)return false;if(isDone(t.id,dayId,cycle))return false;if(isIgnoredOccurrence(t,dayId,cycle))return false;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return false;return !isLastScheduled(t,dayId)}
@@ -3227,7 +3727,7 @@ function renderMobileCards(){const box=document.getElementById("mobileCards");co
 function updateProgress(){const occs=todayOccurrences(true);const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;const total=occs.length;const pct=total?Math.round(done/total*100):0;const carry=carryoverOccurrences().length;document.getElementById("progressText").textContent=`今日完成度 ${done}/${total}（${pct}%）${carry?`｜遗留 ${carry} 项`:""}`;document.getElementById("bar").style.width=pct+"%";document.getElementById("modeText").textContent=viewMode==="today"?"今天+遗留模式":viewMode==="undone"?"今日未完成+遗留模式":"全周模式";document.getElementById("showToday").classList.toggle("active",viewMode==="today");document.getElementById("showAll").classList.toggle("active",viewMode==="all");document.getElementById("showUndone").classList.toggle("active",viewMode==="undone")}
 
 function playGlobalEffect(cat){if(!document.body)return;const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;if(reduce)return;const mobile=window.innerWidth<=900;const wrap=document.createElement("div");wrap.className=`globalFX ${cat||""}`;document.body.appendChild(wrap);const n=mobile?18:34;if(cat==="life"){for(let i=0;i<n;i++){const el=document.createElement("span");el.className="fxFlame";el.style.left=`${Math.round((i+0.5)*100/n)}vw`;el.style.setProperty("--rot",`${-10+Math.random()*20}deg`);el.style.animationDelay=`${Math.random()*130}ms`;el.style.transform=`scale(${0.8+Math.random()*0.65})`;wrap.appendChild(el)}const coins=mobile?10:18;const symbols=["¥","$","◆","✦"];for(let i=0;i<coins;i++){const el=document.createElement("span");el.className="fxCoin";el.textContent=symbols[i%symbols.length];el.style.left=`${6+Math.random()*88}vw`;el.style.setProperty("--spin",`${-180+Math.random()*360}deg`);el.style.animationDelay=`${Math.random()*180}ms`;wrap.appendChild(el)}}else if(cat==="gamecreate"){const petals=mobile?18:32;const flowers=["✿","❀","✦","✧","✺"];for(let i=0;i<petals;i++){const el=document.createElement("span");el.className="fxPetal";el.textContent=flowers[i%flowers.length];el.style.left=`${Math.random()*100}vw`;el.style.setProperty("--dx",`${-56+Math.random()*112}px`);el.style.setProperty("--spin",`${-240+Math.random()*480}deg`);el.style.animationDelay=`${Math.random()*180}ms`;el.style.color=i%4===0?"#ff4dd2":i%4===1?"#45dfff":i%4===2?"#9b6dff":"#ffdb4d";wrap.appendChild(el)}const bolts=mobile?8:14;for(let i=0;i<bolts;i++){const el=document.createElement("span");el.className="fxLightning";el.textContent=i%2?"⚡":"✦";el.style.left=`${Math.random()*100}vw`;el.style.setProperty("--dx",`${-70+Math.random()*140}px`);el.style.setProperty("--spin",`${-180+Math.random()*360}deg`);el.style.animationDelay=`${Math.random()*160}ms`;wrap.appendChild(el)}}else if(cat==="language"){for(let i=0;i<n;i++){const el=document.createElement("span");el.className="fxDrop";el.style.left=`${Math.random()*100}vw`;el.style.animationDelay=`${Math.random()*160}ms`;el.style.opacity=`${0.34+Math.random()*0.20}`;wrap.appendChild(el)}const formulas=mobile?8:14;const fs=["∫","Σ","π","√x","E=mc²","lim","φ","dx","∞"];for(let i=0;i<formulas;i++){const el=document.createElement("span");el.className="fxMath";el.textContent=fs[i%fs.length];el.style.left=`${5+Math.random()*90}vw`;el.style.setProperty("--dx",`${-44+Math.random()*88}px`);el.style.animationDelay=`${Math.random()*180}ms`;wrap.appendChild(el)}}setTimeout(()=>wrap.remove(),3200)}
-function playBurst(anchor,cat){if(!anchor||!document.body)return;const rect=anchor.getBoundingClientRect();let x=rect.left+rect.width/2;let y=rect.top+rect.height/2;const marginX=190;const marginY=176;x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));const makeCard=(key,title,sub,tail)=>`<div class="avatarCutin ${key}"><div class="avatarHalo ${key}"></div><div class="avatarPortrait ${key}"></div><div class="avatarSpark s1">✦</div><div class="avatarSpark s2">♥</div><div class="avatarSpark s3">✧</div><div class="avatarText"><span class="line1">${title}</span><span class="line2">${sub}</span><span class="line3">${tail}</span></div></div>`;const configs={life:{cls:"life",title:"LUCY ORDER",sub:"大小姐式推进完成",tail:"beauty / money / life +1",particles:["✦","♥","◆","$","✧"],chibi:makeCard("life","ORDER","大小姐式推进完成","beauty / money / life +1")},gamecreate:{cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"],chibi:makeCard("gamecreate","CHEERS","甜辣应援发动","creative firepower ♡")},language:{cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"],chibi:makeCard("language","INSIGHT","冷感知性同步","language circuit / focus +1")}};const cfg=configs[cat]||configs.life;const burst=document.createElement("div");burst.className=`burstFX ${cfg.cls}`;burst.style.left=x+"px";burst.style.top=y+"px";const particleHtml=cfg.particles.map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");burst.innerHTML=`<div class="burstInner">${cfg.chibi||""}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;document.body.appendChild(burst);setTimeout(()=>burst.remove(),1500)}function renderAll(){renderTable();renderMobileTabs();renderMobileCards();updateProgress()}document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
+function playBurst(anchor,cat){if(!anchor||!document.body)return;const rect=anchor.getBoundingClientRect();let x=rect.left+rect.width/2;let y=rect.top+rect.height/2;const marginX=190;const marginY=176;x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));const makeCard=(key,title,sub,tail)=>`<div class="avatarCutin ${key}"><div class="avatarHalo ${key}"></div><div class="avatarPortrait ${key}"></div><div class="avatarSpark s1">✦</div><div class="avatarSpark s2">♥</div><div class="avatarSpark s3">✧</div><div class="avatarText"><span class="line1">${title}</span><span class="line2">${sub}</span><span class="line3">${tail}</span></div></div>`;const configs={life:{cls:"life",title:"LUCY ORDER",sub:"大小姐式推进完成",tail:"beauty / money / life +1",particles:["✦","♥","◆","$","✧"],chibi:makeCard("life","ORDER","大小姐式推进完成","beauty / money / life +1")},gamecreate:{cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"],chibi:makeCard("gamecreate","CHEERS","甜辣应援发动","creative firepower ♡")},language:{cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"],chibi:makeCard("language","INSIGHT","冷感知性同步","language circuit / focus +1")}};const cfg=configs[cat]||configs.life;const burst=document.createElement("div");burst.className=`burstFX ${cfg.cls}`;burst.style.left=x+"px";burst.style.top=y+"px";const particleHtml=cfg.particles.map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");burst.innerHTML=`<div class="burstInner">${cfg.chibi||""}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;document.body.appendChild(burst);setTimeout(()=>burst.remove(),1500)}function renderAll(){renderTable();renderMobileTabs();renderMobileCards();updateProgress()}document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
 </script>
 </body>
 </html>
