@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v9.0</title>
+<title>任务环｜GitHub云同步任务环 v9.1</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -3460,6 +3460,83 @@ td.taskName .taskFlagBar{
   .refCfgField textarea{min-height:150px}
 }
 
+
+/* =====================================================================
+   v9.1 Reference Item Natural Editor
+   资料库条目改为「标题 / 链接」分栏卡片式编辑，不再使用「标题 | URL」文本格式。
+   ===================================================================== */
+.refItemsBox{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.refItemEdit{
+  display:grid;
+  grid-template-columns:1.05fr 1.65fr auto;
+  gap:8px;
+  align-items:end;
+  padding:9px;
+  border-radius:16px;
+  background:rgba(245,248,255,.78);
+  border:1px solid rgba(126,145,178,.20);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.38);
+}
+.refMiniField label{
+  display:block;
+  margin:0 0 4px;
+  color:#64748b;
+  font-size:11px;
+  font-weight:1000;
+}
+.refMiniField input{
+  width:100%;
+  box-sizing:border-box;
+  border-radius:12px;
+  border:1px solid rgba(126,145,178,.28);
+  background:rgba(255,255,255,.92);
+  color:#17233f;
+  font-weight:850;
+  padding:8px 9px;
+  outline:none;
+}
+.refMiniOps{
+  display:flex;
+  gap:4px;
+  justify-content:flex-end;
+  align-items:center;
+}
+.refMiniOps button{
+  min-width:36px!important;
+  padding:8px 9px!important;
+  border-radius:12px!important;
+}
+.addRefItemBtn{
+  margin-top:8px;
+  align-self:flex-start;
+}
+.refItemsEmpty{
+  padding:10px 12px;
+  border-radius:14px;
+  color:#64748b;
+  font-size:12px;
+  font-weight:850;
+  background:rgba(245,248,255,.72);
+  border:1px dashed rgba(126,145,178,.34);
+}
+@media(max-width:900px){
+  .refItemEdit{
+    grid-template-columns:1fr;
+    gap:7px;
+    padding:10px;
+  }
+  .refMiniOps{
+    justify-content:flex-start;
+  }
+  .refMiniOps button{
+    min-width:38px!important;
+  }
+}
+
 </style>
 </head>
 <body class="locked">
@@ -3476,7 +3553,7 @@ td.taskName .taskFlagBar{
 
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v9.0</span></h1>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v9.1</span></h1>
   <p class="subtitle">GitHub 云同步任务环：任务配置跨设备加密同步 + 隐私化状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
@@ -3488,7 +3565,7 @@ td.taskName .taskFlagBar{
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
 <details class="refBox" id="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid" id="refGrid"></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v9.0.html｜资料库编辑器 + 上次未完成文案；Token仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v9.1.html｜资料库条目编辑优化；Token仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3560,7 +3637,7 @@ td.taskName .taskFlagBar{
       <button id="reloadRefConfigBtn">重载已保存配置</button>
     </div>
     <div class="taskEditorHint">
-      每个条目一行；写法：标题 | URL。没有链接就只写标题。上移/下移支持首尾循环。
+      资料条目改成卡片式编辑：标题和链接分开输入。没有链接就留空。上移/下移支持首尾循环。
     </div>
     <div id="refEditorList" class="refEditorList"></div>
     <pre id="refEditorLog" class="ghLog">等待编辑。</pre>
@@ -4207,15 +4284,36 @@ function makeRefGroupId(){refEditorCounter++;return `ref-group-${new Date().toIS
 function makeRefItemId(title,idx){return slugifyId(title,`ref-item-${idx+1}`)}
 function openRefEditor(){renderRefEditor();document.getElementById("refEditorModal")?.classList.remove("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","false")}
 function closeRefEditor(){document.getElementById("refEditorModal")?.classList.add("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","true")}
-function refLinesFromItems(items){
-  return (items||[]).filter(i=>i.enabled!==false).map(i=>i.url?`${i.title} | ${i.url}`:i.title).join("\n");
+
+function refItemEditHtml(item,idx=0){
+  return `<div class="refItemEdit" data-id="${cfgEsc(item.id||makeRefItemId(item.title,idx))}">
+    <div class="refMiniField">
+      <label>标题</label>
+      <input class="refItemTitleInput" value="${cfgEsc(item.title||"")}" placeholder="例如：生活雑務管理">
+    </div>
+    <div class="refMiniField">
+      <label>链接</label>
+      <input class="refItemUrlInput" value="${cfgEsc(item.url||"")}" placeholder="https://...（没有就留空）">
+    </div>
+    <div class="refMiniOps">
+      <button data-refitemop="up" title="上移">↑</button>
+      <button data-refitemop="down" title="下移">↓</button>
+      <button data-refitemop="remove" class="ghDangerBtn" title="删除">删</button>
+    </div>
+  </div>`;
 }
-function parseRefLines(raw){
-  return String(raw||"").split(/\n+/).map(s=>s.trim()).filter(Boolean).map((line,idx)=>{
-    const parts=line.split("|");
-    const title=(parts.shift()||`资料 ${idx+1}`).trim();
-    const url=parts.join("|").trim();
-    return {id:makeRefItemId(title,idx),title,url,enabled:true};
+function refItemsEditorHtml(items){
+  const enabled=(items||[]).filter(i=>i.enabled!==false);
+  const rows=enabled.map((item,idx)=>refItemEditHtml(item,idx)).join("");
+  return `<div class="refItemsBox">${rows||`<div class="refItemsEmpty">暂无条目，点下面「新增资料」添加。</div>`}</div>
+    <button type="button" class="addRefItemBtn" data-refitemop="add">新增资料</button>`;
+}
+function collectRefItemsFromGroup(row){
+  const itemRows=[...row.querySelectorAll(".refItemEdit")];
+  return itemRows.map((ir,idx)=>{
+    const title=ir.querySelector(".refItemTitleInput")?.value.trim()||`资料 ${idx+1}`;
+    const url=ir.querySelector(".refItemUrlInput")?.value.trim()||"";
+    return {id:ir.dataset.id||makeRefItemId(title,idx),title,url,enabled:true};
   });
 }
 function refEditorGroupHtml(g){
@@ -4234,7 +4332,7 @@ function refEditorGroupHtml(g){
           <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
         </details>
       </div>
-      <div class="refCfgField"><label>资料条目（一行一个：标题 | URL）</label><textarea class="refItems">${cfgEsc(refLinesFromItems(g.items))}</textarea><div class="refEditHint">没有 URL 的条目会显示为普通文字；带 URL 的条目会显示为链接按钮。</div></div>
+      <div class="refCfgField"><label>资料条目</label>${refItemsEditorHtml(g.items)}<div class="refEditHint">标题和链接分开填；没有 URL 的条目会显示为普通文字，带 URL 的会显示为链接按钮。</div></div>
     </div>
   </div>`;
 }
@@ -4251,7 +4349,7 @@ function collectRefEditorConfig(){
     id:row.querySelector(".refGroupId").value.trim()||row.dataset.id||makeRefGroupId(),
     title:row.querySelector(".refGroupTitle").value.trim()||`资料分组 ${idx+1}`,
     enabled:row.querySelector(".refGroupEnabled").checked,
-    items:parseRefLines(row.querySelector(".refItems").value)
+    items:collectRefItemsFromGroup(row)
   })));
 }
 async function saveRefConfig(){
@@ -4323,6 +4421,43 @@ function initRefEditorUI(){
   document.getElementById("importRefConfigBtn")?.addEventListener("click",importRefConfig);
   document.getElementById("reloadRefConfigBtn")?.addEventListener("click",reloadRefConfig);
   document.getElementById("refEditorList")?.addEventListener("click",e=>{
+    const itemBtn=e.target.closest("button[data-refitemop]");
+    if(itemBtn){
+      const group=itemBtn.closest(".refCfgGroup");
+      const box=group?.querySelector(".refItemsBox");
+      const itemRow=itemBtn.closest(".refItemEdit");
+      const op=itemBtn.dataset.refitemop;
+      if(op==="add"){
+        box?.querySelector(".refItemsEmpty")?.remove();
+        const title="新资料";
+        box?.insertAdjacentHTML("beforeend",refItemEditHtml({id:makeRefItemId(title,Date.now()),title,url:""},999));
+        const nr=box?.lastElementChild;
+        nr?.classList.add("newFocus");
+        nr?.scrollIntoView({behavior:"smooth",block:"center"});
+        setTimeout(()=>nr?.querySelector(".refItemTitleInput")?.focus(),220);
+        refEditorLog("已新增资料条目。");
+        showToast("已新增资料条目","ok");
+      }
+      if(op==="remove"&&itemRow){
+        itemRow.remove();
+        if(box && !box.querySelector(".refItemEdit"))box.innerHTML=`<div class="refItemsEmpty">暂无条目，点下面「新增资料」添加。</div>`;
+        refEditorLog("资料条目已删除，保存后生效。");
+        showToast("已删除资料条目，保存后生效","warn");
+      }
+      if(op==="up"&&itemRow){
+        const prev=itemRow.previousElementSibling;
+        if(prev&&prev.classList.contains("refItemEdit"))box.insertBefore(itemRow,prev);
+        else box.appendChild(itemRow);
+        showToast("资料条目已上移","ok",1200);
+      }
+      if(op==="down"&&itemRow){
+        const next=itemRow.nextElementSibling;
+        if(next&&next.classList.contains("refItemEdit"))box.insertBefore(next,itemRow);
+        else box.insertBefore(itemRow,box.querySelector(".refItemEdit"));
+        showToast("资料条目已下移","ok",1200);
+      }
+      return;
+    }
     const btn=e.target.closest("button[data-refop]");
     if(!btn)return;
     const row=btn.closest(".refCfgGroup");
@@ -4349,7 +4484,7 @@ function collectOneRefGroup(row){
     id:row.querySelector(".refGroupId").value.trim()||row.dataset.id||makeRefGroupId(),
     title:row.querySelector(".refGroupTitle").value.trim()||"资料分组",
     enabled:row.querySelector(".refGroupEnabled").checked,
-    items:parseRefLines(row.querySelector(".refItems").value)
+    items:collectRefItemsFromGroup(row)
   };
 }
 
