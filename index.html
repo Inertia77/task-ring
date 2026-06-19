@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>任务环｜GitHub云同步任务环 v8.9</title>
+<title>任务环｜GitHub云同步任务环 v9.0</title>
 <style>
 :root{
   --bg1:#fffaf5;
@@ -3352,6 +3352,114 @@ td.taskName .taskFlagBar{
   font-size:10.5px;
 }
 
+
+/* =====================================================================
+   v9.0 Reference Library Editor
+   资料库也进入可编辑配置；不进入任务环，不计入完成度。
+   ===================================================================== */
+.refEditorModal{
+  position:fixed;
+  inset:0;
+  z-index:100001;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(12,18,36,.40);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.refEditorModal.hidden{display:none}
+.refEditorCard{
+  width:min(980px,calc(100vw - 24px));
+  max-height:calc(100vh - 28px);
+  overflow:auto;
+  border-radius:28px;
+  padding:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,245,255,.90));
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 30px 90px rgba(18,28,58,.32), inset 0 0 0 1px rgba(255,255,255,.48);
+}
+.refEditorList{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:12px;
+}
+.refCfgGroup{
+  border-radius:20px;
+  padding:12px;
+  background:rgba(255,255,255,.76);
+  border:1px solid rgba(126,145,178,.22);
+  box-shadow:0 10px 26px rgba(31,45,90,.08), inset 0 0 0 1px rgba(255,255,255,.42);
+}
+.refCfgGroup.disabled{opacity:.58;filter:grayscale(.15)}
+.refCfgGrid{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:10px;
+  margin-top:10px;
+}
+.refCfgField label{
+  display:block;
+  margin:0 0 5px;
+  color:#334155;
+  font-size:12px;
+  font-weight:1000;
+}
+.refCfgField input,.refCfgField textarea{
+  width:100%;
+  box-sizing:border-box;
+  border-radius:12px;
+  border:1px solid rgba(126,145,178,.32);
+  background:rgba(255,255,255,.88);
+  color:#17233f;
+  font-weight:850;
+  padding:9px 10px;
+  outline:none;
+}
+.refCfgField textarea{
+  min-height:120px;
+  resize:vertical;
+  line-height:1.5;
+}
+.refCfgFlags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+.refCfgFlags label{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 9px;
+  border-radius:999px;
+  background:rgba(245,248,255,.90);
+  border:1px solid rgba(255,255,255,.75);
+  font-size:12px;
+  font-weight:1000;
+}
+.refEditHint{
+  color:#64748b;
+  font-size:12px;
+  font-weight:850;
+  margin-top:7px;
+  line-height:1.45;
+}
+.refBox .refGrid:empty::before{
+  content:"资料库为空。可在 GitHub同步 → 资料库编辑器 中新增。";
+  display:block;
+  color:#64748b;
+  font-weight:850;
+  padding:14px;
+}
+@media(max-width:900px){
+  .refEditorCard{border-radius:22px;padding:14px}
+  .refCfgGrid{grid-template-columns:1fr}
+  .refCfgField textarea{min-height:150px}
+}
+
 </style>
 </head>
 <body class="locked">
@@ -3368,7 +3476,7 @@ td.taskName .taskFlagBar{
 
 <div class="wrap">
 <header>
-  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v8.9</span></h1>
+  <h1><span class="titleGlow">任務環｜GITHUB CLOUD QUEST v9.0</span></h1>
   <p class="subtitle">GitHub 云同步任务环：任务配置跨设备加密同步 + 隐私化状态。Token 只保存在本机；未解锁时不显示任务模板。</p>
   <div class="toolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
@@ -3378,9 +3486,9 @@ td.taskName .taskFlagBar{
 <section class="mobileBox"><div class="dayTabs" id="dayTabs"></div><div class="mobileCards" id="mobileCards"></div></section>
 <section class="dailyReminder"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">每日固定提醒：确认 Google Calendar & Microsoft To-Do</div><div class="dailyText">这不是勾选任务，而是开工前/收工前的“雷达扫描”。每天看一眼：硬日程、截止、约会、工作安排。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">打开 Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">打开 Microsoft To-Do</a></div></section>
 <div class="notice"><strong>本版：</strong>按你最新周表重排任务。主环只保留需要勾选推进的项目；不定期 / 月度 / 年度 / 辅助入口放到底部资料库。</div>
-<details class="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid"><div class="refGroup"><h3>不定期执行</h3><div class="refItem">♨ 温泉</div><div class="refItem">Massage</div><div class="refItem"><a class="refLink" href="https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e" target="_blank" rel="noopener noreferrer">Femme&Sex</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841" target="_blank" rel="noopener noreferrer">INERTIA【1】整理</a></div><div class="refItem"><a class="refLink" href="https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436" target="_blank" rel="noopener noreferrer">Analyze_Party</a></div><div class="refItem"><a class="refLink" href="https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d" target="_blank" rel="noopener noreferrer">人生规划谈话（ChatGPT）</a></div></div><div class="refGroup"><h3>MOIS / 月度</h3><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90" target="_blank" rel="noopener noreferrer">生活雑務管理</a></div><div class="refItem"><a class="refLink" href="https://www.notion.so/3335adb3775e80338306dc606f9f2d1f" target="_blank" rel="noopener noreferrer">経済雑務管理</a></div></div><div class="refGroup"><h3>AN / 年度</h3><div class="refItem">年度任务入口：暂未设置链接</div></div><div class="refGroup"><h3>辅助入口</h3><div class="refItem"><a class="refLink" href="https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx" target="_blank" rel="noopener noreferrer">任务环HTML（辅助用）</a></div></div></div></details>
+<details class="refBox" id="refBox"><summary>📚 资料库 / 不进入任务环的项目（点开查询）</summary><div class="refGrid" id="refGrid"></div></details>
 <div class="summaryGrid"><div class="card"><h2>今日保底</h2><ul><li>*体食顔姿*：身体、饮食、脸、姿态是地基</li><li>游戏日常：官方 APP 签到 + 日常活跃度</li><li>Calendar / To-Do：只看一眼，不打勾</li></ul></div><div class="card"><h2>普通推进</h2><ul><li>クリエイターワーク和 La Langue Française 是长期主线</li><li>游戏周常按星期走，不要每天全开</li><li>学习副线按表轮转，不抢法语主线</li></ul></div><div class="card"><h2>过载砍法</h2><ul><li>先砍可选：生活雑務、Task(G/U)、IT&技术、数学&自然科学</li><li>创作只做 15 分钟也算不断线</li><li>别拿睡眠和恢复去填坑，军粮比冲锋更重要</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v8.9.html｜手机端任务标记显示修正；Token仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版_v9.0.html｜资料库编辑器 + 上次未完成文案；Token仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -3403,7 +3511,7 @@ td.taskName .taskFlagBar{
       <button id="ghSaveTokenBtn">保存 Token 并同步</button>
       <button id="ghPullBtn">从云端读取</button>
       <button id="ghPushBtn">上传本机状态</button>
-      <button id="taskEditorBtn">任务编辑器</button><button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
+      <button id="taskEditorBtn">任务编辑器</button><button id="refEditorBtn">资料库编辑器</button><button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
     </div>
     <pre id="ghLog" class="ghLog">等待设置。</pre>
   </div>
@@ -3431,6 +3539,31 @@ td.taskName .taskFlagBar{
     </div>
     <div id="taskEditorList" class="taskEditorList"></div>
     <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>
+  </div>
+</div>
+
+
+<div id="refEditorModal" class="refEditorModal hidden" aria-hidden="true">
+  <div class="refEditorCard">
+    <div class="taskEditorHead">
+      <div>
+        <div class="taskEditorTitle">隐藏资料库编辑器</div>
+        <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起加密写入 Gist 并跨设备同步。</div>
+      </div>
+      <button id="refEditorCloseBtn" class="ghCloseBtn">×</button>
+    </div>
+    <div class="taskEditorToolbar">
+      <button id="addRefGroupBtn">新增分组</button>
+      <button id="saveRefConfigBtn">保存资料库并同步</button>
+      <button id="exportRefConfigBtn">导出资料库 JSON</button>
+      <button id="importRefConfigBtn">导入资料库 JSON</button>
+      <button id="reloadRefConfigBtn">重载已保存配置</button>
+    </div>
+    <div class="taskEditorHint">
+      每个条目一行；写法：标题 | URL。没有链接就只写标题。上移/下移支持首尾循环。
+    </div>
+    <div id="refEditorList" class="refEditorList"></div>
+    <pre id="refEditorLog" class="ghLog">等待编辑。</pre>
   </div>
 </div>
 
@@ -3465,6 +3598,7 @@ const defaultStepTasks={"base-body":[{id:"sport",title:"体育"},{id:"skincare",
 let taskConfig=null;
 let blocks=[];
 let stepTasks={};
+let refGroups=[];
 const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
 
@@ -3483,6 +3617,55 @@ function slugifyId(s, fallback="custom"){
   const ascii=raw.replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,42);
   return ascii||`${fallback}-${Date.now().toString(36)}`;
 }
+
+const defaultRefGroups=[
+  {id:"irregular",title:"不定期执行",enabled:true,items:[
+    {id:"onsen",title:"♨ 温泉",url:"",enabled:true},
+    {id:"massage",title:"Massage",url:"",enabled:true},
+    {id:"femme-sex",title:"Femme&Sex",url:"https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e",enabled:true},
+    {id:"inertia-1",title:"INERTIA【1】整理",url:"https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841",enabled:true},
+    {id:"analyze-party",title:"Analyze_Party",url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436",enabled:true},
+    {id:"life-plan-chatgpt",title:"人生规划谈话（ChatGPT）",url:"https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d",enabled:true}
+  ]},
+  {id:"monthly",title:"MOIS / 月度",enabled:true,items:[
+    {id:"life-admin",title:"生活雑務管理",url:"https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90",enabled:true},
+    {id:"econ-admin",title:"経済雑務管理",url:"https://www.notion.so/3335adb3775e80338306dc606f9f2d1f",enabled:true}
+  ]},
+  {id:"yearly",title:"AN / 年度",enabled:true,items:[
+    {id:"yearly-placeholder",title:"年度任务入口：暂未设置链接",url:"",enabled:true}
+  ]},
+  {id:"aux",title:"辅助入口",enabled:true,items:[
+    {id:"taskring-html",title:"任务环HTML（辅助用）",url:"https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx",enabled:true}
+  ]}
+];
+function normalizeRefGroups(groups){
+  const src=Array.isArray(groups)?groups:defaultRefGroups;
+  const usedGroupIds=new Set();
+  return src.map((raw,idx)=>{
+    const title=String(raw.title||`资料分组 ${idx+1}`).trim()||`资料分组 ${idx+1}`;
+    let id=String(raw.id||slugifyId(title,"ref-group")).trim();
+    if(usedGroupIds.has(id)){
+      let base=id,n=2;
+      while(usedGroupIds.has(`${base}-${n}`))n++;
+      id=`${base}-${n}`;
+    }
+    usedGroupIds.add(id);
+    const usedItemIds=new Set();
+    const items=(Array.isArray(raw.items)?raw.items:[]).map((it,iidx)=>{
+      const itTitle=String(it.title||`资料 ${iidx+1}`).trim()||`资料 ${iidx+1}`;
+      let iid=String(it.id||slugifyId(itTitle,"ref-item")).trim();
+      if(usedItemIds.has(iid)){
+        let base=iid,n=2;
+        while(usedItemIds.has(`${base}-${n}`))n++;
+        iid=`${base}-${n}`;
+      }
+      usedItemIds.add(iid);
+      return {id:iid,title:itTitle,url:String(it.url||"").trim(),enabled:it.enabled!==false};
+    });
+    return {id,title,enabled:raw.enabled!==false,items};
+  });
+}
+
 function buildDefaultConfig(){
   const usedTaskCodes=new Set();
   const tasks=defaultBlocks.map((t,idx)=>{
@@ -3508,7 +3691,7 @@ function buildDefaultConfig(){
       steps
     }
   });
-  return {version:2, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks};
+  return {version:2, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks, refs:deepClone(defaultRefGroups)};
 }
 function normalizeTaskConfig(config){
   const fallback=buildDefaultConfig();
@@ -3558,10 +3741,11 @@ function normalizeTaskConfig(config){
       steps
     };
   });
-  return {version:2, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks};
+  return {version:2, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, refs:normalizeRefGroups(src.refs||fallback.refs)};
 }
 function applyTaskConfig(config, shouldRender=false){
   taskConfig=normalizeTaskConfig(config);
+  refGroups=taskConfig.refs||normalizeRefGroups(defaultRefGroups);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
     id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
     core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false
@@ -3876,7 +4060,7 @@ function collectEditorConfig(){
       steps
     }
   });
-  return normalizeTaskConfig({version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks});
+  return normalizeTaskConfig({version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups});
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
@@ -4015,6 +4199,160 @@ function collectOneEditorRow(row){
   }
 }
 
+
+/* === v9.0 Reference Library Editor === */
+let refEditorCounter=0;
+function refEditorLog(msg){const el=document.getElementById("refEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
+function makeRefGroupId(){refEditorCounter++;return `ref-group-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(refEditorCounter).padStart(3,"0")}`}
+function makeRefItemId(title,idx){return slugifyId(title,`ref-item-${idx+1}`)}
+function openRefEditor(){renderRefEditor();document.getElementById("refEditorModal")?.classList.remove("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","false")}
+function closeRefEditor(){document.getElementById("refEditorModal")?.classList.add("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","true")}
+function refLinesFromItems(items){
+  return (items||[]).filter(i=>i.enabled!==false).map(i=>i.url?`${i.title} | ${i.url}`:i.title).join("\n");
+}
+function parseRefLines(raw){
+  return String(raw||"").split(/\n+/).map(s=>s.trim()).filter(Boolean).map((line,idx)=>{
+    const parts=line.split("|");
+    const title=(parts.shift()||`资料 ${idx+1}`).trim();
+    const url=parts.join("|").trim();
+    return {id:makeRefItemId(title,idx),title,url,enabled:true};
+  });
+}
+function refEditorGroupHtml(g){
+  return `<div class="refCfgGroup ${g.enabled===false?"disabled":""}" data-id="${cfgEsc(g.id)}">
+    <div class="cfgTop">
+      <div><span class="cfgMini">${cfgEsc(g.id||"")}</span></div>
+      <div class="cfgOps">
+        <button data-refop="up">上移</button><button data-refop="down">下移</button><button data-refop="copy">复制</button><button data-refop="remove" class="ghDangerBtn">删除</button>
+      </div>
+    </div>
+    <div class="refCfgGrid">
+      <div>
+        <div class="refCfgField"><label>分组名</label><input class="refGroupTitle" value="${cfgEsc(g.title)}"></div>
+        <div class="refCfgFlags"><label><input type="checkbox" class="refGroupEnabled" ${g.enabled!==false?"checked":""}>启用</label></div>
+        <details class="cfgAdvanced"><summary>高级：ID（一般不要改）</summary>
+          <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
+        </details>
+      </div>
+      <div class="refCfgField"><label>资料条目（一行一个：标题 | URL）</label><textarea class="refItems">${cfgEsc(refLinesFromItems(g.items))}</textarea><div class="refEditHint">没有 URL 的条目会显示为普通文字；带 URL 的条目会显示为链接按钮。</div></div>
+    </div>
+  </div>`;
+}
+function renderRefEditor(){
+  const list=document.getElementById("refEditorList");
+  if(!list)return;
+  const groups=normalizeRefGroups(refGroups&&refGroups.length?refGroups:defaultRefGroups);
+  list.innerHTML=groups.map(refEditorGroupHtml).join("");
+  refEditorLog(`已加载 ${groups.length} 个资料分组。`);
+}
+function collectRefEditorConfig(){
+  const rows=[...document.querySelectorAll(".refCfgGroup")];
+  return normalizeRefGroups(rows.map((row,idx)=>({
+    id:row.querySelector(".refGroupId").value.trim()||row.dataset.id||makeRefGroupId(),
+    title:row.querySelector(".refGroupTitle").value.trim()||`资料分组 ${idx+1}`,
+    enabled:row.querySelector(".refGroupEnabled").checked,
+    items:parseRefLines(row.querySelector(".refItems").value)
+  })));
+}
+async function saveRefConfig(){
+  const btn=document.getElementById("saveRefConfigBtn");
+  if(!ghToken()){openGhModal();refEditorLog("请先设置 GitHub Token。");showToast("请先设置 GitHub Token","warn");return}
+  try{
+    setBtnBusy(btn,true,"同步中…");
+    showToast("资料库加密同步中…","warn",1500);
+    const refs=collectRefEditorConfig();
+    const base=normalizeTaskConfig(taskConfig||buildDefaultConfig());
+    const cfg=normalizeTaskConfig({...base,refs,updatedAt:new Date().toISOString()});
+    saveLocalTaskConfig(cfg);
+    applyTaskConfig(cfg,true);
+    setGhStatus("GitHub：保存配置中","sync");
+    await ghPatchConfig(cfg);
+    setGhStatus("GitHub：已同步","on");
+    refEditorLog(`资料库已加密同步：${refs.length} 个分组。`);
+    ghLog("资料库配置已合并进 taskring-config.json 并加密同步");
+    showToast("资料库已加密同步到 GitHub","ok");
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：配置保存失败","err");
+    refEditorLog(String(err.message||err));
+    showToast("资料库保存失败，请看日志","err",3000);
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
+function addRefGroup(){
+  const list=document.getElementById("refEditorList");
+  const g={id:makeRefGroupId(),title:"新资料分组",enabled:true,items:[{id:"new-item",title:"新资料",url:"",enabled:true}]};
+  list.insertAdjacentHTML("afterbegin",refEditorGroupHtml(g));
+  const row=list.firstElementChild;
+  row?.classList.add("newFocus");
+  row?.scrollIntoView({behavior:"smooth",block:"center"});
+  setTimeout(()=>row?.querySelector(".refGroupTitle")?.focus(),260);
+  refEditorLog("已新增资料分组，并跳转到编辑位置。");
+  showToast("已新增资料分组","ok");
+}
+function exportRefConfig(){
+  const refs=collectRefEditorConfig();
+  navigator.clipboard?.writeText(JSON.stringify({version:1,refs},null,2)).then(()=>{refEditorLog("资料库 JSON 已复制到剪贴板。");showToast("资料库 JSON 已复制","ok")}).catch(()=>{refEditorLog(JSON.stringify({version:1,refs},null,2));showToast("复制失败，已输出到日志","warn")});
+}
+function importRefConfig(){
+  const raw=prompt("粘贴资料库 JSON 内容：可为 {refs:[...]} 或直接数组：");
+  if(!raw)return;
+  try{
+    const obj=JSON.parse(raw);
+    refGroups=normalizeRefGroups(Array.isArray(obj)?obj:obj.refs);
+    renderRefEditor();
+    refEditorLog("资料库导入成功。确认无误后请点「保存资料库并同步」。");
+    showToast("资料库导入成功，记得保存","ok");
+  }catch(err){
+    refEditorLog("导入失败："+String(err.message||err));
+    showToast("资料库导入失败","err");
+  }
+}
+async function reloadRefConfig(){
+  if(!confirm("确认放弃当前资料库编辑器里尚未保存的修改，并重新载入已保存配置？"))return;
+  await reloadSavedEditorConfig();
+  renderRefEditor();
+}
+function initRefEditorUI(){
+  document.getElementById("refEditorBtn")?.addEventListener("click",()=>{closeGhModal();openRefEditor()});
+  document.getElementById("refEditorCloseBtn")?.addEventListener("click",closeRefEditor);
+  document.getElementById("addRefGroupBtn")?.addEventListener("click",addRefGroup);
+  document.getElementById("saveRefConfigBtn")?.addEventListener("click",saveRefConfig);
+  document.getElementById("exportRefConfigBtn")?.addEventListener("click",exportRefConfig);
+  document.getElementById("importRefConfigBtn")?.addEventListener("click",importRefConfig);
+  document.getElementById("reloadRefConfigBtn")?.addEventListener("click",reloadRefConfig);
+  document.getElementById("refEditorList")?.addEventListener("click",e=>{
+    const btn=e.target.closest("button[data-refop]");
+    if(!btn)return;
+    const row=btn.closest(".refCfgGroup");
+    if(!row)return;
+    const op=btn.dataset.refop;
+    if(op==="up"){if(row.previousElementSibling){row.parentNode.insertBefore(row,row.previousElementSibling);showToast("已上移","ok",1200)}else{row.parentNode.appendChild(row);showToast("已移动到最下面","ok",1200)}}
+    if(op==="down"){if(row.nextElementSibling){row.parentNode.insertBefore(row.nextElementSibling,row);showToast("已下移","ok",1200)}else{row.parentNode.insertBefore(row,row.parentNode.firstElementChild);showToast("已移动到最上面","ok",1200)}}
+    if(op==="remove"){if(confirm("确认删除这个资料分组？保存后生效。")){row.remove();refEditorLog("资料分组已从编辑器移除，保存后生效。");showToast("已移除，保存后生效","warn")}}
+    if(op==="copy"){
+      const cfg=collectOneRefGroup(row);
+      cfg.id=makeRefGroupId();
+      cfg.title=cfg.title+" copy";
+      row.insertAdjacentHTML("afterend",refEditorGroupHtml(cfg));
+      const nr=row.nextElementSibling;
+      nr?.classList.add("newFocus");
+      nr?.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(()=>nr?.querySelector(".refGroupTitle")?.focus(),260);
+      showToast("已复制资料分组","ok");
+    }
+  });
+}
+function collectOneRefGroup(row){
+  return {
+    id:row.querySelector(".refGroupId").value.trim()||row.dataset.id||makeRefGroupId(),
+    title:row.querySelector(".refGroupTitle").value.trim()||"资料分组",
+    enabled:row.querySelector(".refGroupEnabled").checked,
+    items:parseRefLines(row.querySelector(".refItems").value)
+  };
+}
+
 function weekPos(dayId){return dayId===0?6:dayId-1}
 function sortWeekDays(arr){return [...arr].sort((a,b)=>weekPos(a)-weekPos(b))}
 function lastScheduledDay(t){const s=sortWeekDays(t.days);return s[s.length-1]}
@@ -4036,15 +4374,31 @@ function isFailedOccurrence(t,dayId,cycle=cycleYmd){return isRawExpiredDaily(t,d
 function isOverdueOccurrence(t,dayId,cycle=cycleYmd){if(isIgnoredOccurrence(t,dayId,cycle))return false;if(isDone(t.id,dayId,cycle))return false;if(cycle!==cycleYmd)return true;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return true;return isLastScheduled(t,dayId)}
 function isWarnOccurrence(t,dayId,cycle=cycleYmd){if(cycle!==cycleYmd||dayId!==today||!t.days.includes(today))return false;const prev=previousScheduledBeforeToday(t);if(prev==null)return false;return !isIgnoredOccurrence(t,prev,cycleYmd)&&!isDone(t.id,prev,cycleYmd)&&isFailedOccurrence(t,prev,cycleYmd)}
 function occurrenceState(t,dayId,cycle=cycleYmd){return{done:isDone(t.id,dayId,cycle),ignored:isIgnoredOccurrence(t,dayId,cycle),failed:isFailedOccurrence(t,dayId,cycle),overdue:isOverdueOccurrence(t,dayId,cycle),warn:isWarnOccurrence(t,dayId,cycle),prev:cycle!==cycleYmd}}
-function statusBadges(st){let out="";if(st.ignored)out+=`<span class="statusBadge ignored">已忽略</span>`;if(st.prev)out+=`<span class="statusBadge prev">上周遗留</span>`;if(st.overdue)out+=`<span class="statusBadge overdue">延后处理</span>`;if(st.failed)out+=`<span class="statusBadge failed">未完成×锁定</span>`;if(st.warn)out+=`<span class="statusBadge warn">昨日未完成</span>`;return out}
-function occurrenceMeta(t,dayId,cycle=cycleYmd){const st=occurrenceState(t,dayId,cycle);if(st.warn)return `<span class='missNote'>昨日未完成，今天注意补节奏</span>`;if(st.failed||st.overdue||st.prev||st.ignored){const originText=st.prev?`上周${dayName(dayId)}`:dayName(dayId);const action=st.failed?"已自动打差，无法补签":st.overdue?"可延后完成":st.ignored?"已忽略":"上周遗留";return `<span class="originDay">原定：${originText}</span>｜<span class='missNote'>${action}</span>`}return ""}
+function statusBadges(st){let out="";if(st.ignored)out+=`<span class="statusBadge ignored">已忽略</span>`;if(st.prev)out+=`<span class="statusBadge prev">上周遗留</span>`;if(st.overdue)out+=`<span class="statusBadge overdue">延后处理</span>`;if(st.failed)out+=`<span class="statusBadge failed">未完成×锁定</span>`;if(st.warn)out+=`<span class="statusBadge warn">上次未完成</span>`;return out}
+function occurrenceMeta(t,dayId,cycle=cycleYmd){const st=occurrenceState(t,dayId,cycle);if(st.warn)return `<span class='missNote'>上次未完成，今天注意补节奏</span>`;if(st.failed||st.overdue||st.prev||st.ignored){const originText=st.prev?`上周${dayName(dayId)}`:dayName(dayId);const action=st.failed?"已自动打差，无法补签":st.overdue?"可延后完成":st.ignored?"已忽略":"上周遗留";return `<span class="originDay">原定：${originText}</span>｜<span class='missNote'>${action}</span>`}return ""}
 function collectCarryoverToCheckOccurrences(){return carryoverOccurrences().filter(o=>{const st=occurrenceState(o.t,o.dayId,o.cycle);return st.overdue&&!st.done&&!st.failed&&!st.ignored})}
 function completeCarryoverTasks(){const targets=collectCarryoverToCheckOccurrences();if(!targets.length){alert("现在没有跑到今天的过期遗留任务。");return}const names=targets.slice(0,8).map(o=>`・${o.t.title}（原定：${o.prev?"上周":""}${dayName(o.dayId)}）`).join("\n");const more=targets.length>8?`\n……等 ${targets.length} 项`:"";const msg=`危险动作：将一键勾掉 ${targets.length} 个「延后到今天的过期任务」。\n\n这只会处理：单次任务 / 多次任务的最后一次 / 上周日遗留。\n不会处理「未完成×锁定」的无法补签任务。\n\n${names}${more}\n\n确认执行？`;if(!confirm(msg))return;targets.forEach(o=>{syncSetItem(storageKey(o.t.id,o.dayId,o.cycle),true);if(hasSteps(o.t.id)){stepTasks[o.t.id].forEach(s=>setStepDoneRaw(o.t.id,s.id,o.dayId,true,o.cycle))}});renderAll()}
 function setDone(taskId,dayId,val,sourceEl=null,syncSteps=true,cycle=cycleYmd){const task=blocks.find(t=>t.id===taskId);if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();return}const k=storageKey(taskId,dayId,cycle);syncSetItem(k,val);if(syncSteps&&hasSteps(taskId)){stepTasks[taskId].forEach(s=>setStepDoneRaw(taskId,s.id,dayId,val,cycle))}if(val&&sourceEl){playBurst(sourceEl,task?task.cat:"");playGlobalEffect(task?task.cat:"")}renderAll()}
 function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){const task=blocks.find(t=>t.id===taskId);if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();return}setStepDoneRaw(taskId,stepId,dayId,val,cycle);const allDone=areAllStepsDone(taskId,dayId,cycle);const parentWasDone=isDone(taskId,dayId,cycle);const k=storageKey(taskId,dayId,cycle);syncSetItem(k,allDone);if(allDone&&!parentWasDone&&sourceEl){playBurst(sourceEl,task?task.cat:"");playGlobalEffect(task?task.cat:"")}else if(val&&sourceEl){playBurst(sourceEl,task?task.cat:"")}renderAll()}
 function carryoverOccurrences(){const out=[];const todayP=weekPos(today);for(const t of blocks){if(t.days.length===1){const d=t.days[0];if(weekPos(d)<todayP&&!isDone(t.id,d,cycleYmd))out.push({t,dayId:d,cycle:cycleYmd,carry:true})}else{const last=lastScheduledDay(t);if(weekPos(last)<todayP&&!isDone(t.id,last,cycleYmd))out.push({t,dayId:last,cycle:cycleYmd,carry:true})}if(t.days.includes(0)&&isLastScheduled(t,0)&&!isDone(t.id,0,prevCycleYmd)){out.push({t,dayId:0,cycle:prevCycleYmd,carry:true,prev:true})}}return out}
 function todayOccurrences(includeDone=true){const carry=carryoverOccurrences();const carryMap=new Map(carry.map(o=>[o.t.id,o]));let arr=[];for(const t of blocks){if(t.days.includes(today))arr.push({t,dayId:today,cycle:cycleYmd,current:true});const c=carryMap.get(t.id);if(c)arr.push(c)}const seen=new Set();arr=arr.filter(o=>{const k=`${o.cycle}_${o.t.id}_${o.dayId}`;if(seen.has(k))return false;seen.add(k);return true});if(!includeDone)arr=arr.filter(o=>!isDone(o.t.id,o.dayId,o.cycle));return arr}
-function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function safeUrl(url){if(!url)return "";try{const u=new URL(url,window.location.href);if(u.protocol==="http:"||u.protocol==="https:")return u.href}catch(e){}return ""}function titleHtml(t){const title=escapeHtml(t.title);const url=safeUrl(t.url);return url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"><span class="taskText">${title}</span><span class="linkIcon" aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}function tagHtml(t){
+function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function safeUrl(url){if(!url)return "";try{const u=new URL(url,window.location.href);if(u.protocol==="http:"||u.protocol==="https:")return u.href}catch(e){}return ""}
+function refItemHtml(item){
+  const title=escapeHtml(item.title);
+  const url=safeUrl(item.url);
+  return `<div class="refItem">${url?`<a class="refLink" href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`:title}</div>`;
+}
+function renderReferenceLibrary(){
+  const grid=document.getElementById("refGrid");
+  if(!grid)return;
+  const groups=(refGroups||[]).filter(g=>g.enabled!==false);
+  grid.innerHTML=groups.map(g=>{
+    const items=(g.items||[]).filter(i=>i.enabled!==false);
+    return `<div class="refGroup"><h3>${escapeHtml(g.title)}</h3>${items.length?items.map(refItemHtml).join(""):`<div class="refItem">暂未设置链接</div>`}</div>`;
+  }).join("");
+}
+
+function titleHtml(t){const title=escapeHtml(t.title);const url=safeUrl(t.url);return url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"><span class="taskText">${title}</span><span class="linkIcon" aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}function tagHtml(t){
   const flags=[];
   if(t.core)flags.push(`<span class="taskFlag coreFlag"><span class="flagDot"></span>保底</span>`);
   if(t.important)flags.push(`<span class="taskFlag importantFlag"><span class="flagDot"></span>重要</span>`);
@@ -4060,7 +4414,7 @@ function renderMobileCards(){const box=document.getElementById("mobileCards");co
 function updateProgress(){const occs=todayOccurrences(true);const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;const total=occs.length;const pct=total?Math.round(done/total*100):0;const carry=carryoverOccurrences().length;document.getElementById("progressText").textContent=`今日完成度 ${done}/${total}（${pct}%）${carry?`｜遗留 ${carry} 项`:""}`;document.getElementById("bar").style.width=pct+"%";document.getElementById("modeText").textContent=viewMode==="today"?"今天+遗留模式":viewMode==="undone"?"今日未完成+遗留模式":"全周模式";document.getElementById("showToday").classList.toggle("active",viewMode==="today");document.getElementById("showAll").classList.toggle("active",viewMode==="all");document.getElementById("showUndone").classList.toggle("active",viewMode==="undone")}
 
 function playGlobalEffect(cat){if(!document.body)return;const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;if(reduce)return;const mobile=window.innerWidth<=900;const wrap=document.createElement("div");wrap.className=`globalFX ${cat||""}`;document.body.appendChild(wrap);const n=mobile?18:34;if(cat==="life"){for(let i=0;i<n;i++){const el=document.createElement("span");el.className="fxFlame";el.style.left=`${Math.round((i+0.5)*100/n)}vw`;el.style.setProperty("--rot",`${-10+Math.random()*20}deg`);el.style.animationDelay=`${Math.random()*130}ms`;el.style.transform=`scale(${0.8+Math.random()*0.65})`;wrap.appendChild(el)}const coins=mobile?10:18;const symbols=["¥","$","◆","✦"];for(let i=0;i<coins;i++){const el=document.createElement("span");el.className="fxCoin";el.textContent=symbols[i%symbols.length];el.style.left=`${6+Math.random()*88}vw`;el.style.setProperty("--spin",`${-180+Math.random()*360}deg`);el.style.animationDelay=`${Math.random()*180}ms`;wrap.appendChild(el)}}else if(cat==="gamecreate"){const petals=mobile?18:32;const flowers=["✿","❀","✦","✧","✺"];for(let i=0;i<petals;i++){const el=document.createElement("span");el.className="fxPetal";el.textContent=flowers[i%flowers.length];el.style.left=`${Math.random()*100}vw`;el.style.setProperty("--dx",`${-56+Math.random()*112}px`);el.style.setProperty("--spin",`${-240+Math.random()*480}deg`);el.style.animationDelay=`${Math.random()*180}ms`;el.style.color=i%4===0?"#ff4dd2":i%4===1?"#45dfff":i%4===2?"#9b6dff":"#ffdb4d";wrap.appendChild(el)}const bolts=mobile?8:14;for(let i=0;i<bolts;i++){const el=document.createElement("span");el.className="fxLightning";el.textContent=i%2?"⚡":"✦";el.style.left=`${Math.random()*100}vw`;el.style.setProperty("--dx",`${-70+Math.random()*140}px`);el.style.setProperty("--spin",`${-180+Math.random()*360}deg`);el.style.animationDelay=`${Math.random()*160}ms`;wrap.appendChild(el)}}else if(cat==="language"){for(let i=0;i<n;i++){const el=document.createElement("span");el.className="fxDrop";el.style.left=`${Math.random()*100}vw`;el.style.animationDelay=`${Math.random()*160}ms`;el.style.opacity=`${0.34+Math.random()*0.20}`;wrap.appendChild(el)}const formulas=mobile?8:14;const fs=["∫","Σ","π","√x","E=mc²","lim","φ","dx","∞"];for(let i=0;i<formulas;i++){const el=document.createElement("span");el.className="fxMath";el.textContent=fs[i%fs.length];el.style.left=`${5+Math.random()*90}vw`;el.style.setProperty("--dx",`${-44+Math.random()*88}px`);el.style.animationDelay=`${Math.random()*180}ms`;wrap.appendChild(el)}}setTimeout(()=>wrap.remove(),3200)}
-function playBurst(anchor,cat){if(!anchor||!document.body)return;const rect=anchor.getBoundingClientRect();let x=rect.left+rect.width/2;let y=rect.top+rect.height/2;const marginX=190;const marginY=176;x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));const makeCard=(key,title,sub,tail)=>`<div class="avatarCutin ${key}"><div class="avatarHalo ${key}"></div><div class="avatarPortrait ${key}"></div><div class="avatarSpark s1">✦</div><div class="avatarSpark s2">♥</div><div class="avatarSpark s3">✧</div><div class="avatarText"><span class="line1">${title}</span><span class="line2">${sub}</span><span class="line3">${tail}</span></div></div>`;const configs={life:{cls:"life",title:"LUCY ORDER",sub:"大小姐式推进完成",tail:"beauty / money / life +1",particles:["✦","♥","◆","$","✧"],chibi:makeCard("life","ORDER","大小姐式推进完成","beauty / money / life +1")},gamecreate:{cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"],chibi:makeCard("gamecreate","CHEERS","甜辣应援发动","creative firepower ♡")},language:{cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"],chibi:makeCard("language","INSIGHT","冷感知性同步","language circuit / focus +1")}};const cfg=configs[cat]||configs.life;const burst=document.createElement("div");burst.className=`burstFX ${cfg.cls}`;burst.style.left=x+"px";burst.style.top=y+"px";const particleHtml=cfg.particles.map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");burst.innerHTML=`<div class="burstInner">${cfg.chibi||""}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;document.body.appendChild(burst);setTimeout(()=>burst.remove(),1500)}function renderAll(){renderTable();renderMobileTabs();renderMobileCards();updateProgress()}document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
+function playBurst(anchor,cat){if(!anchor||!document.body)return;const rect=anchor.getBoundingClientRect();let x=rect.left+rect.width/2;let y=rect.top+rect.height/2;const marginX=190;const marginY=176;x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));const makeCard=(key,title,sub,tail)=>`<div class="avatarCutin ${key}"><div class="avatarHalo ${key}"></div><div class="avatarPortrait ${key}"></div><div class="avatarSpark s1">✦</div><div class="avatarSpark s2">♥</div><div class="avatarSpark s3">✧</div><div class="avatarText"><span class="line1">${title}</span><span class="line2">${sub}</span><span class="line3">${tail}</span></div></div>`;const configs={life:{cls:"life",title:"LUCY ORDER",sub:"大小姐式推进完成",tail:"beauty / money / life +1",particles:["✦","♥","◆","$","✧"],chibi:makeCard("life","ORDER","大小姐式推进完成","beauty / money / life +1")},gamecreate:{cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"],chibi:makeCard("gamecreate","CHEERS","甜辣应援发动","creative firepower ♡")},language:{cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"],chibi:makeCard("language","INSIGHT","冷感知性同步","language circuit / focus +1")}};const cfg=configs[cat]||configs.life;const burst=document.createElement("div");burst.className=`burstFX ${cfg.cls}`;burst.style.left=x+"px";burst.style.top=y+"px";const particleHtml=cfg.particles.map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");burst.innerHTML=`<div class="burstInner">${cfg.chibi||""}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;document.body.appendChild(burst);setTimeout(()=>burst.remove(),1500)}function renderAll(){renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();updateProgress()}document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
 </script>
 </body>
 </html>
