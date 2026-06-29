@@ -1532,3 +1532,231 @@ th.todayHead::after,td.activeTodayCell::after{top:auto!important;right:6px!impor
   .refBox>summary::after{grid-area:toggle!important;justify-self:end!important;align-self:center!important;}
   .refExpandAllBtn{grid-area:actions!important;justify-self:end!important;margin:0!important;}
 }
+
+
+/* === v10.8 mobile clean tags: markers above, title below === */
+.legendBox{
+  margin:10px 0 14px!important;
+  border:1px solid rgba(167,181,214,.30)!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.55)!important;
+  color:#6a778e!important;
+  font-size:12px!important;
+  box-shadow:none!important;
+}
+.legendBox summary{
+  cursor:pointer!important;
+  list-style:none!important;
+  padding:8px 12px!important;
+  font-weight:900!important;
+  color:#718097!important;
+}
+.legendBox summary::-webkit-details-marker{display:none!important;}
+.legendGrid{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px 10px!important;
+  padding:0 12px 10px!important;
+}
+.legendGrid span{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+}
+.legendGrid b{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:18px!important;
+  height:18px!important;
+  padding:0 5px!important;
+  border-radius:999px!important;
+  background:linear-gradient(180deg,#fff,#eef4ff)!important;
+  border:1px solid rgba(128,146,202,.28)!important;
+  color:#33446a!important;
+  font-size:11px!important;
+}
+.statusBadge{
+  min-width:20px!important;
+  height:20px!important;
+  padding:2px 6px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  border-radius:999px!important;
+  flex:0 0 auto!important;
+  margin-left:0!important;
+}
+.taskFlag{
+  min-width:20px!important;
+  height:20px!important;
+  padding:2px 6px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  border-radius:999px!important;
+}
+.taskFlag .flagDot{display:none!important;}
+.metaSep{display:inline-block!important;margin:0 4px!important;color:#a3aec1!important;}
+.compactMetaText{font-size:12px!important;}
+.subtaskBtn{
+  height:24px!important;
+  padding:3px 8px!important;
+  font-size:12px!important;
+}
+
+@media(max-width:900px){
+  .mTask{
+    height:112px!important;
+    min-height:112px!important;
+    max-height:112px!important;
+    padding:12px 12px!important;
+    grid-template-columns:28px minmax(0,1fr)!important;
+    gap:10px!important;
+    overflow:hidden!important;
+  }
+  .mTask > input[type="checkbox"]{
+    width:24px!important;
+    height:24px!important;
+    margin-top:3px!important;
+  }
+  .mTaskBody{
+    height:88px!important;
+    max-height:88px!important;
+    display:grid!important;
+    grid-template-rows:22px 34px 24px!important;
+    gap:4px!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .mTagLine{
+    display:flex!important;
+    align-items:center!important;
+    gap:5px!important;
+    height:22px!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+  }
+  .mTagLine .badge{
+    height:20px!important;
+    max-width:54px!important;
+    padding:2px 7px!important;
+    font-size:11px!important;
+    line-height:1!important;
+    margin:0!important;
+    flex:0 0 auto!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .mTagLine .taskMiniRing{--size:19px!important;flex:0 0 auto!important;}
+  .mTagLine .taskFlagBar{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+    height:20px!important;
+    max-height:20px!important;
+    margin:0!important;
+    overflow:visible!important;
+    flex:0 0 auto!important;
+    flex-wrap:nowrap!important;
+  }
+  .mTagLine .taskFlag,
+  .mTagLine .statusBadge{
+    min-width:20px!important;
+    height:20px!important;
+    padding:2px 6px!important;
+    font-size:10.5px!important;
+    line-height:1!important;
+    flex:0 0 auto!important;
+  }
+  .mTaskTitleLine,
+  .mTitle.mTaskTitleLine{
+    height:34px!important;
+    max-height:34px!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    align-content:center!important;
+    gap:7px!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    font-size:16px!important;
+    line-height:1.2!important;
+  }
+  .mTaskTitleLine .taskIcon{
+    width:24px!important;
+    height:24px!important;
+    margin:0!important;
+    flex:0 0 24px!important;
+    font-size:13px!important;
+  }
+  .mTaskTitleLine .taskLink,
+  .mTaskTitleLine .taskText{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  .mTaskTitleLine .taskLink{
+    flex:1 1 auto!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    overflow:hidden!important;
+  }
+  .mTaskTitleLine .taskText{
+    display:block!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:16px!important;
+    line-height:1.2!important;
+  }
+  .mMeta{
+    height:24px!important;
+    max-height:24px!important;
+    min-height:24px!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:6px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    font-size:12px!important;
+    line-height:1.1!important;
+  }
+  .mobileMetaText{
+    min-width:0!important;
+    flex:1 1 auto!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .mobileStepSlot{flex:0 0 auto!important;}
+  .mMeta .subtaskBtn{
+    height:23px!important;
+    font-size:11.5px!important;
+    padding:3px 7px!important;
+  }
+}
+
+@media(max-width:700px){
+  .mTask{
+    height:114px!important;
+    min-height:114px!important;
+    max-height:114px!important;
+    grid-template-columns:27px minmax(0,1fr)!important;
+  }
+  .mTaskBody{
+    height:90px!important;
+    max-height:90px!important;
+    grid-template-rows:22px 35px 25px!important;
+  }
+  .mTaskTitleLine .taskText{font-size:15.5px!important;}
+  .legendGrid{gap:6px 8px!important;}
+}

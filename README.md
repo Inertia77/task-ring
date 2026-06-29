@@ -67,3 +67,10 @@ git push origin main
 - 改渲染逻辑、编辑器、同步逻辑：改 `assets/js/app.js`。
 - 改样式：先看 `assets/css/main.css` 的 import 顺序，再去对应 CSS 文件改。
 - 不建议再把 CSS / JS / base64 图片塞回 `index.html`。那是把厨房、卧室、发动机都装进一个行李箱，能跑，但不好修。
+
+
+## v10.8 追加开发说明
+
+- 手机端任务卡改为：第一行显示分类/状态/任务属性，第二行只显示任务名称，避免长标题挤掉标签。
+- 状态标签短码化：保/重/选/延/锁/补/旧/忽。页面主任务区下方有低干扰说明。
+- 本次主要改动文件：`index.html`、`assets/js/app.js`、`assets/css/90-overrides.css`。

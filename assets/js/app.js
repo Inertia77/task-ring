@@ -182,6 +182,8 @@ function clearLocalTaskConfig(){
 }
 applyTaskConfig(loadLocalTaskConfig()||buildDefaultConfig(),false);
 const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
+const mobileCatNames={life:"生活",gamecreate:"创作",language:"学习"};
+function catMobileName(catKey,c){return mobileCatNames[catKey]||c?.name||catKey||"任务"}
 const ROLLOVER_HOUR=4;function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}const realNow=new Date();const operationalNow=getOperationalDate(realNow);const today=operationalNow.getDay();let viewMode="undone";let mobileDay=today;
 function pad(n){return String(n).padStart(2,"0")}
 function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -830,8 +832,25 @@ function isFailedOccurrence(t,dayId,cycle=cycleYmd){return isRawExpiredDaily(t,d
 function isOverdueOccurrence(t,dayId,cycle=cycleYmd){if(isIgnoredOccurrence(t,dayId,cycle))return false;if(isDone(t.id,dayId,cycle))return false;if(cycle!==cycleYmd)return true;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return true;return isLastScheduled(t,dayId)}
 function isWarnOccurrence(t,dayId,cycle=cycleYmd){if(cycle!==cycleYmd||dayId!==today||!t.days.includes(today))return false;const prev=previousScheduledBeforeToday(t);if(prev==null)return false;return !isIgnoredOccurrence(t,prev,cycleYmd)&&!isDone(t.id,prev,cycleYmd)&&isFailedOccurrence(t,prev,cycleYmd)}
 function occurrenceState(t,dayId,cycle=cycleYmd){return{done:isDone(t.id,dayId,cycle),ignored:isIgnoredOccurrence(t,dayId,cycle),failed:isFailedOccurrence(t,dayId,cycle),overdue:isOverdueOccurrence(t,dayId,cycle),warn:isWarnOccurrence(t,dayId,cycle),prev:cycle!==cycleYmd}}
-function statusBadges(st){let out="";if(st.ignored)out+=`<span class="statusBadge ignored">已忽略</span>`;if(st.prev)out+=`<span class="statusBadge prev">上周遗留</span>`;if(st.overdue)out+=`<span class="statusBadge overdue">延后处理</span>`;if(st.failed)out+=`<span class="statusBadge failed">未完成×锁定</span>`;if(st.warn)out+=`<span class="statusBadge warn">上次未完成</span>`;return out}
-function occurrenceMeta(t,dayId,cycle=cycleYmd){const st=occurrenceState(t,dayId,cycle);if(st.warn)return `<span class='missNote'>上次未完成，今天注意补节奏</span>`;if(st.failed||st.overdue||st.prev||st.ignored){const originText=st.prev?`上周${dayName(dayId)}`:dayName(dayId);const action=st.failed?"已自动打差，无法补签":st.overdue?"可延后完成":st.ignored?"已忽略":"上周遗留";return `<span class="originDay">原定：${originText}</span>｜<span class='missNote'>${action}</span>`}return ""}
+function statusBadges(st){
+  let out="";
+  if(st.ignored)out+=`<span class="statusBadge ignored" title="已忽略">忽</span>`;
+  if(st.prev)out+=`<span class="statusBadge prev" title="上周遗留">旧</span>`;
+  if(st.overdue)out+=`<span class="statusBadge overdue" title="原定日已过，可延后完成">延</span>`;
+  if(st.failed)out+=`<span class="statusBadge failed" title="已自动打差，无法补签">锁</span>`;
+  if(st.warn)out+=`<span class="statusBadge warn" title="上次未完成，今天注意补节奏">补</span>`;
+  return out;
+}
+function occurrenceMeta(t,dayId,cycle=cycleYmd){
+  const st=occurrenceState(t,dayId,cycle);
+  if(st.warn)return `<span class='missNote' title="上次未完成，今天注意补节奏">前次未完</span>`;
+  if(st.failed||st.overdue||st.prev||st.ignored){
+    const originText=st.prev?`上周${dayName(dayId)}`:dayName(dayId);
+    const action=st.failed?"锁定":st.overdue?"可补":st.ignored?"忽略":"遗留";
+    return `<span class="originDay">原 ${originText}</span><span class="metaSep">·</span><span class='missNote'>${action}</span>`;
+  }
+  return "";
+}
 function collectCarryoverToCheckOccurrences(){return carryoverOccurrences().filter(o=>{const st=occurrenceState(o.t,o.dayId,o.cycle);return st.overdue&&!st.done&&!st.failed&&!st.ignored})}
 function mobileGroupSummary(list,dayId){const stats={total:list.length,done:0,failed:0,overdue:0,warn:0,ignored:0,pending:0};for(const o of list){const st=occurrenceState(o.t,o.dayId,o.cycle||cycleYmd);if(st.done)stats.done++;if(st.failed)stats.failed++;if(st.overdue)stats.overdue++;if(st.warn)stats.warn++;if(st.ignored)stats.ignored++;if(dayId===today&&!st.done&&!st.failed&&!st.ignored)stats.pending++;}return stats}
 function mobileSummaryBadges(stats){const parts=[];if(stats.failed)parts.push(`<span class="mWeekPill fail">× ${stats.failed}</span>`);if(stats.overdue+stats.warn)parts.push(`<span class="mWeekPill warn">! ${stats.overdue+stats.warn}</span>`);if(stats.pending)parts.push(`<span class="mWeekPill pending">• ${stats.pending}</span>`);return parts.join("")}
@@ -859,9 +878,9 @@ function renderReferenceLibrary(){
 
 function titleHtml(t){const title=escapeHtml(t.title);const url=safeUrl(t.url);return url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"><span class="taskText">${title}</span><span class="linkIcon" aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}function tagHtml(t){
   const flags=[];
-  if(t.core)flags.push(`<span class="taskFlag coreFlag"><span class="flagDot"></span>保底</span>`);
-  if(t.important)flags.push(`<span class="taskFlag importantFlag"><span class="flagDot"></span>重要</span>`);
-  if(t.optional)flags.push(`<span class="taskFlag optionalFlag"><span class="flagDot"></span>可选</span>`);
+  if(t.core)flags.push(`<span class="taskFlag coreFlag" title="核心保底任务"><span class="flagDot"></span>保</span>`);
+  if(t.important)flags.push(`<span class="taskFlag importantFlag" title="重要任务"><span class="flagDot"></span>重</span>`);
+  if(t.optional)flags.push(`<span class="taskFlag optionalFlag" title="可选任务"><span class="flagDot"></span>选</span>`);
   if(!flags.length)return "";
   return `<div class="taskFlagBar">${flags.join("")}</div>`;
 }
@@ -872,7 +891,7 @@ function frontCheckHtml(t,dayId,cycle=cycleYmd){const st=occurrenceState(t,dayId
 function stepPanelHtml(t,dayId,catCls,cycle=cycleYmd){
   if(!hasSteps(t.id))return "";
   const prog=stepProgress(t,dayId,cycle);
-  return `<button type="button" class="subtaskBtn ${catCls||""}" data-subtask-task="${escapeHtml(t.id)}" data-subtask-day="${dayId}" data-subtask-cycle="${escapeHtml(cycle)}"><span class="subtaskDot"></span><span>分任务 ${prog.done}/${prog.total}</span></button>`;
+  return `<button type="button" class="subtaskBtn ${catCls||""}" title="分任务 ${prog.done}/${prog.total}" data-subtask-task="${escapeHtml(t.id)}" data-subtask-day="${dayId}" data-subtask-cycle="${escapeHtml(cycle)}"><span class="subtaskDot"></span><span>分 ${prog.done}/${prog.total}</span></button>`;
 }
 function visibleDaysForMode(){if(viewMode==="all")return days;return [days.find(d=>d.id===today)]}
 function visibleBlocksForMode(){if(viewMode==="all")return blocks;return todayOccurrences(viewMode==="today").map(o=>o.t)}
@@ -904,7 +923,8 @@ function renderMobileCards(){
     const meta=occurrenceMeta(t,dayId,cycle);
     const metaMain=meta?`<span class="mobileMetaText">${meta}</span>`:`<span class="mobileMetaText metaSpacer">&nbsp;</span>`;
     const stepSlot=steps?`<span class="mobileStepSlot">${steps}</span>`:"";
-    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody"><div class="mTitle ${c.cls}Task"><span class="badge" style="background:${c.color}">${escapeHtml(c.name)}</span>${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}${statusBadges(st)}${tagHtml(t)}</div><div class="mMeta">${metaMain}${stepSlot}</div></div></div>`;
+    const topLine=`<div class="mTagLine"><span class="badge" style="background:${c.color}">${escapeHtml(catMobileName(t.cat,c))}</span>${taskMiniRingHtml(t,dayId,cycle)}${tagHtml(t)}${statusBadges(st)}</div>`;
+    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody">${topLine}<div class="mTitle mTaskTitleLine ${c.cls}Task"><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="mMeta">${metaMain}${stepSlot}</div></div></div>`;
   };
   const renderGroup=(label,list,extraCls="",dayId=null)=>{
     const stats=mobileGroupSummary(list,dayId);
