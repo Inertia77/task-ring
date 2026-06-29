@@ -1,0 +1,140 @@
+[
+  {
+    "file": "assets/images/css/vivian-portrait.png",
+    "source": "css",
+    "mime": "image/png",
+    "bytes": 73163
+  },
+  {
+    "file": "assets/images/css/avatar-life.png",
+    "source": "css",
+    "mime": "image/png",
+    "bytes": 52761
+  },
+  {
+    "file": "assets/images/css/avatar-gamecreate.png",
+    "source": "css",
+    "mime": "image/png",
+    "bytes": 73163
+  },
+  {
+    "file": "assets/images/css/avatar-language.png",
+    "source": "css",
+    "mime": "image/png",
+    "bytes": 86424
+  },
+  {
+    "file": "assets/images/css/background-pattern-5.svg",
+    "source": "css",
+    "mime": "image/svg+xml",
+    "bytes": 3373
+  },
+  {
+    "file": "assets/images/css/background-pattern-6.svg",
+    "source": "css",
+    "mime": "image/svg+xml",
+    "bytes": 6930
+  },
+  {
+    "file": "assets/images/css/background-collage.png",
+    "source": "css",
+    "mime": "image/png",
+    "bytes": 2515396
+  },
+  {
+    "file": "assets/images/cutins/cutin-richie.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 91908
+  },
+  {
+    "file": "assets/images/cutins/cutin-nanally.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 67617
+  },
+  {
+    "file": "assets/images/cutins/cutin-chiz.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 68639
+  },
+  {
+    "file": "assets/images/cutins/cutin-cyrene.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 73436
+  },
+  {
+    "file": "assets/images/cutins/cutin-castorice.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 89497
+  },
+  {
+    "file": "assets/images/cutins/cutin-cantarella.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 69034
+  },
+  {
+    "file": "assets/images/cutins/cutin-changli.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 81765
+  },
+  {
+    "file": "assets/images/cutins/cutin-phoebe.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 63608
+  },
+  {
+    "file": "assets/images/cutins/cutin-ellen.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 72442
+  },
+  {
+    "file": "assets/images/cutins/cutin-arlecchino.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 88734
+  },
+  {
+    "file": "assets/images/cutins/cutin-camellya.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 74587
+  },
+  {
+    "file": "assets/images/cutins/cutin-burnice.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 73518
+  },
+  {
+    "file": "assets/images/cutins/cutin-roccia.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 70987
+  },
+  {
+    "file": "assets/images/cutins/cutin-cartethyia.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 110326
+  },
+  {
+    "file": "assets/images/cutins/cutin-yixuan.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 66818
+  },
+  {
+    "file": "assets/images/cutins/cutin-astra.png",
+    "source": "js",
+    "mime": "image/png",
+    "bytes": 66055
+  }
+]

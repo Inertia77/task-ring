@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "privacy": "coded-state-keys",
+  "updatedAt": "2026-06-29T00:00:00.000Z",
+  "tasks": [
+    {
+      "id": "example-task",
+      "code": "t001",
+      "cat": "life",
+      "title": "示例任务",
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "url": "",
+      "core": true,
+      "optional": false,
+      "important": false,
+      "enabled": true,
+      "steps": [
+        {
+          "id": "step-1",
+          "code": "s01",
+          "title": "小步骤",
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "refs": [
+    {
+      "id": "example-ref",
+      "title": "参考链接组",
+      "enabled": true,
+      "collapsed": false,
+      "items": [
+        {
+          "id": "link-1",
+          "title": "示例链接",
+          "url": "https://example.com",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

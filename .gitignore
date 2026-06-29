@@ -1,0 +1,20 @@
+tmp_bk/
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# logs / env
+*.log
+.env
+.env.*
+
+# local-only config or exports
+taskring-config.local.json
+taskring-state.json
+*.bak
+
+# dependency folders, if this project later grows a build step
+node_modules/
+dist/

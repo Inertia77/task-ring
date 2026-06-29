@@ -1,0 +1,140 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b1028"/>
+      <stop offset=".20" stop-color="#132b63"/>
+      <stop offset=".43" stop-color="#101d3e"/>
+      <stop offset=".66" stop-color="#321646"/>
+      <stop offset="1" stop-color="#fff3e8"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="0" x2="1">
+      <stop offset="0" stop-color="#35d8ff"/>
+      <stop offset=".5" stop-color="#885cff"/>
+      <stop offset="1" stop-color="#ff5f97"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#ffe76b"/>
+      <stop offset="1" stop-color="#ff7b4e"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="1100" fill="url(#sky)"/>
+  <circle cx="235" cy="185" r="185" fill="#2a6cff" opacity=".28" filter="url(#soft)"/>
+  <circle cx="885" cy="850" r="320" fill="#36d8ff" opacity=".14" filter="url(#soft)"/>
+  <circle cx="1410" cy="220" r="280" fill="#ff5f97" opacity=".22" filter="url(#soft)"/>
+  <circle cx="1520" cy="840" r="250" fill="#ff8b4e" opacity=".18" filter="url(#soft)"/>
+
+  <!-- 1. neon urban block -->
+  <g id="neon-city" transform="translate(70,360)">
+    <text x="0" y="-52" fill="#fff" opacity=".88" font-size="34" font-family="Arial Black">NEON CITY</text>
+    <g fill="#0b122f" opacity=".94">
+      <rect x="0" y="110" width="72" height="300" rx="10"/>
+      <rect x="90" y="38" width="94" height="372" rx="12"/>
+      <rect x="204" y="150" width="74" height="260" rx="10"/>
+      <rect x="300" y="82" width="112" height="328" rx="12"/>
+      <rect x="435" y="185" width="68" height="225" rx="10"/>
+    </g>
+    <g fill="#35d8ff" opacity=".65">
+      <rect x="22" y="138" width="14" height="20"/><rect x="50" y="190" width="14" height="20"/>
+      <rect x="120" y="74" width="14" height="22"/><rect x="154" y="126" width="14" height="22"/>
+      <rect x="328" y="120" width="16" height="24"/><rect x="366" y="198" width="16" height="24"/>
+    </g>
+    <path d="M-20 430 H540" stroke="#35d8ff" stroke-width="4" opacity=".56" filter="url(#glow)"/>
+    <path d="M20 40 L120 -40 H270 L350 25 H520" fill="none" stroke="url(#neon)" stroke-width="6" opacity=".76" filter="url(#glow)"/>
+    <path d="M35 480 H160 L210 530 H390 L460 475 H540" fill="none" stroke="#ff5f97" stroke-width="5" opacity=".62" filter="url(#glow)"/>
+    <g transform="translate(385,20)" opacity=".85">
+      <rect x="0" y="0" width="130" height="58" rx="14" fill="#ffcc3a" opacity=".92"/>
+      <text x="19" y="38" fill="#121426" font-size="25" font-family="Arial Black">QUEST</text>
+    </g>
+  </g>
+
+  <!-- 2. tidal ruins -->
+  <g id="tidal-echo" transform="translate(475,545)">
+    <text x="70" y="-230" fill="#e8fbff" opacity=".82" font-size="32" font-family="Georgia">TIDAL ECHO</text>
+    <g fill="none" stroke="#5fe4ff" stroke-width="6" opacity=".58" filter="url(#glow)">
+      <path d="M0 80 C105 10 180 190 305 96 C415 15 505 80 585 12"/>
+      <path d="M-30 155 C110 55 210 235 365 135 C475 65 600 150 710 45"/>
+      <path d="M65 230 C170 160 285 285 420 210 C520 155 610 220 720 170"/>
+    </g>
+    <g opacity=".34" stroke="#c6f8ff" stroke-width="3" fill="none">
+      <circle cx="350" cy="72" r="98"/>
+      <circle cx="350" cy="72" r="148"/>
+      <path d="M250 72 H450 M350 -28 V172"/>
+    </g>
+    <g fill="#dffaff" opacity=".55">
+      <path d="M185 300 L235 210 L285 300 Z"/>
+      <path d="M288 305 L346 190 L405 305 Z"/>
+      <path d="M420 306 L462 230 L506 306 Z"/>
+    </g>
+  </g>
+
+  <!-- 3. frontier industry -->
+  <g id="frontier-core" transform="translate(990,510)" opacity=".84">
+    <text x="10" y="-105" fill="#eff3ff" opacity=".82" font-size="31" font-family="Arial Black">FRONTIER CORE</text>
+    <g fill="none" stroke="#c9d5e7" stroke-width="4" opacity=".55">
+      <path d="M60 10 h220 l88 78 v210 l-116 102 h-225 l-105-92 v-218z"/>
+      <path d="M100 78 h180 v190 h-180z"/>
+      <path d="M55 174 h315"/>
+      <path d="M190 28 v355"/>
+      <circle cx="190" cy="174" r="54"/>
+      <path d="M-30 350 H420 M-10 390 H390"/>
+    </g>
+    <g fill="#ffe76b" opacity=".68" filter="url(#glow)">
+      <circle cx="190" cy="174" r="8"/><circle cx="100" cy="78" r="5"/><circle cx="280" cy="268" r="5"/>
+    </g>
+  </g>
+
+  <!-- 4. anomaly ring city -->
+  <g id="anomaly-loop" transform="translate(1270,170)">
+    <text x="-30" y="-42" fill="#fff3fb" opacity=".90" font-size="32" font-family="Arial Black">ANOMALY LOOP</text>
+    <g fill="none" stroke="#ff5f97" stroke-width="6" opacity=".78" filter="url(#glow)">
+      <circle cx="130" cy="160" r="106"/>
+      <circle cx="130" cy="160" r="160"/>
+      <ellipse cx="130" cy="160" rx="202" ry="70" transform="rotate(-18 130 160)"/>
+      <path d="M-10 160 H270 M130 20 V300"/>
+    </g>
+    <g fill="#1b1029" opacity=".78">
+      <rect x="55" y="260" width="30" height="96" rx="6"/>
+      <rect x="96" y="226" width="42" height="130" rx="7"/>
+      <rect x="150" y="246" width="34" height="110" rx="7"/>
+      <rect x="194" y="205" width="52" height="151" rx="8"/>
+    </g>
+    <path d="M35 374 H270" stroke="#ffb36d" stroke-width="4" opacity=".65" filter="url(#glow)"/>
+  </g>
+
+  <!-- 5. star rail / cosmic track -->
+  <g id="star-rail" transform="translate(620,95)">
+    <text x="260" y="-18" fill="#f1efff" opacity=".88" font-size="34" font-family="Georgia">STAR RAIL</text>
+    <g fill="none" stroke="url(#neon)" stroke-width="5" opacity=".75" filter="url(#glow)">
+      <path d="M0 118 C190 40 350 125 520 70 C700 12 860 66 1025 0"/>
+      <path d="M18 158 C220 82 355 172 548 112 C720 58 892 106 1050 42"/>
+    </g>
+    <g fill="#fff" opacity=".72">
+      <circle cx="80" cy="91" r="3"/><circle cx="190" cy="56" r="2.5"/><circle cx="350" cy="102" r="3"/>
+      <circle cx="525" cy="74" r="3"/><circle cx="682" cy="36" r="2.5"/><circle cx="870" cy="66" r="3"/>
+      <circle cx="970" cy="18" r="2.5"/>
+    </g>
+    <g transform="translate(485,47) rotate(-13)" opacity=".88">
+      <path d="M0 0 h110 l30 20 v35 h-140z" fill="#ffffff" opacity=".24"/>
+      <path d="M15 12 h82" stroke="#fff" stroke-width="4" opacity=".55"/>
+      <circle cx="28" cy="61" r="8" fill="#35d8ff" opacity=".85"/>
+      <circle cx="118" cy="61" r="8" fill="#ff5f97" opacity=".85"/>
+    </g>
+  </g>
+
+  <!-- foreground angular UI frames -->
+  <g opacity=".22" stroke="#fff" stroke-width="2" fill="none">
+    <path d="M60 70 H420 L480 130 H760"/>
+    <path d="M1180 910 H1500 L1560 850 H1740"/>
+    <path d="M80 980 H500"/>
+    <path d="M1320 70 H1710"/>
+  </g>
+</svg>

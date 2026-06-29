@@ -1,0 +1,74 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="0.38" stop-color="#fff6ef"/>
+      <stop offset="0.70" stop-color="#f1efff"/>
+      <stop offset="1" stop-color="#eaf7ff"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="0" x2="1">
+      <stop offset="0" stop-color="#3a7bff" stop-opacity=".72"/>
+      <stop offset=".5" stop-color="#9b6dff" stop-opacity=".54"/>
+      <stop offset="1" stop-color="#ff6a3d" stop-opacity=".62"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#g)"/>
+  <circle cx="240" cy="160" r="150" fill="#3a7bff" opacity=".10" filter="url(#blur)"/>
+  <circle cx="1320" cy="180" r="190" fill="#ff6a3d" opacity=".12" filter="url(#blur)"/>
+  <circle cx="900" cy="840" r="230" fill="#7b61ff" opacity=".10" filter="url(#blur)"/>
+
+  <!-- urban neon / ZZZ-like energy, abstract only -->
+  <g opacity=".24" stroke="url(#neon)" stroke-width="4" fill="none">
+    <path d="M60 260 L180 130 L360 130 L430 205 L560 205"/>
+    <path d="M90 310 L390 310 L465 250 L610 250"/>
+    <path d="M115 360 L290 360 L355 420 L520 420"/>
+  </g>
+  <g opacity=".16" fill="#17203f">
+    <rect x="80" y="450" width="42" height="150" rx="8"/>
+    <rect x="140" y="400" width="54" height="200" rx="9"/>
+    <rect x="214" y="472" width="48" height="128" rx="8"/>
+    <rect x="286" y="420" width="64" height="180" rx="10"/>
+  </g>
+
+  <!-- wave / Wuthering-like flow, abstract only -->
+  <g opacity=".22" stroke="#3a7bff" stroke-width="5" fill="none">
+    <path d="M520 545 C610 485 690 625 790 550 C875 490 950 540 1010 485"/>
+    <path d="M500 600 C620 525 700 690 835 600 C930 535 1015 590 1100 515"/>
+    <path d="M560 662 C650 610 760 720 880 650"/>
+  </g>
+
+  <!-- industrial frontier / Endfield-like, abstract only -->
+  <g opacity=".18" stroke="#2b3754" stroke-width="3" fill="none">
+    <path d="M1180 500 h170 l70 65 v155 l-95 80 h-170 l-75-60 v-160z"/>
+    <path d="M1215 560 h145 v140 h-145z"/>
+    <path d="M1190 640 h250"/>
+    <path d="M1290 520 v230"/>
+    <circle cx="1290" cy="640" r="36"/>
+  </g>
+
+  <!-- anomalous city / NTE-like, abstract only -->
+  <g opacity=".17" stroke="#ff6a3d" stroke-width="4" fill="none">
+    <circle cx="1240" cy="342" r="88"/>
+    <circle cx="1240" cy="342" r="124"/>
+    <path d="M1140 342 h200 M1240 242 v200"/>
+    <path d="M1185 285 C1230 250 1290 280 1307 333"/>
+  </g>
+
+  <!-- star rail / cosmic track, abstract only -->
+  <g opacity=".25">
+    <path d="M725 118 C900 55 1080 120 1210 78 C1330 40 1460 70 1550 20" stroke="#7b61ff" stroke-width="3" fill="none"/>
+    <path d="M730 148 C910 90 1090 154 1224 110 C1350 70 1455 96 1560 60" stroke="#3a7bff" stroke-width="2" fill="none"/>
+    <g fill="#6a5cff">
+      <circle cx="820" cy="105" r="3"/><circle cx="930" cy="82" r="2.5"/><circle cx="1090" cy="112" r="3"/>
+      <circle cx="1250" cy="82" r="2.5"/><circle cx="1420" cy="70" r="3"/><circle cx="1510" cy="34" r="2"/>
+    </g>
+  </g>
+
+  <!-- subtle grid -->
+  <g opacity=".09" stroke="#1f2b4d" stroke-width="1">
+    <path d="M0 740 H1600 M0 820 H1600 M0 900 H1600"/>
+    <path d="M220 0 V1000 M440 0 V1000 M660 0 V1000 M880 0 V1000 M1100 0 V1000 M1320 0 V1000"/>
+  </g>
+</svg>
