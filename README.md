@@ -63,7 +63,7 @@ git push origin main
 
 ## 维护规则
 
-- 改任务、默认链接、随机完成角色：优先改 `assets/js/data/default-data.js`。
+- 改任务、默认链接、游戏作战区默认一周配置、随机完成角色：优先改 `assets/js/data/default-data.js`。
 - 改渲染逻辑、编辑器、同步逻辑：改 `assets/js/app.js`。
 - 改样式：先看 `assets/css/main.css` 的 import 顺序，再去对应 CSS 文件改。
 - 不建议再把 CSS / JS / base64 图片塞回 `index.html`。那是把厨房、卧室、发动机都装进一个行李箱，能跑，但不好修。
@@ -74,3 +74,12 @@ git push origin main
 - 手机端任务卡改为：第一行显示分类/状态/任务属性，第二行只显示任务名称，避免长标题挤掉标签。
 - 状态标签短码化：保/重/选/延/锁/补/旧/忽。页面主任务区下方有低干扰说明。
 - 本次主要改动文件：`index.html`、`assets/js/app.js`、`assets/css/90-overrides.css`。
+
+
+## v10.9 追加开发说明
+
+- 新增 `游戏作战区`：放在主任务环上方，并行独立管理游戏日常、周常、深渊/危局、资料整理等内容。
+- 支持按星期编辑一周游戏任务：点击游戏作战区的「编辑一周」，每个游戏一格，一行就是一条任务。
+- 游戏任务完成状态复用原有 GitHub Gist 状态同步；游戏任务配置合并进 `taskring-config.json` 加密同步。旧主任务环里的游戏项本版暂不强制删除，避免破坏现有云端配置。
+- 本次同步更新 `.gitignore`，追加 `tmp_bk/`，并按你给的忽略规则整理。
+- 本次主要改动文件：`index.html`、`.gitignore`、`assets/js/data/default-data.js`、`assets/js/app.js`、`assets/css/90-overrides.css`。

@@ -28,6 +28,7 @@ CSS 按层级拆开：
 - `defaultBlocks`
 - `defaultStepTasks`
 - `defaultRefGroups`
+- `defaultGameQuestConfig`
 - `RANDOM_CUTIN_CHARACTERS`
 
 以后新增任务、修改默认周常、改参考链接，先改这里。
@@ -39,6 +40,18 @@ CSS 按层级拆开：
 ### `assets/images/`
 
 原本塞在 CSS/JS 里的 base64 图片已经抽成真实文件。以后换图直接替换文件，不要再塞 base64。
+
+
+
+### 游戏作战区
+
+v10.9 起，游戏任务新增一个位于主任务环上方的独立模块。默认配置在 `assets/js/data/default-data.js` 的 `defaultGameQuestConfig`。本版先并行显示，不自动删除主任务环里的既有游戏项。
+
+运行时状态：
+
+- 勾选完成状态复用 `taskring-state.json`，key 前缀仍走原有 GitHub/Gist 同步机制。
+- 一周游戏任务配置合并进 `taskring-config.json` 的 `gameQuest` 字段，和任务/资料库配置一起加密同步。
+- 页面内编辑入口是「游戏作战区」右上角的「编辑一周」。
 
 ## 推荐开发节奏
 

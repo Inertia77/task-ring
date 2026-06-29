@@ -14,6 +14,7 @@ let taskConfig=null;
 let blocks=[];
 let stepTasks={};
 let refGroups=[];
+let gameQuestConfig=null;
 const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
 
@@ -64,6 +65,47 @@ function normalizeRefGroups(groups){
   });
 }
 
+
+function normalizeGameQuestTextList(value){
+  if(Array.isArray(value))return value.map(v=>String(v||"").trim()).filter(Boolean).slice(0,10);
+  if(typeof value==="string")return value.split(/\n+/).map(v=>v.trim()).filter(Boolean).slice(0,10);
+  return [];
+}
+function normalizeGameQuestConfig(config){
+  const fallback=deepClone(typeof defaultGameQuestConfig!=="undefined"?defaultGameQuestConfig:{version:1,games:[],schedule:{}});
+  const src=config&&typeof config==="object"?config:fallback;
+  const used=new Set();
+  const games=(Array.isArray(src.games)?src.games:fallback.games||[]).map((g,idx)=>{
+    const name=String(g.name||g.short||`游戏 ${idx+1}`).trim()||`游戏 ${idx+1}`;
+    let id=String(g.id||slugifyId(name,"game")).trim();
+    if(used.has(id)){
+      let base=id,n=2;
+      while(used.has(`${base}-${n}`))n++;
+      id=`${base}-${n}`;
+    }
+    used.add(id);
+    return {
+      id,
+      name,
+      short:String(g.short||name).trim()||name,
+      icon:String(g.icon||"🎮").trim()||"🎮",
+      accent:String(g.accent||["cyan","amber","violet","blue","rose","gold"][idx%6]).trim()||"cyan",
+      enabled:g.enabled!==false
+    };
+  });
+  const schedule={};
+  [1,2,3,4,5,6,0].forEach(day=>{
+    const rawDay=(src.schedule&&src.schedule[String(day)])||(fallback.schedule&&fallback.schedule[String(day)])||{};
+    const dayObj={};
+    games.forEach(g=>{
+      const list=normalizeGameQuestTextList(rawDay[g.id]);
+      if(list.length)dayObj[g.id]=list;
+    });
+    schedule[String(day)]=dayObj;
+  });
+  return {version:1,updatedAt:String(src.updatedAt||""),games,schedule};
+}
+
 function buildDefaultConfig(){
   const usedTaskCodes=new Set();
   const tasks=defaultBlocks.map((t,idx)=>{
@@ -89,7 +131,7 @@ function buildDefaultConfig(){
       steps
     }
   });
-  return {version:2, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks, refs:deepClone(defaultRefGroups)};
+  return {version:3, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks, refs:deepClone(defaultRefGroups), gameQuest:deepClone(defaultGameQuestConfig)};
 }
 function normalizeTaskConfig(config){
   const fallback=buildDefaultConfig();
@@ -139,11 +181,12 @@ function normalizeTaskConfig(config){
       steps
     };
   });
-  return {version:2, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, refs:normalizeRefGroups(src.refs||fallback.refs)};
+  return {version:3, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest)};
 }
 function applyTaskConfig(config, shouldRender=false){
   taskConfig=normalizeTaskConfig(config);
   refGroups=taskConfig.refs||normalizeRefGroups(defaultRefGroups);
+  gameQuestConfig=taskConfig.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
     id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
     core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false
@@ -460,7 +503,7 @@ function collectEditorConfig(){
       steps
     }
   });
-  return normalizeTaskConfig({version:2,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups});
+  return normalizeTaskConfig({version:3,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups,gameQuest:gameQuestConfig});
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
@@ -556,8 +599,10 @@ async function reloadSavedEditorConfig(){
 function initTaskEditorUI(){
   document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
   document.getElementById("taskEditorCloseBtn")?.addEventListener("click",closeTaskEditor);
+  document.getElementById("taskEditorBottomCloseBtn")?.addEventListener("click",closeTaskEditor);
   document.getElementById("addTaskBtn")?.addEventListener("click",addEditorTask);
   document.getElementById("saveConfigBtn")?.addEventListener("click",saveEditorConfig);
+  document.getElementById("taskEditorBottomSaveBtn")?.addEventListener("click",saveEditorConfig);
   document.getElementById("exportConfigBtn")?.addEventListener("click",exportEditorConfig);
   document.getElementById("importConfigBtn")?.addEventListener("click",importEditorConfig);
   document.getElementById("reloadSavedConfigBtn")?.addEventListener("click",reloadSavedEditorConfig);
@@ -738,8 +783,10 @@ async function reloadRefConfig(){
 function initRefEditorUI(){
   document.getElementById("refEditorBtn")?.addEventListener("click",()=>{closeGhModal();openRefEditor()});
   document.getElementById("refEditorCloseBtn")?.addEventListener("click",closeRefEditor);
+  document.getElementById("refEditorBottomCloseBtn")?.addEventListener("click",closeRefEditor);
   document.getElementById("addRefGroupBtn")?.addEventListener("click",addRefGroup);
   document.getElementById("saveRefConfigBtn")?.addEventListener("click",saveRefConfig);
+  document.getElementById("refEditorBottomSaveBtn")?.addEventListener("click",saveRefConfig);
   document.getElementById("exportRefConfigBtn")?.addEventListener("click",exportRefConfig);
   document.getElementById("importRefConfigBtn")?.addEventListener("click",importRefConfig);
   document.getElementById("reloadRefConfigBtn")?.addEventListener("click",reloadRefConfig);
@@ -948,6 +995,197 @@ function renderMobileCards(){
 function updateProgress(){const occs=todayOccurrences(true);const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;const total=occs.length;const pct=total?Math.round(done/total*100):0;const carry=carryoverOccurrences().length;document.getElementById("progressText").textContent=`今日完成度 ${done}/${total}（${pct}%）${carry?`｜遗留 ${carry} 项`:""}`;document.getElementById("bar").style.width=pct+"%";document.getElementById("modeText").textContent=viewMode==="today"?"今天+遗留模式":viewMode==="undone"?"今日未完成+遗留模式":"全周模式";document.getElementById("showToday").classList.toggle("active",viewMode==="today");document.getElementById("showAll").classList.toggle("active",viewMode==="all");document.getElementById("showUndone").classList.toggle("active",viewMode==="undone")}
 
 
+/* === v10.9 Game Quest Board === */
+let gameQuestSelectedDay=today;
+let gameQuestEditorDay=today;
+let gameQuestDraftConfig=null;
+const GAMEQUEST_COLLAPSE_KEY=`${GH_PREFIX}gamequest_collapsed`;
+function isGameQuestCollapsed(){return localStorage.getItem(GAMEQUEST_COLLAPSE_KEY)==="1"}
+function setGameQuestCollapsed(v){localStorage.setItem(GAMEQUEST_COLLAPSE_KEY,v?"1":"0")}
+function toggleGameQuestCollapsed(){setGameQuestCollapsed(!isGameQuestCollapsed());renderGameQuestPanel()}
+function gameQuestDayKey(dayId){return String(Number(dayId))}
+function gameQuestDoneKey(gameId,dayId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_gq_${gameId}_d${dayId}`}
+function isGameQuestDone(gameId,dayId,cycle=cycleYmd){return localStorage.getItem(gameQuestDoneKey(gameId,dayId,cycle))==="1"}
+function setGameQuestDone(gameId,dayId,val,sourceEl=null,cycle=cycleYmd){
+  syncSetItem(gameQuestDoneKey(gameId,dayId,cycle),val);
+  if(val&&sourceEl){playBurst(sourceEl,"gamecreate");playGlobalEffect("gamecreate")}
+  renderAll();
+}
+function enabledGameQuestGames(){return (gameQuestConfig?.games||[]).filter(g=>g.enabled!==false)}
+function gameQuestTasksFor(gameId,dayId,cfg=gameQuestConfig){
+  const day=(cfg?.schedule||{})[gameQuestDayKey(dayId)]||{};
+  return normalizeGameQuestTextList(day[gameId]);
+}
+function gameQuestEntriesForDay(dayId,cfg=gameQuestConfig){
+  return enabledGameQuestGames().map(g=>({game:g,tasks:gameQuestTasksFor(g.id,dayId,cfg)})).filter(e=>e.tasks.length>0);
+}
+function gameQuestStats(dayId){
+  const entries=gameQuestEntriesForDay(dayId);
+  const total=entries.length;
+  const done=entries.filter(e=>isGameQuestDone(e.game.id,dayId,cycleYmd)).length;
+  return {total,done,pct:total?Math.round(done/total*100):100};
+}
+function gameQuestWeekStats(){
+  let total=0,done=0;
+  days.forEach(d=>{const s=gameQuestStats(d.id);total+=s.total;done+=s.done});
+  return {total,done,pct:total?Math.round(done/total*100):100};
+}
+function gameQuestDayTabsHtml(){
+  return days.map(d=>{const s=gameQuestStats(d.id);const cls=[d.id===gameQuestSelectedDay?"active":"",d.id===today?"today":"",s.total&&s.done>=s.total?"clear":""].join(" ");return `<button type="button" class="gameQuestDay ${cls}" data-gamequest-day-select="${d.id}" title="${escapeHtml(d.name)}：${s.done}/${s.total}"><span>${escapeHtml(d.name)}${d.id===today?"｜今日":""}</span><b>${s.done}/${s.total}</b></button>`}).join("");
+}
+function gameQuestTaskListHtml(tasks){
+  return `<ul class="gameQuestTaskList">${tasks.map(t=>`<li>${escapeHtml(t)}</li>`).join("")}</ul>`;
+}
+function gameQuestCardHtml(entry,dayId){
+  const g=entry.game;
+  const done=isGameQuestDone(g.id,dayId,cycleYmd);
+  return `<article class="gameQuestCard accent-${escapeHtml(g.accent)} ${done?"done":""}">
+    <label class="gameQuestCheck" title="${escapeHtml(g.name)} 完成"><input type="checkbox" data-gamequest-game="${escapeHtml(g.id)}" data-gamequest-day="${dayId}" data-cycle="${escapeHtml(cycleYmd)}" ${done?"checked":""}><span></span></label>
+    <div class="gameQuestCardBody">
+      <div class="gameQuestGameRow"><span class="gameQuestIcon">${escapeHtml(g.icon)}</span><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestCount">${entry.tasks.length}件</span></div>
+      ${gameQuestTaskListHtml(entry.tasks)}
+    </div>
+  </article>`;
+}
+function renderGameQuestPanel(){
+  const panel=document.getElementById("gameQuestPanel");
+  if(!panel)return;
+  const collapsed=isGameQuestCollapsed();
+  const week=gameQuestWeekStats();
+  const selectedStats=gameQuestStats(gameQuestSelectedDay);
+  const entries=gameQuestEntriesForDay(gameQuestSelectedDay);
+  const cards=entries.length?entries.map(e=>gameQuestCardHtml(e,gameQuestSelectedDay)).join(""):`<div class="gameQuestEmpty"><b>这一天还没有游戏任务。</b><span>点「编辑一周」给当天加几条，别让任务环变成空城计。</span></div>`;
+  panel.innerHTML=`<div class="gameQuestShell ${collapsed?"collapsed":""}">
+    <div class="gameQuestHeader">
+      <div class="gameQuestTitleBlock">
+        <div class="gameQuestKicker">GAME QUEST BOARD</div>
+        <h2>游戏作战区</h2>
+        <p>把日常、周常、深渊/危局、资料整理独立出去单独管理。亮度压低了，也支持一键收起。</p>
+      </div>
+      <div class="gameQuestStatus">
+        <div class="gameQuestRing" style="--p:${week.pct}%"><span>${week.pct}%</span><em>WEEK</em></div>
+        <div><strong>${week.done}/${week.total}</strong><span>本周游戏清理</span></div>
+      </div>
+      <div class="gameQuestActions">
+        <button type="button" class="gameQuestSecondaryBtn gameQuestCollapseBtn" id="gameQuestToggleBtn">${collapsed?"展开模块":"收起模块"}</button>
+        <button type="button" class="gameQuestSecondaryBtn" id="gameQuestTodayBtn">回到今日</button>
+        <button type="button" class="gameQuestPrimaryBtn" id="gameQuestEditBtn">编辑一周</button>
+      </div>
+    </div>
+    ${collapsed?`<div class="gameQuestCollapsedHint">已收起。需要时再展开，别让它喧宾夺主。</div>`:`<div class="gameQuestDays">${gameQuestDayTabsHtml()}</div>
+    <div class="gameQuestSubHead"><span>${escapeHtml(dayName(gameQuestSelectedDay))}${gameQuestSelectedDay===today?"｜今日":""}</span><b>${selectedStats.done}/${selectedStats.total} cleared</b></div>
+    <div class="gameQuestGrid">${cards}</div>`}
+  </div>`;
+}
+function openGameQuestEditor(){
+  gameQuestDraftConfig=deepClone(gameQuestConfig||normalizeGameQuestConfig(defaultGameQuestConfig));
+  gameQuestEditorDay=Number.isInteger(gameQuestSelectedDay)?gameQuestSelectedDay:today;
+  renderGameQuestEditor();
+  document.getElementById("gameQuestEditorModal")?.classList.remove("hidden");
+  document.getElementById("gameQuestEditorModal")?.setAttribute("aria-hidden","false");
+}
+function closeGameQuestEditor(){
+  document.getElementById("gameQuestEditorModal")?.classList.add("hidden");
+  document.getElementById("gameQuestEditorModal")?.setAttribute("aria-hidden","true");
+}
+function gameQuestEditorLog(msg){const el=document.getElementById("gameQuestEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
+function collectGameQuestEditorDay(){
+  if(!gameQuestDraftConfig)return;
+  const dayObj={};
+  document.querySelectorAll("[data-gq-edit-game]").forEach(area=>{
+    const id=area.dataset.gqEditGame;
+    const lines=normalizeGameQuestTextList(area.value);
+    if(lines.length)dayObj[id]=lines;
+  });
+  gameQuestDraftConfig.schedule[gameQuestDayKey(gameQuestEditorDay)]=dayObj;
+}
+function renderGameQuestEditor(){
+  const list=document.getElementById("gameQuestEditorList");
+  const tabs=document.getElementById("gameQuestEditorDays");
+  if(!list||!tabs)return;
+  const cfg=gameQuestDraftConfig||normalizeGameQuestConfig(gameQuestConfig||defaultGameQuestConfig);
+  tabs.innerHTML=days.map(d=>`<button type="button" class="gameQuestEditorDayBtn ${d.id===gameQuestEditorDay?"active":""}" data-gq-editor-day="${d.id}">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</button>`).join("");
+  const day=cfg.schedule[gameQuestDayKey(gameQuestEditorDay)]||{};
+  list.innerHTML=(cfg.games||[]).filter(g=>g.enabled!==false).map(g=>{
+    const value=normalizeGameQuestTextList(day[g.id]).join("\n");
+    return `<div class="gameQuestEditRow accent-${escapeHtml(g.accent)}">
+      <div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>${escapeHtml(g.short||g.name)}</em></div>
+      <textarea data-gq-edit-game="${escapeHtml(g.id)}" placeholder="一行一条，例如：日常体力\n周常清理\n深渊/危局检查">${escapeHtml(value)}</textarea>
+    </div>`;
+  }).join("");
+  gameQuestEditorLog(`正在编辑：${dayName(gameQuestEditorDay)}。一行一条，会显示成游戏任务清单。`);
+}
+function switchGameQuestEditorDay(dayId){
+  collectGameQuestEditorDay();
+  gameQuestEditorDay=Number(dayId);
+  renderGameQuestEditor();
+}
+async function saveGameQuestConfig(){
+  const btn=document.getElementById("saveGameQuestBtn");
+  try{
+    setBtnBusy(btn,true,"保存中…");
+    collectGameQuestEditorDay();
+    const gameQuest=normalizeGameQuestConfig({...gameQuestDraftConfig,updatedAt:new Date().toISOString()});
+    const base=normalizeTaskConfig(taskConfig||buildDefaultConfig());
+    const cfg=normalizeTaskConfig({...base,gameQuest,updatedAt:new Date().toISOString()});
+    gameQuestSelectedDay=gameQuestEditorDay;
+    saveLocalTaskConfig(cfg);
+    applyTaskConfig(cfg,true);
+    if(ghToken()){
+      setGhStatus("GitHub：保存配置中","sync");
+      await ghPatchConfig(cfg);
+      setGhStatus("GitHub：已同步","on");
+      ghLog("游戏任务配置已合并进 taskring-config.json 并加密同步");
+      showToast("游戏作战区已保存并同步","ok");
+    }else{
+      showToast("游戏作战区已保存到本机","ok");
+    }
+    gameQuestEditorLog("保存完成。旧兵法：先稳住阵地，再谈花活。🎮");
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：配置保存失败","err");
+    gameQuestEditorLog(String(err.message||err));
+    showToast("游戏任务保存失败，请看日志","err",3000);
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
+function resetGameQuestDraft(){
+  if(!confirm("确认把游戏作战区恢复为 HTML 内置默认配置？"))return;
+  gameQuestDraftConfig=normalizeGameQuestConfig(defaultGameQuestConfig);
+  gameQuestEditorDay=today;
+  renderGameQuestEditor();
+  gameQuestEditorLog("已恢复内置默认配置，保存后生效。");
+}
+function exportGameQuestConfig(){
+  collectGameQuestEditorDay();
+  const cfg=normalizeGameQuestConfig(gameQuestDraftConfig||gameQuestConfig||defaultGameQuestConfig);
+  navigator.clipboard?.writeText(JSON.stringify(cfg,null,2)).then(()=>{gameQuestEditorLog("游戏配置 JSON 已复制到剪贴板。")}).catch(()=>{gameQuestEditorLog(JSON.stringify(cfg,null,2))});
+}
+function importGameQuestConfig(){
+  const raw=prompt("粘贴 gameQuest JSON 内容：");
+  if(!raw)return;
+  try{
+    gameQuestDraftConfig=normalizeGameQuestConfig(JSON.parse(raw));
+    renderGameQuestEditor();
+    gameQuestEditorLog("已导入游戏配置，保存后生效。");
+  }catch(err){
+    gameQuestEditorLog("导入失败："+String(err.message||err));
+    showToast("游戏配置 JSON 不合法","err");
+  }
+}
+function initGameQuestUI(){
+  document.getElementById("gameQuestEditorCloseBtn")?.addEventListener("click",closeGameQuestEditor);
+  document.getElementById("gameQuestEditorBottomCloseBtn")?.addEventListener("click",closeGameQuestEditor);
+  document.getElementById("saveGameQuestBtn")?.addEventListener("click",saveGameQuestConfig);
+  document.getElementById("gameQuestEditorBottomSaveBtn")?.addEventListener("click",saveGameQuestConfig);
+  document.getElementById("resetGameQuestBtn")?.addEventListener("click",resetGameQuestDraft);
+  document.getElementById("exportGameQuestBtn")?.addEventListener("click",exportGameQuestConfig);
+  document.getElementById("importGameQuestBtn")?.addEventListener("click",importGameQuestConfig);
+  document.getElementById("gameQuestEditorDays")?.addEventListener("click",e=>{const btn=e.target.closest("[data-gq-editor-day]");if(btn)switchGameQuestEditorDay(Number(btn.dataset.gqEditorDay))});
+}
+
+
 
 /* RANDOM_CUTIN_CHARACTERS moved to assets/js/data/default-data.js */
 
@@ -1118,4 +1356,13 @@ function openSubtaskPopover(btn){
   }
 }
 function expandAllRefGroups(){const box=document.getElementById("refBox");if(box)box.open=true;document.querySelectorAll(".refGroup").forEach(g=>g.open=true)}
-function renderAll(){renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress()}document.body.addEventListener("click",e=>{const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
+function renderAll(){renderGameQuestPanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress()}
+function closeEditorsByBackdrop(target){
+  if(target.id==="taskEditorModal")closeTaskEditor();
+  if(target.id==="refEditorModal")closeRefEditor();
+  if(target.id==="gameQuestEditorModal")closeGameQuestEditor();
+  if(target.id==="ghModal")closeGhModal();
+}
+document.body.addEventListener("click",e=>{const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);renderAll();return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;renderAll();return}const gqEdit=e.target.closest("#gameQuestEditBtn,#gameQuestEditorBtn");if(gqEdit){e.preventDefault();closeGhModal();openGameQuestEditor();return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!document.getElementById("gameQuestEditorModal")?.classList.contains("hidden"))closeGameQuestEditor();else if(!document.getElementById("taskEditorModal")?.classList.contains("hidden"))closeTaskEditor();else if(!document.getElementById("refEditorModal")?.classList.contains("hidden"))closeRefEditor();else if(!document.getElementById("ghModal")?.classList.contains("hidden"))closeGhModal();else closeSubtaskPopover();});
+function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();initGameQuestUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);

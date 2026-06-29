@@ -1760,3 +1760,194 @@ th.todayHead::after,td.activeTodayCell::after{top:auto!important;right:6px!impor
   .mTaskTitleLine .taskText{font-size:15.5px!important;}
   .legendGrid{gap:6px 8px!important;}
 }
+
+/* === v10.9 Game Quest Board === */
+.gameQuestPanel{margin:18px 0 16px;position:relative;z-index:2}
+.gameQuestShell{position:relative;overflow:hidden;border:1px solid rgba(104,117,204,.34);border-radius:28px;padding:18px;background:
+  radial-gradient(circle at 8% 0%,rgba(94,234,212,.10),transparent 34%),
+  radial-gradient(circle at 96% 4%,rgba(255,106,61,.09),transparent 30%),
+  linear-gradient(135deg,rgba(12,19,36,.98),rgba(30,25,60,.96) 48%,rgba(16,25,48,.98));box-shadow:0 18px 52px rgba(20,30,70,.24),inset 0 0 0 1px rgba(255,255,255,.04);color:#fff}
+.gameQuestShell::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0 40%,rgba(255,255,255,.06) 41% 43%,transparent 44% 100%),repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 8px,transparent 8px 18px);opacity:.52;pointer-events:none}
+.gameQuestShell>*{position:relative;z-index:1}
+.gameQuestHeader{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center}
+.gameQuestKicker{display:inline-flex;align-items:center;gap:8px;width:max-content;border:1px solid rgba(94,234,212,.28);border-radius:999px;padding:4px 10px;background:rgba(8,15,30,.62);color:#b8fbff;font-size:12px;font-weight:1000;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 0 16px rgba(94,234,212,.10)}
+.gameQuestKicker::before{content:"✦";color:#ffe76b}
+.gameQuestTitleBlock h2{margin:8px 0 4px;font-size:clamp(24px,3.2vw,38px);line-height:1;font-weight:1000;letter-spacing:.03em;background:linear-gradient(90deg,#ffffff 0%,#d9f8ff 46%,#ffe898 74%,#ffc3de 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 1px 10px rgba(12,19,36,.18)}
+.gameQuestTitleBlock p{margin:0;max-width:760px;color:rgba(244,248,255,.88);font-weight:750;font-size:13px}
+.gameQuestStatus{display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:10px 12px;background:rgba(9,16,30,.62);backdrop-filter:blur(12px);min-width:158px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+.gameQuestStatus strong{display:block;font-size:20px;line-height:1;color:#fff}.gameQuestStatus span{display:block;font-size:11px;color:rgba(239,246,255,.82);font-weight:850;margin-top:3px}
+.gameQuestRing{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#5eead4 calc(var(--p)*1%),rgba(255,255,255,.12) 0);box-shadow:0 0 18px rgba(94,234,212,.12);position:relative;flex:0 0 auto}.gameQuestRing::after{content:"";position:absolute;inset:6px;border-radius:50%;background:linear-gradient(135deg,#0e172b,#241b42)}.gameQuestRing span,.gameQuestRing em{position:relative;z-index:1}.gameQuestRing span{font-size:16px;font-weight:1000;color:#fff}.gameQuestRing em{font-size:8px;display:block;letter-spacing:.12em;color:#b8fbff;margin-top:2px;font-style:normal;text-align:center}
+.gameQuestActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.gameQuestActions button,.gameQuestEditorToolbar button{border-color:rgba(255,255,255,.14);background:linear-gradient(180deg,#f9fbff,#e8eef9);color:#162033;box-shadow:0 10px 22px rgba(0,0,0,.16)}.gameQuestActions button:last-child,.gameQuestEditorToolbar button:first-child{background:linear-gradient(135deg,#1fbba9,#6d58d6 62%,#d75d95);color:#fff;border-color:rgba(255,255,255,.22);text-shadow:0 1px 0 rgba(0,0,0,.28)}
+.gameQuestDays{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 10px;scrollbar-width:thin}.gameQuestDay{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:8px 10px;background:rgba(9,16,30,.54);color:#eef6ff;font-weight:950;box-shadow:none}.gameQuestDay b{font-size:11px;color:#b8fbff}.gameQuestDay.today{box-shadow:0 0 0 2px rgba(255,231,107,.10)}.gameQuestDay.active{border-color:rgba(94,234,212,.42);background:linear-gradient(135deg,rgba(29,46,79,.96),rgba(53,34,92,.92));box-shadow:0 0 18px rgba(94,234,212,.10)}.gameQuestDay.clear b{color:#9dedb8}
+.gameQuestSubHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 12px;color:#f1f6ff;font-weight:1000}.gameQuestSubHead span{letter-spacing:.08em}.gameQuestSubHead b{font-size:12px;color:#b8fbff;border:1px solid rgba(94,234,212,.18);border-radius:999px;padding:4px 10px;background:rgba(8,15,30,.58)}
+.gameQuestGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.gameQuestCard{position:relative;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:13px;background:linear-gradient(180deg,rgba(10,17,32,.72),rgba(18,27,46,.84));box-shadow:0 12px 28px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.03);min-height:112px;overflow:hidden}.gameQuestCard::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--gq-accent,#5eead4);box-shadow:0 0 16px var(--gq-accent,#5eead4)}.gameQuestCard.done{opacity:.72}.gameQuestCard.done .gameQuestTaskList{text-decoration:line-through;color:rgba(229,238,252,.54)}.gameQuestCard.accent-cyan{--gq-accent:#5eead4}.gameQuestCard.accent-amber{--gq-accent:#fbbf24}.gameQuestCard.accent-violet{--gq-accent:#a78bfa}.gameQuestCard.accent-blue{--gq-accent:#60a5fa}.gameQuestCard.accent-rose{--gq-accent:#fb7185}.gameQuestCard.accent-gold{--gq-accent:#fde047}
+.gameQuestCheck{display:grid;place-items:center;margin-top:2px}.gameQuestCheck input{position:absolute;opacity:0;pointer-events:none}.gameQuestCheck span{width:23px;height:23px;border-radius:8px;border:2px solid rgba(255,255,255,.42);background:rgba(6,12,24,.70);box-shadow:inset 0 0 0 2px rgba(255,255,255,.04),0 0 10px rgba(255,255,255,.04);cursor:pointer}.gameQuestCheck input:checked+span{border-color:#5eead4;background:linear-gradient(135deg,#1fbba9,#6d58d6)}.gameQuestCheck input:checked+span::after{content:"✓";display:grid;place-items:center;height:100%;font-weight:1000;color:#fff;font-size:15px;text-shadow:0 1px 0 rgba(0,0,0,.18)}
+.gameQuestGameRow{display:flex;align-items:center;gap:8px;min-width:0}.gameQuestIcon{display:grid;place-items:center;width:28px;height:28px;border-radius:10px;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}.gameQuestName{font-size:15px;font-weight:1000;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gameQuestCount{margin-left:auto;border-radius:999px;padding:2px 7px;background:rgba(7,14,28,.76);color:#b8fbff;font-size:11px;font-weight:950;border:1px solid rgba(255,255,255,.08)}.gameQuestTaskList{margin:9px 0 0;padding:0;list-style:none;display:grid;gap:5px;color:rgba(244,248,255,.92);font-size:13px;font-weight:750}.gameQuestTaskList li{position:relative;padding-left:13px;line-height:1.35}.gameQuestTaskList li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--gq-accent,#5eead4);box-shadow:0 0 8px var(--gq-accent,#5eead4)}
+.gameQuestEmpty{grid-column:1/-1;border:1px dashed rgba(255,255,255,.18);border-radius:20px;padding:18px;color:rgba(244,248,255,.82);background:rgba(10,17,32,.42)}.gameQuestEmpty b{display:block;color:#fff;margin-bottom:4px}.gameQuestEmpty span{font-size:13px}
+.gameQuestEditorModal{position:fixed;inset:0;z-index:9997;background:rgba(15,23,42,.58);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:18px}.gameQuestEditorModal.hidden{display:none}.gameQuestEditorCard{width:min(980px,calc(100vw - 28px));max-height:calc(100vh - 36px);overflow:auto;border-radius:28px;border:1px solid rgba(120,145,210,.30);background:linear-gradient(180deg,#ffffff,#f7fbff);box-shadow:0 28px 90px rgba(15,23,42,.36);padding:18px}.gameQuestEditorDays{display:flex;gap:8px;overflow-x:auto;margin:10px 0 12px;padding-bottom:4px}.gameQuestEditorDayBtn{flex:0 0 auto;border-radius:14px;padding:8px 12px}.gameQuestEditorDayBtn.active{border-color:#8b5cf6;background:linear-gradient(135deg,#eef2ff,#fff7ed);box-shadow:0 0 0 2px rgba(139,92,246,.13)}.gameQuestEditorList{display:grid;gap:10px}.gameQuestEditRow{display:grid;grid-template-columns:190px 1fr;gap:12px;align-items:stretch;border:1px solid #dbe5f4;border-radius:18px;padding:12px;background:linear-gradient(180deg,#fff,#fbfdff);border-left:6px solid var(--gq-accent,#5eead4)}.gameQuestEditRow.accent-cyan{--gq-accent:#5eead4}.gameQuestEditRow.accent-amber{--gq-accent:#fbbf24}.gameQuestEditRow.accent-violet{--gq-accent:#a78bfa}.gameQuestEditRow.accent-blue{--gq-accent:#60a5fa}.gameQuestEditRow.accent-rose{--gq-accent:#fb7185}.gameQuestEditRow.accent-gold{--gq-accent:#fde047}.gameQuestEditGame{display:flex;flex-direction:column;gap:4px;justify-content:center}.gameQuestEditGame span{font-size:24px}.gameQuestEditGame b{font-size:16px;color:#10233f}.gameQuestEditGame em{font-style:normal;color:#64748b;font-size:12px;font-weight:850}.gameQuestEditRow textarea{width:100%;min-height:78px;resize:vertical;border:1px solid #cdd8e8;border-radius:14px;padding:10px 12px;font:inherit;font-size:14px;line-height:1.5;background:#fff;color:#10233f}.gameQuestEditRow textarea:focus{outline:2px solid rgba(139,92,246,.20);border-color:#8b5cf6}
+@media(max-width:1080px){.gameQuestHeader{grid-template-columns:1fr}.gameQuestStatus{width:max-content}.gameQuestActions{justify-content:flex-start}.gameQuestGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.gameQuestPanel{margin:12px 0}.gameQuestShell{border-radius:22px;padding:14px}.gameQuestTitleBlock h2{font-size:27px}.gameQuestTitleBlock p{font-size:12px}.gameQuestStatus{min-width:0;width:100%}.gameQuestRing{width:52px;height:52px}.gameQuestGrid{grid-template-columns:1fr}.gameQuestCard{min-height:auto;padding:12px;border-radius:19px}.gameQuestDay{padding:8px 9px}.gameQuestSubHead{font-size:13px}.gameQuestEditorCard{border-radius:22px;padding:14px}.gameQuestEditRow{grid-template-columns:1fr;gap:8px}.gameQuestEditGame{flex-direction:row;align-items:center;justify-content:flex-start}.gameQuestEditGame em{margin-left:auto}.gameQuestEditRow textarea{min-height:86px}}
+
+/* === v10.10 UI polish: darker game board + collapsible module + better editor UX === */
+.gameQuestShell{
+  border-color:rgba(93,108,190,.28)!important;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(94,234,212,.08),transparent 34%),
+    radial-gradient(circle at 96% 4%,rgba(255,106,61,.07),transparent 30%),
+    linear-gradient(135deg,#0a1020 0%,#171d33 46%,#161127 100%)!important;
+  box-shadow:0 16px 40px rgba(16,24,54,.26), inset 0 0 0 1px rgba(255,255,255,.03)!important;
+}
+.gameQuestShell::before{opacity:.38!important}
+.gameQuestStatus,
+.gameQuestDay,
+.gameQuestCard,
+.gameQuestEmpty,
+.gameQuestCollapsedHint{
+  background:rgba(8,14,27,.72)!important;
+}
+.gameQuestStatus{border-color:rgba(255,255,255,.10)!important}
+.gameQuestDay{
+  color:#edf5ff!important;
+  border-color:rgba(255,255,255,.09)!important;
+}
+.gameQuestDay.active{
+  background:linear-gradient(135deg,rgba(31,45,79,.98),rgba(39,27,66,.96))!important;
+  border-color:rgba(110,226,214,.38)!important;
+  box-shadow:0 0 0 1px rgba(110,226,214,.08),0 10px 22px rgba(6,12,25,.28)!important;
+}
+.gameQuestDay b,.gameQuestSubHead b,.gameQuestCount{color:#b8fbff!important}
+.gameQuestActions{gap:10px!important}
+.gameQuestActions button,
+.gameQuestSecondaryBtn,
+.gameQuestPrimaryBtn{
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:14px!important;
+  min-height:40px;
+  padding:9px 14px!important;
+  font-weight:950!important;
+}
+.gameQuestSecondaryBtn{
+  background:linear-gradient(180deg,rgba(13,20,35,.92),rgba(20,28,46,.92))!important;
+  color:#eef6ff!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.14)!important;
+}
+.gameQuestPrimaryBtn{
+  background:linear-gradient(135deg,#24406f,#463286 60%,#82456c)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.16)!important;
+  text-shadow:0 1px 0 rgba(0,0,0,.22)!important;
+}
+.gameQuestCollapsedHint{
+  margin-top:14px;
+  border:1px dashed rgba(255,255,255,.14);
+  border-radius:18px;
+  padding:13px 14px;
+  color:rgba(238,245,255,.82);
+  font-size:13px;
+  font-weight:800;
+}
+.gameQuestShell.collapsed .gameQuestHeader{align-items:center}
+.gameQuestShell.collapsed .gameQuestStatus{min-width:150px}
+.gameQuestSubHead b{background:rgba(8,15,30,.74)!important;border-color:rgba(94,234,212,.14)!important}
+.gameQuestCount{background:rgba(6,12,24,.86)!important}
+.gameQuestCard{border-color:rgba(255,255,255,.08)!important;box-shadow:0 10px 22px rgba(0,0,0,.16), inset 0 0 0 1px rgba(255,255,255,.02)!important}
+.gameQuestTaskList{color:rgba(245,249,255,.94)!important}
+.gameQuestIcon{background:rgba(255,255,255,.08)!important}
+.gameQuestCheck span{background:rgba(4,9,18,.88)!important}
+
+.taskEditorCard,.refEditorCard,.gameQuestEditorCard,.ghModalCard{
+  padding:0!important;
+  overflow:auto;
+  background:linear-gradient(180deg,#fbfdff,#f5f8ff)!important;
+}
+.taskEditorHead,.ghModalHead{
+  position:sticky;
+  top:0;
+  z-index:8;
+  margin:0!important;
+  padding:18px 18px 12px;
+  background:linear-gradient(180deg,rgba(251,253,255,.98),rgba(246,249,255,.95));
+  border-bottom:1px solid rgba(197,210,233,.70);
+  backdrop-filter:blur(10px);
+}
+.taskEditorToolbar,.ghActions{
+  position:sticky;
+  top:76px;
+  z-index:7;
+  margin:0!important;
+  padding:12px 18px 10px!important;
+  background:rgba(248,251,255,.95);
+  border-bottom:1px solid rgba(221,230,245,.92);
+}
+.taskEditorHint,.ghHint{
+  margin:12px 18px!important;
+  padding:12px 14px;
+  border-radius:16px;
+  background:linear-gradient(180deg,#f8fbff,#f1f6ff);
+  border:1px solid rgba(203,217,240,.78);
+  color:#5b6980;
+}
+.taskEditorList,.refEditorList,.gameQuestEditorList,
+#gameQuestEditorDays,.ghSecretPanel,.ghLabel,.ghLog{
+  margin-left:18px;
+  margin-right:18px;
+}
+#gameQuestEditorDays{margin-top:6px}
+.ghSecretPanel{margin-top:14px!important}
+.ghLabel{margin-top:14px!important}
+.ghInput{display:block;margin:6px 18px 0;width:calc(100% - 36px)!important}
+.ghLog{margin-top:12px!important;margin-bottom:0!important;background:#f6f9ff!important;border-color:rgba(205,217,238,.86)!important}
+.editorBottomBar{
+  position:sticky;
+  bottom:0;
+  z-index:9;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 18px 16px;
+  margin-top:14px;
+  background:linear-gradient(180deg,rgba(248,251,255,.90),rgba(248,251,255,1));
+  border-top:1px solid rgba(210,221,241,.88);
+}
+.editorBottomBar button:first-child{
+  background:linear-gradient(180deg,#ffffff,#eff4fd)!important;
+  color:#34435e!important;
+}
+.editorBottomBar button:last-child{
+  background:linear-gradient(135deg,#5c67df,#8f5af7 60%,#ff709f)!important;
+  color:#fff!important;
+}
+.cfgTask,.refCfgGroup,.gameQuestEditRow{
+  border-radius:22px!important;
+  border-color:rgba(193,207,232,.72)!important;
+  box-shadow:0 10px 22px rgba(39,56,94,.08), inset 0 0 0 1px rgba(255,255,255,.55)!important;
+}
+.cfgTop{
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(228,235,246,.9);
+}
+.cfgMini{
+  background:linear-gradient(135deg,rgba(95,114,241,.11),rgba(123,97,255,.10))!important;
+}
+.refItemEdit{
+  border:1px solid rgba(214,224,241,.88);
+  border-radius:14px;
+  padding:10px;
+  background:rgba(255,255,255,.8);
+}
+.ghCloseBtn{
+  background:linear-gradient(180deg,#fff,#edf3fb)!important;
+  border:1px solid rgba(198,210,229,.82)!important;
+  color:#40516b!important;
+  box-shadow:0 6px 16px rgba(30,42,74,.10)!important;
+}
+@media(max-width:900px){
+  .taskEditorHead,.ghModalHead{padding:14px 14px 10px}
+  .taskEditorToolbar,.ghActions{top:68px;padding:10px 14px 10px!important}
+  .taskEditorHint,.ghHint,.taskEditorList,.refEditorList,.gameQuestEditorList,#gameQuestEditorDays,.ghSecretPanel,.ghLabel,.ghLog{margin-left:14px;margin-right:14px}
+  .ghInput{margin:6px 14px 0;width:calc(100% - 28px)!important}
+  .editorBottomBar{padding:10px 14px 14px;flex-direction:column}
+  .editorBottomBar button{width:100%}
+  .gameQuestActions{justify-content:flex-start!important}
+  .gameQuestActions button{flex:1 1 120px}
+}
