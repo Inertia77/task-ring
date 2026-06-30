@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "privacy": "coded-state-keys",
   "updatedAt": "2026-06-29T00:00:00.000Z",
   "tasks": [
@@ -45,5 +45,27 @@
         }
       ]
     }
-  ]
+  ],
+  "gameQuest": {
+    "version": 1,
+    "updatedAt": "2026-06-29T00:00:00.000Z",
+    "games": [
+      {
+        "id": "ww",
+        "name": "鸣潮",
+        "short": "鸣潮",
+        "icon": "🌊",
+        "accent": "cyan",
+        "enabled": true
+      }
+    ],
+    "schedule": {
+      "1": {
+        "ww": [
+          "日常体力",
+          "周常清理"
+        ]
+      }
+    }
+  }
 }

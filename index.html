@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜INERTIA CLOUD QUEST v10.7</title>
+<title>TASK RING｜INERTIA CLOUD QUEST v10.9</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg"/>
 <meta name="theme-color" content="#3854d8"/>
@@ -93,7 +93,7 @@
     <div class="inertiaHeroCopy">
       <div class="inertiaBrandRow">
         <span class="inertiaOwnerBadge">INERTIA SYSTEM</span>
-        <span class="inertiaVersionBadge">v10.7</span>
+        <span class="inertiaVersionBadge">GIT MODE</span>
       </div>
       <h1 class="inertiaHeroTitle">
         <span class="inertiaTitleCn">TASK RING</span>
@@ -103,9 +103,19 @@
       <p class="subtitle inertiaSubtitle">INERTIA 专属云同步任务环：主任务勾选、资料库入口、状态隐私化。Token 只保存在本机。</p>
     </div>
   </div>
-  <div class="toolbar inertiaToolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
+  <div class="toolbar inertiaToolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="controlCenterBtn" class="controlCenterBtn">总控</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="githubInlineState off" id="githubStatus" title="GitHub：未设置"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
+  <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true">
+    <button id="controlGithubBtn">同步设置</button>
+    <button id="controlPullBtn">从云端读取</button>
+    <button id="controlPushBtn">上传本机状态</button>
+    <button id="controlGameQuestEditorBtn">游戏任务编辑器</button>
+    <button id="controlTaskEditorBtn">任务编辑器</button>
+    <button id="controlRefEditorBtn">资料库编辑器</button>
+    <button id="controlClearExpiredBtn" class="ghostDanger">处理延后任务</button>
+  </div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
+<section class="gameQuestPanel" id="gameQuestPanel" aria-label="游戏任务作战区"></section>
 <section class="taskFirstBanner mainRingBanner">
   <div class="mainRingCopy">
     <div class="taskFirstKicker">ANNEAU CENTRAL</div>
@@ -116,11 +126,13 @@
 <section class="orbitPanel" id="orbitPanel" aria-label="任务环概览"></section>
 <section class="tableBox mainTaskPanel"><table id="taskTable"></table></section>
 <section class="mobileBox mainTaskPanelMobile"><div class="dayTabs" id="dayTabs"></div><div class="mobileCards" id="mobileCards"></div></section>
+<details class="legendBox" id="legendBox"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
+
 <details class="refBox priorityRefBox" id="refBox" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目，默认展开，可按组收起。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote"><strong>v10.7：</strong>资料库增加一键展开所有分组；手机端头部和任务环概览继续压缩，保留信息但减少占位。</div>
+<div class="notice versionNote"><strong>近期优化：</strong>游戏作战区已独立，可单独收起；编辑器改成更适合长列表编辑的布局。</div>
 <div class="summaryGrid guideGrid"><div class="card"><h2>使用顺序</h2><ul><li>先看主任务环</li><li>需要入口时再开资料库</li><li>说明区只作提醒</li></ul></div><div class="card"><h2>节奏</h2><ul><li>今日优先，全周辅助</li><li>长期主线不断线</li><li>可选项不要抢主线</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>异常时先手动读取</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版_v10.7.html｜资料库一键展开 / 手机端头部压缩 / 任务环概览更轻；Token 仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版｜游戏作战区 / 一周游戏任务编辑 / 主任务环继续保留；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -143,9 +155,38 @@
       <button id="ghSaveTokenBtn">保存 Token 并同步</button>
       <button id="ghPullBtn">从云端读取</button>
       <button id="ghPushBtn">上传本机状态</button>
-      <button id="taskEditorBtn">任务编辑器</button><button id="refEditorBtn">资料库编辑器</button><button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
+      <button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
     </div>
     <pre id="ghLog" class="ghLog">等待设置。</pre>
+  </div>
+</div>
+
+
+<div id="gameQuestEditorModal" class="gameQuestEditorModal hidden" aria-hidden="true">
+  <div class="gameQuestEditorCard">
+    <div class="taskEditorHead">
+      <div>
+        <div class="taskEditorTitle">游戏作战区编辑器</div>
+        <div class="taskEditorSub">整理游戏卡、每天清单和图标。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
+      </div>
+      <button id="gameQuestEditorCloseBtn" class="ghCloseBtn">×</button>
+    </div>
+    <div class="taskEditorToolbar gameQuestEditorToolbar">
+      <button id="saveGameQuestBtn">保存游戏任务</button>
+      <button id="resetGameQuestBtn">重载已保存配置</button>
+      <button id="exportGameQuestBtn">导出 JSON</button>
+      <button id="importGameQuestBtn">导入 JSON</button>
+    </div>
+    <div class="taskEditorHint">
+      编辑方法：先整理游戏卡，再选星期填写当天清单；一行就是一个清单项。空白的游戏不会出现在当天卡片里。
+    </div>
+    <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
+    <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
+    <pre id="gameQuestEditorLog" class="ghLog">等待编辑。</pre>
+    <div class="editorBottomBar">
+      <button id="gameQuestEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="gameQuestEditorBottomSaveBtn" type="button">保存游戏任务</button>
+    </div>
   </div>
 </div>
 
@@ -153,7 +194,7 @@
   <div class="taskEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle">隐藏任务编辑器</div>
+        <div class="taskEditorTitle">任务编辑器</div>
         <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。不同设备可用不同 Token，仍能读取同一套任务配置。</div>
       </div>
       <button id="taskEditorCloseBtn" class="ghCloseBtn">×</button>
@@ -170,6 +211,10 @@
     </div>
     <div id="taskEditorList" class="taskEditorList"></div>
     <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>
+    <div class="editorBottomBar">
+      <button id="taskEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="taskEditorBottomSaveBtn" type="button">保存配置并同步</button>
+    </div>
   </div>
 </div>
 
@@ -177,7 +222,7 @@
   <div class="refEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle">隐藏资料库编辑器</div>
+        <div class="taskEditorTitle">资料库编辑器</div>
         <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起加密写入 Gist 并跨设备同步。</div>
       </div>
       <button id="refEditorCloseBtn" class="ghCloseBtn">×</button>
@@ -194,6 +239,10 @@
     </div>
     <div id="refEditorList" class="refEditorList"></div>
     <pre id="refEditorLog" class="ghLog">等待编辑。</pre>
+    <div class="editorBottomBar">
+      <button id="refEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="refEditorBottomSaveBtn" type="button">保存资料库并同步</button>
+    </div>
   </div>
 </div>
 
