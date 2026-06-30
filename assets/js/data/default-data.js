@@ -60,17 +60,16 @@ const defaultGameQuestConfig={
     {id:"zzz",name:"绝区零",short:"绝区零",icon:"⚡",accent:"amber",enabled:true},
     {id:"hsr",name:"崩坏：星穹铁道",short:"崩铁",icon:"🚂",accent:"violet",enabled:true},
     {id:"endfield",name:"终末地",short:"终末地",icon:"🛰️",accent:"blue",enabled:true},
-    {id:"exilium",name:"异环",short:"异环",icon:"🌀",accent:"rose",enabled:true},
-    {id:"creator",name:"创作/资料库",short:"创作",icon:"🎬",accent:"gold",enabled:true}
+    {id:"exilium",name:"异环",short:"异环",icon:"🌀",accent:"rose",enabled:true}
   ],
   schedule:{
-    "1":{ww:["日常体力", "周常清理"],zzz:["日常 / 咖啡 / 刮刮乐"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"],creator:["Creator Work｜GUCC"]},
-    "2":{ww:["日常体力"],zzz:["日常", "绝区零周常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"],creator:["素材/标题灵感"]},
-    "3":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托", "崩铁周常"],endfield:["资料关注"],exilium:["资讯关注"],creator:["角色/版本资料整理"]},
-    "4":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["异环周常 / 资讯"],creator:["脚本片段整理"]},
-    "5":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["终末地周常 / 资讯"],exilium:["资讯关注"],creator:["游戏资讯整理"]},
-    "6":{ww:["日常体力"],zzz:["日常", "式舆/危局/鏖战"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"],creator:["Analyze_Character"]},
-    "0":{ww:["日常体力", "深塔/海墟/全息"],zzz:["日常"],hsr:["日常委托", "模拟宇宙/末日/虚构检查"],endfield:["资料关注"],exilium:["资讯关注"],creator:["Analyze_Character", "下周选题预热"]}
+    "1":{ww:["日常体力","周常清理"],zzz:["日常 / 咖啡 / 刮刮乐"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
+    "2":{ww:["日常体力"],zzz:["日常","绝区零周常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
+    "3":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托","崩铁周常"],endfield:["资料关注"],exilium:["资讯关注"]},
+    "4":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["异环周常 / 资讯"]},
+    "5":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["终末地周常 / 资讯"],exilium:["资讯关注"]},
+    "6":{ww:["日常体力"],zzz:["日常","式舆/危局/鏖战"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
+    "0":{ww:["日常体力","深塔/海墟/全息"],zzz:["日常"],hsr:["日常委托","模拟宇宙/末日/虚构检查"],endfield:["资料关注"],exilium:["资讯关注"]}
   }
 };
 

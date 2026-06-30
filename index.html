@@ -103,7 +103,16 @@
       <p class="subtitle inertiaSubtitle">INERTIA 专属云同步任务环：主任务勾选、资料库入口、状态隐私化。Token 只保存在本机。</p>
     </div>
   </div>
-  <div class="toolbar inertiaToolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="clearExpired" class="ghostDanger" title="危险：一键勾掉延后到今天的过期任务">⋯</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="pill ghPill off" id="githubStatus">GitHub：未设置</span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
+  <div class="toolbar inertiaToolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="controlCenterBtn" class="controlCenterBtn">总控</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="githubInlineState off" id="githubStatus" title="GitHub：未设置"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
+  <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true">
+    <button id="controlGithubBtn">同步设置</button>
+    <button id="controlPullBtn">从云端读取</button>
+    <button id="controlPushBtn">上传本机状态</button>
+    <button id="controlGameQuestEditorBtn">游戏任务编辑器</button>
+    <button id="controlTaskEditorBtn">任务编辑器</button>
+    <button id="controlRefEditorBtn">资料库编辑器</button>
+    <button id="controlClearExpiredBtn" class="ghostDanger">处理延后任务</button>
+  </div>
   <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
 <section class="gameQuestPanel" id="gameQuestPanel" aria-label="游戏任务作战区"></section>
@@ -146,7 +155,7 @@
       <button id="ghSaveTokenBtn">保存 Token 并同步</button>
       <button id="ghPullBtn">从云端读取</button>
       <button id="ghPushBtn">上传本机状态</button>
-      <button id="gameQuestEditorBtn">游戏任务编辑器</button><button id="taskEditorBtn">任务编辑器</button><button id="refEditorBtn">资料库编辑器</button><button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
+      <button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
     </div>
     <pre id="ghLog" class="ghLog">等待设置。</pre>
   </div>
@@ -158,18 +167,18 @@
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle">游戏作战区编辑器</div>
-        <div class="taskEditorSub">按「星期 × 游戏」编辑，一行一条。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
+        <div class="taskEditorSub">整理游戏卡、每天清单和图标。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
       </div>
       <button id="gameQuestEditorCloseBtn" class="ghCloseBtn">×</button>
     </div>
     <div class="taskEditorToolbar gameQuestEditorToolbar">
       <button id="saveGameQuestBtn">保存游戏任务</button>
-      <button id="resetGameQuestBtn">恢复默认</button>
+      <button id="resetGameQuestBtn">重载已保存配置</button>
       <button id="exportGameQuestBtn">导出 JSON</button>
       <button id="importGameQuestBtn">导入 JSON</button>
     </div>
     <div class="taskEditorHint">
-      编辑方法：先选星期，再在每个游戏框里写当天要做的内容；一行就是一个清单项。空白的游戏不会出现在当天卡片里。
+      编辑方法：先整理游戏卡，再选星期填写当天清单；一行就是一个清单项。空白的游戏不会出现在当天卡片里。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
