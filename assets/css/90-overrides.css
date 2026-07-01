@@ -3750,3 +3750,285 @@ img,svg,canvas{max-width:100%;height:auto;}
   .gameQuestCollapsedBar b{font-size:10.5px!important;}
   .gameQuestCollapsedBar button{height:24px!important;min-height:24px!important;padding:0 7px!important;font-size:10px!important;}
 }
+
+/* === 20260701 compact pass 3: unified game quest toggle + denser board === */
+.gameQuestPanel{margin:8px 0 10px!important}
+.gameQuestShell{
+  padding:10px 12px!important;
+  border-radius:18px!important;
+}
+.gameQuestShell.collapsed{
+  padding:7px 10px!important;
+  cursor:pointer!important;
+}
+.gameQuestTopBar{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-height:34px!important;
+}
+.gameQuestTopTitle{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-width:0!important;
+}
+.gameQuestTopTitle span{
+  display:inline-flex!important;
+  align-items:center!important;
+  height:24px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,#142d59,#1e3c70)!important;
+  color:#eff8ff!important;
+  font-size:10px!important;
+  font-weight:1000!important;
+  letter-spacing:.09em!important;
+  white-space:nowrap!important;
+  box-shadow:0 6px 14px rgba(20,45,89,.14)!important;
+}
+.gameQuestTopTitle span::before{
+  content:"✦";
+  margin-right:5px;
+  color:#83f5ff;
+}
+.gameQuestTopTitle strong{
+  color:#22375b!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.gameQuestTopProgress{
+  justify-self:end!important;
+  color:#5d6fff!important;
+  font-size:13px!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+.gameQuestTopToggle{
+  height:30px!important;
+  min-height:30px!important;
+  padding:0 10px!important;
+  border-radius:11px!important;
+  font-size:12px!important;
+  font-weight:950!important;
+}
+.gameQuestMetaStrip{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin:8px 0 7px!important;
+  color:#687996!important;
+  font-size:11.5px!important;
+  font-weight:900!important;
+}
+.gameQuestMetaStrip span{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.gameQuestMetaStrip em{
+  margin-left:auto!important;
+  font-style:normal!important;
+  color:#29446e!important;
+  background:rgba(255,255,255,.55)!important;
+  border:1px solid rgba(203,215,238,.88)!important;
+  border-radius:999px!important;
+  padding:2px 8px!important;
+  white-space:nowrap!important;
+}
+.gameQuestMetaStrip button{
+  height:28px!important;
+  min-height:28px!important;
+  padding:0 10px!important;
+  font-size:11.5px!important;
+  border-radius:10px!important;
+}
+.gameQuestHeader,.gameQuestHeaderSide,.gameQuestStatus,.gameQuestActions,.gameQuestTitleBlock{display:none!important}
+.gameQuestDays{
+  padding:5px 0 6px!important;
+  gap:6px!important;
+}
+.gameQuestDay{
+  min-width:68px!important;
+  padding:6px 8px!important;
+  border-radius:12px!important;
+  font-size:12px!important;
+}
+.gameQuestDay b{font-size:10px!important}
+.gameQuestSubHead{
+  margin:0 0 6px!important;
+  gap:8px!important;
+}
+.gameQuestSubHead span{font-size:12px!important}
+.gameQuestSubHead b{
+  font-size:10.5px!important;
+  padding:3px 8px!important;
+}
+.gameQuestGrid{gap:8px!important}
+.gameQuestCardV2{
+  min-height:0!important;
+  padding:8px 9px!important;
+  border-radius:17px!important;
+}
+.gameQuestCardV2::before{
+  width:6px!important;
+  border-radius:17px 0 0 17px!important;
+}
+.gameQuestCardAura{
+  width:110px!important;
+  height:90px!important;
+  right:-28px!important;
+  top:-30px!important;
+  opacity:.55!important;
+}
+.gameQuestCardTop{
+  gap:7px!important;
+  margin-bottom:6px!important;
+}
+.gameQuestCheck span{
+  width:22px!important;
+  height:22px!important;
+  border-radius:8px!important;
+}
+.gameQuestIconOrb{
+  width:32px!important;
+  height:32px!important;
+  border-radius:10px!important;
+  font-size:16px!important;
+}
+.gameQuestName{font-size:14px!important}
+.gameQuestShort{font-size:10.5px!important}
+.gameQuestCount{
+  min-width:42px!important;
+  padding:4px 7px!important;
+  font-size:11px!important;
+}
+.gameQuestProgressRail{
+  height:5px!important;
+  margin:0 0 7px 38px!important;
+}
+.gameQuestTaskListV2{gap:5px!important}
+.gameQuestMiniCheckBtnV2{
+  grid-template-columns:22px 16px minmax(0,1fr)!important;
+  gap:6px!important;
+  padding:6px 7px!important;
+  border-radius:12px!important;
+}
+.gameQuestTaskNo{
+  height:18px!important;
+  font-size:9.8px!important;
+}
+.gameQuestMiniCheckBtnV2 .gameQuestMiniBox{
+  width:16px!important;
+  height:16px!important;
+}
+.gameQuestMiniCheckBtnV2 i{
+  font-size:12px!important;
+  line-height:1.18!important;
+}
+
+@media (min-width:1000px){
+  .gameQuestShell{padding:11px 14px!important}
+  .gameQuestGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+  .gameQuestCardV2{padding:9px 10px!important}
+  .gameQuestDays{display:flex!important;flex-wrap:wrap!important}
+}
+
+@media (max-width:900px){
+  .gameQuestPanel{margin:7px 0 9px!important}
+  .gameQuestShell{padding:9px 10px!important;border-radius:17px!important}
+  .gameQuestShell.collapsed{padding:7px 8px!important}
+  .gameQuestTopBar{
+    grid-template-columns:auto minmax(0,1fr) auto auto!important;
+    gap:7px!important;
+    min-height:30px!important;
+  }
+  .gameQuestTopTitle{gap:6px!important}
+  .gameQuestTopTitle span{
+    height:22px!important;
+    padding:0 8px!important;
+    font-size:9px!important;
+    letter-spacing:.07em!important;
+  }
+  .gameQuestTopTitle strong{font-size:13px!important}
+  .gameQuestTopProgress{font-size:12px!important}
+  .gameQuestTopToggle{
+    height:28px!important;
+    min-height:28px!important;
+    padding:0 9px!important;
+    font-size:11px!important;
+  }
+  .gameQuestMetaStrip{
+    margin:6px 0 6px!important;
+    gap:6px!important;
+    font-size:10.5px!important;
+  }
+  .gameQuestMetaStrip button{
+    height:26px!important;
+    min-height:26px!important;
+    padding:0 8px!important;
+    font-size:10.5px!important;
+  }
+  .gameQuestDays{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;
+    padding:4px 0 5px!important;
+  }
+  .gameQuestDay{
+    min-width:0!important;
+    padding:6px 7px!important;
+    font-size:11.5px!important;
+    border-radius:11px!important;
+  }
+  .gameQuestDay b{font-size:9.5px!important}
+  .gameQuestSubHead{margin:0 0 5px!important}
+  .gameQuestSubHead span{font-size:11.5px!important}
+  .gameQuestSubHead b{
+    font-size:9.8px!important;
+    padding:3px 7px!important;
+  }
+  .gameQuestGrid{gap:7px!important}
+  .gameQuestCardV2{
+    padding:7px 8px!important;
+    border-radius:15px!important;
+  }
+  .gameQuestCardTop{
+    gap:6px!important;
+    margin-bottom:5px!important;
+  }
+  .gameQuestCheck span{width:20px!important;height:20px!important;border-radius:7px!important}
+  .gameQuestIconOrb{width:30px!important;height:30px!important;border-radius:10px!important;font-size:15px!important}
+  .gameQuestName{font-size:13px!important}
+  .gameQuestShort{font-size:10px!important}
+  .gameQuestCount{
+    min-width:40px!important;
+    padding:3px 6px!important;
+    font-size:10.5px!important;
+  }
+  .gameQuestProgressRail{
+    height:4px!important;
+    margin:0 0 6px 35px!important;
+  }
+  .gameQuestTaskListV2{gap:5px!important}
+  .gameQuestMiniCheckBtnV2{
+    grid-template-columns:21px 15px minmax(0,1fr)!important;
+    padding:5px 7px!important;
+    gap:6px!important;
+    border-radius:11px!important;
+  }
+  .gameQuestTaskNo{height:17px!important;font-size:9px!important}
+  .gameQuestMiniCheckBtnV2 .gameQuestMiniBox{width:15px!important;height:15px!important}
+  .gameQuestMiniCheckBtnV2 i{font-size:11.5px!important;line-height:1.16!important}
+}
+@media (max-width:420px){
+  .gameQuestTopTitle strong{max-width:72px!important}
+  .gameQuestTopProgress{font-size:11.5px!important}
+  .gameQuestTopToggle{padding:0 8px!important}
+  .gameQuestDays{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}

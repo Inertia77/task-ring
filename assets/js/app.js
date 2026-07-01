@@ -1045,7 +1045,7 @@ let gameQuestSelectedDay=today;
 let gameQuestEditorDay=today;
 let gameQuestDraftConfig=null;
 const GAMEQUEST_COLLAPSE_KEY=`${GH_PREFIX}gamequest_collapsed`;
-function isGameQuestCollapsed(){return localStorage.getItem(GAMEQUEST_COLLAPSE_KEY)==="1"}
+function isGameQuestCollapsed(){const v=localStorage.getItem(GAMEQUEST_COLLAPSE_KEY);return v===null?true:v==="1"}
 function setGameQuestCollapsed(v){localStorage.setItem(GAMEQUEST_COLLAPSE_KEY,v?"1":"0")}
 function toggleGameQuestCollapsed(){setGameQuestCollapsed(!isGameQuestCollapsed());renderGameQuestPanel()}
 function gameQuestDayKey(dayId){return String(Number(dayId))}
@@ -1138,41 +1138,31 @@ function renderGameQuestPanel(){
   if(!panel)return;
   const collapsed=isGameQuestCollapsed();
   const week=gameQuestWeekStats();
+  const topBar=`<div class="gameQuestTopBar" ${collapsed?'data-gq-collapsed-toggle="1" title="点击展开游戏作战区"':''}>
+    <div class="gameQuestTopTitle"><span>GAME QUEST</span><strong>游戏作战区</strong></div>
+    <b class="gameQuestTopProgress">${week.done}/${week.total}</b>
+    <button type="button" class="gameQuestTopToggle" id="gameQuestToggleBtn">${collapsed?"展开":"收起"}</button>
+  </div>`;
   if(collapsed){
-    panel.innerHTML=`<div class="gameQuestShell collapsed"><div class="gameQuestCollapsedBar">
-      <span class="gameQuestCollapsedBadge">GAME QUEST</span>
-      <strong>游戏作战区</strong>
-      <b>${week.done}/${week.total}</b>
-      <button type="button" id="gameQuestToggleBtn">展开</button>
-    </div></div>`;
+    panel.innerHTML=`<div class="gameQuestShell collapsed">${topBar}</div>`;
     return;
   }
   const selectedStats=gameQuestStats(gameQuestSelectedDay);
   const entries=gameQuestEntriesForDay(gameQuestSelectedDay);
   const cards=entries.length?entries.map(e=>gameQuestCardHtml(e,gameQuestSelectedDay)).join(""):`<div class="gameQuestEmpty"><b>这一天还没有游戏任务。</b><span>去总控里的「游戏任务编辑器」加几条，别让任务板空着。</span></div>`;
   panel.innerHTML=`<div class="gameQuestShell">
-    <div class="gameQuestHeader">
-      <div class="gameQuestTitleBlock">
-        <div class="gameQuestKicker">GAME QUEST BOARD</div>
-        <h2>游戏作战区</h2>
-        <p>把刷体力、周常、深渊/危局独立出去单独管理。整体跟主任务区同调，但保留一点游戏区的战斗感。</p>
-      </div>
-      <div class="gameQuestHeaderSide">
-        <div class="gameQuestStatus">
-          <div class="gameQuestRing" style="--p:${week.pct}%"><span>${week.pct}%</span><em>WEEK</em></div>
-          <div><strong>${week.done}/${week.total}</strong><span>本周游戏清理</span></div>
-        </div>
-        <div class="gameQuestActions">
-          <button type="button" class="gameQuestSecondaryBtn gameQuestCollapseBtn" id="gameQuestToggleBtn">收起模块</button>
-          <button type="button" class="gameQuestSecondaryBtn" id="gameQuestTodayBtn">回到今日</button>
-        </div>
-      </div>
+    ${topBar}
+    <div class="gameQuestMetaStrip">
+      <span>刷体力 / 周常 / 深渊危局</span>
+      <em>${week.pct}% WEEK</em>
+      <button type="button" id="gameQuestTodayBtn">今日</button>
     </div>
     <div class="gameQuestDays">${gameQuestDayTabsHtml()}</div>
     <div class="gameQuestSubHead"><span>${escapeHtml(dayName(gameQuestSelectedDay))}${gameQuestSelectedDay===today?"｜今日":""}</span><b>${selectedStats.done}/${selectedStats.total} items ｜ 大任务 ${selectedStats.cardsDone}/${selectedStats.cards}</b></div>
     <div class="gameQuestGrid">${cards}</div>
   </div>`;
 }
+
 function openGameQuestEditor(){
   closeControlCenter();
   closeGhModal();
@@ -1545,6 +1535,6 @@ function closeEditorsByBackdrop(target){
   if(target.id==="gameQuestEditorModal")closeGameQuestEditor();
   if(target.id==="ghModal")closeGhModal();
 }
-document.body.addEventListener("click",e=>{const controlGameEditor=e.target.closest("#controlGameQuestEditorBtn");if(controlGameEditor){e.preventDefault();e.stopPropagation();openGameQuestEditor();return}const controlTaskEditor=e.target.closest("#controlTaskEditorBtn");if(controlTaskEditor){e.preventDefault();e.stopPropagation();openTaskEditor();return}const controlRefEditor=e.target.closest("#controlRefEditorBtn");if(controlRefEditor){e.preventDefault();e.stopPropagation();openRefEditor();return}const gqItemBtn=e.target.closest("[data-gq-item-btn]");if(gqItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqItemBtn.dataset.cycle||cycleYmd;const next=gqItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestItemDone(gqItemBtn.dataset.gamequestItemGame,Number(gqItemBtn.dataset.gamequestItemDay),gqItemBtn.dataset.gamequestItem,next,gqItemBtn,cyc);return}const gqCardBtn=e.target.closest("[data-gq-card-btn]");if(gqCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqCardBtn.dataset.cycle||cycleYmd;const next=gqCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestDone(gqCardBtn.dataset.gamequestGame,Number(gqCardBtn.dataset.gamequestDay),next,gqCardBtn,cyc);return}if(e.target.closest("#controlCenterBtn")||e.target.closest("#controlCenterMenu")){}else closeControlCenter();const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);renderAll();return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;renderAll();return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-item-game][data-gamequest-item-day][data-gamequest-item]")){setGameQuestItemDone(cb.dataset.gamequestItemGame,Number(cb.dataset.gamequestItemDay),cb.dataset.gamequestItem,cb.checked,cb,cyc);return}if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
+document.body.addEventListener("click",e=>{const controlGameEditor=e.target.closest("#controlGameQuestEditorBtn");if(controlGameEditor){e.preventDefault();e.stopPropagation();openGameQuestEditor();return}const controlTaskEditor=e.target.closest("#controlTaskEditorBtn");if(controlTaskEditor){e.preventDefault();e.stopPropagation();openTaskEditor();return}const controlRefEditor=e.target.closest("#controlRefEditorBtn");if(controlRefEditor){e.preventDefault();e.stopPropagation();openRefEditor();return}const gqItemBtn=e.target.closest("[data-gq-item-btn]");if(gqItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqItemBtn.dataset.cycle||cycleYmd;const next=gqItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestItemDone(gqItemBtn.dataset.gamequestItemGame,Number(gqItemBtn.dataset.gamequestItemDay),gqItemBtn.dataset.gamequestItem,next,gqItemBtn,cyc);return}const gqCardBtn=e.target.closest("[data-gq-card-btn]");if(gqCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqCardBtn.dataset.cycle||cycleYmd;const next=gqCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestDone(gqCardBtn.dataset.gamequestGame,Number(gqCardBtn.dataset.gamequestDay),next,gqCardBtn,cyc);return}if(e.target.closest("#controlCenterBtn")||e.target.closest("#controlCenterMenu")){}else closeControlCenter();const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);renderAll();return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqCollapsedBar=e.target.closest("[data-gq-collapsed-toggle]");if(gqCollapsedBar){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;renderAll();return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const cb=e.target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-item-game][data-gamequest-item-day][data-gamequest-item]")){setGameQuestItemDone(cb.dataset.gamequestItemGame,Number(cb.dataset.gamequestItemDay),cb.dataset.gamequestItem,cb.checked,cb,cyc);return}if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!document.getElementById("gameQuestEditorModal")?.classList.contains("hidden"))closeGameQuestEditor();else if(!document.getElementById("taskEditorModal")?.classList.contains("hidden"))closeTaskEditor();else if(!document.getElementById("refEditorModal")?.classList.contains("hidden"))closeRefEditor();else if(!document.getElementById("ghModal")?.classList.contains("hidden"))closeGhModal();else closeSubtaskPopover();});
 function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();initGameQuestUI();setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
