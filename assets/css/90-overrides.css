@@ -3400,3 +3400,113 @@ body.controlCenterOpen .controlCenterBackdrop{
   .gameQuestProgressRail{margin-left:48px!important}
   .gameQuestMiniCheckBtnV2{grid-template-columns:30px 18px minmax(0,1fr)!important;padding:7px 9px!important}
 }
+
+
+/* === 20260701 mobile compact & game quest refresh === */
+html,body{max-width:100%;overflow-x:hidden!important;}
+body{position:relative;}
+.wrap,header,.inertiaHeader,.gameQuestPanel,.gameQuestShell,.mainRingBanner,.mobileBox,.tableBox{max-width:100%!important;min-width:0!important;}
+.wrap{overflow-x:clip;}
+img,svg,canvas{max-width:100%;height:auto;}
+
+/* slightly tighter overall board */
+.gameQuestShell{
+  padding:16px 18px!important;
+  border-radius:24px!important;
+}
+.gameQuestHeader{gap:14px!important;}
+.gameQuestTitleBlock h2{margin:6px 0 3px!important;}
+.gameQuestTitleBlock p{max-width:680px!important;line-height:1.45!important;}
+.gameQuestStatus{padding:10px 12px!important;min-width:138px!important;}
+.gameQuestRing{width:52px!important;height:52px!important;}
+.gameQuestRing span{font-size:15px!important;}
+.gameQuestActions button{min-width:96px!important;height:38px!important;padding:0 12px!important;}
+.gameQuestDays{padding:10px 2px 8px!important;gap:8px!important;}
+.gameQuestDay{min-width:84px!important;padding:8px 10px!important;border-radius:14px!important;}
+.gameQuestSubHead{margin:6px 0 10px!important;}
+.gameQuestGrid{gap:10px!important;}
+.gameQuestCard{
+  padding:11px 12px!important;
+  border-radius:20px!important;
+  min-height:96px!important;
+  gap:10px!important;
+}
+.gameQuestCard::before{width:4px!important;}
+.gameQuestGameRow{gap:9px!important;margin-bottom:8px!important;}
+.gameQuestIcon{width:38px!important;height:38px!important;border-radius:13px!important;font-size:20px!important;}
+.gameQuestName{font-size:15px!important;line-height:1.12!important;}
+.gameQuestCount{min-width:52px!important;padding:4px 10px!important;font-size:12.5px!important;}
+.gameQuestTaskList{margin-top:6px!important;gap:6px!important;}
+.gameQuestMiniCheckBtn{padding:8px 10px!important;border-radius:14px!important;gap:10px!important;}
+.gameQuestMiniBox{width:18px!important;height:18px!important;flex:0 0 18px!important;}
+.gameQuestMiniCheckBtn i{font-size:13.2px!important;line-height:1.28!important;}
+
+@media (max-width:900px){
+  .wrap{padding:12px 8px 28px!important;}
+  header{padding:14px 14px 16px!important;border-radius:22px!important;}
+  .toolbar{gap:6px!important;}
+  button,.pill{padding:8px 10px!important;font-size:12.5px!important;}
+  .gameQuestPanel{margin:10px 0 12px!important;}
+  .gameQuestShell{padding:13px 12px!important;border-radius:22px!important;}
+  .gameQuestHeader{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;}
+  .gameQuestTitleBlock{min-width:0!important;}
+  .gameQuestKicker{font-size:10px!important;padding:4px 10px!important;letter-spacing:.12em!important;}
+  .gameQuestTitleBlock h2{font-size:23px!important;line-height:1.02!important;}
+  .gameQuestTitleBlock p{font-size:11.8px!important;line-height:1.35!important;margin-top:2px!important;}
+  .gameQuestHeaderSide{width:100%!important;margin-left:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;align-items:stretch!important;}
+  .gameQuestStatus{grid-column:1 / -1;width:100%!important;min-width:0!important;justify-content:flex-start!important;align-self:auto!important;padding:10px 12px!important;border-radius:18px!important;}
+  .gameQuestStatus strong{font-size:17px!important;}
+  .gameQuestStatus span{font-size:10px!important;}
+  .gameQuestRing{width:48px!important;height:48px!important;}
+  .gameQuestActions{grid-column:1 / -1;width:100%!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;justify-content:stretch!important;}
+  .gameQuestActions button{min-width:0!important;height:36px!important;padding:0 10px!important;border-radius:13px!important;font-size:12.5px!important;}
+  .gameQuestDays{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;overflow:visible!important;padding:8px 0 6px!important;gap:8px!important;}
+  .gameQuestDay{min-width:0!important;width:100%!important;justify-content:space-between!important;padding:8px 10px!important;border-radius:14px!important;}
+  .gameQuestSubHead{margin:6px 0 10px!important;flex-wrap:wrap!important;gap:8px!important;}
+  .gameQuestSubHead span{font-size:15px!important;letter-spacing:0!important;}
+  .gameQuestSubHead b{font-size:11.5px!important;padding:4px 10px!important;}
+  .gameQuestGrid{grid-template-columns:1fr!important;gap:10px!important;}
+  .gameQuestCard{padding:10px 10px 11px!important;border-radius:18px!important;min-height:0!important;gap:9px!important;}
+  .gameQuestCheck span{width:24px!important;height:24px!important;border-radius:8px!important;}
+  .gameQuestGameRow{gap:8px!important;margin-bottom:7px!important;}
+  .gameQuestIcon{width:36px!important;height:36px!important;border-radius:12px!important;font-size:19px!important;}
+  .gameQuestName{font-size:14px!important;}
+  .gameQuestCount{min-width:54px!important;font-size:12.5px!important;padding:4px 10px!important;}
+  .gameQuestTaskList{gap:6px!important;}
+  .gameQuestMiniCheckBtn{padding:8px 10px!important;gap:9px!important;}
+  .gameQuestMiniCheckBtn i{font-size:13px!important;line-height:1.28!important;}
+  .gameQuestShell.collapsed{padding:8px 10px!important;border-radius:16px!important;}
+  .gameQuestCollapsedBar{gap:8px!important;min-height:32px!important;flex-wrap:nowrap!important;}
+  .gameQuestCollapsedBadge{height:24px!important;padding:0 8px!important;font-size:9px!important;}
+  .gameQuestCollapsedBar strong{font-size:13px!important;max-width:none!important;}
+  .gameQuestCollapsedBar b{font-size:12px!important;}
+  .gameQuestCollapsedBar button{height:30px!important;min-height:30px!important;padding:0 10px!important;font-size:11px!important;}
+}
+
+@media (max-width:560px){
+  .wrap{padding:10px 6px 22px!important;}
+  header{padding:12px 12px 14px!important;border-radius:20px!important;}
+  .toolbar{gap:6px!important;}
+  .toolbar button,.toolbar .pill{font-size:12px!important;padding:8px 10px!important;}
+  .gameQuestShell{padding:12px 10px!important;border-radius:20px!important;}
+  .gameQuestTitleBlock h2{font-size:21px!important;}
+  .gameQuestTitleBlock p{font-size:11.4px!important;}
+  .gameQuestHeaderSide{grid-template-columns:1fr 1fr!important;}
+  .gameQuestStatus{padding:9px 10px!important;gap:8px!important;}
+  .gameQuestStatus strong{font-size:16px!important;}
+  .gameQuestActions button{height:34px!important;font-size:12px!important;}
+  .gameQuestDays{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .gameQuestDay{padding:8px 9px!important;}
+  .gameQuestSubHead span{font-size:14px!important;}
+  .gameQuestCard{padding:9px 9px 10px!important;grid-template-columns:auto minmax(0,1fr)!important;}
+  .gameQuestCheck span{width:22px!important;height:22px!important;}
+  .gameQuestIcon{width:34px!important;height:34px!important;border-radius:11px!important;font-size:18px!important;}
+  .gameQuestName{font-size:13.5px!important;}
+  .gameQuestCount{min-width:52px!important;padding:4px 9px!important;}
+  .gameQuestMiniCheckBtn{padding:7px 9px!important;gap:8px!important;}
+  .gameQuestMiniBox{width:17px!important;height:17px!important;flex-basis:17px!important;}
+  .gameQuestMiniCheckBtn i{font-size:12.6px!important;}
+  .gameQuestShell.collapsed{padding:7px 8px!important;border-radius:15px!important;}
+  .gameQuestCollapsedBar{display:grid!important;grid-template-columns:auto 1fr auto auto!important;align-items:center!important;gap:6px!important;}
+  .gameQuestCollapsedBar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%!important;}
+}
