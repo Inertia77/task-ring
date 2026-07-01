@@ -4032,3 +4032,83 @@ img,svg,canvas{max-width:100%;height:auto;}
   .gameQuestTopToggle{padding:0 8px!important}
   .gameQuestDays{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
+
+/* === 20260701 compact pass 4: keep the RING in collapsed game board === */
+.gameQuestTopBar{
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  gap:9px!important;
+}
+.gameQuestTopMeter{
+  justify-self:end!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+.gameQuestMiniRing{
+  --size:30px;
+  width:var(--size)!important;
+  height:var(--size)!important;
+  flex:0 0 var(--size)!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:999px!important;
+  background:conic-gradient(#5eead4 var(--p,0%), rgba(115,134,176,.20) 0)!important;
+  box-shadow:0 0 0 3px rgba(94,234,212,.10), 0 6px 12px rgba(31,48,88,.10)!important;
+  position:relative!important;
+}
+.gameQuestMiniRing::after{
+  content:""!important;
+  position:absolute!important;
+  inset:5px!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,#162e5a,#203963)!important;
+}
+.gameQuestMiniRing i{
+  position:relative!important;
+  z-index:1!important;
+  color:#ffffff!important;
+  font-style:normal!important;
+  font-size:8px!important;
+  font-weight:1000!important;
+  letter-spacing:-.04em!important;
+  line-height:1!important;
+}
+.gameQuestTopProgress{
+  justify-self:auto!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  height:22px!important;
+  padding:0 8px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.64)!important;
+  border:1px solid rgba(198,211,238,.88)!important;
+  box-shadow:0 5px 12px rgba(54,70,110,.06)!important;
+  color:#5d6fff!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+}
+.gameQuestShell.collapsed .gameQuestTopBar{
+  min-height:32px!important;
+}
+.gameQuestShell.collapsed .gameQuestTopMeter{
+  gap:6px!important;
+}
+.gameQuestShell.collapsed .gameQuestMiniRing{--size:29px;}
+.gameQuestShell.collapsed .gameQuestTopProgress{height:21px!important;font-size:11.5px!important;padding:0 7px!important;}
+
+@media(max-width:900px){
+  .gameQuestTopBar{grid-template-columns:auto minmax(0,1fr) auto!important;gap:7px!important;}
+  .gameQuestMiniRing{--size:28px;}
+  .gameQuestMiniRing i{font-size:7.5px!important;}
+  .gameQuestTopProgress{height:20px!important;font-size:11px!important;padding:0 7px!important;}
+  .gameQuestShell.collapsed .gameQuestTopBar{min-height:30px!important;}
+}
+@media(max-width:420px){
+  .gameQuestTopBar{gap:5px!important;}
+  .gameQuestMiniRing{--size:26px;}
+  .gameQuestTopMeter{gap:5px!important;}
+  .gameQuestTopProgress{height:19px!important;font-size:10.5px!important;padding:0 6px!important;}
+  .gameQuestTopToggle{height:25px!important;min-height:25px!important;padding:0 7px!important;font-size:10px!important;}
+}

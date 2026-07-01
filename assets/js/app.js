@@ -1140,7 +1140,10 @@ function renderGameQuestPanel(){
   const week=gameQuestWeekStats();
   const topBar=`<div class="gameQuestTopBar" ${collapsed?'data-gq-collapsed-toggle="1" title="点击展开游戏作战区"':''}>
     <div class="gameQuestTopTitle"><span>GAME QUEST</span><strong>游戏作战区</strong></div>
-    <b class="gameQuestTopProgress">${week.done}/${week.total}</b>
+    <div class="gameQuestTopMeter" title="本周游戏清理：${week.done}/${week.total}，${week.pct}%">
+      <span class="gameQuestMiniRing" style="--p:${week.pct}%"><i>${week.pct}%</i></span>
+      <b class="gameQuestTopProgress">${week.done}/${week.total}</b>
+    </div>
     <button type="button" class="gameQuestTopToggle" id="gameQuestToggleBtn">${collapsed?"展开":"收起"}</button>
   </div>`;
   if(collapsed){
