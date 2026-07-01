@@ -1144,7 +1144,6 @@ function renderGameQuestPanel(){
       <strong>游戏作战区</strong>
       <b>${week.done}/${week.total}</b>
       <button type="button" id="gameQuestToggleBtn">展开</button>
-      <button type="button" id="gameQuestTodayBtn">今日</button>
     </div></div>`;
     return;
   }
