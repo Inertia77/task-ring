@@ -1,47 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lightning task execution favicon">
   <defs>
-    <linearGradient id="bg" x1="48" y1="46" x2="460" y2="466" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1E49E6"/>
-      <stop offset="0.52" stop-color="#1DB9F4"/>
-      <stop offset="1" stop-color="#C856F0"/>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#050A24"/>
+      <stop offset="0.52" stop-color="#06113A"/>
+      <stop offset="1" stop-color="#020515"/>
     </linearGradient>
-    <radialGradient id="topGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(156 116) rotate(90) scale(84)">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.78"/>
-      <stop offset="0.44" stop-color="#EAF7FF" stop-opacity="0.42"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="boltFill" x1="172" y1="76" x2="330" y2="432" gradientUnits="userSpaceOnUse">
+
+    <linearGradient id="cyanStroke" x1="13" y1="11" x2="51" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#78F7FF"/>
+      <stop offset="0.45" stop-color="#12C9FF"/>
+      <stop offset="1" stop-color="#126BFF"/>
+    </linearGradient>
+
+    <linearGradient id="boltFill" x1="18" y1="8" x2="47" y2="56" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.3" stop-color="#E9FBFF"/>
-      <stop offset="0.62" stop-color="#7EE8FF"/>
-      <stop offset="1" stop-color="#F4FFFF"/>
+      <stop offset="0.48" stop-color="#DDFBFF"/>
+      <stop offset="1" stop-color="#63E9FF"/>
     </linearGradient>
-    <linearGradient id="facetA" x1="176" y1="228" x2="316" y2="336" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2BEEFF" stop-opacity="0.85"/>
-      <stop offset="1" stop-color="#5F86FF" stop-opacity="0.18"/>
-    </linearGradient>
-    <linearGradient id="facetB" x1="270" y1="180" x2="392" y2="282" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.84"/>
-      <stop offset="1" stop-color="#9EEBFF" stop-opacity="0.40"/>
-    </linearGradient>
-    <filter id="boltGlow" x="120" y="54" width="280" height="404" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.10  0 1 0 0 0.84  0 0 1 0 1  0 0 0 0.56 0" result="glow"/>
-      <feBlend in="SourceGraphic" in2="glow" mode="screen"/>
+
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.02  0 0 0 0 0.62  0 0 0 0 1  0 0 0 0.9 0" result="blueGlow"/>
+      <feMerge>
+        <feMergeNode in="blueGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.75  0 0 0 0 1  0 0 0 0.75 0" result="cyanGlow"/>
+      <feMerge>
+        <feMergeNode in="cyanGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
-  <rect x="10" y="10" width="492" height="492" rx="98" fill="url(#bg)"/>
-  <circle cx="156" cy="116" r="84" fill="url(#topGlow)"/>
-  <path d="M126 370C184 406 272 410 350 376" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="18" stroke-linecap="round"/>
-  <path d="M178 302L234 246" stroke="#71EBFF" stroke-opacity="0.14" stroke-width="12" stroke-linecap="round"/>
-  <g filter="url(#boltGlow)">
-    <path d="M288 76L238 220L364 186L270 298L232 434L244 310L166 326L228 232L288 76Z" fill="url(#boltFill)"/>
-    <path d="M228 232L166 326L244 310L228 232Z" fill="url(#facetA)"/>
-    <path d="M238 220L364 186L300 280L238 220Z" fill="url(#facetB)"/>
-    <path d="M244 310L270 298L232 434L244 310Z" fill="#A7F0FF" fill-opacity="0.48"/>
-    <path d="M208 270L238 220L270 298L208 270Z" fill="#18D7FF" fill-opacity="0.28"/>
-    <path d="M288 76L238 220L364 186L270 298L232 434" stroke="#F6FFFF" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M228 232L166 326L244 310L232 434" stroke="#E6FDFF" stroke-width="5" stroke-linejoin="round"/>
-  </g>
-  <path d="M392 92L402 104L414 94L404 106L416 116L402 112L394 124L394 110L382 108L392 102L392 92Z" fill="#FFF8A8" fill-opacity="0.95"/>
+
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <!-- angular esports shield -->
+  <path d="M17 18.5 L32 10.5 L47 18.5 L47 40.5 L32 54 L17 40.5 Z"
+        fill="none" stroke="url(#cyanStroke)" stroke-width="4.2" stroke-linejoin="round"
+        stroke-linecap="round" opacity="0.95" filter="url(#softGlow)"/>
+
+  <!-- execution lightning bolt -->
+  <path d="M37.7 5.7 L15.2 33.4 H29.2 L23.7 58.3 L49.4 27.8 H35.5 Z"
+        fill="url(#boltFill)" stroke="#BFFFFF" stroke-width="1.35" stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- hard highlight facet for a sharper gamer-tech look -->
+  <path d="M37.7 5.7 L24.4 31.5 H35.5 Z" fill="#FFFFFF" opacity="0.55"/>
+  <path d="M29.2 33.4 L23.7 58.3 L35.4 32.8 Z" fill="#05BFFF" opacity="0.22"/>
+
+  <!-- completed-task checkmark -->
+  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
+        fill="none" stroke="#EFFFFF" stroke-width="5.2" stroke-linecap="round"
+        stroke-linejoin="round" filter="url(#softGlow)"/>
+  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
+        fill="none" stroke="#65EAFF" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" opacity="0.9"/>
 </svg>
