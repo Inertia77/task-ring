@@ -17,6 +17,8 @@ let refGroups=[];
 let gameQuestConfig=null;
 const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
+const TASK_CONFIG_BACKUP_KEY="taskring_local_config_backups_v1";
+const TASK_CONFIG_BACKUP_LIMIT=10;
 
 function deepClone(obj){return JSON.parse(JSON.stringify(obj))}
 function normalizeBool(v){return v===true||v===1||v==="1"||v==="true"}
@@ -426,8 +428,60 @@ function loadLocalTaskConfig(){
     return null;
   }
 }
-function saveLocalTaskConfig(config){
+function readLocalConfigBackups(){
+  try{
+    const list=JSON.parse(localStorage.getItem(TASK_CONFIG_BACKUP_KEY)||"[]");
+    return Array.isArray(list)?list:[];
+  }catch(e){
+    console.warn("local task config backups load failed",e);
+    return [];
+  }
+}
+function writeLocalConfigBackups(list){
+  localStorage.setItem(TASK_CONFIG_BACKUP_KEY,JSON.stringify(list.slice(0,TASK_CONFIG_BACKUP_LIMIT)));
+}
+function configCounts(config){
+  const cfg=normalizeTaskConfig(config||buildDefaultConfig());
+  const tasks=cfg.tasks||[];
+  return {
+    total:tasks.length,
+    enabled:tasks.filter(t=>t.enabled!==false).length,
+    disabled:tasks.filter(t=>t.enabled===false).length,
+    weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==="weekly").length,
+    daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!=="weekly").length
+  };
+}
+function configCountsText(config){
+  const c=configCounts(config);
+  return `${c.total} 个任务，启用 ${c.enabled}，停用 ${c.disabled}`;
+}
+function pushLocalConfigBackup(config,reason="自动备份"){
+  try{
+    const cfg=normalizeTaskConfig(config);
+    const counts=configCounts(cfg);
+    const entry={id:`bk-${Date.now().toString(36)}`,createdAt:new Date().toISOString(),reason,counts,config:cfg};
+    const list=readLocalConfigBackups();
+    const sig=JSON.stringify(cfg.tasks||[]);
+    const dedup=list.filter(item=>JSON.stringify(item?.config?.tasks||[])!==sig);
+    dedup.unshift(entry);
+    writeLocalConfigBackups(dedup);
+    return entry;
+  }catch(e){
+    console.warn("local task config backup failed",e);
+    return null;
+  }
+}
+function saveLocalTaskConfig(config,reason="覆盖本机配置前自动备份"){
   const cfg=normalizeTaskConfig(config);
+  try{
+    const prevRaw=localStorage.getItem(TASK_CONFIG_LOCAL_KEY);
+    if(prevRaw){
+      const prev=normalizeTaskConfig(JSON.parse(prevRaw));
+      if(JSON.stringify(prev)!==JSON.stringify(cfg))pushLocalConfigBackup(prev,reason);
+    }
+  }catch(e){
+    console.warn("previous task config backup skipped",e);
+  }
   localStorage.setItem(TASK_CONFIG_LOCAL_KEY, JSON.stringify(cfg));
   return cfg;
 }
@@ -736,40 +790,50 @@ function renderTaskEditor(){
   if(!list)return;
   const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
   list.innerHTML=cfg.tasks.map(taskEditorRowHtml).join("");
+  list.dataset.fullRender="1";
   taskEditorLog(`已加载 ${cfg.tasks.length} 个任务。`)
+}
+function editorRowToTask(row,idx){
+  const oldCodes=(()=>{try{return JSON.parse(row.dataset.stepcodes||"[]")}catch(e){return []}})();
+  const rawStepLines=(row.querySelector(".cfgSteps").value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const stepUsed=new Set();
+  const steps=rawStepLines.map((title,sidx)=>{
+    let code=oldCodes[sidx]||makeStepCode(stepUsed);
+    if(stepUsed.has(code)||!/^s\d{2,}$/.test(code))code=makeStepCode(stepUsed);
+    stepUsed.add(code);
+    return {id:slugifyId(title,`step-${sidx+1}`),code,title,enabled:true}
+  });
+  const days=[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value));
+  return {
+    id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
+    code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
+    cat:row.querySelector(".cfgCat").value,
+    title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
+    days,
+    url:row.querySelector(".cfgUrl").value.trim(),
+    plan_mode:normalizeTaskPlanMode(row.querySelector(".cfgPlanMode")?.value,inferTaskPlanMode({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value,days})),
+    time_category:normalizeTimeCategory(row.querySelector(".cfgTimeCategory")?.value,inferTaskTimeCategory({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value})),
+    estimated_minutes:Math.min(480,Math.max(1,Math.round(Number(row.querySelector(".cfgEstimatedMinutes")?.value)||30))),
+    weekly_minutes:Math.min(10080,Math.max(0,Math.round(Number(row.querySelector(".cfgWeeklyMinutes")?.value)||0))),
+    core:row.querySelector(".cfgCore").checked,
+    optional:row.querySelector(".cfgOptional").checked,
+    important:row.querySelector(".cfgImportant").checked,
+    enabled:row.querySelector(".cfgEnabled").checked,
+    steps
+  };
 }
 function collectEditorConfig(){
   const rows=[...document.querySelectorAll(".cfgTask")];
-  const usedStepCodesGlobal=new Map();
-  const tasks=rows.map((row,idx)=>{
-    const oldCodes=(()=>{try{return JSON.parse(row.dataset.stepcodes||"[]")}catch(e){return []}})();
-    const rawStepLines=(row.querySelector(".cfgSteps").value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    const stepUsed=new Set();
-    const steps=rawStepLines.map((title,sidx)=>{
-      let code=oldCodes[sidx]||makeStepCode(stepUsed);
-      if(stepUsed.has(code)||!/^s\d{2,}$/.test(code))code=makeStepCode(stepUsed);
-      stepUsed.add(code);
-      return {id:slugifyId(title,`step-${sidx+1}`),code,title,enabled:true}
-    });
-    const days=[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value));
-    return {
-      id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
-      code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
-      cat:row.querySelector(".cfgCat").value,
-      title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
-      days,
-      url:row.querySelector(".cfgUrl").value.trim(),
-      plan_mode:normalizeTaskPlanMode(row.querySelector(".cfgPlanMode")?.value,inferTaskPlanMode({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value,days})),
-      time_category:normalizeTimeCategory(row.querySelector(".cfgTimeCategory")?.value,inferTaskTimeCategory({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value})),
-      estimated_minutes:Math.min(480,Math.max(1,Math.round(Number(row.querySelector(".cfgEstimatedMinutes")?.value)||30))),
-      weekly_minutes:Math.min(10080,Math.max(0,Math.round(Number(row.querySelector(".cfgWeeklyMinutes")?.value)||0))),
-      core:row.querySelector(".cfgCore").checked,
-      optional:row.querySelector(".cfgOptional").checked,
-      important:row.querySelector(".cfgImportant").checked,
-      enabled:row.querySelector(".cfgEnabled").checked,
-      steps
-    }
-  });
+  const list=document.getElementById("taskEditorList");
+  const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+  const edited=rows.map(editorRowToTask);
+  const fullRender=list?.dataset.fullRender==="1"||(!list?.dataset.fullRender&&rows.length>=base.tasks.length);
+  const tasks=fullRender
+    ? edited
+    : base.tasks.map(t=>edited.find(x=>x.id===t.id||x.code===t.code)||t).concat(edited.filter(t=>!base.tasks.some(x=>x.id===t.id||x.code===t.code)));
+  if(!fullRender&&edited.length<base.tasks.length){
+    taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${base.tasks.length-edited.filter(t=>base.tasks.some(x=>x.id===t.id||x.code===t.code)).length} 个已保留。`);
+  }
   return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups,gameQuest:gameQuestConfig});
 }
 async function saveEditorConfig(){
@@ -778,8 +842,15 @@ async function saveEditorConfig(){
   try{
     setBtnBusy(btn,true,"同步中…");
     showToast("配置加密同步中…","warn",1600);
+    const before=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
     const cfg=collectEditorConfig();
-    saveLocalTaskConfig(cfg);
+    const beforeCounts=configCounts(before);
+    const nextCounts=configCounts(cfg);
+    if(nextCounts.total<beforeCounts.total||nextCounts.enabled<beforeCounts.enabled-1){
+      const ok=confirm(`这次保存会明显减少配置：\n\n当前：${configCountsText(before)}\n将保存：${configCountsText(cfg)}\n\n如果你不是故意清理任务，请取消。`);
+      if(!ok){taskEditorLog("已取消可疑保存，配置没有覆盖。");showToast("已取消保存，配置未覆盖","warn",2200);return}
+    }
+    saveLocalTaskConfig(cfg,"任务编辑器保存前");
     applyTaskConfig(cfg,true);
     setGhStatus("GitHub：保存配置中","sync");
     await ghPatchConfig(cfg);
@@ -863,6 +934,90 @@ async function reloadSavedEditorConfig(){
     setBtnBusy(btn,false);
   }
 }
+function pickUsefulBackup(backups,current){
+  const cur=configCounts(current);
+  return backups.find(b=>b?.config&&((b.counts?.total||0)>cur.total||(b.counts?.enabled||0)>cur.enabled))||backups.find(b=>b?.config);
+}
+async function restoreLocalBackupConfig(){
+  const btn=document.getElementById("restoreLocalBackupBtn");
+  const backups=readLocalConfigBackups();
+  if(!backups.length){taskEditorLog("本机还没有可恢复的配置备份。");showToast("本机没有配置备份","warn",2200);return}
+  const current=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+  const picked=pickUsefulBackup(backups,current);
+  if(!picked?.config){showToast("没有可用备份","warn");return}
+  const when=picked.createdAt?new Date(picked.createdAt).toLocaleString():"未知时间";
+  const ok=confirm(`恢复本机备份？\n\n备份：${configCountsText(picked.config)}\n时间：${when}\n原因：${picked.reason||"自动备份"}\n\n当前配置会先进入备份池。恢复后请检查任务编辑器。`);
+  if(!ok)return;
+  try{
+    setBtnBusy(btn,true,"恢复中…");
+    const cfg=saveLocalTaskConfig(picked.config,"恢复本机备份前");
+    applyTaskConfig(cfg,true);
+    renderTaskEditor();
+    taskEditorLog(`已恢复本机备份：${configCountsText(cfg)}。检查无误后可保存同步。`);
+    showToast("已恢复本机备份，检查后再同步","ok",2600);
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
+async function ghFetchGistCommits(){
+  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}/commits`,{headers:ghHeaders(),cache:"no-store"});
+  if(!res.ok)throw new Error(`GET gist commits failed ${res.status}: ${await res.text()}`);
+  return await res.json();
+}
+async function ghFetchGistRevision(version){
+  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}/${version}`,{headers:ghHeaders(),cache:"no-store"});
+  if(!res.ok)throw new Error(`GET gist revision failed ${res.status}: ${await res.text()}`);
+  return await res.json();
+}
+async function restorePreviousCloudConfig(){
+  const btn=document.getElementById("restoreCloudPreviousBtn");
+  if(!ghToken()){openGhModal();taskEditorLog("请先设置 GitHub Token，才能读取 Gist 历史版本。");showToast("请先设置 GitHub Token","warn");return}
+  try{
+    setBtnBusy(btn,true,"查找中…");
+    setGhStatus("GitHub：查找历史版本","sync");
+    const current=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+    const cur=configCounts(current);
+    const commits=await ghFetchGistCommits();
+    let picked=null;
+    let fallback=null;
+    for(const item of commits.slice(1,16)){
+      const version=item.version||item.sha;
+      if(!version)continue;
+      try{
+        const gist=await ghFetchGistRevision(version);
+        const parsed=await ghParseConfig(gist);
+        if(!parsed.config)continue;
+        const counts=configCounts(parsed.config);
+        const candidate={version,committedAt:item.committed_at||item.committedAt||"",config:parsed.config,counts};
+        if(!fallback)fallback=candidate;
+        if(counts.total>cur.total||counts.enabled>cur.enabled){picked=candidate;break}
+      }catch(err){
+        console.warn("skip gist revision",version,err);
+      }
+    }
+    picked=picked||fallback;
+    if(!picked){throw new Error("没有找到可读取的上一版 taskring-config.json")}
+    const when=picked.committedAt?new Date(picked.committedAt).toLocaleString():"未知时间";
+    const ok=confirm(`找到云端历史配置：\n\n历史版：${configCountsText(picked.config)}\n时间：${when}\n当前：${configCountsText(current)}\n\n确认恢复并同步回云端？`);
+    if(!ok){taskEditorLog("已取消云端历史恢复。");showToast("已取消恢复","warn");return}
+    setBtnBusy(btn,true,"恢复中…");
+    const cfg=saveLocalTaskConfig(picked.config,"恢复云端上一版前");
+    applyTaskConfig(cfg,true);
+    renderTaskEditor();
+    await ghPatchConfig(cfg);
+    setGhStatus("GitHub：已同步","on");
+    ghLog(`已从 Gist 历史版本恢复配置：${picked.version}`);
+    taskEditorLog(`已恢复云端上一版并同步：${configCountsText(cfg)}。`);
+    showToast("已恢复云端上一版并同步","ok",3000);
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：恢复失败","err");
+    taskEditorLog("恢复云端上一版失败："+String(err.message||err));
+    showToast("恢复失败，请看日志","err",3200);
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
 function initTaskEditorUI(){
   document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
   document.getElementById("taskEditorCloseBtn")?.addEventListener("click",closeTaskEditor);
@@ -873,6 +1028,8 @@ function initTaskEditorUI(){
   document.getElementById("exportConfigBtn")?.addEventListener("click",exportEditorConfig);
   document.getElementById("importConfigBtn")?.addEventListener("click",importEditorConfig);
   document.getElementById("reloadSavedConfigBtn")?.addEventListener("click",reloadSavedEditorConfig);
+  document.getElementById("restoreLocalBackupBtn")?.addEventListener("click",restoreLocalBackupConfig);
+  document.getElementById("restoreCloudPreviousBtn")?.addEventListener("click",restorePreviousCloudConfig);
   document.getElementById("taskEditorList")?.addEventListener("click",e=>{
     const btn=e.target.closest("button[data-op]");
     if(!btn)return;

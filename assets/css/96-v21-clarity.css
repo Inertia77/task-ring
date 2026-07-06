@@ -647,3 +647,561 @@ body::after{
     justify-content:stretch!important;
   }
 }
+
+/* v21.3 SSR harmony pass: denser cards, calmer pearl/gold palette, no task-title truncation. */
+:root{
+  --v21-ink:#202338;
+  --v21-muted:#6b7085;
+  --v21-border:#e5dfeb;
+  --v21-card:#fffefa;
+  --v21-soft:#faf8fc;
+  --v21-soft-2:#f2eef8;
+  --v21-primary:#6c55cf;
+  --v21-primary-2:#30265c;
+  --v21-accent:#c99a3d;
+  --v21-ssr-gold:#ddb85b;
+  --v21-ssr-lilac:#a48bea;
+  --v21-ssr-ice:#8db9ee;
+  --v21-shadow:0 8px 20px rgba(42,36,78,.07);
+  --v21-shadow-strong:0 14px 34px rgba(42,36,78,.12);
+}
+
+body{
+  background:linear-gradient(180deg,#fbfaf8 0%,#f8f5fb 46%,#f3f6fb 100%)!important;
+}
+
+body::before{
+  background:linear-gradient(180deg,rgba(255,255,255,.76),rgba(250,247,252,.88))!important;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.viewDockBtn span,
+.weeklyCommandHero>div:first-child span,
+.weeklyCategoryTab span,
+.gameQuestFilterTabs span{
+  letter-spacing:0!important;
+}
+
+.wrap{
+  padding-top:16px!important;
+}
+
+.inertiaHeader,
+.viewDock,
+.viewIntro,
+.taskRingControlPanel,
+.orbitPanel,
+.tableBox,
+.mobileBox,
+.legendBox,
+.priorityRefBox,
+.weeklyCommandHero,
+.weeklyMissionGroup,
+.timePanelShell.v20 .timePanelHeader,
+.gameQuestShell.gameQuestStandalone{
+  border-color:var(--v21-border)!important;
+  background:rgba(255,254,250,.90)!important;
+  box-shadow:var(--v21-shadow)!important;
+}
+
+.inertiaHeader{
+  border-radius:18px!important;
+}
+
+.titleGlow{
+  background:linear-gradient(90deg,#26223e 0%,#6c55cf 54%,#b7872d 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+}
+
+.controlCenterBtn,
+.missionPrimary,
+.weeklyTargetActions .primary,
+.targetPreset.active,
+.editorScopeTabs button.active{
+  background:linear-gradient(135deg,var(--v21-primary-2),var(--v21-primary) 66%,#8a70d9)!important;
+  box-shadow:0 10px 22px rgba(91,71,190,.20)!important;
+}
+
+.viewDock{
+  gap:6px!important;
+  padding:6px!important;
+  border-radius:14px!important;
+}
+
+.viewDockBtn{
+  min-height:46px!important;
+  border-radius:8px!important;
+  padding:7px 9px!important;
+}
+
+.viewDockBtn.active,
+.weeklyCategoryTab.active,
+.gameQuestFilterTabs button.active{
+  border-color:rgba(201,154,61,.42)!important;
+  background:linear-gradient(180deg,#fffefa,#f3effb)!important;
+  box-shadow:inset 0 -2px 0 var(--v21-ssr-gold),0 8px 18px rgba(91,71,190,.10)!important;
+}
+
+.viewDockBtn b{
+  font-size:14px!important;
+}
+
+.viewDockBtn span{
+  font-size:9.5px!important;
+}
+
+.weeklyShell.v20,
+.weeklyShell.v21,
+.timePanelShell.v20{
+  gap:12px!important;
+}
+
+.weeklyCommandHero{
+  border-radius:14px!important;
+  padding:14px 16px!important;
+  background:linear-gradient(135deg,#fffefa 0%,#f8f5fb 64%,#fff8e9 100%)!important;
+}
+
+.weeklyCommandHero>div:first-child b{
+  font-size:24px!important;
+}
+
+.weeklyCommandHero>div:first-child em{
+  margin-top:5px!important;
+  font-size:12px!important;
+}
+
+.weeklyHeroStats{
+  gap:8px!important;
+}
+
+.weeklyHeroStats>div,
+.allocationChip,
+.weeklyCategoryTab,
+.gameQuestFilterTabs button,
+.timeTaskRow,
+.timeLogItem,
+.timeBudgetRow{
+  border-radius:8px!important;
+  background:#fffefa!important;
+  border-color:var(--v21-border)!important;
+  box-shadow:0 6px 15px rgba(42,36,78,.05)!important;
+}
+
+.weeklyHeroStats>div{
+  min-width:96px!important;
+  padding:7px 9px!important;
+}
+
+.weeklyHeroStats b{
+  font-size:17px!important;
+}
+
+.allocationRibbon{
+  grid-template-columns:repeat(auto-fit,minmax(178px,1fr))!important;
+  gap:8px!important;
+}
+
+.allocationChip{
+  padding:9px 10px!important;
+}
+
+.allocationChip i,
+.groupMeter,
+.missionMeter,
+.gameQuestProgressRail{
+  background:#ece7f2!important;
+}
+
+.allocationChip i:before,
+.groupMeter i,
+.missionMeter i,
+.gameQuestProgressRail span{
+  background:linear-gradient(90deg,var(--v21-ssr-gold),var(--v21-ssr-lilac) 58%,var(--v21-ssr-ice))!important;
+}
+
+.weeklyCategoryTabs,
+.gameQuestFilterTabs{
+  gap:6px!important;
+}
+
+.weeklyCategoryTab,
+.gameQuestFilterTabs button{
+  min-width:128px!important;
+  padding:7px 9px!important;
+}
+
+.weeklyCategoryTab b,
+.gameQuestFilterTabs b{
+  font-size:13px!important;
+}
+
+.weeklyMissionGroup{
+  border-radius:12px!important;
+  padding:12px!important;
+  background:linear-gradient(180deg,rgba(255,254,250,.94),rgba(248,245,251,.84))!important;
+}
+
+.weeklyMissionGroup>header{
+  margin-bottom:9px!important;
+  padding-bottom:9px!important;
+}
+
+.weeklyMissionGroup .groupIcon,
+.missionIcon,
+.cfgSummaryIcon{
+  background:linear-gradient(135deg,#fff6d8,#eee9ff)!important;
+  color:var(--v21-primary-2)!important;
+}
+
+.weeklyMissionGrid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important;
+  gap:10px!important;
+}
+
+.weeklyMissionCard{
+  border-radius:8px!important;
+  padding:11px 11px 10px 13px!important;
+  background:linear-gradient(135deg,#fffefa 0%,#faf7ff 58%,#fff8e7 100%)!important;
+  border-color:rgba(203,188,216,.78)!important;
+  box-shadow:0 8px 18px rgba(42,36,78,.07),inset 0 1px 0 rgba(255,255,255,.82)!important;
+}
+
+.weeklyMissionCard:before{
+  width:4px!important;
+  background:linear-gradient(180deg,var(--v21-ssr-gold),var(--v21-ssr-lilac) 55%,var(--v21-ssr-ice))!important;
+  opacity:1!important;
+}
+
+.weeklyMissionCard.running{
+  border-color:rgba(164,139,234,.60)!important;
+  box-shadow:0 0 0 2px rgba(221,184,91,.18),0 10px 24px rgba(42,36,78,.10)!important;
+}
+
+.weeklyMissionCard.over:before{
+  background:linear-gradient(180deg,#d26359,#ddb85b)!important;
+}
+
+.missionHead{
+  grid-template-columns:32px minmax(0,1fr) auto!important;
+  gap:8px!important;
+  align-items:start!important;
+}
+
+.missionIcon{
+  width:32px!important;
+  height:32px!important;
+  border-radius:8px!important;
+  font-size:16px!important;
+}
+
+.missionTitleBlock{
+  padding-top:1px!important;
+}
+
+.missionTitleBlock b,
+.missionTitleBlock span,
+.weeklyStepItem span,
+.gameQuestName,
+.gameQuestShort,
+.gameQuestMiniCheckBtnV2 i{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+}
+
+.missionTitleBlock b{
+  font-size:13.5px!important;
+  line-height:1.24!important;
+}
+
+.missionTitleBlock span{
+  margin-top:2px!important;
+  font-size:11px!important;
+  line-height:1.28!important;
+}
+
+.missionScore{
+  min-width:66px!important;
+  padding-top:1px!important;
+}
+
+.missionScore strong{
+  font-size:12.5px!important;
+  line-height:1.12!important;
+}
+
+.missionScore em{
+  font-size:10.5px!important;
+  line-height:1.16!important;
+}
+
+.missionMeter{
+  height:5px!important;
+  margin:9px 0!important;
+}
+
+.missionActions{
+  gap:6px!important;
+}
+
+.missionPrimary,
+.missionGhost,
+.missionLink,
+.safeTargetEdit{
+  min-height:30px!important;
+  height:auto!important;
+  border-radius:8px!important;
+  padding:7px 9px!important;
+  font-size:12px!important;
+}
+
+.missionPrimary{
+  flex:1 1 124px!important;
+}
+
+.missionGhost{
+  flex:1 1 98px!important;
+}
+
+.missionGhost,
+.missionLink,
+.safeTargetEdit{
+  background:rgba(255,254,250,.78)!important;
+  border-color:#e4dcea!important;
+}
+
+.safeTargetEdit{
+  flex:1.1 1 116px!important;
+}
+
+.missionBadges{
+  margin-top:8px!important;
+  gap:4px!important;
+}
+
+.missionBadges span,
+.editorBadge{
+  border-radius:7px!important;
+  background:#f5f1f8!important;
+  border-color:#e5ddeb!important;
+  color:#514966!important;
+}
+
+.missionBadges span.hot,
+.editorBadge.hot{
+  background:#fff5dd!important;
+  border-color:#ead49a!important;
+  color:#8a5d11!important;
+}
+
+.weeklySubtasks{
+  margin-top:9px!important;
+  border-radius:8px!important;
+  background:#fbf9fd!important;
+  border-color:#e5dfeb!important;
+}
+
+.weeklySubtasks>summary{
+  padding:8px 9px!important;
+}
+
+.weeklyStepList{
+  gap:5px!important;
+  padding:0 8px 8px!important;
+}
+
+.weeklyStepItem{
+  min-height:29px!important;
+  border-radius:7px!important;
+  padding:5px 7px!important;
+  background:#fffefa!important;
+  border-color:#e8e1eb!important;
+  font-size:12px!important;
+  line-height:1.24!important;
+}
+
+.gameQuestShell.gameQuestStandalone{
+  border-radius:14px!important;
+  background:linear-gradient(180deg,#fffefa 0%,#f7f5fb 62%,#f2f6fb 100%)!important;
+}
+
+.gameQuestTopBarStandalone{
+  padding:12px 14px!important;
+  background:linear-gradient(135deg,#fffefa 0%,#f5f2fb 58%,#edf7ff 100%)!important;
+  border-bottom-color:rgba(221,184,91,.32)!important;
+}
+
+.gameQuestTopBarStandalone .gameQuestTopTitle span,
+.gameQuestTopBarStandalone .gameQuestTopTitle strong,
+.gameQuestTopBarStandalone .gameQuestTopTitle em{
+  color:var(--v21-ink)!important;
+}
+
+.gameQuestTopBarStandalone .gameQuestTopTitle em{
+  color:var(--v21-muted)!important;
+}
+
+.gameQuestModeTabs{
+  padding:8px 10px!important;
+  background:#f6f4f9!important;
+}
+
+.gameQuestModeBtn{
+  border-radius:8px!important;
+  background:#fffefa!important;
+}
+
+.gameQuestModeBtn.active{
+  background:linear-gradient(180deg,#fffefa,#eeeaff)!important;
+  border-color:rgba(221,184,91,.48)!important;
+}
+
+.gameQuestModeBtn.active:after{
+  background:linear-gradient(90deg,var(--v21-ssr-gold),var(--v21-ssr-lilac))!important;
+}
+
+.gameQuestGrid,
+.gameQuestWeeklyPane .gameQuestWeeklyGrid{
+  gap:10px!important;
+}
+
+.gameQuestCardV2,
+.gameQuestWeeklyPane .gameQuestWeeklyGrid .gameQuestCardV2,
+.gameQuestWeeklyPane .gameQuestWeeklyCard{
+  border-radius:8px!important;
+  padding:10px!important;
+  background:linear-gradient(135deg,#fffefa 0%,#f9f6ff 58%,#f4f9ff 100%)!important;
+  border-color:#ded9ea!important;
+  box-shadow:0 8px 18px rgba(31,34,72,.08)!important;
+}
+
+.gameQuestCardV2:before,
+.gameQuestWeeklyPane .gameQuestWeeklyCard::before{
+  width:4px!important;
+  border-radius:8px 0 0 8px!important;
+  background:linear-gradient(180deg,#7dd3fc,var(--v21-ssr-lilac) 52%,var(--v21-ssr-gold))!important;
+  box-shadow:none!important;
+}
+
+.gameQuestIconOrb{
+  width:34px!important;
+  height:34px!important;
+  border-radius:8px!important;
+  background:linear-gradient(135deg,#252846,#453b77)!important;
+  color:#fff!important;
+  box-shadow:inset 0 0 0 1px rgba(221,184,91,.24)!important;
+}
+
+.gameQuestCardTop{
+  gap:8px!important;
+  margin-bottom:8px!important;
+}
+
+.gameQuestName{
+  font-size:14px!important;
+  line-height:1.18!important;
+}
+
+.gameQuestShort{
+  font-size:10.5px!important;
+  line-height:1.18!important;
+}
+
+.gameQuestCount{
+  min-width:44px!important;
+  padding:4px 7px!important;
+  border-radius:8px!important;
+  background:#2f2958!important;
+  color:#f6dd91!important;
+  box-shadow:none!important;
+}
+
+.gameQuestProgressRail{
+  height:5px!important;
+  margin:0 0 8px 42px!important;
+}
+
+.gameQuestTaskListV2{
+  gap:5px!important;
+}
+
+.gameQuestMiniCheckBtnV2{
+  grid-template-columns:22px 15px minmax(0,1fr) auto!important;
+  gap:6px!important;
+  padding:5px 6px!important;
+  border-radius:7px!important;
+  background:rgba(255,254,250,.74)!important;
+  border-color:#e7e0ec!important;
+}
+
+.gameQuestMiniCheckBtnV2 i{
+  font-size:11.6px!important;
+  line-height:1.2!important;
+}
+
+.gameQuestTopTimer{
+  border-radius:8px!important;
+  background:linear-gradient(135deg,#242544,#4f3f88 62%,#9b792c)!important;
+  box-shadow:0 10px 22px rgba(31,34,72,.20)!important;
+}
+
+.gameQuestTopTimer.active{
+  background:linear-gradient(135deg,#17435a,#5650a6 58%,#b28b32)!important;
+}
+
+.gameQuestTodayQuick{
+  border-radius:8px!important;
+}
+
+@media(max-width:700px){
+  .weeklyMissionCard{
+    padding:10px 10px 9px 12px!important;
+  }
+  .missionHead{
+    grid-template-columns:28px minmax(0,1fr) minmax(56px,64px)!important;
+    gap:6px!important;
+  }
+  .missionIcon{
+    width:28px!important;
+    height:28px!important;
+    font-size:15px!important;
+  }
+  .missionScore{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    min-width:56px!important;
+    max-width:64px!important;
+    text-align:right!important;
+  }
+  .missionScore strong{font-size:11.5px!important;}
+  .missionScore em{font-size:10px!important;}
+  .missionTitleBlock b{
+    font-size:12.5px!important;
+  }
+  .missionTitleBlock span{font-size:10.5px!important;}
+  .missionActions{
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(66px,1fr))!important;
+    gap:5px!important;
+  }
+  .missionPrimary,
+  .missionGhost,
+  .missionLink,
+  .safeTargetEdit{
+    min-width:0!important;
+    min-height:27px!important;
+    padding:5px 5px!important;
+    font-size:11px!important;
+    line-height:1.08!important;
+  }
+  .missionBadges{
+    margin-top:6px!important;
+  }
+}
