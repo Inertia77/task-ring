@@ -3,5 +3,7 @@
 @import url("./20-cutin-avatars.css");
 @import url("./30-world-visuals.css");
 @import url("./90-overrides.css");
+@import url("./95-v20-polish.css");
+@import url("./96-v21-clarity.css");
 
 /* Entry stylesheet. Edit the imported files above instead of turning index.html back into 火锅全家桶。 */

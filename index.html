@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜INERTIA CLOUD QUEST v19</title>
+<title>TASK RING｜INERTIA CLOUD QUEST v21</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
 <meta name="theme-color" content="#3854d8"/>
@@ -163,7 +163,7 @@
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v19 已进一步压缩顶部与导航，把周计划池 / 时间账本改成更清爽的工作台视图。</div>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v21 已收敛配色和层级，修复周计划池分类、分任务展示与按钮可读性。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>时间历史随状态文件同步</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
 <div class="footer">任务环_GitHub同步版｜主环 / 游戏作战区 / 时间账本 / 资料库 分离显示；Token 仅保存在本机</div>
@@ -282,5 +282,11 @@
 
 <script src="assets/js/data/default-data.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/views/weekly-view.js"></script>
+<script src="assets/js/views/time-ledger-view.js"></script>
+<script src="assets/js/views/game-view.js"></script>
+<script src="assets/js/views/editor-ux.js"></script>
+<script src="assets/js/views/v20-boot.js"></script>
+<script src="assets/js/views/v21-boot.js"></script>
 </body>
 </html>
