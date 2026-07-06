@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜INERTIA CLOUD QUEST v10.9</title>
+<title>TASK RING｜INERTIA CLOUD QUEST v19</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
 <meta name="theme-color" content="#3854d8"/>
@@ -103,7 +103,13 @@
       <p class="subtitle inertiaSubtitle">INERTIA 专属云同步任务环：主任务勾选、资料库入口、状态隐私化。Token 只保存在本机。</p>
     </div>
   </div>
-  <div class="toolbar inertiaToolbar"><button id="showToday">只看今天</button><button id="showAll">显示全周</button><button id="showUndone">只看今日未完成</button><button id="resetCurrentWeek">重置本周</button><button id="controlCenterBtn" class="controlCenterBtn">总控</button><button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button><span class="githubInlineState off" id="githubStatus" title="GitHub：未设置"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span><span class="pill" id="todayLabel">今天：识别中</span><span class="pill" id="cycleLabel">周期：计算中</span></div>
+  <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
+    <button id="controlCenterBtn" class="controlCenterBtn">总控</button>
+    <button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button>
+    <span class="githubInlineState off" id="githubStatus" title="GitHub：未设置"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span>
+    <span class="pill" id="todayLabel">今天：识别中</span>
+    <span class="pill" id="cycleLabel">周期：计算中</span>
+  </div>
   <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true">
     <button id="controlGithubBtn">同步设置</button>
     <button id="controlPullBtn">从云端读取</button>
@@ -113,26 +119,54 @@
     <button id="controlRefEditorBtn">资料库编辑器</button>
     <button id="controlClearExpiredBtn" class="ghostDanger">处理延后任务</button>
   </div>
-  <div class="progress-wrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span id="modeText">只看今日未完成模式</span></div><div class="progress"><div id="bar"></div></div></div>
 </header>
-<section class="gameQuestPanel" id="gameQuestPanel" aria-label="游戏任务作战区"></section>
-<section class="taskFirstBanner mainRingBanner">
+<nav class="viewDock" id="viewDock" aria-label="TASK RING 页面切换">
+  <button type="button" class="viewDockBtn active" data-view-target="tasks"><span>DAILY</span><b>今日执行环</b></button>
+  <button type="button" class="viewDockBtn" data-view-target="weekly"><span>WEEK</span><b>周计划池</b></button>
+  <button type="button" class="viewDockBtn" data-view-target="game"><span>GAME</span><b>游戏作战区</b></button>
+  <button type="button" class="viewDockBtn" data-view-target="time"><span>TIME</span><b>时间账本</b></button>
+  <button type="button" class="viewDockBtn" data-view-target="library"><span>LIB</span><b>资料库</b></button>
+</nav>
+<section class="viewIntro viewPanel active" data-view-panel="tasks">
+  <div><span>MAIN RING</span><strong>今日执行环</strong></div>
+  <p>这里只放真正需要今天出现的任务：每日保底、指定日任务、遗留事项。普通兴趣与长期主线转入「周计划池」，按时间目标推进。</p>
+</section>
+<section class="taskRingControlPanel viewPanel active" data-view-panel="tasks" aria-label="今日执行环筛选与进度">
+  <div class="taskRingControlHead">
+    <div>
+      <span>DAILY RING CONTROL</span>
+      <strong>今日执行环控制台</strong>
+    </div>
+    <div class="taskRingModeText" id="modeText">只看今日未完成模式</div>
+  </div>
+  <div class="taskRingActionRow">
+    <button id="showUndone" type="button">只看今日未完成</button>
+    <button id="showToday" type="button">只看今天</button>
+    <button id="showAll" type="button">显示全周</button>
+    <button id="resetCurrentWeek" type="button" class="softDangerBtn">重置本周</button>
+  </div>
+  <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计今日执行环，不影响周计划池 / 游戏作战区</span></div><div class="progress"><div id="bar"></div></div></div>
+</section>
+<section class="taskFirstBanner mainRingBanner viewPanel active" data-view-panel="tasks">
   <div class="mainRingCopy">
     <div class="taskFirstKicker">ANNEAU CENTRAL</div>
     <div class="taskFirstTitle">Anneau principal</div>
     <div class="taskFirstText">Les tâches essentielles du jour sont ici. Ouvrez la semaine seulement si nécessaire.</div>
   </div>
 </section>
-<section class="orbitPanel" id="orbitPanel" aria-label="任务环概览"></section>
-<section class="tableBox mainTaskPanel"><table id="taskTable"></table></section>
-<section class="mobileBox mainTaskPanelMobile"><div class="dayTabs" id="dayTabs"></div><div class="mobileCards" id="mobileCards"></div></section>
-<details class="legendBox" id="legendBox"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
-
-<details class="refBox priorityRefBox" id="refBox"><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目，默认收起，需要时展开。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
-<section class="dailyReminder auxReminder"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote"><strong>近期优化：</strong>游戏作战区已独立，可单独收起；编辑器改成更适合长列表编辑的布局。</div>
-<div class="summaryGrid guideGrid"><div class="card"><h2>使用顺序</h2><ul><li>先看主任务环</li><li>需要入口时再开资料库</li><li>说明区只作提醒</li></ul></div><div class="card"><h2>节奏</h2><ul><li>今日优先，全周辅助</li><li>长期主线不断线</li><li>可选项不要抢主线</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>异常时先手动读取</li></ul></div></div>
-<div class="footer">任务环_GitHub同步版｜游戏作战区 / 一周游戏任务编辑 / 主任务环继续保留；Token 仅保存在本机</div>
+<section class="orbitPanel viewPanel active" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
+<section class="weeklyPlanPanel viewPanel" id="weeklyPlanPanel" data-view-panel="weekly" aria-label="周计划池"></section>
+<section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
+<section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="dayTabs" id="dayTabs"></div><div class="mobileCards" id="mobileCards"></div></section>
+<details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
+<section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
+<section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
+<details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
+<section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v19 已进一步压缩顶部与导航，把周计划池 / 时间账本改成更清爽的工作台视图。</div>
+<div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>时间历史随状态文件同步</li></ul></div></div>
+<div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
+<div class="footer">任务环_GitHub同步版｜主环 / 游戏作战区 / 时间账本 / 资料库 分离显示；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">

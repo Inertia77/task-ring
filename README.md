@@ -83,3 +83,19 @@ git push origin main
 - 游戏任务完成状态复用原有 GitHub Gist 状态同步；游戏任务配置合并进 `taskring-config.json` 加密同步。旧主任务环里的游戏项本版暂不强制删除，避免破坏现有云端配置。
 - 本次同步更新 `.gitignore`，追加 `tmp_bk/`，并按你给的忽略规则整理。
 - 本次主要改动文件：`index.html`、`.gitignore`、`assets/js/data/default-data.js`、`assets/js/app.js`、`assets/css/90-overrides.css`。
+
+
+## v11.0 追加开发说明
+
+- 新增 `Time Budget Ring / 时间配额环`：主任务卡片支持「开始计时」「暂停」「继续」「完成并记录」「放弃」。
+- 计时数据默认保存在浏览器 `localStorage`：`taskring_time_active_v1` 保存当前计时，`taskring_time_logs_v1` 保存历史时长。暂不写入 GitHub Gist，避免先把私密时间流水同步到云端。
+- 任务编辑器新增「时间分类」和「预计分钟」字段，用于本周预算统计和超时提醒。
+- 完成并记录会自动把对应任务勾选完成；短时间测试也会按最少 1 分钟写入日志，方便确认功能是否正常。
+- 本次主要改动文件：`index.html`、`assets/js/app.js`、`assets/css/90-overrides.css`。
+
+## Time Budget Ring v13
+
+- 任务行支持开始计时，并显示「本周已用 / 每周目标」。点击周时长徽章可查看该任务本周计时明细。
+- 任务编辑器新增「每周目标分钟」，随 `taskring-config.json` 加密同步到 GitHub/Gist。
+- 游戏作战区顶部新增整体计时按钮，记录为 `gamequest-board`，计入游戏分类与 `taskring-state.json` 的 `time_logs`。
+- 历史计时记录进入 GitHub/Gist 同步；当前正在运行的计时器仍仅保存在本机，避免多设备互相覆盖。

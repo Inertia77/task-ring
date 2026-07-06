@@ -4112,3 +4112,1400 @@ img,svg,canvas{max-width:100%;height:auto;}
   .gameQuestTopProgress{height:19px!important;font-size:10.5px!important;padding:0 6px!important;}
   .gameQuestTopToggle{height:25px!important;min-height:25px!important;padding:0 7px!important;font-size:10px!important;}
 }
+
+/* === v11.0 Time Budget Ring / Focus Timer === */
+.timePanel{margin:14px 0 16px;position:relative;z-index:2}
+.timePanelShell{border:1px solid rgba(94,115,255,.18);border-radius:26px;padding:16px;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(248,251,255,.92));box-shadow:0 18px 42px rgba(52,73,120,.10);overflow:hidden;position:relative}
+.timePanelShell::before{content:"";position:absolute;right:-72px;top:-92px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(83,221,255,.22),transparent 64%);pointer-events:none}
+.timePanelShell>*{position:relative;z-index:1}.activeTimerCard{display:flex;justify-content:space-between;gap:18px;align-items:center;border:1px solid rgba(94,115,255,.18);border-radius:22px;padding:14px 16px;background:linear-gradient(135deg,#fdfefe,#f4f7ff);box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+.activeTimerCard.running{border-color:rgba(34,197,94,.25);background:linear-gradient(135deg,#f7fffb,#f0f7ff)}.activeTimerCard.paused{border-color:rgba(251,191,36,.34);background:linear-gradient(135deg,#fffdf4,#f7fbff)}.activeTimerCard.warn{border-color:rgba(244,63,94,.42);box-shadow:0 0 0 4px rgba(244,63,94,.08)}.activeTimerCard.empty{color:#40516e}
+.activeTimerKicker{font-size:11px;font-weight:1000;letter-spacing:.16em;color:#5e73ff;text-transform:uppercase}.activeTimerTitle{font-size:20px;font-weight:1000;color:#1f2c46;margin-top:3px;line-height:1.2}.activeTimerSub{font-size:12px;font-weight:850;color:#73829b;margin-top:5px}.activeTimerRight{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}.activeTimerClock{font-variant-numeric:tabular-nums;font-size:30px;font-weight:1000;color:#13213a;letter-spacing:.04em}.activeTimerActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.activeTimerActions button,.timerControls button{border:1px solid rgba(94,115,255,.22);border-radius:999px;padding:7px 10px;background:linear-gradient(180deg,#fff,#eef4ff);color:#243657;font-weight:1000;cursor:pointer;box-shadow:0 6px 14px rgba(59,82,139,.08)}.activeTimerActions button:hover,.timerControls button:hover{transform:translateY(-1px);box-shadow:0 10px 18px rgba(59,82,139,.12)}.activeTimerActions .timerGhost,.timerControls .timerGhost{background:linear-gradient(180deg,#fff,#fff6f6);border-color:rgba(244,63,94,.20);color:#9f1239}
+.timeStatsGrid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:12px;margin-top:12px}.timeStatCard{border:1px solid rgba(203,216,232,.86);border-radius:18px;padding:12px;background:rgba(255,255,255,.74)}.timeStatCard>span{display:block;color:#75849d;font-size:12px;font-weight:950}.timeStatCard>b{display:block;margin-top:4px;color:#1f2d49;font-size:24px;font-weight:1000}.timeTodayChips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.timeTodayChips span,.timeTiny{font-size:12px;color:#708099;font-weight:850}.timeTodayChips span{border:1px solid rgba(203,216,232,.9);border-radius:999px;padding:3px 8px;background:#fff}.timeStatCard.recent ul{list-style:none;margin:7px 0 0;padding:0;display:grid;gap:5px}.timeStatCard.recent li{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#5d6d86}.timeStatCard.recent b{font-size:12px;color:#2c3b59;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.timeStatCard.recent span{white-space:nowrap;color:#74849f;font-weight:900}
+.timeBudgetList{display:grid;gap:9px;margin-top:13px}.timeBudgetRow{display:grid;grid-template-columns:170px minmax(110px,1fr) 96px;align-items:center;gap:10px}.timeBudgetLabel{display:flex;align-items:center;gap:8px;min-width:0;color:#2d3e5c}.timeBudgetLabel b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.timeBudgetBar{height:12px;border-radius:999px;background:#e9eef7;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(126,145,176,.10)}.timeBudgetBar span{display:block;width:var(--w);height:100%;border-radius:inherit;background:linear-gradient(90deg,#53ddff,#6ae9c8 55%,#a78bfa)}.timeBudgetRow.over .timeBudgetBar span{background:linear-gradient(90deg,#fbbf24,#fb7185)}.timeBudgetValue{font-size:12px;color:#64748b;font-weight:950;text-align:right;font-variant-numeric:tabular-nums}
+.timerControls{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:8px;vertical-align:middle}.timerControls .timerHint{display:inline-flex;align-items:center;border:1px solid rgba(203,216,232,.88);border-radius:999px;padding:3px 8px;background:rgba(255,255,255,.72);color:#6c7b94;font-size:11px;font-weight:950}.timerControls .timerClock{font-variant-numeric:tabular-nums;border:1px solid rgba(94,115,255,.22);border-radius:999px;padding:4px 9px;background:#fff;color:#182740;font-weight:1000}.timerControls.active.running .timerClock{box-shadow:0 0 0 3px rgba(34,197,94,.10)}.timerControls.active.paused .timerClock{box-shadow:0 0 0 3px rgba(251,191,36,.12)}.timerControls button{font-size:11px;padding:5px 8px}.mMeta .timerControls{display:flex;margin:8px 0 0}.mMeta .timerControls .timerHint{font-size:11px}.taskMetaLine .timerControls{margin-top:6px}
+@media(max-width:900px){.timePanelShell{border-radius:22px;padding:12px}.activeTimerCard{align-items:flex-start;flex-direction:column;border-radius:18px}.activeTimerRight{width:100%;justify-content:space-between}.activeTimerClock{font-size:28px}.timeStatsGrid{grid-template-columns:1fr}.timeBudgetRow{grid-template-columns:1fr;gap:5px}.timeBudgetValue{text-align:left}.timerControls{margin-left:0}.timerControls .timerHint{width:100%;justify-content:center}.timerControls button{flex:1 1 auto}}
+
+/* === v11.1 layout repair: compact GitHub-synced Time Budget Ring === */
+.timePanel{
+  margin:8px 0 10px!important;
+  position:relative!important;
+  z-index:3!important;
+}
+.timePanelShell{
+  border:1px solid rgba(102,126,234,.18)!important;
+  border-radius:20px!important;
+  padding:10px 12px!important;
+  background:
+    radial-gradient(circle at 98% 0,rgba(85,220,255,.14),transparent 34%),
+    linear-gradient(135deg,rgba(255,255,255,.96),rgba(244,248,255,.90))!important;
+  box-shadow:0 10px 26px rgba(39,56,105,.08),inset 0 0 0 1px rgba(255,255,255,.58)!important;
+  overflow:hidden!important;
+}
+.timePanelShell::before{display:none!important;}
+.timePanelTop{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.55fr) minmax(240px,.9fr)!important;
+  gap:10px!important;
+  align-items:stretch!important;
+}
+.activeTimerCard{
+  min-height:72px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:10px 12px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(102,126,234,.18)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(241,247,255,.88))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.70)!important;
+  color:#1f2d49!important;
+}
+.activeTimerCard.empty{min-height:64px!important;}
+.activeTimerCard.running{border-color:rgba(34,197,94,.32)!important;background:linear-gradient(135deg,rgba(247,255,251,.98),rgba(240,247,255,.92))!important;}
+.activeTimerCard.paused{border-color:rgba(251,191,36,.40)!important;background:linear-gradient(135deg,rgba(255,253,244,.98),rgba(247,251,255,.92))!important;}
+.activeTimerCard.warn{border-color:rgba(244,63,94,.44)!important;box-shadow:0 0 0 3px rgba(244,63,94,.08),inset 0 0 0 1px rgba(255,255,255,.70)!important;}
+.activeTimerMain{min-width:0!important;}
+.activeTimerKicker{font-size:10px!important;font-weight:1000!important;letter-spacing:.14em!important;color:#5e73ff!important;text-transform:uppercase!important;}
+.activeTimerTitle{font-size:17px!important;font-weight:1000!important;line-height:1.2!important;margin-top:3px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important;}
+.activeTimerSub{font-size:11.5px!important;font-weight:850!important;color:#71809a!important;line-height:1.25!important;margin-top:3px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.activeTimerRight{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;flex:0 0 auto!important;}
+.activeTimerClock{font-variant-numeric:tabular-nums!important;font-size:27px!important;font-weight:1000!important;line-height:1!important;color:#14233e!important;letter-spacing:.03em!important;}
+.activeTimerActions{display:flex!important;gap:6px!important;flex-wrap:nowrap!important;justify-content:flex-end!important;}
+.activeTimerActions button{
+  border:1px solid rgba(94,115,255,.24)!important;
+  border-radius:999px!important;
+  padding:7px 10px!important;
+  min-height:30px!important;
+  background:linear-gradient(180deg,#fff,#eef4ff)!important;
+  color:#243657!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+  cursor:pointer!important;
+  box-shadow:0 5px 12px rgba(59,82,139,.08)!important;
+}
+.activeTimerActions .timerGhost{background:linear-gradient(180deg,#fff,#fff6f6)!important;border-color:rgba(244,63,94,.22)!important;color:#9f1239!important;}
+.timeStatsRail{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+  align-content:stretch!important;
+}
+.timeStatPair{
+  border:1px solid rgba(203,216,232,.86)!important;
+  border-radius:15px!important;
+  padding:9px 10px!important;
+  background:rgba(255,255,255,.76)!important;
+  min-width:0!important;
+}
+.timeStatPair span{display:block!important;color:#75849d!important;font-size:11px!important;font-weight:950!important;line-height:1.1!important;}
+.timeStatPair b{display:block!important;margin-top:4px!important;color:#1f2d49!important;font-size:20px!important;font-weight:1000!important;line-height:1!important;}
+.timeTodayChips{
+  grid-column:1 / -1!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  flex-wrap:nowrap!important;
+  overflow:hidden!important;
+  margin-top:0!important;
+}
+.timeTodayChips span{
+  flex:0 0 auto!important;
+  max-width:150px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  border:1px solid rgba(203,216,232,.88)!important;
+  border-radius:999px!important;
+  padding:3px 8px!important;
+  background:#fff!important;
+  color:#6c7b94!important;
+  font-size:11px!important;
+  font-weight:900!important;
+}
+.timeBudgetList{
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(92px,1fr))!important;
+  gap:7px!important;
+  margin-top:8px!important;
+}
+.timeBudgetRow{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:5px!important;
+  align-items:stretch!important;
+  min-width:0!important;
+  padding:7px 8px!important;
+  border:1px solid rgba(203,216,232,.72)!important;
+  border-radius:14px!important;
+  background:rgba(255,255,255,.66)!important;
+}
+.timeBudgetLabel{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;color:#2d3e5c!important;min-width:0!important;}
+.timeBudgetLabel b{font-size:11.5px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.timeBudgetBar{height:7px!important;border-radius:999px!important;background:#e8eef7!important;overflow:hidden!important;box-shadow:inset 0 0 0 1px rgba(126,145,176,.10)!important;}
+.timeBudgetBar span{display:block!important;width:var(--w)!important;height:100%!important;border-radius:inherit!important;background:linear-gradient(90deg,#53ddff,#6ae9c8 55%,#a78bfa)!important;}
+.timeBudgetRow.over .timeBudgetBar span{background:linear-gradient(90deg,#fbbf24,#fb7185)!important;}
+.timeBudgetValue{font-size:11px!important;color:#64748b!important;font-weight:950!important;text-align:left!important;font-variant-numeric:tabular-nums!important;line-height:1!important;}
+.timeRecentLine{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin-top:8px!important;
+  color:#75849d!important;
+  font-size:11.5px!important;
+  font-weight:900!important;
+  overflow:hidden!important;
+}
+.timeRecentLine>span{flex:0 0 auto!important;color:#5e73ff!important;font-weight:1000!important;letter-spacing:.08em!important;}
+.timeRecentLine ul{display:flex!important;align-items:center!important;gap:8px!important;list-style:none!important;margin:0!important;padding:0!important;min-width:0!important;overflow:hidden!important;}
+.timeRecentLine li{display:inline-flex!important;align-items:center!important;gap:5px!important;min-width:0!important;max-width:260px!important;border:1px solid rgba(203,216,232,.72)!important;border-radius:999px!important;padding:3px 8px!important;background:rgba(255,255,255,.70)!important;}
+.timeRecentLine li b{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#33445f!important;font-size:11.5px!important;}
+.timeRecentLine li span{flex:0 0 auto!important;color:#74849f!important;font-size:11px!important;white-space:nowrap!important;}
+
+/* task row timer must stay compact; central panel owns pause/complete/abandon */
+.timerControls{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  flex-wrap:nowrap!important;
+  margin:0 0 0 auto!important;
+  vertical-align:middle!important;
+  max-width:100%!important;
+  min-width:0!important;
+  flex:0 0 auto!important;
+}
+.timerControls .timerHint{
+  display:inline-flex!important;
+  align-items:center!important;
+  max-width:104px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  border:1px solid rgba(203,216,232,.88)!important;
+  border-radius:999px!important;
+  padding:3px 7px!important;
+  background:rgba(255,255,255,.72)!important;
+  color:#6c7b94!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  line-height:1!important;
+}
+.timerControls button{
+  border:1px solid rgba(94,115,255,.24)!important;
+  border-radius:999px!important;
+  padding:4px 8px!important;
+  min-height:24px!important;
+  background:linear-gradient(180deg,#fff,#eef4ff)!important;
+  color:#243657!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  box-shadow:0 4px 10px rgba(59,82,139,.07)!important;
+  cursor:pointer!important;
+}
+.timerControls.activeMini{
+  border:1px solid rgba(34,197,94,.22)!important;
+  border-radius:999px!important;
+  padding:3px 8px!important;
+  background:rgba(242,255,249,.82)!important;
+  color:#14532d!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.07)!important;
+}
+.timerControls.activeMini.paused{border-color:rgba(251,191,36,.36)!important;background:rgba(255,250,235,.88)!important;color:#92400e!important;box-shadow:0 0 0 3px rgba(251,191,36,.08)!important;}
+.timerPulse{font-size:12px!important;line-height:1!important;}
+.timerControls .timerClock{font-variant-numeric:tabular-nums!important;border:0!important;border-radius:0!important;padding:0!important;background:transparent!important;color:inherit!important;font-size:11.5px!important;font-weight:1000!important;line-height:1!important;box-shadow:none!important;}
+.timerMiniText{font-size:10.5px!important;font-weight:900!important;color:#6b7b94!important;white-space:nowrap!important;}
+.taskMetaLine .timerControls{margin-left:auto!important;}
+.mMeta .timerControls{margin-left:auto!important;}
+
+@media(max-width:1100px){
+  .timePanelTop{grid-template-columns:1fr!important;}
+  .timeBudgetList{grid-template-columns:repeat(4,minmax(98px,1fr))!important;}
+  .activeTimerRight{width:100%!important;justify-content:space-between!important;}
+  .activeTimerCard{align-items:flex-start!important;flex-direction:column!important;}
+}
+@media(max-width:700px){
+  .timePanel{margin:7px 0 9px!important;}
+  .timePanelShell{padding:9px!important;border-radius:18px!important;}
+  .timePanelTop{gap:8px!important;}
+  .activeTimerCard{min-height:0!important;padding:10px!important;border-radius:15px!important;gap:9px!important;}
+  .activeTimerTitle{font-size:15.5px!important;}
+  .activeTimerSub{font-size:11px!important;white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;}
+  .activeTimerClock{font-size:24px!important;}
+  .activeTimerActions{width:100%!important;display:grid!important;grid-template-columns:1fr 1.3fr .9fr!important;gap:6px!important;}
+  .activeTimerActions button{font-size:11.5px!important;padding:7px 8px!important;}
+  .timeStatsRail{grid-template-columns:1fr 1fr!important;gap:6px!important;}
+  .timeStatPair{padding:8px!important;border-radius:13px!important;}
+  .timeStatPair b{font-size:18px!important;}
+  .timeTodayChips{overflow-x:auto!important;scrollbar-width:none!important;}
+  .timeTodayChips::-webkit-scrollbar{display:none!important;}
+  .timeBudgetList{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;}
+  .timeBudgetRow{padding:7px!important;border-radius:13px!important;}
+  .timeRecentLine{display:none!important;}
+  .timerControls .timerHint{display:none!important;}
+  .timerControls button{min-height:23px!important;padding:4px 9px!important;}
+  .timerMiniText{display:none!important;}
+  .mMeta .timerControls{flex:0 0 auto!important;}
+}
+
+/* === v12.2 task-level time stats + Game Quest timer === */
+.timerWeekChip{
+  appearance:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  max-width:96px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  border:1px solid rgba(126,145,176,.22)!important;
+  border-radius:999px!important;
+  padding:3px 7px!important;
+  background:rgba(248,250,252,.88)!important;
+  color:#475569!important;
+  font-size:10.5px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  font-variant-numeric:tabular-nums!important;
+  cursor:pointer!important;
+}
+.timerWeekChip:hover{
+  transform:translateY(-1px)!important;
+  box-shadow:0 5px 12px rgba(54,70,110,.08)!important;
+}
+.timerWeekChip.over,.timerControls.overTarget .timerWeekChip{
+  border-color:rgba(244,63,94,.26)!important;
+  background:rgba(255,241,242,.92)!important;
+  color:#9f1239!important;
+}
+.timeLogGrid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+  margin-top:8px!important;
+}
+.timeLogGrid .timeRecentLine{
+  margin-top:0!important;
+}
+.timeTaskRank li.over span{
+  color:#be123c!important;
+}
+.gameQuestTopTimer{
+  appearance:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  border:1px solid rgba(94,115,255,.20)!important;
+  border-radius:999px!important;
+  padding:7px 10px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(239,246,255,.86))!important;
+  color:#243657!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  box-shadow:0 8px 16px rgba(35,48,87,.08)!important;
+  cursor:pointer!important;
+}
+.gameQuestTopTimer:hover{
+  transform:translateY(-1px)!important;
+  box-shadow:0 11px 22px rgba(35,48,87,.12)!important;
+}
+.gameQuestTopTimer.active{
+  border-color:rgba(34,197,94,.34)!important;
+  background:linear-gradient(180deg,rgba(240,253,244,.95),rgba(239,246,255,.90))!important;
+  color:#14532d!important;
+}
+.gameQuestTopTimer span{font-size:13px!important;line-height:1!important;}
+.gameQuestTopTimer b{font-variant-numeric:tabular-nums!important;}
+
+@media(max-width:900px){
+  .timerWeekChip{max-width:88px!important;}
+  .gameQuestTopTimer{padding:6px 8px!important;font-size:11px!important;}
+}
+@media(max-width:700px){
+  .timeLogGrid{display:none!important;}
+  .timerWeekChip{max-width:72px!important;padding:3px 6px!important;font-size:10px!important;}
+  .gameQuestTopBar{gap:7px!important;}
+  .gameQuestTopTimer b{display:none!important;}
+  .gameQuestTopTimer{padding:7px 8px!important;}
+}
+.gameQuestTopBar{grid-template-columns:auto minmax(0,1fr) auto auto!important;}
+@media(max-width:700px){.gameQuestTopBar{grid-template-columns:auto minmax(0,1fr) auto auto!important;}}
+
+/* === v14 view separation + layout hardening === */
+.viewDock{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin:14px 0 12px!important;
+  padding:8px!important;
+  border:1px solid rgba(203,216,232,.82)!important;
+  border-radius:24px!important;
+  background:rgba(255,255,255,.76)!important;
+  box-shadow:0 18px 42px rgba(25,39,80,.10)!important;
+  backdrop-filter:blur(16px)!important;
+}
+.viewDockBtn{
+  min-width:0!important;
+  min-height:54px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:3px!important;
+  border:1px solid rgba(203,216,232,.78)!important;
+  border-radius:18px!important;
+  padding:9px 12px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(246,249,255,.86))!important;
+  color:#3a4862!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+.viewDockBtn span{
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:10.5px!important;
+  letter-spacing:.12em!important;
+  font-weight:1000!important;
+  color:#71809a!important;
+}
+.viewDockBtn b{
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:14px!important;
+  font-weight:1000!important;
+  color:#263552!important;
+}
+.viewDockBtn.active{
+  border-color:rgba(94,115,255,.36)!important;
+  background:linear-gradient(135deg,rgba(236,243,255,.98),rgba(247,235,255,.92))!important;
+  box-shadow:0 12px 28px rgba(94,115,255,.14)!important;
+}
+.viewDockBtn.active span{color:#5e73ff!important;}
+.viewPanel:not(.active){display:none!important;}
+.viewPanel.active{animation:viewFadeIn .18s ease-out both;}
+@keyframes viewFadeIn{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+.viewIntro{
+  margin:12px 0!important;
+  padding:14px 16px!important;
+  border:1px solid rgba(203,216,232,.78)!important;
+  border-radius:22px!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(238,247,255,.62))!important;
+  box-shadow:0 14px 34px rgba(25,39,80,.08)!important;
+}
+.viewIntro div{display:flex!important;align-items:center!important;gap:10px!important;min-width:0!important;}
+.viewIntro span{font-size:11px!important;font-weight:1000!important;letter-spacing:.12em!important;color:#5e73ff!important;white-space:nowrap!important;}
+.viewIntro strong{font-size:18px!important;font-weight:1000!important;color:#263552!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.viewIntro p{margin:6px 0 0!important;color:#66758f!important;font-size:13px!important;line-height:1.55!important;}
+
+/* Dedicated time page should breathe; main ring no longer hosts it. */
+body[data-app-view="time"] .timePanel{margin:12px 0 18px!important;}
+body[data-app-view="time"] .timePanelShell{
+  padding:18px!important;
+  border-radius:28px!important;
+  box-shadow:0 22px 60px rgba(25,39,80,.13)!important;
+}
+body[data-app-view="time"] .timePanelTop{
+  grid-template-columns:minmax(320px,1.25fr) minmax(240px,.75fr)!important;
+  gap:14px!important;
+}
+body[data-app-view="time"] .timeBudgetList{
+  grid-template-columns:repeat(4,minmax(150px,1fr))!important;
+  gap:10px!important;
+}
+body[data-app-view="time"] .timeBudgetRow{min-width:0!important;}
+body[data-app-view="time"] .timeLogGrid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+body[data-app-view="time"] .timeRecentLine{
+  min-width:0!important;
+  overflow:hidden!important;
+  border:1px solid rgba(203,216,232,.72)!important;
+  border-radius:16px!important;
+  padding:9px 10px!important;
+  background:rgba(255,255,255,.72)!important;
+}
+body[data-app-view="time"] .timeRecentLine ul{overflow:hidden!important;}
+body[data-app-view="time"] .timeRecentLine li{max-width:100%!important;}
+
+/* Floating timer: visible everywhere, but never disturbs layout. */
+.timerFloatDock.hidden{display:none!important;}
+.timerFloatDock{
+  position:fixed!important;
+  left:50%!important;
+  bottom:16px!important;
+  transform:translateX(-50%)!important;
+  z-index:9990!important;
+  width:min(920px,calc(100vw - 24px))!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:10px 12px!important;
+  border:1px solid rgba(128,145,176,.28)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:0 20px 50px rgba(15,23,42,.18)!important;
+  backdrop-filter:blur(18px)!important;
+}
+.timerFloatDock.running{border-color:rgba(34,197,94,.34)!important;}
+.timerFloatDock.paused{border-color:rgba(251,191,36,.38)!important;}
+.timerFloatDock.warn{border-color:rgba(244,63,94,.42)!important;background:rgba(255,247,247,.94)!important;}
+.timerFloatMain{min-width:0!important;display:flex!important;align-items:center!important;gap:8px!important;overflow:hidden!important;}
+.timerFloatBadge{
+  flex:0 0 auto!important;
+  border-radius:999px!important;
+  padding:4px 8px!important;
+  background:#eef5ff!important;
+  color:#5e73ff!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  letter-spacing:.05em!important;
+}
+.timerFloatMain b{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:13px!important;color:#233451!important;font-weight:1000!important;}
+.timerFloatMain em{flex:0 0 auto!important;font-style:normal!important;color:#71809a!important;font-size:12px!important;font-weight:850!important;white-space:nowrap!important;}
+.timerFloatClock{font-variant-numeric:tabular-nums!important;font-size:20px!important;font-weight:1000!important;color:#15243d!important;white-space:nowrap!important;}
+.timerFloatActions{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:nowrap!important;}
+.timerFloatActions button{
+  flex:0 0 auto!important;
+  min-height:30px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+}
+.timerFloatActions .timerGhost{background:#fff6f6!important;color:#9f1239!important;border-color:rgba(244,63,94,.22)!important;}
+.timerFloatActions .timerOpenView{background:#f6f8ff!important;color:#4f46e5!important;border-color:rgba(94,115,255,.24)!important;}
+
+/* Click/checkbox/layout hardening: keep every row from exploding after interaction. */
+.tableBox,.mobileBox,.gameQuestPanel,.timePanel,.refBox{min-width:0!important;max-width:100%!important;overflow:visible!important;}
+#taskTable{width:100%!important;table-layout:fixed!important;border-collapse:separate!important;}
+#taskTable th,#taskTable td{min-width:0!important;overflow:hidden!important;}
+.taskName,.taskRowInner,.taskMainLine,.taskMetaLine,.mTask,.mTaskBody,.mTitle,.mMeta{min-width:0!important;}
+.taskRowInner{max-width:100%!important;overflow:hidden!important;}
+.taskMainLine{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;max-width:100%!important;}
+.taskMainLine .taskLink,.taskMainLine .taskText{min-width:0!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.taskMetaLine{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  flex-wrap:wrap!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+.taskMetaLine .timerControls{margin-left:0!important;max-width:100%!important;}
+.timerControls{
+  flex:0 1 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+}
+.timerControls .timerHint{max-width:120px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.timerWeekChip{flex:0 1 auto!important;min-width:0!important;max-width:104px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.timerControls button{flex:0 0 auto!important;white-space:nowrap!important;}
+.mMeta{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important;overflow:hidden!important;}
+.mMeta .timerControls{margin-left:0!important;max-width:100%!important;}
+.mobileStepSlot,.mobileMetaText{min-width:0!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.gameQuestTopBar{grid-template-columns:minmax(0,1fr) auto auto auto!important;gap:8px!important;overflow:hidden!important;}
+.gameQuestTopTitle,.gameQuestTopMeter,.gameQuestTopTimer{min-width:0!important;}
+.gameQuestTopTitle strong,.gameQuestTopProgress,.gameQuestTopTimer b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.gameQuestGrid{min-width:0!important;}
+.gameQuestCard,.gameQuestCardTop,.gameQuestTaskListV2 li,.gameQuestMiniCheckBtnV2{min-width:0!important;max-width:100%!important;overflow:hidden!important;}
+.gameQuestNameWrap,.gameQuestMiniCheckBtnV2 i{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+
+@media(max-width:900px){
+  .viewDock{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;border-radius:20px!important;}
+  .viewDockBtn{min-height:48px!important;padding:8px 10px!important;border-radius:15px!important;}
+  body[data-app-view="time"] .timePanelTop{grid-template-columns:1fr!important;}
+  body[data-app-view="time"] .timeBudgetList{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  body[data-app-view="time"] .timeLogGrid{grid-template-columns:1fr!important;}
+  .timerFloatDock{grid-template-columns:1fr auto!important;gap:8px!important;bottom:10px!important;border-radius:18px!important;}
+  .timerFloatMain em{display:none!important;}
+  .timerFloatActions{grid-column:1 / -1!important;overflow-x:auto!important;scrollbar-width:none!important;}
+  .timerFloatActions::-webkit-scrollbar{display:none!important;}
+  .timerFloatActions button{min-height:28px!important;padding:5px 9px!important;}
+  .timerFloatClock{font-size:18px!important;}
+  .gameQuestTopBar{grid-template-columns:minmax(0,1fr) auto!important;}
+  .gameQuestTopMeter{display:none!important;}
+  .gameQuestTopTimer,.gameQuestTopToggle{min-height:32px!important;}
+}
+@media(max-width:520px){
+  .viewDock{grid-template-columns:1fr 1fr!important;padding:6px!important;}
+  .viewDockBtn b{font-size:12.5px!important;}
+  .viewIntro p{font-size:12px!important;}
+  body[data-app-view="time"] .timeBudgetList{grid-template-columns:1fr!important;}
+  .timerControls .timerHint{display:none!important;}
+  .timerWeekChip{max-width:80px!important;}
+  .timerFloatMain b{font-size:12px!important;}
+  .timerFloatBadge{font-size:10px!important;padding:3px 7px!important;}
+}
+
+/* v14 correction: table keeps horizontal scroll instead of spilling outside the view. */
+.tableBox{overflow:auto!important;}
+.tableBox.viewPanel:not(.active){display:none!important;}
+#taskTable{min-width:1180px!important;}
+
+/* === v15 UX pass: cleaner time system, separated ledger, hard layout guards === */
+.timePanelHeader{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:14px!important;
+  align-items:center!important;
+  margin-bottom:12px!important;
+}
+.timePanelHeader>div:first-child{min-width:0!important;display:grid!important;gap:2px!important;}
+.timePanelHeader span{font-size:11px!important;font-weight:1000!important;letter-spacing:.13em!important;color:#5e73ff!important;}
+.timePanelHeader b{font-size:22px!important;line-height:1.15!important;color:#20314f!important;font-weight:1000!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.timePanelHeader em{font-style:normal!important;font-size:12.5px!important;color:#71809a!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.timeStatCards{display:flex!important;gap:8px!important;align-items:center!important;}
+.timeStatCards>div{min-width:92px!important;border:1px solid rgba(203,216,232,.72)!important;border-radius:16px!important;background:rgba(255,255,255,.78)!important;padding:8px 10px!important;text-align:right!important;box-shadow:0 8px 22px rgba(25,39,80,.06)!important;}
+.timeStatCards span{display:block!important;font-size:11px!important;color:#71809a!important;letter-spacing:0!important;}
+.timeStatCards b{display:block!important;font-size:19px!important;color:#1e2f4d!important;font-variant-numeric:tabular-nums!important;}
+.timeSubTabs{display:flex!important;gap:8px!important;align-items:center!important;flex-wrap:wrap!important;margin:12px 0!important;border:1px solid rgba(203,216,232,.68)!important;border-radius:18px!important;padding:6px!important;background:rgba(246,249,255,.7)!important;}
+.timeSubTabs button{flex:0 0 auto!important;min-height:34px!important;border-radius:13px!important;padding:7px 13px!important;border:1px solid transparent!important;background:transparent!important;color:#66758f!important;font-size:13px!important;font-weight:1000!important;box-shadow:none!important;}
+.timeSubTabs button.active{background:#fff!important;color:#4f46e5!important;border-color:rgba(94,115,255,.22)!important;box-shadow:0 10px 24px rgba(94,115,255,.12)!important;}
+body[data-app-view="time"] .timePanelTop{grid-template-columns:1fr!important;}
+body[data-app-view="time"] .timePanelTop .timeStatsRail{display:none!important;}
+body[data-app-view="time"] .timeBudgetList{grid-template-columns:repeat(3,minmax(180px,1fr))!important;}
+.timeTaskList{display:grid!important;gap:8px!important;min-width:0!important;}
+.timeTaskRow{display:grid!important;grid-template-columns:minmax(220px,1.4fr) minmax(140px,.8fr) minmax(120px,auto) minmax(150px,auto)!important;gap:10px!important;align-items:center!important;min-width:0!important;border:1px solid rgba(203,216,232,.68)!important;border-radius:16px!important;padding:10px!important;background:rgba(255,255,255,.78)!important;box-shadow:0 8px 22px rgba(25,39,80,.055)!important;}
+.timeTaskRow.over{border-color:rgba(244,63,94,.28)!important;background:rgba(255,246,248,.82)!important;}
+.timeTaskName{min-width:0!important;display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;gap:8px!important;align-items:center!important;text-align:left!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;color:#223451!important;}
+.timeTaskName span{white-space:nowrap!important;font-size:12px!important;color:#71809a!important;font-weight:950!important;}
+.timeTaskName b{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:13.5px!important;color:#243552!important;}
+.timeTaskMeter{height:9px!important;border-radius:999px!important;background:#eaf0fb!important;overflow:hidden!important;min-width:0!important;}
+.timeTaskMeter i{display:block!important;width:var(--w,0%)!important;height:100%!important;border-radius:inherit!important;background:linear-gradient(90deg,#7c8dff,#5ee0ff)!important;}
+.timeTaskValue{display:flex!important;align-items:baseline!important;justify-content:flex-end!important;gap:4px!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important;}
+.timeTaskValue b{font-size:14px!important;color:#1f2d48!important;font-weight:1000!important;}
+.timeTaskValue span{font-size:12px!important;color:#71809a!important;font-weight:850!important;}
+.timeTargetEdit{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;min-width:0!important;}
+.timeTargetEdit span{font-size:11px!important;color:#71809a!important;font-weight:950!important;white-space:nowrap!important;}
+.timeTargetEdit input{width:82px!important;min-width:0!important;border-radius:12px!important;padding:7px 8px!important;border:1px solid rgba(203,216,232,.8)!important;background:#fff!important;text-align:right!important;font-weight:950!important;color:#243552!important;}
+.timeLogList{list-style:none!important;margin:0!important;padding:0!important;display:grid!important;gap:8px!important;}
+.timeLogItem{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:10px!important;align-items:center!important;border:1px solid rgba(203,216,232,.68)!important;border-radius:16px!important;background:rgba(255,255,255,.78)!important;padding:10px 12px!important;min-width:0!important;}
+.timeLogItem div{min-width:0!important;display:grid!important;gap:2px!important;}
+.timeLogItem b{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#243552!important;font-size:13.5px!important;}
+.timeLogItem span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#71809a!important;font-size:12px!important;font-weight:850!important;}
+.timeLogItem strong{white-space:nowrap!important;font-variant-numeric:tabular-nums!important;color:#1f2d48!important;font-size:14px!important;}
+.timeLogItem button,.timeDetailLogs button{border-radius:999px!important;padding:5px 9px!important;min-height:28px!important;font-size:12px!important;font-weight:1000!important;background:#fff6f6!important;color:#9f1239!important;border:1px solid rgba(244,63,94,.2)!important;white-space:nowrap!important;}
+.timerControls.timerCompact{display:inline-flex!important;align-items:center!important;gap:5px!important;max-width:100%!important;overflow:hidden!important;vertical-align:middle!important;}
+.timerStartTiny{min-height:24px!important;padding:3px 7px!important;border-radius:999px!important;font-size:11.5px!important;font-weight:1000!important;background:#f6f8ff!important;color:#4f46e5!important;border:1px solid rgba(94,115,255,.18)!important;white-space:nowrap!important;line-height:1.1!important;}
+.timerWeekChip{display:inline-flex!important;align-items:center!important;gap:3px!important;min-height:24px!important;padding:3px 7px!important;border-radius:999px!important;font-size:11px!important;font-weight:950!important;background:#f8fafc!important;color:#53627c!important;border:1px solid rgba(203,216,232,.66)!important;max-width:112px!important;}
+.timerWeekChip span{flex:0 0 auto!important;color:#7a88a1!important;}
+.timerWeekChip b{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-weight:1000!important;}
+.timerWeekChip.over{background:#fff1f2!important;color:#be123c!important;border-color:rgba(244,63,94,.22)!important;}
+.timerNowChip{display:inline-flex!important;align-items:center!important;gap:3px!important;min-height:24px!important;border-radius:999px!important;padding:3px 7px!important;background:#ecfdf5!important;color:#047857!important;border:1px solid rgba(34,197,94,.22)!important;font-size:11px!important;font-weight:1000!important;max-width:96px!important;}
+.timerNowChip i{font-style:normal!important;flex:0 0 auto!important;}.timerNowChip b{font-variant-numeric:tabular-nums!important;white-space:nowrap!important;}
+.taskMetaLine{max-height:38px!important;overflow:hidden!important;align-content:flex-start!important;}
+.mMeta{max-height:64px!important;align-content:flex-start!important;}
+.timerFloatDock.timerFloatCompact{right:16px!important;left:auto!important;bottom:16px!important;transform:none!important;width:min(620px,calc(100vw - 32px))!important;grid-template-columns:minmax(0,1fr) auto auto!important;padding:9px 10px!important;border-radius:20px!important;}
+.timerFloatDock .timerFloatMain{border:0!important;background:transparent!important;box-shadow:none!important;text-align:left!important;padding:0!important;cursor:pointer!important;}
+.timerFloatDock .timerFloatActions button{min-height:28px!important;padding:5px 9px!important;font-size:11.5px!important;}
+.timerFloatDock .timerFloatClock{font-size:18px!important;}
+.timeDetailModal.hidden{display:none!important;}
+.timeDetailModal{position:fixed!important;inset:0!important;z-index:10020!important;background:rgba(15,23,42,.38)!important;display:grid!important;place-items:center!important;padding:18px!important;backdrop-filter:blur(8px)!important;}
+.timeDetailCard{width:min(720px,100%)!important;max-height:min(760px,calc(100vh - 36px))!important;overflow:hidden!important;border-radius:24px!important;background:rgba(255,255,255,.96)!important;border:1px solid rgba(203,216,232,.88)!important;box-shadow:0 28px 80px rgba(15,23,42,.26)!important;display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;}
+.timeDetailHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:14px 16px!important;border-bottom:1px solid rgba(203,216,232,.72)!important;}
+.timeDetailHead div{min-width:0!important;display:grid!important;gap:2px!important;}.timeDetailHead span{font-size:11px!important;color:#5e73ff!important;font-weight:1000!important;letter-spacing:.12em!important;}.timeDetailHead b{font-size:17px!important;color:#243552!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}.timeDetailClose{width:34px!important;height:34px!important;border-radius:999px!important;padding:0!important;font-size:22px!important;line-height:1!important;}
+.timeDetailBody{padding:14px 16px 16px!important;overflow:auto!important;min-width:0!important;}
+.timeDetailStats{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:10px!important;}.timeDetailStats>div{border:1px solid rgba(203,216,232,.72)!important;background:#f8fbff!important;border-radius:16px!important;padding:9px 10px!important;}.timeDetailStats span{display:block!important;font-size:11px!important;color:#71809a!important;font-weight:950!important;}.timeDetailStats b{display:block!important;font-size:18px!important;color:#20314f!important;font-weight:1000!important;font-variant-numeric:tabular-nums!important;}
+.timeDetailProgress{border:1px solid rgba(203,216,232,.72)!important;border-radius:16px!important;background:#fff!important;padding:10px!important;margin-bottom:10px!important;}.timeDetailProgress div{display:flex!important;justify-content:space-between!important;gap:10px!important;font-size:12px!important;color:#71809a!important;font-weight:950!important;margin-bottom:8px!important;}.timeDetailProgress b{color:#20314f!important;}.timeDetailProgress i{display:block!important;height:9px!important;background:#eaf0fb!important;border-radius:999px!important;overflow:hidden!important;position:relative!important;}.timeDetailProgress i::before{content:""!important;display:block!important;width:var(--w,0%)!important;height:100%!important;border-radius:inherit!important;background:linear-gradient(90deg,#7c8dff,#5ee0ff)!important;}.timeDetailProgress.over{border-color:rgba(244,63,94,.28)!important;background:#fff6f8!important;}
+.timeDetailLogs{list-style:none!important;margin:0!important;padding:0!important;display:grid!important;gap:7px!important;}.timeDetailLogs li{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:8px!important;align-items:center!important;border:1px solid rgba(203,216,232,.62)!important;border-radius:14px!important;padding:8px 10px!important;}.timeDetailLogs li.empty{grid-template-columns:minmax(0,1fr) auto!important;}.timeDetailLogs span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#64748b!important;font-size:12px!important;font-weight:850!important;}.timeDetailLogs b{white-space:nowrap!important;font-size:13px!important;color:#243552!important;font-variant-numeric:tabular-nums!important;}
+@media(max-width:900px){
+  .timePanelHeader{grid-template-columns:1fr!important;}.timeStatCards{justify-content:stretch!important;}.timeStatCards>div{flex:1 1 0!important;text-align:left!important;}
+  body[data-app-view="time"] .timeBudgetList{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .timeTaskRow{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;}.timeTaskMeter{grid-column:1/-1!important;}.timeTargetEdit{grid-column:1/-1!important;justify-content:space-between!important;}.timeTargetEdit input{width:110px!important;}
+  .timeLogItem{grid-template-columns:minmax(0,1fr) auto!important;}.timeLogItem button{grid-column:2;}
+  .timerFloatDock.timerFloatCompact{left:10px!important;right:10px!important;bottom:10px!important;width:auto!important;grid-template-columns:minmax(0,1fr) auto!important;}.timerFloatDock .timerFloatActions{grid-column:1/-1!important;justify-content:flex-start!important;}
+}
+@media(max-width:520px){
+  body[data-app-view="time"] .timeBudgetList{grid-template-columns:1fr!important;}.timePanelHeader b{font-size:19px!important;}.timePanelHeader em{white-space:normal!important;}
+  .timeTaskRow{padding:9px!important;}.timeTaskName{grid-template-columns:minmax(0,1fr)!important;gap:2px!important;}.timeTaskName span{font-size:11px!important;}.timeTaskValue{justify-content:flex-start!important;}
+  .timerWeekChip{max-width:92px!important;padding-inline:6px!important;}.timerStartTiny{max-width:72px!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+  .taskMetaLine{max-height:34px!important;}.timerFloatDock .timerFloatMain em{display:none!important;}.timeDetailStats{grid-template-columns:1fr!important;}.timeDetailLogs li{grid-template-columns:minmax(0,1fr) auto!important;}.timeDetailLogs button{grid-column:2;}
+}
+
+/* === v16 Weekly Plan Pool / Daily Ring Split === */
+.viewDock{grid-template-columns:repeat(5,minmax(0,1fr));}
+.planModeBadge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:900;line-height:1;border:1px solid rgba(42,58,113,.14);background:rgba(255,255,255,.75);color:#52617e;white-space:nowrap;max-width:72px;overflow:hidden;text-overflow:ellipsis;}
+.planModeBadge.daily{background:linear-gradient(135deg,rgba(255,233,168,.9),rgba(255,255,255,.88));color:#8b5c00;border-color:rgba(225,159,36,.32)}
+.planModeBadge.scheduled{background:linear-gradient(135deg,rgba(204,235,255,.92),rgba(255,255,255,.9));color:#21588b;border-color:rgba(47,135,218,.28)}
+.planModeBadge.weekly{background:linear-gradient(135deg,rgba(222,214,255,.92),rgba(255,255,255,.9));color:#5842a5;border-color:rgba(98,75,196,.28)}
+.weeklyPlanPanel{margin-top:18px;}
+.weeklyShell{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(246,248,255,.82));border:1px solid rgba(77,98,171,.16);border-radius:28px;box-shadow:0 20px 60px rgba(36,54,120,.12);padding:18px;overflow:hidden;}
+.weeklyHero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin-bottom:14px;}
+.weeklyHero span{display:block;font-size:11px;font-weight:1000;letter-spacing:.14em;color:#7180a3;text-transform:uppercase;}
+.weeklyHero b{display:block;font-size:30px;line-height:1.08;color:#18213b;letter-spacing:-.04em;}
+.weeklyHero em{display:block;font-style:normal;color:#6d7895;margin-top:5px;font-size:13px;}
+.weeklyHeroStats{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:10px;}
+.weeklyHeroStats>div{border:1px solid rgba(73,92,158,.13);border-radius:18px;background:rgba(255,255,255,.76);padding:10px 12px;min-width:0;}
+.weeklyHeroStats span{font-size:10px;letter-spacing:.08em;color:#8792ad;}
+.weeklyHeroStats b{font-size:20px;color:#253150;white-space:nowrap;}
+.weeklyActiveHint{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:6px 0 12px;padding:10px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(43,67,189,.1),rgba(255,255,255,.78));border:1px solid rgba(56,84,216,.16);}
+.weeklyActiveHint span{font-size:10px;font-weight:1000;letter-spacing:.14em;color:#3854d8;}
+.weeklyActiveHint b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c2949;}
+.weeklyActiveHint em{font-style:normal;font-weight:1000;font-variant-numeric:tabular-nums;color:#18213b;}
+.weeklySummaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 16px;}
+.weeklySummaryItem{border-radius:18px;background:rgba(255,255,255,.73);border:1px solid rgba(73,92,158,.13);padding:10px;min-width:0;}
+.weeklySummaryItem>div{display:flex;gap:10px;justify-content:space-between;align-items:center;min-width:0;}
+.weeklySummaryItem span{font-size:12px;font-weight:900;color:#52617e;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.weeklySummaryItem b{font-size:12px;color:#17213d;white-space:nowrap;}
+.weeklySummaryItem i{display:block;height:6px;border-radius:999px;background:rgba(59,78,145,.1);margin-top:8px;overflow:hidden;}
+.weeklySummaryItem i::before{content:"";display:block;width:var(--w,0%);height:100%;border-radius:inherit;background:linear-gradient(90deg,#3854d8,#68c7ff);}
+.weeklyTaskGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.weeklyTaskCard{position:relative;border:1px solid rgba(72,90,156,.14);background:rgba(255,255,255,.83);border-radius:22px;padding:14px;overflow:hidden;min-width:0;box-shadow:0 10px 28px rgba(31,45,94,.08);}
+.weeklyTaskCard::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,#3854d8,#76d6ff);opacity:.5;}
+.weeklyTaskCard.running{border-color:rgba(56,84,216,.42);box-shadow:0 16px 42px rgba(56,84,216,.18);}
+.weeklyTaskCard.done::before{background:linear-gradient(180deg,#28bd86,#a1eccf);opacity:.85;}
+.weeklyTaskCard.over::before{background:linear-gradient(180deg,#ff9b2f,#ff4d6d);opacity:.9;}
+.weeklyTaskTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0;}
+.weeklyTaskTitle{display:flex;align-items:center;gap:9px;min-width:0;}
+.weeklyTaskTitle span{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border-radius:12px;background:rgba(245,247,255,.96);box-shadow:inset 0 0 0 1px rgba(72,90,156,.1);}
+.weeklyTaskTitle b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#19233e;font-size:15px;}
+.weeklyTaskBadges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:170px;}
+.weeklyTaskBadges>span:not(.planModeBadge){border-radius:999px;padding:2px 7px;background:rgba(240,244,255,.86);font-size:11px;font-weight:900;color:#66718e;white-space:nowrap;}
+.weeklyTaskBadges .hot{background:#fff1d5!important;color:#a06400!important;}
+.weeklyTaskMeta{display:flex;gap:8px;flex-wrap:wrap;color:#75819b;font-size:12px;font-weight:750;margin:9px 0 10px;}
+.weeklyTaskMeta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.weeklyTaskMeter{height:8px;border-radius:999px;background:rgba(59,78,145,.1);overflow:hidden;margin:6px 0 12px;}
+.weeklyTaskMeter i{display:block;width:var(--w,0%);height:100%;border-radius:inherit;background:linear-gradient(90deg,#3854d8,#74d9ff);}
+.weeklyTaskFooter{display:grid;grid-template-columns:auto auto minmax(115px,1fr) auto;gap:8px;align-items:center;min-width:0;}
+.weeklyStartBtn,.weeklyDetailBtn,.weeklyOpenLink{border:0;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:950;text-decoration:none;white-space:nowrap;cursor:pointer;}
+.weeklyStartBtn{background:#1e2b56;color:#fff;}
+.weeklyStartBtn.active{background:#3854d8;}
+.weeklyDetailBtn{background:rgba(234,239,255,.92);color:#2c3a69;}
+.weeklyOpenLink{background:rgba(255,255,255,.95);color:#3854d8;border:1px solid rgba(56,84,216,.18);}
+.weeklyTargetInline{display:flex;align-items:center;gap:6px;min-width:0;border:1px solid rgba(73,92,158,.13);background:rgba(255,255,255,.7);border-radius:999px;padding:3px 6px;}
+.weeklyTargetInline span{font-size:10px;font-weight:1000;color:#7a849f;white-space:nowrap;}
+.weeklyTargetInline input{width:58px;border:0;background:transparent;font-weight:950;color:#202a49;outline:none;text-align:right;}
+.weeklyEmpty{grid-column:1/-1;display:grid;place-items:center;text-align:center;gap:6px;border:1px dashed rgba(72,90,156,.26);border-radius:22px;padding:32px;background:rgba(255,255,255,.55);color:#6e7893;}
+.weeklyEmpty b{color:#1f2b4a;font-size:18px;}
+.cfgField .cfgPlanMode{font-weight:800;}
+.timeTaskRow .planModeBadge{margin-right:4px;}
+@media (max-width:980px){.viewDock{grid-template-columns:repeat(5,minmax(86px,1fr));overflow-x:auto;}.weeklyHero{grid-template-columns:1fr;}.weeklyHeroStats{grid-template-columns:repeat(3,minmax(0,1fr));}.weeklySummaryGrid{grid-template-columns:repeat(2,minmax(0,1fr));}.weeklyTaskGrid{grid-template-columns:1fr;}.weeklyTaskFooter{grid-template-columns:1fr 1fr;}.weeklyTargetInline{justify-content:space-between;}.weeklyOpenLink{text-align:center;}}
+@media (max-width:620px){.weeklyShell{border-radius:22px;padding:13px;}.weeklyHero b{font-size:24px}.weeklyHeroStats{grid-template-columns:1fr;}.weeklySummaryGrid{grid-template-columns:1fr;}.weeklyTaskFooter{grid-template-columns:1fr;}.weeklyStartBtn,.weeklyDetailBtn,.weeklyOpenLink{width:100%;text-align:center;}.weeklyTargetInline{border-radius:14px;padding:8px 10px;}.weeklyTargetInline input{width:92px;}.planModeBadge{max-width:64px;}}
+
+/* === v17 UX Rationalization: global header vs task-only controls === */
+.globalToolbar{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  max-width:100%!important;
+}
+.globalToolbar button{
+  min-height:34px!important;
+  padding:8px 13px!important;
+  border-radius:14px!important;
+  white-space:nowrap!important;
+}
+.globalToolbar .githubInlineState,
+.globalToolbar .pill{
+  min-height:32px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  max-width:260px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.taskRingControlPanel{
+  margin:14px 0 12px!important;
+  padding:14px!important;
+  border:1px solid rgba(72,90,156,.14)!important;
+  border-radius:24px!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(241,246,255,.74))!important;
+  box-shadow:0 16px 42px rgba(30,45,90,.08)!important;
+  overflow:hidden!important;
+}
+.taskRingControlHead{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  min-width:0!important;
+  margin-bottom:10px!important;
+}
+.taskRingControlHead>div:first-child{min-width:0!important;display:grid!important;gap:2px!important;}
+.taskRingControlHead span{
+  display:block!important;
+  font-size:10.5px!important;
+  font-weight:1000!important;
+  letter-spacing:.13em!important;
+  color:#6f7fa4!important;
+}
+.taskRingControlHead strong{
+  display:block!important;
+  font-size:18px!important;
+  line-height:1.15!important;
+  color:#1d2944!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.taskRingModeText{
+  flex:0 0 auto!important;
+  border-radius:999px!important;
+  padding:6px 10px!important;
+  background:#eef3ff!important;
+  border:1px solid rgba(56,84,216,.12)!important;
+  color:#45598a!important;
+  font-size:12px!important;
+  font-weight:950!important;
+  white-space:nowrap!important;
+}
+.taskRingActionRow{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  margin-bottom:10px!important;
+}
+.taskRingActionRow button{
+  min-height:34px!important;
+  border-radius:999px!important;
+  padding:7px 13px!important;
+  font-size:12.5px!important;
+  font-weight:950!important;
+  white-space:nowrap!important;
+}
+.taskRingActionRow button.active{
+  background:#1d2b57!important;
+  color:#fff!important;
+  border-color:#1d2b57!important;
+  box-shadow:0 8px 18px rgba(29,43,87,.16)!important;
+}
+.taskRingActionRow .softDangerBtn{
+  background:#fff7ed!important;
+  color:#9a3412!important;
+  border-color:rgba(251,146,60,.24)!important;
+}
+.taskProgressWrap{
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.taskProgressWrap .progress-meta{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  align-items:center!important;
+  font-size:12px!important;
+}
+.taskProgressWrap .progress-meta span:last-child{
+  color:#71809a!important;
+  font-weight:750!important;
+  text-align:right!important;
+}
+body:not([data-app-view="tasks"]) .taskRingControlPanel{display:none!important;}
+.versionNote.viewPanel:not(.active){display:none!important;}
+.versionNote.viewPanel.active{display:block!important;}
+
+/* v17: game quest is its own page; no collapsed default, no collapse affordance */
+.gameQuestStandalone{
+  padding:16px!important;
+  border-radius:26px!important;
+  overflow:hidden!important;
+}
+.gameQuestTopBarStandalone,
+.gameQuestShell .gameQuestTopBarStandalone{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-height:46px!important;
+  overflow:visible!important;
+  cursor:default!important;
+}
+.gameQuestTopBarStandalone .gameQuestTopTitle{
+  min-width:0!important;
+  display:grid!important;
+  gap:2px!important;
+}
+.gameQuestTopBarStandalone .gameQuestTopTitle strong{
+  max-width:100%!important;
+  font-size:18px!important;
+  line-height:1.1!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.gameQuestTopBarStandalone .gameQuestTopTitle span{
+  max-width:100%!important;
+  font-size:10.5px!important;
+  line-height:1!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.gameQuestTopBarStandalone .gameQuestTopTitle em{
+  display:block!important;
+  min-width:0!important;
+  font-style:normal!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  color:#6f7d9a!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.gameQuestTodayQuick{
+  min-height:34px!important;
+  padding:7px 12px!important;
+  border-radius:999px!important;
+  white-space:nowrap!important;
+  background:#f6f8ff!important;
+  color:#3854d8!important;
+  border:1px solid rgba(56,84,216,.18)!important;
+  font-size:12px!important;
+  font-weight:1000!important;
+}
+.gameQuestTopToggle{display:none!important;}
+.gameQuestMetaStrip{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  flex-wrap:wrap!important;
+  min-width:0!important;
+}
+.gameQuestMetaStrip span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.gameQuestMetaStrip em{white-space:nowrap!important;}
+
+/* v17 general overflow guards */
+.inertiaHeader,
+.viewDock,
+.taskRingControlPanel,
+.weeklyShell,
+.gameQuestShell,
+.timePanelShell,
+.refBox,
+.summaryGrid{max-width:100%!important;box-sizing:border-box!important;}
+.viewDock{
+  position:sticky!important;
+  top:8px!important;
+  z-index:90!important;
+  backdrop-filter:blur(16px)!important;
+  box-shadow:0 14px 32px rgba(30,45,90,.08)!important;
+}
+.viewDockBtn{min-width:0!important;overflow:hidden!important;}
+.viewDockBtn b,.viewDockBtn span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.tableBox{overflow-x:auto!important;}
+#taskTable{min-width:720px!important;}
+.taskRowInner,.taskMainLine,.taskMetaLine,.weeklyTaskCard,.weeklyTaskTop,.weeklyTaskFooter,.gameQuestCard,.gameQuestCardTop{min-width:0!important;}
+.taskMainLine{overflow:hidden!important;}
+.taskMainLine a,.taskMainLine .taskTitleText,.taskTitleText{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.taskMetaLine{display:flex!important;gap:6px!important;flex-wrap:wrap!important;align-items:center!important;}
+.timerControls.timerCompact{flex:0 1 auto!important;}
+.weeklyTaskFooter{grid-template-columns:minmax(105px,auto) minmax(86px,auto) minmax(110px,1fr) minmax(72px,auto)!important;}
+.weeklyStartBtn,.weeklyDetailBtn,.weeklyOpenLink{overflow:hidden!important;text-overflow:ellipsis!important;}
+.weeklyTargetInline input{max-width:72px!important;}
+
+@media (max-width:980px){
+  .inertiaHeader{gap:12px!important;}
+  .globalToolbar{justify-content:flex-start!important;}
+  .globalToolbar .pill{max-width:100%!important;}
+  .taskRingControlHead{display:grid!important;grid-template-columns:1fr!important;}
+  .taskRingModeText{width:max-content!important;max-width:100%!important;}
+  .viewDock{display:flex!important;overflow-x:auto!important;grid-template-columns:none!important;padding:8px!important;scroll-snap-type:x proximity!important;}
+  .viewDockBtn{flex:0 0 142px!important;scroll-snap-align:start!important;}
+  .gameQuestTopBarStandalone,
+  .gameQuestShell .gameQuestTopBarStandalone{grid-template-columns:minmax(0,1fr) auto auto!important;}
+  .gameQuestTopBarStandalone .gameQuestTopMeter{grid-column:2/span 1!important;}
+  .gameQuestTodayQuick{grid-column:3!important;}
+  .gameQuestTopTimer{grid-column:1 / -1!important;justify-self:start!important;}
+}
+@media (max-width:620px){
+  .globalToolbar{gap:6px!important;}
+  .globalToolbar button{flex:1 1 42%!important;}
+  .globalToolbar .githubInlineState,.globalToolbar .pill{flex:1 1 100%!important;justify-content:center!important;}
+  .taskRingControlPanel{padding:12px!important;border-radius:20px!important;}
+  .taskRingActionRow{display:grid!important;grid-template-columns:1fr 1fr!important;}
+  .taskRingActionRow button{width:100%!important;padding-inline:8px!important;}
+  .taskProgressWrap .progress-meta{display:grid!important;grid-template-columns:1fr!important;text-align:left!important;}
+  .taskProgressWrap .progress-meta span:last-child{text-align:left!important;}
+  .gameQuestStandalone{padding:12px!important;border-radius:22px!important;}
+  .gameQuestTopBarStandalone,
+  .gameQuestShell .gameQuestTopBarStandalone{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;}
+  .gameQuestTopMeter{display:flex!important;}
+  .gameQuestTopBarStandalone .gameQuestTopMeter{grid-column:2!important;}
+  .gameQuestTopTimer,.gameQuestTodayQuick{grid-column:1 / -1!important;width:100%!important;justify-content:center!important;}
+  .gameQuestTopBarStandalone .gameQuestTopTitle em{white-space:normal!important;}
+  .viewDockBtn{flex-basis:126px!important;}
+  #taskTable{min-width:640px!important;}
+}
+
+/* === v18 game quest: daily board + weekly game pool separation === */
+.gameQuestModeTabs{
+  position:relative!important;
+  z-index:1!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin:14px 0 12px!important;
+  padding:6px!important;
+  border-radius:20px!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  background:rgba(9,16,30,.44)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)!important;
+}
+.gameQuestModeBtn{
+  min-width:0!important;
+  min-height:50px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:rgba(255,255,255,.07)!important;
+  color:rgba(244,248,255,.82)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  padding:10px 14px!important;
+  font-weight:1000!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+}
+.gameQuestModeBtn span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;letter-spacing:.04em!important;}
+.gameQuestModeBtn b{flex:0 0 auto!important;border-radius:999px!important;padding:3px 9px!important;background:rgba(6,12,24,.58)!important;color:#b8fbff!important;border:1px solid rgba(94,234,212,.18)!important;font-size:12px!important;}
+.gameQuestModeBtn.active{
+  border-color:rgba(94,234,212,.42)!important;
+  background:linear-gradient(135deg,rgba(29,46,79,.96),rgba(53,34,92,.90))!important;
+  color:#fff!important;
+  box-shadow:0 0 22px rgba(94,234,212,.10),inset 0 0 0 1px rgba(255,255,255,.05)!important;
+}
+.gameQuestDailyPane,.gameQuestWeeklyPane{position:relative!important;z-index:1!important;min-width:0!important;}
+.gameQuestWeeklyGrid .gameQuestCard,.gameQuestWeeklyCard{
+  border-style:solid!important;
+  background:linear-gradient(180deg,rgba(14,22,42,.74),rgba(31,25,56,.88))!important;
+}
+.gameQuestWeeklyCard::before{background:linear-gradient(180deg,var(--gq-accent,#5eead4),#ffe76b)!important;}
+.gameQuestTaskBadge{
+  flex:0 0 auto!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:26px!important;
+  height:20px!important;
+  padding:0 7px!important;
+  border-radius:999px!important;
+  font-size:10.5px!important;
+  font-weight:1000!important;
+  letter-spacing:.02em!important;
+  border:1px solid rgba(94,115,255,.16)!important;
+  background:#eef3ff!important;
+  color:#4356c9!important;
+  margin-left:auto!important;
+  white-space:nowrap!important;
+}
+.gameQuestTaskBadge.daily{background:#effdf8!important;color:#138a72!important;border-color:rgba(20,184,166,.20)!important;}
+.gameQuestTaskBadge.weekly{background:#fff7de!important;color:#9a6610!important;border-color:rgba(251,191,36,.26)!important;}
+.gameQuestTaskBadge.scheduled{background:#eef3ff!important;color:#4356c9!important;border-color:rgba(94,115,255,.18)!important;}
+.gameQuestMiniCheckBtn{min-width:0!important;}
+.gameQuestMiniCheckBtn i{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.gameQuestEditGroup.gameQuestWeeklyGroup{
+  border:1px solid rgba(251,191,36,.22)!important;
+  border-radius:22px!important;
+  padding:12px!important;
+  background:linear-gradient(180deg,#fffdf7,#f8fbff)!important;
+}
+.gameQuestWeeklyEditRow{border-left-color:#fbbf24!important;}
+.gameQuestEditHead span{line-height:1.45!important;}
+@media(max-width:760px){
+  .gameQuestModeTabs{grid-template-columns:1fr!important;margin-top:12px!important;}
+  .gameQuestModeBtn{min-height:46px!important;}
+  .gameQuestTaskBadge{margin-left:0!important;}
+  .gameQuestMiniCheckBtn{flex-wrap:wrap!important;}
+}
+
+/* === v19 UX rebuild: compact command shell + separated workbench views === */
+html,body{overflow-x:hidden!important;}
+.wrap{
+  max-width:1680px!important;
+  padding:12px 14px 42px!important;
+}
+.inertiaHeader{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:14px 18px!important;
+  align-items:center!important;
+  padding:14px 18px!important;
+  border-radius:24px!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.inertiaHeroBrand{
+  display:grid!important;
+  grid-template-columns:54px minmax(0,1fr)!important;
+  gap:12px!important;
+  align-items:center!important;
+  min-width:0!important;
+}
+.inertiaHeroMark{
+  width:54px!important;
+  padding:4px!important;
+  border-radius:18px!important;
+  align-self:center!important;
+}
+.inertiaHeroCopy{min-width:0!important;}
+.inertiaBrandRow{margin-bottom:4px!important;gap:7px!important;}
+.inertiaOwnerBadge,.inertiaVersionBadge{
+  min-height:22px!important;
+  padding:4px 9px!important;
+  font-size:10px!important;
+  line-height:1!important;
+}
+.inertiaHeroTitle{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:baseline!important;
+  gap:8px!important;
+  min-width:0!important;
+  line-height:.92!important;
+  overflow:hidden!important;
+}
+.inertiaTitleCn{
+  flex:0 0 auto!important;
+  font-size:clamp(30px,3.2vw,52px)!important;
+  letter-spacing:.035em!important;
+  white-space:nowrap!important;
+}
+.inertiaTitleSlash{
+  flex:0 0 auto!important;
+  font-size:clamp(24px,2.4vw,38px)!important;
+  white-space:nowrap!important;
+}
+.inertiaTitleEn{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  font-size:clamp(30px,3.5vw,56px)!important;
+  letter-spacing:.07em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.inertiaSubtitle{
+  margin-top:5px!important;
+  max-width:920px!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.globalToolbar{
+  margin-top:0!important;
+  align-self:center!important;
+  justify-content:flex-end!important;
+  gap:7px!important;
+  max-width:min(620px,46vw)!important;
+}
+.globalToolbar button,
+.globalToolbar .pill,
+.globalToolbar .ghSetupBtn{
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 12px!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+  line-height:1!important;
+}
+.githubInlineState{min-height:30px!important;font-size:12px!important;}
+.globalToolbar #cycleLabel{max-width:260px!important;}
+
+/* primary nav should be a tab bar, not five giant cards */
+.viewDock{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:6px!important;
+  margin:10px 0 12px!important;
+  padding:6px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.72)!important;
+  border:1px solid rgba(196,209,232,.74)!important;
+  box-shadow:0 10px 26px rgba(35,52,94,.07)!important;
+  position:sticky!important;
+  top:8px!important;
+  z-index:88!important;
+  overflow:visible!important;
+}
+.viewDockBtn{
+  min-height:44px!important;
+  padding:8px 10px!important;
+  border-radius:14px!important;
+  display:grid!important;
+  place-items:center!important;
+  gap:1px!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  border:1px solid transparent!important;
+}
+.viewDockBtn span{font-size:9.5px!important;letter-spacing:.12em!important;line-height:1!important;}
+.viewDockBtn b{font-size:13px!important;line-height:1.1!important;}
+.viewDockBtn.active{
+  background:linear-gradient(180deg,#ffffff,#f0f5ff)!important;
+  border-color:rgba(255,145,185,.68)!important;
+  box-shadow:0 8px 18px rgba(67,86,140,.10)!important;
+}
+
+/* remove redundant explanatory slabs on daily page */
+.viewIntro[data-view-panel="tasks"],
+.mainRingBanner[data-view-panel="tasks"],
+.versionNote[data-view-panel="tasks"]{
+  display:none!important;
+}
+.taskRingControlPanel{
+  margin:0 0 10px!important;
+  padding:11px 12px!important;
+  border-radius:18px!important;
+  box-shadow:0 10px 26px rgba(30,45,90,.06)!important;
+}
+.taskRingControlHead{margin-bottom:7px!important;align-items:center!important;}
+.taskRingControlHead span{font-size:9.5px!important;}
+.taskRingControlHead strong{font-size:16px!important;}
+.taskRingActionRow{margin-bottom:7px!important;gap:6px!important;}
+.taskRingActionRow button{height:31px!important;min-height:31px!important;padding:0 11px!important;font-size:12px!important;}
+.taskRingModeText{padding:5px 9px!important;font-size:11.5px!important;}
+.taskProgressWrap .progress{height:7px!important;}
+.taskProgressWrap .progress-meta{font-size:11.5px!important;margin-bottom:4px!important;}
+.orbitPanel{margin:0 0 10px!important;padding:9px 10px!important;border-radius:18px!important;}
+.orbitLayout{grid-template-columns:72px minmax(0,1fr)!important;gap:10px!important;}
+.orbitCore{width:62px!important;height:62px!important;}
+.orbitCore::after{inset:8px!important;}
+.orbitPct{font-size:17px!important;}
+.orbitLabel{font-size:8px!important;}
+.orbitTop{margin-bottom:6px!important;}
+.orbitTitle{font-size:15px!important;}
+.orbitSub{font-size:11.5px!important;}
+.orbitDay{min-height:44px!important;padding:7px 9px!important;border-radius:13px!important;}
+
+/* weekly workbench: denser and grouped */
+.weeklyPlanPanel{margin-top:0!important;}
+.weeklyShell.v19,
+.weeklyShell{
+  padding:14px!important;
+  border-radius:22px!important;
+  box-shadow:0 14px 36px rgba(36,54,120,.09)!important;
+}
+.weeklyHero{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  margin-bottom:10px!important;
+}
+.weeklyHero b{font-size:26px!important;line-height:1!important;}
+.weeklyHero em{font-size:12.5px!important;margin-top:3px!important;}
+.weeklyHeroStats{gap:8px!important;}
+.weeklyHeroStats>div{padding:8px 11px!important;border-radius:16px!important;}
+.weeklyHeroStats b{font-size:18px!important;}
+.weeklySummaryGrid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:8px 0 12px!important;
+}
+.weeklySummaryItem{padding:8px 10px!important;border-radius:15px!important;}
+.weeklySummaryItem span,.weeklySummaryItem b{font-size:11.5px!important;}
+.weeklyTaskGroups{display:grid!important;gap:12px!important;}
+.weeklyTaskGroup{
+  border:1px solid rgba(72,90,156,.12)!important;
+  border-radius:20px!important;
+  background:rgba(255,255,255,.48)!important;
+  padding:10px!important;
+  min-width:0!important;
+}
+.weeklyTaskGroupHead{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin:0 0 8px!important;
+  min-width:0!important;
+}
+.weeklyTaskGroupHead>div{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;}
+.weeklyTaskGroupHead span{font-size:16px!important;}
+.weeklyTaskGroupHead b{font-size:14px!important;color:#1d2b4b!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.weeklyTaskGroupHead em{font-style:normal!important;font-size:12px!important;color:#687797!important;font-weight:950!important;white-space:nowrap!important;}
+.weeklyTaskGrid{
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important;
+  gap:9px!important;
+}
+.weeklyTaskCard{
+  padding:11px 12px!important;
+  border-radius:17px!important;
+  box-shadow:0 7px 18px rgba(31,45,94,.055)!important;
+  min-height:0!important;
+}
+.weeklyTaskCard::before{width:3px!important;}
+.weeklyTaskTop{align-items:center!important;}
+.weeklyTaskTitle span{width:24px!important;height:24px!important;border-radius:10px!important;}
+.weeklyTaskTitle b{font-size:14px!important;}
+.weeklyTaskBadges{max-width:138px!important;gap:4px!important;}
+.weeklyTaskBadges>span:not(.planModeBadge){font-size:10.5px!important;padding:2px 6px!important;}
+.weeklyTaskMeta{margin:7px 0 7px!important;font-size:11.5px!important;gap:6px!important;}
+.weeklyTaskMeter{height:6px!important;margin:6px 0 9px!important;}
+.weeklyTaskFooter{
+  grid-template-columns:auto auto minmax(96px,1fr) auto!important;
+  gap:6px!important;
+}
+.weeklyStartBtn,.weeklyDetailBtn,.weeklyOpenLink{
+  height:32px!important;
+  min-height:32px!important;
+  padding:0 10px!important;
+  font-size:11.5px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.weeklyStartBtn{
+  background:linear-gradient(135deg,#1b2d5c,#3854d8)!important;
+  color:#fff!important;
+  opacity:1!important;
+}
+.weeklyStartBtn.active{background:linear-gradient(135deg,#3358ff,#7c73ff)!important;}
+.weeklyTargetInline{height:32px!important;padding:0 7px!important;border-radius:14px!important;}
+.weeklyTargetInline input{width:52px!important;font-size:12px!important;}
+
+/* time ledger: remove useless empty slab and make task account scannable */
+.timePanel{margin-top:0!important;}
+.timePanelShell.v19,
+.timePanelShell{
+  padding:14px!important;
+  border-radius:22px!important;
+  box-shadow:0 14px 36px rgba(52,73,120,.08)!important;
+}
+.timePanelHeader{margin-bottom:10px!important;align-items:center!important;}
+.timePanelHeader b{font-size:26px!important;line-height:1!important;}
+.timePanelHeader em{font-size:12.5px!important;margin-top:3px!important;}
+.timeStatCards{gap:8px!important;}
+.timeStatCards>div{padding:8px 12px!important;border-radius:16px!important;min-width:86px!important;}
+.timeStatCards b{font-size:18px!important;}
+.timePanelTop{margin:0 0 9px!important;}
+.timeLedgerIdle{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-height:36px!important;
+  padding:7px 10px!important;
+  border:1px dashed rgba(104,124,255,.24)!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.58)!important;
+  color:#5b6a87!important;
+}
+.timeLedgerIdle span{font-size:16px!important;}
+.timeLedgerIdle b{font-size:12.5px!important;color:#1f2d48!important;white-space:nowrap!important;}
+.timeLedgerIdle em{font-style:normal!important;font-size:12px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.timeSubTabs{margin:0 0 10px!important;padding:4px!important;border-radius:16px!important;}
+.timeSubTabs button{height:32px!important;min-height:32px!important;padding:0 13px!important;font-size:12px!important;}
+.timeBudgetList{gap:8px!important;}
+.timeBudgetRow{border-radius:15px!important;padding:9px 10px!important;min-height:46px!important;}
+.timeTaskList{gap:6px!important;}
+.timeTaskRow{
+  grid-template-columns:minmax(250px,1.5fr) minmax(160px,1fr) minmax(112px,auto) minmax(132px,auto)!important;
+  padding:8px 10px!important;
+  border-radius:14px!important;
+  box-shadow:0 5px 14px rgba(25,39,80,.045)!important;
+}
+.timeTaskName{grid-template-columns:auto auto minmax(0,1fr)!important;gap:6px!important;}
+.timeTaskName b{font-size:13px!important;}
+.timeTaskName span{font-size:11px!important;}
+.timeTaskMeter{height:7px!important;}
+.timeTaskValue b{font-size:13px!important;}
+.timeTaskValue span{font-size:11.5px!important;}
+.timeTargetEdit{height:30px!important;border-radius:13px!important;padding:0 7px!important;}
+.timeTargetEdit input{width:54px!important;font-size:12px!important;}
+.timeLogItem{padding:8px 10px!important;border-radius:14px!important;}
+
+/* game page: light-mode tabs and compact spacing */
+.gameQuestPanel{margin-top:0!important;}
+.gameQuestShell,.gameQuestStandalone{border-radius:22px!important;padding:14px!important;}
+.gameQuestModeTabs{
+  background:rgba(255,255,255,.66)!important;
+  border-color:rgba(198,211,235,.8)!important;
+  box-shadow:0 8px 18px rgba(40,55,90,.045)!important;
+  margin:10px 0!important;
+  border-radius:17px!important;
+}
+.gameQuestModeBtn{
+  min-height:42px!important;
+  color:#33445f!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  padding:8px 12px!important;
+  border-radius:13px!important;
+}
+.gameQuestModeBtn b{background:#eef3ff!important;color:#3854d8!important;border-color:rgba(56,84,216,.14)!important;}
+.gameQuestModeBtn.active{
+  background:linear-gradient(180deg,#ffffff,#eef5ff)!important;
+  color:#1d2b48!important;
+  border-color:rgba(255,151,189,.75)!important;
+  box-shadow:0 8px 18px rgba(55,75,120,.09)!important;
+}
+.gameQuestModeBtn.active b{background:#1d2b57!important;color:#9bf8ff!important;}
+.gameQuestGrid,.gameQuestWeeklyGrid{gap:10px!important;}
+.gameQuestCard{border-radius:18px!important;padding:12px!important;min-height:0!important;}
+.gameQuestTaskList{gap:6px!important;}
+.gameQuestMiniCheckBtn{font-size:13px!important;min-height:26px!important;}
+.gameQuestTaskBadge{height:18px!important;font-size:10px!important;padding:0 6px!important;}
+
+/* safer responsive behavior */
+@media(max-width:1180px){
+  .inertiaHeader{grid-template-columns:1fr!important;}
+  .globalToolbar{max-width:100%!important;justify-content:flex-start!important;}
+  .inertiaHeroTitle{flex-wrap:wrap!important;}
+  .inertiaTitleEn{flex-basis:100%!important;}
+}
+@media(max-width:980px){
+  .viewDock{display:flex!important;overflow-x:auto!important;grid-template-columns:none!important;padding:6px!important;scroll-snap-type:x proximity!important;}
+  .viewDockBtn{flex:0 0 122px!important;min-height:42px!important;}
+  .weeklyHero{grid-template-columns:1fr!important;}
+  .weeklyHeroStats{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .weeklySummaryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .timeTaskRow{grid-template-columns:minmax(0,1fr) auto!important;}
+  .timeTaskMeter,.timeTargetEdit{grid-column:1/-1!important;}
+  .timeTargetEdit{justify-content:space-between!important;}
+}
+@media(max-width:700px){
+  .wrap{padding:8px 8px 32px!important;}
+  .inertiaHeader{padding:10px!important;border-radius:18px!important;gap:9px!important;}
+  .inertiaHeroBrand{grid-template-columns:42px minmax(0,1fr)!important;gap:8px!important;}
+  .inertiaHeroMark{width:42px!important;border-radius:14px!important;}
+  .inertiaHeroTitle{display:grid!important;grid-template-columns:1fr!important;gap:2px!important;}
+  .inertiaTitleSlash{display:none!important;}
+  .inertiaTitleCn,.inertiaTitleEn{font-size:clamp(24px,7vw,34px)!important;line-height:.92!important;}
+  .inertiaSubtitle{white-space:normal!important;-webkit-line-clamp:2!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;}
+  .globalToolbar{gap:5px!important;}
+  .globalToolbar button,.globalToolbar .pill,.globalToolbar .ghSetupBtn{height:30px!important;min-height:30px!important;padding:0 9px!important;font-size:10.5px!important;}
+  .githubInlineState{font-size:10.5px!important;}
+  .viewDock{margin:8px 0 9px!important;}
+  .viewDockBtn{flex-basis:106px!important;}
+  .viewDockBtn span{font-size:8.5px!important;}
+  .viewDockBtn b{font-size:11.5px!important;}
+  .taskRingControlPanel{padding:9px!important;border-radius:16px!important;}
+  .taskRingControlHead{display:grid!important;gap:6px!important;}
+  .taskRingActionRow{display:grid!important;grid-template-columns:1fr 1fr!important;}
+  .weeklyShell,.timePanelShell,.gameQuestShell{padding:10px!important;border-radius:18px!important;}
+  .weeklyHeroStats,.weeklySummaryGrid,.timeStatCards{grid-template-columns:1fr!important;}
+  .weeklyTaskGrid{grid-template-columns:1fr!important;}
+  .weeklyTaskFooter{grid-template-columns:1fr 1fr!important;}
+  .weeklyTargetInline{grid-column:1/-1!important;justify-content:space-between!important;}
+  .weeklyOpenLink{grid-column:1/-1!important;}
+  .timePanelHeader{display:grid!important;gap:8px!important;}
+  .timeLedgerIdle{align-items:flex-start!important;}
+  .timeLedgerIdle em{white-space:normal!important;}
+  .timeBudgetList{grid-template-columns:1fr!important;}
+  .gameQuestModeTabs{grid-template-columns:1fr!important;}
+}
