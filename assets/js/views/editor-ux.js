@@ -65,10 +65,14 @@
     if(!list)return;
     const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
     const counts={all:cfg.tasks.length,active:cfg.tasks.filter(t=>t.enabled!==false).length,disabled:cfg.tasks.filter(t=>t.enabled===false).length,weekly:cfg.tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==="weekly").length,daily:cfg.tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!=="weekly").length};
-    const activeRows=cfg.tasks.filter(t=>scopePass(t)).map(taskEditorRowHtml).join("");
-    const disabledRows=cfg.tasks.filter(t=>t.enabled===false&&!scopePass(t)).map(taskEditorRowHtml).join("");
+    const activeTasks=cfg.tasks.filter(t=>scopePass(t));
+    const disabledTasks=cfg.tasks.filter(t=>t.enabled===false&&!scopePass(t));
+    const renderedTasks=[...activeTasks,...disabledTasks];
+    const activeRows=activeTasks.map(taskEditorRowHtml).join("");
+    const disabledRows=disabledTasks.map(taskEditorRowHtml).join("");
     const empty=`<div class="editorEmptyState"><b>没有匹配任务</b><span>换个筛选或清空搜索。别让编辑器变成迷宫。</span></div>`;
     list.innerHTML=`${editorToolbarHtml(counts)}<div class="taskEditorActiveList">${activeRows||empty}</div>${disabledRows?`<details class="disabledTaskVault"><summary><span>🗄️ 停用任务库</span><b>${counts.disabled} 项</b><em>已停用但保留配置，保存时不会丢。</em></summary><div class="disabledTaskVaultBody">${disabledRows}</div></details>`:""}`;
+    list.dataset.fullRender=renderedTasks.length===cfg.tasks.length?"1":"0";
     taskEditorLog(`已加载 ${cfg.tasks.length} 个任务。启用 ${counts.active}，停用 ${counts.disabled}。`);
   };
   window.addEditorTask=function(){
