@@ -15,10 +15,15 @@
 <div id="lockScreen" class="lockScreen">
   <div class="lockCard">
     <div class="lockBadge">INERTIA PRIVATE QUEST</div>
-    <h1 class="lockTitle">任务环已锁定</h1>
-    <p class="lockSub">请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。</p>
-    <button id="lockUnlockBtn" class="lockUnlockBtn">输入 Token 解锁</button>
-    <div class="lockFoot">Token 只保存在当前浏览器 localStorage，不会写进仓库或 Gist。</div>
+    <h1 class="lockTitle">TASK RING 已锁定</h1>
+    <p class="lockSub">输入本机解锁码进入任务环。GitHub Token 只用于云同步，不再用于开门。</p>
+    <div class="lockForm" role="form" aria-label="TASK RING 本机软锁">
+      <input id="lockCodeInput" class="lockInput" type="password" autocomplete="current-password" placeholder="输入解锁码">
+      <button id="lockUnlockBtn" class="lockUnlockBtn" type="button">解锁任务环</button>
+    </div>
+    <label class="lockRemember"><input id="lockRememberDevice" type="checkbox" checked> 记住这台浏览器，下次直接进入</label>
+    <div id="lockError" class="lockError" aria-live="polite"></div>
+    <div class="lockFoot">这是本地浏览器软锁，用来防止路人误入；不是服务器级安全认证。点「立即上锁」后会强制要求重新输入解锁码。未设置 Gist Token 时，进入后会提示你补充 Token 进行云同步。</div>
   </div>
 </div>
 
@@ -114,6 +119,7 @@
     <button id="controlGithubBtn">同步设置</button>
     <button id="controlPullBtn">从云端读取</button>
     <button id="controlPushBtn">上传本机状态</button>
+    <button id="controlLockBtn">立即上锁（下次需密码）</button>
     <button id="controlGameQuestEditorBtn">游戏任务编辑器</button>
     <button id="controlTaskEditorBtn">任务编辑器</button>
     <button id="controlRefEditorBtn">资料库编辑器</button>
@@ -164,9 +170,9 @@
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
 <div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v21 已收敛配色和层级，修复周计划池分类、分任务展示与按钮可读性。</div>
-<div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>时间历史随状态文件同步</li></ul></div></div>
+<div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
-<div class="footer">任务环_GitHub同步版｜主环 / 游戏作战区 / 时间账本 / 资料库 分离显示；Token 仅保存在本机</div>
+<div class="footer">任务环_GitHub同步版｜软锁进门 / Gist 同步 / 本机可离线使用；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
@@ -174,7 +180,7 @@
     <div class="ghModalHead">
       <div>
         <div class="ghModalTitle">GitHub Gist 同步设置</div>
-        <div class="ghModalSub">Token 只会保存在当前设备浏览器里，不会写进 HTML。</div>
+        <div class="ghModalSub">软锁只负责进门；Token 只负责 Gist 云同步，并且只保存在当前设备浏览器里。</div>
       </div>
       <button id="ghCloseBtn" class="ghCloseBtn">×</button>
     </div>
@@ -184,7 +190,7 @@
     </div>
     <label class="ghLabel">GitHub Token（classic token，只勾 gist 权限）</label>
     <input id="ghTokenInput" class="ghInput" type="password" placeholder="ghp_... 或 github_pat_...">
-    <div class="ghHint">页面地址：https://inertia77.github.io/task-ring/<br>状态文件：taskring-state.json｜配置文件：taskring-config.json（自动加密同步，无需额外口令）</div>
+    <div class="ghHint">页面地址：https://inertia77.github.io/task-ring/<br>状态文件：taskring-state.json｜配置文件：taskring-config.json（自动加密同步，无需额外口令）<br>没有 Token 也可以本机使用；需要跨设备同步时再填写。</div>
     <div class="ghActions">
       <button id="ghSaveTokenBtn">保存 Token 并同步</button>
       <button id="ghPullBtn">从云端读取</button>

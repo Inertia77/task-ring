@@ -50,6 +50,69 @@ Mac / Linux 或 Python 命令是 `python3` 的环境：
 python3 -m http.server 8000
 ```
 
+
+## 本机软锁与 Gist 同步
+
+本版已经把「进门解锁」和「GitHub Gist 同步」拆开：
+
+- 本机软锁负责进入页面。第一次输入解锁码后，会在当前浏览器保存解锁状态；刷新页面不会再要求输入。
+- GitHub Token 只负责 Gist 云同步。Token 没有设置、过期或读取失败时，页面仍然可以进入，只会切换为本机/内置数据模式，并提示你补充 Token。
+- 总控菜单里有「立即上锁（下次需密码）」，会写入一个手动锁定标记。即使这台浏览器之前选择了“记住”，也必须重新输入解锁码才能进入。
+
+初始解锁码：
+
+```text
+见密码本
+```
+
+注意：这是浏览器前端软锁，不是服务器级鉴权。它适合防止普通路人误入，不适合保护高敏感资料。真要做强安全，需要后端登录、服务端鉴权和访问控制。
+
+### 手动上锁机制
+
+点击页面右上角「总控 → 立即上锁（下次需密码）」后，页面会写入：
+
+```text
+localStorage: taskring_softlock_manual_v1 = 1
+```
+
+只要这个标记存在，页面启动时就不会使用之前保存的“记住本机”状态，必须重新输入软锁密码。密码校验成功后，这个手动锁定标记会自动清除。
+
+### 修改软锁密码
+
+软锁不会把明文密码写进页面逻辑，代码里保存的是 SHA-256 哈希。要改密码时：
+
+1. 先生成新密码的 SHA-256。PowerShell 示例：
+
+```powershell
+$newPassword = "你的新密码"
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($newPassword)
+$hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+[BitConverter]::ToString($hash).Replace("-", "").ToLower()
+```
+
+也可以用 Node.js：
+
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('你的新密码').digest('hex'))"
+```
+
+2. 打开 `assets/js/app.js`，找到：
+
+```js
+const SOFT_LOCK_HASH="bead83688f2ba2f37b42341f55c53c97e50ae7c0d521f6b67cdd7da0befda9ed"; // sha256("见密码本")
+```
+
+3. 把引号里的哈希换成新密码生成出来的哈希；后面的注释也建议一起改掉，免得以后自己坑自己。
+
+4. 已经解锁过的浏览器可能仍有旧的“记住本机”状态。测试新密码前，可以在页面「总控 → 立即上锁（下次需密码）」，或者在浏览器开发者工具里清除下面这些 key：
+
+```text
+localStorage: taskring_softlock_trusted_v1
+localStorage: taskring_softlock_trusted_until_v1
+sessionStorage: taskring_softlock_session_v1
+localStorage: taskring_softlock_manual_v1
+```
+
 ## 推送到 GitHub
 
 把这个文件夹里的内容复制到你的 `task-ring` 本地仓库根目录后执行：
@@ -64,7 +127,7 @@ git push origin main
 ## 维护规则
 
 - 改任务、默认链接、游戏作战区默认一周配置、随机完成角色：优先改 `assets/js/data/default-data.js`。
-- 改渲染逻辑、编辑器、同步逻辑：改 `assets/js/app.js`。
+- 改渲染逻辑、编辑器、同步逻辑、软锁密码哈希：改 `assets/js/app.js`。
 - 改样式：先看 `assets/css/main.css` 的 import 顺序，再去对应 CSS 文件改。
 - 不建议再把 CSS / JS / base64 图片塞回 `index.html`。那是把厨房、卧室、发动机都装进一个行李箱，能跑，但不好修。
 

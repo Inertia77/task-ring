@@ -520,8 +520,76 @@ let gameQuestBoardMode=["today","week"].includes(localStorage.getItem(GQ_BOARD_M
 let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"";
 let ghSaveTimer=null;
 let ghSaving=false;
-function lockApp(msg="需要 Token 解锁"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg}
+let ghPromptedThisLoad=false;
+const SOFT_LOCK_HASH="bead83688f2ba2f37b42341f55c53c97e50ae7c0d521f6b67cdd7da0befda9ed"; // sha256("taskring2026")
+const SOFT_LOCK_TRUST_KEY="taskring_softlock_trusted_v1";
+const SOFT_LOCK_TRUST_UNTIL_KEY="taskring_softlock_trusted_until_v1";
+const SOFT_LOCK_SESSION_KEY="taskring_softlock_session_v1";
+const SOFT_LOCK_MANUAL_KEY="taskring_softlock_manual_v1";
+const SOFT_LOCK_REMEMBER_DAYS=365;
+function lockApp(msg="输入本机解锁码进入任务环。GitHub Token 只用于云同步。"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg;setLockError("");setTimeout(()=>document.getElementById("lockCodeInput")?.focus(),60)}
 function unlockApp(){document.body.classList.remove("locked")}
+function setLockError(msg=""){const el=document.getElementById("lockError");if(el)el.textContent=msg}
+function hexFromBytes(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+async function sha256Hex(text){
+  if(!globalThis.crypto?.subtle)throw new Error("当前浏览器环境不支持 Web Crypto。请用 http://127.0.0.1 或 GitHub Pages 打开。");
+  const data=new TextEncoder().encode(String(text||""));
+  return hexFromBytes(await globalThis.crypto.subtle.digest("SHA-256",data));
+}
+function isManualSoftLocked(){return localStorage.getItem(SOFT_LOCK_MANUAL_KEY)==="1"}
+function forceSoftLock(){localStorage.setItem(SOFT_LOCK_MANUAL_KEY,"1");clearSoftLockTrust()}
+function releaseSoftLock(){localStorage.removeItem(SOFT_LOCK_MANUAL_KEY)}
+function isSoftLockTrusted(){
+  if(isManualSoftLocked())return false;
+  if(sessionStorage.getItem(SOFT_LOCK_SESSION_KEY)==="1")return true;
+  if(localStorage.getItem(SOFT_LOCK_TRUST_KEY)!=="1")return false;
+  const until=Number(localStorage.getItem(SOFT_LOCK_TRUST_UNTIL_KEY)||"0");
+  if(until&&Date.now()>until){clearSoftLockTrust();return false}
+  return true;
+}
+function trustSoftLock(remember=true){
+  releaseSoftLock();
+  sessionStorage.setItem(SOFT_LOCK_SESSION_KEY,"1");
+  if(remember){
+    localStorage.setItem(SOFT_LOCK_TRUST_KEY,"1");
+    localStorage.setItem(SOFT_LOCK_TRUST_UNTIL_KEY,String(Date.now()+SOFT_LOCK_REMEMBER_DAYS*24*60*60*1000));
+  }
+}
+function clearSoftLockTrust(){localStorage.removeItem(SOFT_LOCK_TRUST_KEY);localStorage.removeItem(SOFT_LOCK_TRUST_UNTIL_KEY);sessionStorage.removeItem(SOFT_LOCK_SESSION_KEY)}
+function applyLocalConfigIfAny(){const localCfg=loadLocalTaskConfig();if(localCfg)applyTaskConfig(localCfg,false);return !!localCfg}
+function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本机/内置数据。需要云同步时请设置 Gist Token。"){
+  unlockApp();
+  applyLocalConfigIfAny();
+  renderAll();
+  if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");}
+  ghLog(msg);
+  if(promptToken&&!ghPromptedThisLoad){
+    ghPromptedThisLoad=true;
+    showToast("本机已解锁；需要云同步请设置 Gist Token","warn",2800);
+    setTimeout(openGhModal,320);
+  }
+}
+async function handleSoftUnlock(){
+  const input=document.getElementById("lockCodeInput");
+  const btn=document.getElementById("lockUnlockBtn");
+  const code=String(input?.value||"").trim();
+  if(!code){setLockError("请输入解锁码。默认初始码是 README 里说明的那一个。");input?.focus();return}
+  try{
+    setBtnBusy(btn,true,"校验中…");
+    const ok=(await sha256Hex(code))===SOFT_LOCK_HASH;
+    if(!ok){setLockError("解锁码不对。别急，任务环还在，只是门卫不认识你。");input?.select?.();return}
+    trustSoftLock(document.getElementById("lockRememberDevice")?.checked!==false);
+    setLockError("");
+    showToast("已解锁，本机已记住。","ok",1800);
+    if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未设置 Gist Token，当前使用本机/内置数据。")
+  }catch(err){
+    console.error(err);
+    setLockError(String(err.message||err));
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
+function softLockNow(msg="已手动上锁。输入本机解锁码才能重新进入。"){forceSoftLock();closeGhModal();closeControlCenter();const input=document.getElementById("lockCodeInput");if(input)input.value="";setGhStatus("GitHub：已手动上锁","off");lockApp(msg);showToast("TASK RING 已上锁，下次需密码","ok",2200)}
 function ghLog(msg){const el=document.getElementById("ghLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus");if(!el)return;const short=String(text||"").replace(/^GitHub：?/,"")||"未设置";el.className=`githubInlineState ${cls||"off"}`;el.setAttribute("title",String(text||"GitHub：未设置"));const label=el.querySelector(".ghInlineText");if(label)label.textContent=short;else el.textContent=short;}
 function ghToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
@@ -672,19 +740,48 @@ function applyGhStates(states){
   });
   return {applied,migrated};
 }
-async function ghPull(){if(!ghToken()){if(LOCAL_PREVIEW_UNLOCK){setGhStatus("GitHub：本地预览","off");ghLog("本地预览模式：未连接云端，只使用内置/本机缓存数据。");unlockApp();renderAll();return}setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。");return}try{setGhStatus("GitHub：读取中","sync");migrateLegacyLocalStates();const gist=await ghFetchGist();const cfgResult=await ghParseConfig(gist);
-const localCfg=loadLocalTaskConfig();
-const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
-applyTaskConfig(cfgToUse,false);
-if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
-if(cfgResult.mode==="plaintext"){
-  ghLog("检测到旧版明文配置，正在自动转为加密配置…");
-  try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
+async function ghPull(){
+  if(!ghToken()){
+    enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
+    return;
+  }
+  try{
+    unlockApp();
+    setGhStatus("GitHub：读取中","sync");
+    migrateLegacyLocalStates();
+    const gist=await ghFetchGist();
+    const cfgResult=await ghParseConfig(gist);
+    const localCfg=loadLocalTaskConfig();
+    const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
+    applyTaskConfig(cfgToUse,false);
+    if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
+    if(cfgResult.mode==="plaintext"){
+      ghLog("检测到旧版明文配置，正在自动转为加密配置…");
+      try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
+    }
+    if(cfgResult.mode==="error"&&localCfg){
+      ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
+    }
+    const state=ghParseState(gist);
+    const localStates=collectGhLocalStates();
+    const localCount=Object.keys(localStates).length;
+    const result=applyGhStates(state.states||{});
+    const timeResult=mergeGhTimeLogs(state.time_logs||[]);
+    if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
+    setGhStatus("GitHub：已同步","on");
+    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);
+    unlockApp();
+    renderAll();
+    if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：读取失败","err");
+    ghLog(String(err.message||err));
+    enterLocalMode(false,"Gist 同步失败，已继续使用本机/内置数据。Token 可能失效、权限不足，或网络读取失败。");
+    showToast("Gist 同步失败；需要时请更新 Token","warn",3000);
+    setTimeout(openGhModal,360);
+  }
 }
-if(cfgResult.mode==="error"&&localCfg){
-  ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
-}
-const state=ghParseState(gist);const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;const result=applyGhStates(state.states||{});const timeResult=mergeGhTimeLogs(state.time_logs||[]);if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);unlockApp();renderAll();if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
 async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_meta:{limit:TIME_GH_LOG_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
@@ -728,12 +825,47 @@ function closeControlCenter(){
   document.body.classList.remove("controlCenterOpen");
 }
 function toggleControlCenter(){const m=ensureControlCenterPortal();if(!m)return;m.classList.contains("hidden")?openControlCenter():closeControlCenter()}
-function initGithubSyncUI(){document.getElementById("lockUnlockBtn")?.addEventListener("click",openGhModal);document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);document.getElementById("githubStatus")?.addEventListener("click",openGhModal);document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});document.getElementById("controlGameQuestEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openGameQuestEditor()});document.getElementById("controlTaskEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openTaskEditor()});document.getElementById("controlRefEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openRefEditor()});document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{if(confirm("确认清除本机保存的 GitHub Token？")){setGhToken("");setGhStatus("GitHub：未设置","off");ghLog("Token 已清除");lockApp("Token 已清除。请输入本机 GitHub Token 解锁。")}});if(ghToken())ghPull();else if(LOCAL_PREVIEW_UNLOCK){setGhStatus("GitHub：本地预览","off");ghLog("本地预览模式：未连接云端，只使用内置/本机缓存数据。");unlockApp()}else{setGhStatus("GitHub：未设置","off");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。")}}
+function initGithubSyncUI(){
+  document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
+  document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});
+  document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);
+  document.getElementById("githubStatus")?.addEventListener("click",openGhModal);
+  document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});
+  document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});
+  document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
+  document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
+  document.getElementById("controlGameQuestEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openGameQuestEditor()});
+  document.getElementById("controlTaskEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openTaskEditor()});
+  document.getElementById("controlRefEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openRefEditor()});
+  document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
+  document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
+  document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
+  document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});
+  document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);
+  document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));
+  document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{
+    if(confirm("确认清除本机保存的 GitHub Token？页面不会上锁，只会切回本机模式。")){
+      setGhToken("");
+      setGhStatus("GitHub：未设置","off");
+      ghLog("Token 已清除，已切回本机模式");
+      enterLocalMode(true,"Token 已清除；当前使用本机/内置数据。需要云同步时请重新填写 Gist Token。");
+    }
+  });
+  if(isSoftLockTrusted()){
+    unlockApp();
+    if(ghToken())ghPull();
+    else enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"本机已记住解锁；未设置 Gist Token，当前使用本机/内置数据。");
+  }else{
+    setGhStatus(isManualSoftLocked()?"GitHub：已手动上锁":"GitHub：等待解锁","off");
+    lockApp(isManualSoftLocked()?"已手动上锁。输入本机解锁码才能重新进入。":"输入本机解锁码进入任务环。GitHub Token 只用于云同步，不再用于开门。");
+  }
+}
 
 
 /* === v8.2 Hidden Task Editor === */
 let editorCounter=0;
 function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
+
 function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor();document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
 function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
 function cfgEsc(v){return escapeHtml(String(v??""))}
