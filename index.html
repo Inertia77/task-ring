@@ -4,9 +4,16 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>TASK RING｜ROYAL ATELIER QUEST v22</title>
-<link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
-<link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
+<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
+<link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
+<link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
+<link rel="apple-touch-icon" href="assets/icons/favicon.png"/>
 <meta name="theme-color" content="#f5e4bc"/>
+<meta property="og:title" content="TASK RING｜ROYAL ATELIER QUEST"/>
+<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
+<meta property="og:type" content="website"/>
+<meta property="og:image" content="assets/icons/favicon.png"/>
+<meta name="twitter:card" content="summary"/>
 
 <link rel="stylesheet" href="assets/css/main.css"/>
 </head>
@@ -31,68 +38,49 @@
 <header class="inertiaHeader">
   <div class="inertiaHeroBrand">
     <div class="inertiaHeroMark" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Task Ring 闪电执行标志">
   <defs>
-    <linearGradient id="bgA" x1="12" y1="8" x2="116" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#15306f"/>
-      <stop offset="0.30" stop-color="#20b8ef"/>
-      <stop offset="0.64" stop-color="#6e79ff"/>
-      <stop offset="1" stop-color="#d768ef"/>
+    <linearGradient id="hmBg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#050A24"/>
+      <stop offset="0.52" stop-color="#06113A"/>
+      <stop offset="1" stop-color="#020515"/>
     </linearGradient>
-    <radialGradient id="bgGloss" cx="32" cy="22" r="92" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
-      <stop offset="0.22" stop-color="#ffffff" stop-opacity="0.24"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="trail" x1="18" y1="84" x2="108" y2="52" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#86efff" stop-opacity="0.16"/>
-      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.62"/>
-      <stop offset="1" stop-color="#e4c8ff" stop-opacity="0.14"/>
+    <linearGradient id="hmCyan" x1="13" y1="11" x2="51" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#78F7FF"/>
+      <stop offset="0.45" stop-color="#12C9FF"/>
+      <stop offset="1" stop-color="#126BFF"/>
     </linearGradient>
-    <linearGradient id="boltMain" x1="38" y1="14" x2="82" y2="109" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="0.28" stop-color="#f4feff"/>
-      <stop offset="0.58" stop-color="#c9f4ff"/>
-      <stop offset="1" stop-color="#a6b0ff"/>
+    <linearGradient id="hmBolt" x1="18" y1="8" x2="47" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.48" stop-color="#DDFBFF"/>
+      <stop offset="1" stop-color="#63E9FF"/>
     </linearGradient>
-    <linearGradient id="boltLeft" x1="30" y1="24" x2="62" y2="93" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#92ecff" stop-opacity="0.92"/>
-      <stop offset="1" stop-color="#6dc8ff" stop-opacity="0.26"/>
-    </linearGradient>
-    <linearGradient id="boltRight" x1="66" y1="18" x2="92" y2="86" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.88"/>
-      <stop offset="1" stop-color="#d1c7ff" stop-opacity="0.30"/>
-    </linearGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#baf5ff" flood-opacity="0.55"/>
-      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#17286f" flood-opacity="0.30"/>
+    <filter id="hmGlow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.02  0 0 0 0 0.62  0 0 0 0 1  0 0 0 0.9 0" result="blueGlow"/>
+      <feMerge><feMergeNode in="blueGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <clipPath id="boltClip">
-      <path d="M78 14L42 62H62L50 114L92 52H70L78 14Z"/>
-    </clipPath>
+    <filter id="hmSoftGlow" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.75  0 0 0 0 1  0 0 0 0.75 0" result="cyanGlow"/>
+      <feMerge><feMergeNode in="cyanGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="128" height="128" rx="30" fill="url(#bgA)"/>
-  <rect width="128" height="128" rx="30" fill="url(#bgGloss)"/>
-  <path d="M18 88C34 101 72 101 108 58" fill="none" stroke="url(#trail)" stroke-width="7" stroke-linecap="round" opacity="0.82"/>
-  <path d="M28 72C48 51 72 42 101 36" fill="none" stroke="#d9fcff" stroke-width="4" stroke-linecap="round" opacity="0.18"/>
-  <g filter="url(#glow)">
-    <path d="M78 14L42 62H62L50 114L92 52H70L78 14Z" fill="url(#boltMain)"/>
-    <g clip-path="url(#boltClip)">
-      <path d="M42 62L78 14L66 64L50 114Z" fill="url(#boltLeft)"/>
-      <path d="M78 14L92 52L70 52L66 64Z" fill="url(#boltRight)"/>
-      <path d="M62 62L92 52L50 114Z" fill="#b6beff" opacity="0.52"/>
-      <path d="M52 44L74 20L68 48L60 62Z" fill="#ffffff" opacity="0.82"/>
-      <path d="M57 65L73 54L61 88L52 104Z" fill="#ffffff" opacity="0.34"/>
-      <path d="M70 52L82 52L66 76Z" fill="#ffffff" opacity="0.56"/>
-      <path d="M74 18L57 63" stroke="#ffffff" stroke-width="2" opacity="0.42"/>
-      <path d="M61 63L85 52" stroke="#dffaff" stroke-width="1.8" opacity="0.44"/>
-      <path d="M60 64L53 105" stroke="#dbf4ff" stroke-width="1.7" opacity="0.40"/>
-    </g>
-  </g>
-  <path d="M26 98L41 80L46 99L33 108Z" fill="#ffffff" opacity="0.10"/>
-  <path d="M86 36L101 56L89 80L74 60Z" fill="#ffffff" opacity="0.12"/>
-  <path d="M97 18V27M97 39V48M89 33H97M97 33H105" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" opacity="0.98"/>
-  <circle cx="97" cy="33" r="4" fill="#ffffff" opacity="0.98"/>
+  <rect width="64" height="64" rx="14" fill="url(#hmBg)"/>
+  <path d="M17 18.5 L32 10.5 L47 18.5 L47 40.5 L32 54 L17 40.5 Z"
+        fill="none" stroke="url(#hmCyan)" stroke-width="4.2" stroke-linejoin="round"
+        stroke-linecap="round" opacity="0.95" filter="url(#hmSoftGlow)"/>
+  <path d="M37.7 5.7 L15.2 33.4 H29.2 L23.7 58.3 L49.4 27.8 H35.5 Z"
+        fill="url(#hmBolt)" stroke="#BFFFFF" stroke-width="1.35" stroke-linejoin="round"
+        filter="url(#hmGlow)"/>
+  <path d="M37.7 5.7 L24.4 31.5 H35.5 Z" fill="#FFFFFF" opacity="0.55"/>
+  <path d="M29.2 33.4 L23.7 58.3 L35.4 32.8 Z" fill="#05BFFF" opacity="0.22"/>
+  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
+        fill="none" stroke="#EFFFFF" stroke-width="5.2" stroke-linecap="round"
+        stroke-linejoin="round" filter="url(#hmSoftGlow)"/>
+  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
+        fill="none" stroke="#65EAFF" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" opacity="0.9"/>
 </svg>
     </div>
     <div class="inertiaHeroCopy">
@@ -169,7 +157,7 @@
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v21 已收敛配色和层级，修复周计划池分类、分任务展示与按钮可读性。</div>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v22 皇家二次元视觉；统一页头/标签图标，修复标题版本号，锁屏启用星城背景，并补充可访问性（尊重系统「减少动态效果」设置）。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
 <div class="footer">任务环_GitHub同步版｜软锁进门 / Gist 同步 / 本机可离线使用；Token 仅保存在本机</div>

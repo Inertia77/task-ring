@@ -129,10 +129,9 @@
     renderAll();
   },true);
   window.TaskRingV21={version:"v21",boot(){
+    // Repaint with the v21 weekly renderer installed above.
+    // Title/version text is owned by index.html — do not override it here.
     try{
-      document.title="TASK RING｜INERTIA CLOUD QUEST v21";
-      const badge=[...document.querySelectorAll(".inertiaVersionBadge")].find(x=>/GIT MODE/.test(x.textContent||""));
-      if(badge)badge.textContent="GIT MODE · v21";
       renderAll();
     }catch(err){console.warn("TaskRing v21 boot warning",err)}
   }};
