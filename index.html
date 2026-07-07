@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜INERTIA CLOUD QUEST v21</title>
+<title>TASK RING｜ROYAL ATELIER QUEST v22</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260701"/>
-<meta name="theme-color" content="#3854d8"/>
+<meta name="theme-color" content="#f5e4bc"/>
 
 <link rel="stylesheet" href="assets/css/main.css"/>
 </head>
@@ -14,11 +14,11 @@
 
 <div id="lockScreen" class="lockScreen">
   <div class="lockCard">
-    <div class="lockBadge">INERTIA PRIVATE QUEST</div>
-    <h1 class="lockTitle">任务环已锁定</h1>
-    <p class="lockSub">请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。</p>
-    <button id="lockUnlockBtn" class="lockUnlockBtn">输入 Token 解锁</button>
-    <div class="lockFoot">Token 只保存在当前浏览器 localStorage，不会写进仓库或 Gist。</div>
+    <div class="lockBadge">INERTIA ROYAL ATELIER</div>
+    <h1 class="lockTitle">星冠任务环已锁定</h1>
+    <p class="lockSub">请输入本机 GitHub Token 解锁。验证通过后，本浏览器会保持通行，不会反复打断执行节奏。</p>
+    <button id="lockUnlockBtn" class="lockUnlockBtn">开启星冠权限</button>
+    <div class="lockFoot">Token 只保存在当前浏览器 localStorage；仓库与 Gist 不会记录明文。</div>
   </div>
 </div>
 
@@ -92,15 +92,15 @@
     </div>
     <div class="inertiaHeroCopy">
       <div class="inertiaBrandRow">
-        <span class="inertiaOwnerBadge">INERTIA SYSTEM</span>
-        <span class="inertiaVersionBadge">GIT MODE</span>
+        <span class="inertiaOwnerBadge">ROYAL TASK SYSTEM</span>
+        <span class="inertiaVersionBadge">PEARL SYNC</span>
       </div>
       <h1 class="inertiaHeroTitle">
         <span class="inertiaTitleCn">TASK RING</span>
         <span class="inertiaTitleSlash">/</span>
-        <span class="titleGlow inertiaTitleEn">CLOUD QUEST</span>
+        <span class="titleGlow inertiaTitleEn">ROYAL QUEST</span>
       </h1>
-      <p class="subtitle inertiaSubtitle">INERTIA 专属云同步任务环：主任务勾选、资料库入口、状态隐私化。Token 只保存在本机。</p>
+      <p class="subtitle inertiaSubtitle">明亮二次元 × 皇家精致风任务环：主任务、周计划、游戏作战、时间账本与资料库分区保持紧密高密度，Token 仅保存在本机。</p>
     </div>
   </div>
   <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
@@ -149,9 +149,9 @@
 </section>
 <section class="taskFirstBanner mainRingBanner viewPanel active" data-view-panel="tasks">
   <div class="mainRingCopy">
-    <div class="taskFirstKicker">ANNEAU CENTRAL</div>
-    <div class="taskFirstTitle">Anneau principal</div>
-    <div class="taskFirstText">Les tâches essentielles du jour sont ici. Ouvrez la semaine seulement si nécessaire.</div>
+    <div class="taskFirstKicker">ROYAL MAIN RING</div>
+    <div class="taskFirstTitle">星冠主环</div>
+    <div class="taskFirstText">今日核心任务集中在这里；长期主线仍进周计划池，不抢主环注意力。</div>
   </div>
 </section>
 <section class="orbitPanel viewPanel active" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
@@ -163,10 +163,10 @@
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v21 已收敛配色和层级，修复周计划池分类、分任务展示与按钮可读性。</div>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v22 已切换为明亮二次元皇家精致风：珍珠底、星冠金、淡紫蓝层级，并保持原有信息密度。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>同步</h2><ul><li>Token 仅本机保存</li><li>任务与资料库走 Gist</li><li>时间历史随状态文件同步</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
-<div class="footer">任务环_GitHub同步版｜主环 / 游戏作战区 / 时间账本 / 资料库 分离显示；Token 仅保存在本机</div>
+<div class="footer">TASK RING Royal Atelier｜主环 / 游戏作战区 / 时间账本 / 资料库 分离显示；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">
