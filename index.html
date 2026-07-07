@@ -157,7 +157,7 @@
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v22 皇家二次元视觉；统一页头/标签图标，修复标题版本号，锁屏启用星城背景，并补充可访问性（尊重系统「减少动态效果」设置）。</div>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v23 游戏作战区编辑器「每天/指定日」改成写任务名 + 勾星期（和普通任务同款，不用再一天天复制），本周池保持一行一条；界面加入游戏化霓虹质感。此前 v22 皇家二次元视觉与可访问性（尊重系统「减少动态效果」）保留。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
 <div class="footer">任务环_GitHub同步版｜软锁进门 / Gist 同步 / 本机可离线使用；Token 仅保存在本机</div>
@@ -206,7 +206,7 @@
       <button id="importGameQuestBtn">导入 JSON</button>
     </div>
     <div class="taskEditorHint">
-      编辑方法：先整理游戏卡，再选星期填写当天清单；一行就是一个清单项。空白的游戏不会出现在当天卡片里。
+      每天/指定日：每个游戏一张卡，写任务名 + 勾选它要出现的星期（勾满一整周＝每日，勾几天＝指定日）。本周池仍是一行一条。改完记得保存。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>

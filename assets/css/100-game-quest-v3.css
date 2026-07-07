@@ -1,0 +1,236 @@
+/* =========================================================================
+   v23 · 游戏作战区编辑器「按游戏排任务 + 勾星期」改版 + 全局游戏化质感
+   - 每天/指定日：不再一天天填文本框，改成每个游戏一张卡，
+     每条任务写名字 + 勾选它出现的星期（和普通任务编辑器同款体验）。
+   - 本周池维持一行一条文本框（在旧层里，不动）。
+   - 这一层放在 main.css 最后，负责“最终态”视觉；只新增，不回头拆旧层。
+   ========================================================================= */
+
+/* ---- 旧的「按天切换」标签条已弃用：清空后隐藏，避免留白 ---------------- */
+#gameQuestEditorDays:empty{
+  display:none!important;margin:0!important;padding:0!important;border:0!important;
+}
+
+/* ---- 每天/指定日：分组头 + 星期图例 ------------------------------------ */
+.gameQuestDailyGroupV3 .gameQuestEditHead b{
+  display:inline-flex;align-items:center;gap:8px;
+}
+.gameQuestDailyGroupV3 .gameQuestEditHead b::before{
+  content:"⚔";font-size:15px;
+  filter:drop-shadow(0 0 6px rgba(109,88,214,.5));
+}
+.gqDayLegend{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  margin:2px 0 14px;padding:8px 12px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(94,234,212,.10),rgba(139,92,246,.10) 55%,rgba(255,110,190,.10));
+  border:1px solid rgba(139,92,246,.18);
+}
+.gqDayLegend .gqDayLegendLead{
+  font-size:11px;font-weight:1000;letter-spacing:.14em;color:#6a5bd0;
+  text-transform:uppercase;margin-right:2px;
+}
+.gqDayLegend span:not(.gqDayLegendLead){
+  min-width:26px;text-align:center;font-size:12px;font-weight:950;color:#5b6b8c;
+}
+.gqDayLegend span.today{
+  color:#7a3ce0;text-shadow:0 0 8px rgba(139,92,246,.4);
+}
+
+/* ---- 游戏卡片牌桌 ------------------------------------------------------- */
+.gqDailyDeck{display:grid;gap:14px}
+.gqDailyCard{
+  --gq-accent:#5eead4;
+  position:relative;overflow:hidden;
+  border-radius:20px;
+  border:1px solid rgba(196,210,236,.9);
+  border-left:6px solid var(--gq-accent);
+  background:linear-gradient(180deg,#ffffff,#f6faff);
+  box-shadow:0 14px 32px rgba(38,58,105,.09), inset 0 0 0 1px rgba(255,255,255,.7);
+  transition:box-shadow .18s ease, transform .18s ease;
+}
+.gqDailyCard::before{
+  content:"";position:absolute;right:-46px;top:-52px;
+  width:150px;height:150px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--gq-accent) 24%,transparent),transparent 62%);
+}
+.gqDailyCard:hover{
+  box-shadow:0 20px 44px rgba(38,58,105,.14), inset 0 0 0 1px rgba(255,255,255,.7);
+}
+.gqDailyCard.accent-cyan{--gq-accent:#2bc4c0}
+.gqDailyCard.accent-amber{--gq-accent:#f0a92a}
+.gqDailyCard.accent-violet{--gq-accent:#8b5cf6}
+.gqDailyCard.accent-blue{--gq-accent:#3f8bf5}
+.gqDailyCard.accent-rose{--gq-accent:#f4577f}
+.gqDailyCard.accent-gold{--gq-accent:#e0b400}
+
+.gqDailyCardHead{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:11px;
+  padding:12px 14px;
+  border-bottom:1px solid rgba(196,210,236,.55);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gq-accent) 10%,#fff),transparent);
+}
+.gqDailyIcon{
+  flex:0 0 auto;width:40px;height:40px;display:grid;place-items:center;
+  border-radius:14px;font-size:21px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gq-accent) 26%,#fff),color-mix(in srgb,var(--gq-accent) 12%,#fff));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85),0 6px 16px color-mix(in srgb,var(--gq-accent) 40%,transparent);
+}
+.gqDailyTitleWrap{display:grid;gap:1px;min-width:0;flex:1 1 auto}
+.gqDailyTitleWrap b{font-size:16px;font-weight:1000;color:#182a4c;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gqDailyTitleWrap em{font-style:normal;font-size:11.5px;font-weight:900;letter-spacing:.06em;color:#7c8aa8}
+.gqDailyAddBtn{
+  flex:0 0 auto;height:34px;padding:0 14px;border:0;border-radius:999px;cursor:pointer;
+  font-weight:1000;font-size:13px;color:#fff;
+  background:linear-gradient(135deg,var(--gq-accent),color-mix(in srgb,var(--gq-accent) 40%,#6d58d6));
+  box-shadow:0 8px 18px color-mix(in srgb,var(--gq-accent) 42%,transparent);
+  transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.gqDailyAddBtn:hover{filter:brightness(1.05);box-shadow:0 10px 22px color-mix(in srgb,var(--gq-accent) 55%,transparent)}
+.gqDailyAddBtn:active{transform:scale(.96)}
+
+.gqDailyRows{display:grid;gap:9px;padding:12px 14px 14px}
+
+/* ---- 单条任务：标题 + 星期勾选 + 操作 ---------------------------------- */
+.gqDailyRow{
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) auto auto;
+  gap:10px;align-items:center;
+  padding:9px 10px;border-radius:14px;
+  border:1px solid rgba(205,216,232,.9);
+  background:#fff;
+}
+.gqDailyRow:focus-within{
+  border-color:color-mix(in srgb,var(--gq-accent) 60%,#8b5cf6);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--gq-accent) 18%,transparent);
+}
+.gqDailyTaskTitle{
+  width:100%;min-width:0;height:38px;
+  border:1px solid #cdd8e8;border-radius:11px;padding:0 12px;
+  font:inherit;font-size:14px;font-weight:800;color:#10233f;background:#fbfdff;
+}
+.gqDailyTaskTitle:focus{outline:0;border-color:#8b5cf6;background:#fff}
+.gqDailyTaskTitle::placeholder{color:#9aa7c0;font-weight:700}
+
+.gqDayPicker{display:flex;flex-wrap:wrap;gap:5px}
+.gqDayChip{
+  position:relative;display:grid;place-items:center;
+  width:34px;height:34px;border-radius:11px;cursor:pointer;user-select:none;
+  border:1px solid rgba(196,210,236,.95);
+  background:#f4f7fc;
+  color:#66748f;font-weight:1000;font-size:13px;
+  transition:transform .1s ease, box-shadow .14s ease, background .14s ease, color .14s ease, border-color .14s ease;
+}
+.gqDayChip .gqDayBox{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.gqDayChip span{pointer-events:none;line-height:1}
+.gqDayChip:hover{border-color:color-mix(in srgb,var(--gq-accent) 55%,#c4d2ec);color:#3a4a6b}
+.gqDayChip:has(.gqDayBox:checked){
+  color:#fff;border-color:transparent;
+  background:linear-gradient(150deg,var(--gq-accent),color-mix(in srgb,var(--gq-accent) 45%,#6d58d6));
+  box-shadow:0 6px 14px color-mix(in srgb,var(--gq-accent) 48%,transparent), inset 0 0 0 1px rgba(255,255,255,.35);
+  transform:translateY(-1px);
+}
+.gqDayChip:has(.gqDayBox:focus-visible){
+  outline:2px solid #8b5cf6;outline-offset:2px;
+}
+
+.gqDailyRowOps{display:flex;align-items:center;gap:6px}
+.gqDailyMiniBtn{
+  height:34px;padding:0 11px;border-radius:11px;cursor:pointer;
+  border:1px solid rgba(196,210,236,.95);background:#fff;
+  font-weight:1000;font-size:12.5px;color:#4a5a7e;
+  transition:transform .1s ease, background .14s ease, border-color .14s ease, color .14s ease;
+}
+.gqDailyMiniBtn:hover{background:#f2f6ff;border-color:color-mix(in srgb,var(--gq-accent) 50%,#c4d2ec);color:#233a63}
+.gqDailyMiniBtn:active{transform:scale(.95)}
+.gqDailyMiniBtn.danger{color:#b0365e;border-color:rgba(255,183,205,.95);background:linear-gradient(180deg,#fff,#fff2f7)}
+.gqDailyMiniBtn.danger:hover{background:#ffe9f1;border-color:#ffb7cd;color:#93244a}
+
+.gqDailyEmpty{
+  border:1px dashed rgba(139,92,246,.32);border-radius:13px;
+  padding:14px;color:#6b7794;font-weight:800;font-size:13px;
+  background:rgba(139,92,246,.04);
+}
+
+/* ---- 手机端：任务条堆叠，星期块占满一行更好点 -------------------------- */
+@media(max-width:760px){
+  .gqDailyRow{grid-template-columns:1fr;gap:8px}
+  .gqDailyRowOps{justify-content:flex-end}
+  .gqDayPicker{justify-content:space-between}
+  .gqDayChip{width:calc((100% - 30px)/7);min-width:34px;height:36px}
+  .gqDailyCardHead{padding:11px 12px}
+  .gqDailyRows{padding:11px 12px 12px}
+  .gqDailyAddBtn{height:32px;padding:0 12px}
+}
+
+/* =========================================================================
+   全局「游戏化」轻质感（只新增光效/微动，尊重系统减少动态效果）
+   刻意不用「永远在跑」的 infinite 动画——常驻元素一直动既费电又分心，
+   也会卡住自动截图/性能工具。改成静态霓虹条 + hover/按压时才触发的微动。
+   ========================================================================= */
+/* 顶部分区切换：选中项一条 HUD 霓虹条（静态渐变，hover 时更亮） */
+.viewDockBtn.active{position:relative;overflow:hidden}
+.viewDockBtn.active::after{
+  content:"";position:absolute;left:14px;right:14px;bottom:5px;height:3px;border-radius:999px;
+  background:linear-gradient(90deg,#2dd6ff,#7b72ff,#ff6ebe);
+  box-shadow:0 0 12px rgba(123,114,255,.55);
+  opacity:.9;transition:opacity .2s ease, box-shadow .2s ease;
+}
+.viewDockBtn.active:hover::after{opacity:1;box-shadow:0 0 18px rgba(123,114,255,.8)}
+
+/* 游戏作战区大卡：hover 时光晕轻轻浮动一下（只在 hover，闲置不动） */
+@media(prefers-reduced-motion:no-preference){
+  .gameQuestCardV2:hover .gameQuestCardAura{animation:gqAuraFloat 3.4s ease-in-out infinite}
+}
+@keyframes gqAuraFloat{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(-6px,6px) scale(1.06)}
+}
+
+/* 保存主按钮：hover 时发光，强调“可提交”，不常驻闪 */
+#gameQuestEditorBottomSaveBtn:hover,#saveGameQuestBtn:hover{
+  box-shadow:0 12px 30px rgba(109,88,214,.42)!important;
+}
+
+/* 交互微动：按钮按下有回弹，读起来更像游戏 HUD */
+.viewDockBtn:active{transform:translateY(1px) scale(.99)}
+
+/* =========================================================================
+   周计划池 · 手机端：把顶部统计收成"一屏内"，让真正的任务尽快露头
+   —— 信息一条不删：本周投入/周目标/达成 三块压成一行 3 列；
+      类别配额（allocationRibbon）由"竖着堆 5 行"改成横向滑动一行（可左右划看全部）。
+   ========================================================================= */
+@media(max-width:760px){
+  /* 顶部三块统计：强制一行 3 列，不再换行占高 */
+  .weeklyHeroStats{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  .weeklyHeroStats>div{min-width:0!important;padding:8px 9px!important;}
+  .weeklyHeroStats b{font-size:16px!important;}
+  /* 类别配额条：横向滑动，5 张卡从"堆 5 行"变成"划 1 行" */
+  .allocationRibbon{
+    display:flex!important;
+    grid-template-columns:none!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    gap:8px!important;
+    padding-bottom:2px!important;
+    scroll-snap-type:x proximity!important;
+    scrollbar-width:none!important;
+    -ms-overflow-style:none!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .allocationRibbon::-webkit-scrollbar{display:none!important;}
+  .allocationChip{
+    flex:0 0 auto!important;
+    width:150px!important;
+    scroll-snap-align:start!important;
+  }
+  /* 顶部各块之间稍微收紧，进一步缩短到任务的距离 */
+  .weeklyShell.v20,.weeklyShell.v21{gap:10px!important;}
+  /* Hero 收紧：数据（标题/三块 KPI）都留着，只压说明文案的占高 */
+  .weeklyCommandHero{padding:12px 13px!important;}
+  .weeklyCommandHero>div:first-child em{margin-top:3px!important;font-size:11px!important;line-height:1.3!important;}
+}
