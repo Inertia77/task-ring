@@ -2426,16 +2426,28 @@ function removeGameQuestDailyTask(gameId,index){
   list.splice(index,1);
   renderGameQuestEditor();
 }
-function gameQuestDailyRowHtml(gameId,t,idx){
+function moveGameQuestDailyTask(gameId,index,offset){
+  collectGameQuestEditorState();
+  const list=gameQuestDraftConfig.dailyByGame&&gameQuestDraftConfig.dailyByGame[gameId];
+  if(!Array.isArray(list))return;
+  const next=index+offset;
+  if(next<0||next>=list.length)return;
+  [list[index],list[next]]=[list[next],list[index]];
+  renderGameQuestEditor();
+}
+function gameQuestDailyRowHtml(gameId,t,idx,total){
   const dayNums=Array.isArray(t.days)?t.days.map(Number):[];
   const dayChips=[1,2,3,4,5,6,0].map(d=>{
     const on=dayNums.includes(d);
     return `<label class="gqDayChip"><input type="checkbox" class="gqDayBox" value="${d}" ${on?"checked":""}><span>${escapeHtml(dayName(d))}</span></label>`;
   }).join("");
+  const last=(Number(total)||1)-1;
   return `<div class="gqDailyRow" data-gq-daily-row="${idx}">
     <input class="gqDailyTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="任务名，例如：日常体力 / App签到 / 清体力">
     <div class="gqDayPicker" role="group" aria-label="出现的星期">${dayChips}</div>
     <div class="gqDailyRowOps">
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="up" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx<=0?"disabled":""} title="上移" aria-label="上移">↑</button>
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="down" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx>=last?"disabled":""} title="下移" aria-label="下移">↓</button>
       <button type="button" class="gqDailyMiniBtn" data-gq-daily-fill data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="一键设为每天出现">每天</button>
       <button type="button" class="gqDailyMiniBtn danger" data-gq-del-daily data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="删除这条任务" aria-label="删除">✕</button>
     </div>
@@ -2467,7 +2479,7 @@ function renderGameQuestEditor(){
   const dayLegend=`<div class="gqDayLegend" aria-hidden="true"><span class="gqDayLegendLead">星期</span>${[1,2,3,4,5,6,0].map(d=>`<span class="${d===today?"today":""}">${escapeHtml(dayName(d))}</span>`).join("")}</div>`;
   const dailyCards=enabledGames.map(g=>{
     const items=cfg.dailyByGame[g.id]||[];
-    const rows=items.length?items.map((t,idx)=>gameQuestDailyRowHtml(g.id,t,idx)).join("")
+    const rows=items.length?items.map((t,idx)=>gameQuestDailyRowHtml(g.id,t,idx,items.length)).join("")
       :`<div class="gqDailyEmpty">还没有任务。点右上角「＋ 任务」加一条，然后勾选它要在星期几出现。</div>`;
     return `<div class="gqDailyCard accent-${escapeHtml(g.accent)}" data-gq-daily-game="${escapeHtml(g.id)}">
       <div class="gqDailyCardHead">
@@ -2556,6 +2568,8 @@ function initGameQuestUI(){
     if(addDaily){e.preventDefault();addGameQuestDailyTask(addDaily.dataset.gqAddDaily);return}
     const delDaily=e.target.closest("[data-gq-del-daily]");
     if(delDaily){e.preventDefault();removeGameQuestDailyTask(delDaily.dataset.gqGame,Number(delDaily.dataset.gqIndex));return}
+    const moveDaily=e.target.closest("[data-gq-daily-move]");
+    if(moveDaily){e.preventDefault();moveGameQuestDailyTask(moveDaily.dataset.gqGame,Number(moveDaily.dataset.gqIndex),moveDaily.dataset.gqDailyMove==="up"?-1:1);return}
     const fillDaily=e.target.closest("[data-gq-daily-fill]");
     if(fillDaily){e.preventDefault();const row=fillDaily.closest("[data-gq-daily-row]");row?.querySelectorAll(".gqDayBox").forEach(b=>{b.checked=true});return}
     const moveBtn=e.target.closest("[data-gq-move][data-gq-row-id]");

@@ -143,6 +143,9 @@
 }
 .gqDailyMiniBtn:hover{background:#f2f6ff;border-color:color-mix(in srgb,var(--gq-accent) 50%,#c4d2ec);color:#233a63}
 .gqDailyMiniBtn:active{transform:scale(.95)}
+.gqDailyMiniBtn:disabled{opacity:.34;cursor:not-allowed;box-shadow:none;transform:none;background:#f4f7fc;border-color:rgba(196,210,236,.7);color:#9aa7c0}
+.gqDailyMiniBtn:disabled:hover{background:#f4f7fc;border-color:rgba(196,210,236,.7);color:#9aa7c0}
+.gqMoveBtn{padding:0 9px;min-width:32px;font-size:15px;line-height:1}
 .gqDailyMiniBtn.danger{color:#b0365e;border-color:rgba(255,183,205,.95);background:linear-gradient(180deg,#fff,#fff2f7)}
 .gqDailyMiniBtn.danger:hover{background:#ffe9f1;border-color:#ffb7cd;color:#93244a}
 
