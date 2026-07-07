@@ -1,0 +1,320 @@
+/* ============================================================
+   99-neon-rarity.css · NEW ERIDU 明亮高能皮肤（最后加载，覆盖 royal 奶油皮）
+   方向：参考「绝区零 / 异环」的都市二次元 —— 明亮冷白底 + 近黑粗体字（永远看得清）
+   + 酸性黄 / 品红 / 电光蓝撞色，硬朗贴纸感。不发灰、不刺眼、不阴间。
+   实现：<body> 带 .nx 标记类，本层用 .nx 前缀提权，盖过旧皮的浅色/金色规则。
+   回退：删 main.css 里本层 import + index.html body 的 nx 类。
+   ============================================================ */
+
+:root{
+  --nx-bg1:#eef0f8; --nx-bg2:#e7e9f3;
+  --nx-surface:rgba(255,255,255,.86); --nx-surface2:#f5f6fb; --nx-card:#ffffff;
+  --nx-ink:#181a24; --nx-ink2:#3d4152; --nx-mut:#6c7186;
+  --nx-line:#e2e5f0; --nx-line2:#eef0f6;
+  --nx-yellow:#c9e400; --nx-pink:#ff2e88; --nx-cyan:#0fb5ff; --nx-blue:#2b6cff; --nx-violet:#6d4dff; --nx-amber:#ff8a2b;
+  --nx-grad:linear-gradient(135deg,#ff1f7a 0%,#7a3dff 52%,#1f8cff 100%);
+  --nx-grad-warm:linear-gradient(135deg,#ff8a2b 0%,#ff2e88 60%,#a03dff 100%);
+  --nx-grad-cool:linear-gradient(135deg,#2b6cff 0%,#6d4dff 100%);
+  --nx-shadow:0 12px 30px rgba(40,44,90,.12),0 2px 0 rgba(255,255,255,.7) inset;
+  --nx-dark:#1a1b26;
+  --life:#ff8a2b; --gamecreate:#ff2e88; --language:#0fb5ff;
+}
+
+/* ---------- 全局底 ---------- */
+html{background:#e9ebf5!important;}
+body.nx{
+  color:var(--nx-ink)!important;
+  background:
+    radial-gradient(1000px 560px at 8% -6%, rgba(255,46,136,.12), transparent 55%),
+    radial-gradient(900px 560px at 94% -4%, rgba(15,181,255,.12), transparent 55%),
+    radial-gradient(900px 700px at 50% 116%, rgba(109,77,255,.10), transparent 60%),
+    linear-gradient(180deg,#eef0f8 0%,#e8eaf4 100%)!important;
+  background-attachment:fixed!important;
+}
+body.nx::before{
+  content:""!important;position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
+  background-image:radial-gradient(rgba(40,44,90,.05) 1px,transparent 1px)!important;background-size:20px 20px!important;opacity:.5!important;
+}
+body.nx::after{content:none!important;}
+.nx .wrap{position:relative;z-index:1;background:transparent!important;}
+
+/* ---------- 通用白卡表面 ---------- */
+.nx .viewIntro,.nx .taskRingControlPanel,.nx .orbitPanel,.nx .tableBox,.nx .mobileBox,
+.nx .legendBox,.nx .priorityRefBox,.nx .mainRingBanner,.nx .taskFirstBanner,
+.nx .gameQuestShell.gameQuestStandalone,.nx .weeklyShell,.nx .timePanelShell,
+.nx .dailyReminder,.nx .summaryGrid .card,.nx .notice,.nx .weeklyMissionGroup,
+.nx .weeklyMissionCard,.nx .gameQuestCardV2,.nx .gameQuestWeeklyPane,.nx .gameQuestDailyPane,
+.nx .timeTaskRow,.nx .timeBudgetRow,.nx .activeTimerCard,.nx .timeLedgerIdle,.nx .refGroup,
+.nx .weeklyHero,.nx .weeklyCommandHero,.nx .timePanelHeader,.nx .gameQuestSubHead{
+  background:var(--nx-surface)!important;border:1px solid var(--nx-line)!important;
+  box-shadow:0 12px 30px rgba(40,44,90,.10)!important;-webkit-backdrop-filter:blur(8px)!important;backdrop-filter:blur(8px)!important;
+  color:var(--nx-ink)!important;
+}
+/* 卡内文字：主体近黑，次要中灰 */
+.nx .viewIntro p,.nx .taskFirstText,.nx .notice,.nx .summaryGrid .card li,
+.nx .taskRingModeText,.nx #modeText,.nx .orbitSub,.nx .orbitLabel,.nx .orbitTiny,
+.nx .missionTitleBlock span,.nx .missionScore em,.nx .weeklyMissionGroup small,
+.nx .gameQuestTopTitle em,.nx .gameQuestMetaStrip,.nx .weeklySubtasks>summary,
+.nx .dailyText,.nx .refSummarySub,.nx .progress-meta,.nx .compactMetaText,
+.nx .taskMetaLine,.nx .mMeta,.nx .mobileMetaText,.nx .taskDayHint,.nx .footer,
+.nx .timeBudgetValue,.nx .timeTaskValue span,.nx .activeTimerSub,.nx .ghModalSub,
+.nx .taskEditorSub,.nx .ghHint,.nx .taskEditorHint{color:var(--nx-mut)!important;}
+.nx h1,.nx h2,.nx .viewIntro strong,.nx .taskFirstTitle,.nx .orbitTitle,.nx .orbitPct,
+.nx .taskRingControlHead strong,.nx .weeklyCommandHero b,.nx .weeklyHero b,.nx .weeklyHeroStats>div b,
+.nx .missionTitleBlock b,.nx .missionScore strong,.nx .weeklyMissionGroup>header b,
+.nx .gameQuestTopTitle strong,.nx .timePanelHeader b,.nx .activeTimerTitle,.nx .timeBudgetLabel b,
+.nx .timeTaskName b,.nx .taskName,.nx .taskText,.nx .mTitle,.nx .dailyTitle,.nx .refGroup>summary,
+.nx .gameQuestCardV2 b,.nx .gameQuestName,.nx .gameQuestEmpty b,.nx .timeLogItem b,.nx .timeLogItem strong,
+.nx .ghModalTitle,.nx .taskEditorTitle,.nx .stepPopoverHead strong{color:var(--nx-ink)!important;}
+
+/* kicker / 小标签：粗体撞色 */
+.nx .viewIntro span,.nx .taskFirstKicker,.nx .taskRingControlHead span,
+.nx .weeklyCommandHero>div:first-child span,.nx .weeklyHero>div:first-child span,
+.nx .timePanelHeader>div span,.nx .gameQuestTopTitle span,.nx .refSummaryTitle,
+.nx .gameQuestSubHead b,.nx .timeStatCards>div b,.nx .legendGrid b{
+  color:var(--nx-pink)!important;letter-spacing:.12em!important;font-weight:900!important;
+}
+
+/* ---------- 头部：亮底 + 近黑标题 + 霓虹渐变副名 ---------- */
+.nx .inertiaHeader{
+  background:linear-gradient(135deg,#ffffff,#eef1fb)!important;border:1px solid var(--nx-line)!important;
+  box-shadow:0 16px 40px rgba(40,44,90,.14)!important;border-radius:22px!important;overflow:hidden!important;
+}
+.nx .inertiaHeader:after{background:radial-gradient(circle,rgba(255,46,136,.18),transparent 70%)!important;}
+.nx .inertiaHeroMark{
+  transform:none!important; /* 修复旧层 rotate(-5deg) 歪斜 */
+  background:linear-gradient(135deg,#1b1140,#0c0820)!important;
+  border:1px solid rgba(15,181,255,.4)!important;box-shadow:0 12px 26px rgba(43,108,255,.28)!important;
+}
+.nx .inertiaTitleCn{color:var(--nx-ink)!important;}
+.nx .inertiaTitleEn,.nx .titleGlow{
+  background:var(--nx-grad)!important;-webkit-background-clip:text!important;background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;color:transparent!important;
+}
+.nx .inertiaTitleSlash{color:var(--nx-violet)!important;}
+.nx .inertiaSubtitle{color:var(--nx-mut)!important;}
+.nx .inertiaOwnerBadge{background:var(--nx-ink)!important;border:0!important;color:#fff!important;box-shadow:inset 0 -2px 0 var(--nx-yellow)!important;}
+.nx .inertiaVersionBadge{background:rgba(255,46,136,.12)!important;border:1px solid rgba(255,46,136,.4)!important;color:#d61b6e!important;}
+
+/* ---------- 导航 dock ---------- */
+.nx .viewDock{background:rgba(255,255,255,.82)!important;border:1px solid var(--nx-line)!important;box-shadow:0 12px 30px rgba(40,44,90,.10)!important;}
+.nx .viewDockBtn{background:transparent!important;border:1px solid transparent!important;color:var(--nx-ink)!important;border-radius:14px!important;}
+.nx .viewDockBtn span{color:var(--nx-mut)!important;}
+.nx .viewDockBtn:hover{background:#eef1fb!important;}
+.nx .viewDockBtn.active{background:var(--nx-dark)!important;color:#fff!important;box-shadow:inset 0 -3px 0 var(--nx-yellow),0 10px 22px rgba(26,27,38,.25)!important;}
+.nx .viewDockBtn.active span,.nx .viewDockBtn.active b{color:#fff!important;}
+
+/* ---------- 按钮 ---------- */
+.nx .controlCenterBtn,.nx .ghSetupBtn{background:var(--nx-grad)!important;border:0!important;color:#fff!important;box-shadow:0 8px 20px rgba(255,46,136,.3)!important;border-radius:11px!important;font-weight:800!important;}
+.nx .taskRingActionRow button,.nx .timeSubTabs button,.nx .gameQuestModeBtn,.nx .missionGhost,
+.nx .missionLink,.nx .safeTargetEdit,.nx .refExpandAllBtn,.nx .gameQuestTodayQuick,
+.nx .gameQuestTopTimer,.nx .editorScopeTabs button,.nx .taskEditorToolbar button,
+.nx .gameQuestEditorToolbar button,.nx .ghActions button,.nx .editorBottomBar button,
+.nx .weeklyCategoryTab,.nx .gameQuestFilterTabs button{
+  background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;box-shadow:0 2px 6px rgba(40,44,90,.06)!important;
+}
+.nx .taskRingActionRow button:hover,.nx .gameQuestModeBtn:hover,.nx .missionGhost:hover,.nx .weeklyCategoryTab:hover{border-color:var(--nx-pink)!important;color:#d61b6e!important;}
+/* 主 / 激活按钮：撞色渐变 + 白字 */
+.nx button#showUndone,.nx .missionPrimary,.nx .gameQuestModeBtn.active,.nx .timeSubTabs button.active,
+.nx .editorScopeTabs button.active,.nx .weeklyCategoryTab.active,.nx .gameQuestFilterTabs button.active,
+.nx #saveConfigBtn,.nx #saveRefConfigBtn,.nx #saveGameQuestBtn,.nx #ghSaveTokenBtn,.nx #addTaskBtn,
+.nx #addRefGroupBtn,.nx .taskEditorBottomSaveBtn,.nx .gameQuestDay.active,.nx .gameQuestEditorDayBtn.active{
+  background:var(--nx-grad)!important;color:#fff!important;border:0!important;box-shadow:0 10px 22px rgba(255,46,136,.28)!important;
+}
+.nx .missionPrimary,.nx .gameQuestModeBtn.active *,.nx .timeSubTabs button.active,
+.nx .weeklyCategoryTab.active *,.nx .gameQuestFilterTabs button.active *,.nx .gameQuestDay.active *{color:#fff!important;}
+.nx .gameQuestModeBtn.active b{background:rgba(255,255,255,.28)!important;color:#fff!important;border:0!important;}
+.nx .softDangerBtn,.nx .ghostDanger,.nx .ghDangerBtn,.nx button[data-timer-abandon],.nx .timerGhost{
+  background:#fff!important;border:1px solid rgba(255,46,88,.5)!important;color:#e11d55!important;
+}
+
+/* ---------- pill / 徽章 ---------- */
+.nx .pill,.nx .githubInlineState,.nx .metaBadge,.nx .planModeBadge,.nx .statusBadge,.nx .taskTag,
+.nx .mWeekPill,.nx .gameQuestTopProgress,.nx .gameQuestCount,.nx .missionBadges span,.nx .cfgMini,
+.nx .timeStatCards>div,.nx .weeklyHeroStats>div{
+  background:#f2f4fb!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink2)!important;
+}
+.nx .planModeBadge.daily,.nx .statusBadge.core{background:rgba(255,46,136,.12)!important;color:#d61b6e!important;border-color:rgba(255,46,136,.35)!important;}
+.nx .planModeBadge.weekly{background:rgba(15,181,255,.12)!important;color:#0090d8!important;border-color:rgba(15,181,255,.35)!important;}
+.nx .planModeBadge.scheduled,.nx .statusBadge.warn,.nx .mTagLine .badge,.nx .gameQuestTaskBadge.weekly{background:rgba(201,228,0,.22)!important;color:#5a6b00!important;border-color:rgba(201,228,0,.5)!important;}
+.nx .statusBadge.overdue,.nx .statusBadge.fail,.nx .statusBadge.lock,.nx .mWeekPill.fail{background:rgba(255,106,61,.14)!important;color:#c9430f!important;border-color:rgba(255,106,61,.4)!important;}
+.nx .missionBadges .hot{background:var(--nx-grad-warm)!important;color:#fff!important;border:0!important;}
+
+/* ---------- 进度 / meter ---------- */
+.nx .progress,.nx .taskProgressWrap .progress,.nx .timeTaskMeter,.nx .gameQuestProgressRail{background:#e6e9f3!important;}
+.nx #bar,.nx .orbitMeter span,.nx .timeBudgetBar span,.nx .timeTaskMeter i,.nx .missionMeter i,
+.nx .groupMeter i,.nx .weeklySummaryItem i,.nx .allocationChip i,.nx .gameQuestProgressRail span{background:var(--nx-grad)!important;}
+
+/* ---------- 任务表 ---------- */
+.nx #taskTable{background:transparent!important;}
+.nx #taskTable th{background:#eef1fb!important;color:var(--nx-ink)!important;border-color:var(--nx-line)!important;}
+.nx #taskTable td{background:#fff!important;border-color:var(--nx-line2)!important;}
+.nx #taskTable td.category{color:#fff!important;}
+.nx #taskTable td.category.life{background:var(--nx-grad-warm)!important;}
+.nx #taskTable td.category.gamecreate{background:var(--nx-grad)!important;}
+.nx #taskTable td.category.language{background:var(--nx-grad-cool)!important;}
+.nx #taskTable td.category .catInner{color:#fff!important;}
+.nx #taskTable .emptyRow,.nx #taskTable .emptyRow .taskMainLine{color:var(--nx-mut)!important;}
+.nx .taskLink{color:#0090d8!important;}
+.nx .taskLink .linkIcon{background:var(--nx-grad-cool)!important;color:#fff!important;}
+.nx .metaSep{color:var(--nx-mut)!important;opacity:.6!important;}
+.nx .lifeTask .taskIcon,.nx .mLife .taskIcon{background:var(--nx-grad-warm)!important;color:#fff!important;}
+.nx .gamecreateTask .taskIcon{background:var(--nx-grad)!important;color:#fff!important;}
+.nx .languageTask .taskIcon{background:var(--nx-grad-cool)!important;color:#fff!important;}
+.nx .taskIcon{text-shadow:none!important;}
+.nx .legendGrid span{color:var(--nx-ink2)!important;}
+.nx .dayCheck{background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;}
+.nx .dayCheck.done{background:var(--nx-grad)!important;border:0!important;}
+.nx .dayCheck.done span{color:#fff!important;}
+.nx .dayCheck.failed{background:rgba(255,106,61,.18)!important;border-color:rgba(255,106,61,.5)!important;}
+.nx .dayCheck.failed span{color:#c9430f!important;}
+.nx .dayCheck.warnMiss{background:rgba(201,228,0,.25)!important;border-color:rgba(201,228,0,.55)!important;}
+.nx .dayCheck.warnMiss span{color:#5a6b00!important;}
+.nx .timerStartTiny{background:rgba(15,181,255,.12)!important;color:#0090d8!important;border:1px solid var(--nx-line)!important;}
+.nx .timerWeekChip,.nx .timerWeekChip b{color:#0090d8!important;}
+.nx .subtaskBtn,.nx .subtaskBtn.life,.nx .subtaskBtn.gamecreate,.nx .subtaskBtn.language{background:#f2f4fb!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink2)!important;}
+.nx .subtaskBtn span{color:var(--nx-ink2)!important;}
+
+/* ---------- 轨道环 ---------- */
+.nx .orbitCenter{background:#fff!important;}
+.nx .orbitDay{background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink2)!important;}
+.nx .orbitDay.today{border-color:var(--nx-pink)!important;box-shadow:0 0 0 1px rgba(255,46,136,.4)!important;}
+.nx .orbitDayName{color:var(--nx-ink)!important;}
+
+/* ---------- 周计划池 ---------- */
+.nx .weeklyMissionGroup>header strong{color:#0090d8!important;}
+.nx .weeklyStepItem{background:#fff!important;border-color:var(--nx-line)!important;color:var(--nx-ink2)!important;}
+.nx .weeklyCategoryTabs,.nx .gameQuestFilterTabs,.nx .timeSubTabs{background:#eef1fb!important;border:1px solid var(--nx-line)!important;}
+.nx .allocationChip,.nx .weeklySummaryItem{background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;}
+.nx .missionIcon,.nx .groupIcon{background:var(--nx-grad)!important;color:#fff!important;}
+/* 修复：任务卡头部原为 2 列(36px 210px) 装不下第 3 个「分数」块 → 改成能容纳三块并自适应 */
+.nx .missionHead{grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;}
+.nx .missionTitleBlock{min-width:0!important;}
+.nx .missionTitleBlock b{overflow:hidden!important;text-overflow:ellipsis!important;}
+
+/* ---------- 游戏作战区 ---------- */
+.nx .gameQuestTopBarStandalone,.nx .gameQuestModeTabs{background:linear-gradient(135deg,#ffffff,#eef1fb)!important;border-color:var(--nx-line)!important;}
+.nx .gameQuestModeBtn{color:var(--nx-ink2)!important;}
+.nx .gameQuestModeBtn b{background:#eef1fb!important;color:#0090d8!important;border:1px solid var(--nx-line)!important;}
+.nx .gameQuestTopTimer:not(.active) span{background:rgba(15,181,255,.14)!important;color:#0090d8!important;}
+.nx .gameQuestTopTimer:not(.active) b{color:var(--nx-ink)!important;}
+.nx .gameQuestTopTimer:not(.active) em{color:var(--nx-mut)!important;}
+.nx .gameQuestTopTimer.active{background:var(--nx-grad)!important;}
+.nx .gameQuestTopTimer.active span,.nx .gameQuestTopTimer.active b,.nx .gameQuestTopTimer.active em{color:#fff!important;}
+.nx .gameQuestTopProgress{color:#0090d8!important;background:rgba(15,181,255,.1)!important;border-color:var(--nx-line)!important;}
+.nx .gameQuestMiniRing i{color:var(--nx-ink)!important;}
+.nx .gameQuestMetaStrip em{color:#d61b6e!important;}
+.nx .gameQuestSubHead span{color:var(--nx-ink)!important;}
+.nx .gameQuestEmpty span{color:var(--nx-mut)!important;}
+.nx .gameQuestDay{background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink2)!important;}
+.nx .gameQuestDay span,.nx .gameQuestDay b{color:var(--nx-ink2)!important;}
+.nx .gameQuestCard,.nx .gameQuestCardV2,.nx .gameQuestWeeklyCard{background:var(--nx-card)!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;}
+.nx .gameQuestMiniCheckBtn,.nx .gameQuestMiniCheckBtnV2{background:#f6f7fb!important;color:var(--nx-ink)!important;border:1px solid var(--nx-line)!important;}
+.nx .gameQuestMiniCheckBtn i,.nx .gameQuestMiniCheckBtnV2 i{color:var(--nx-ink)!important;font-style:normal!important;}
+.nx .gameQuestCheck span{background:#fff!important;border:2px solid var(--nx-line)!important;}
+.nx .gameQuestFilterTabs button b{background:#eef1fb!important;color:#0090d8!important;border:1px solid var(--nx-line)!important;}
+.nx .gameQuestFilterTabs button.active b{background:rgba(255,255,255,.28)!important;color:#fff!important;border:0!important;}
+
+/* ---------- 时间账本（含头部自适应换行）---------- */
+.nx .timePanelHeader{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;gap:8px 14px!important;border-radius:16px!important;padding:12px 14px!important;}
+.nx .timePanelHeader>div:first-child{flex:1 1 220px!important;min-width:0!important;}
+.nx .timePanelHeader b{white-space:normal!important;overflow:visible!important;}
+.nx .timePanelHeader em{white-space:normal!important;}
+.nx .timeStatCards>div span{color:var(--nx-mut)!important;}
+.nx .timeLedgerIdle{align-items:center!important;}
+.nx .timeLedgerIdle>span{background:var(--nx-grad)!important;color:#fff!important;}
+.nx .activeTimerCard{background:linear-gradient(135deg,#fff,#eef1fb)!important;}
+.nx .activeTimerKicker{color:#d61b6e!important;}
+.nx .activeTimerClock{color:#0090d8!important;}
+.nx .timeBudgetLabel span{color:var(--nx-ink2)!important;}
+.nx .timeTaskValue b{color:var(--nx-ink)!important;}
+.nx .timeLogItem span{color:var(--nx-mut)!important;}
+.nx .timeLogItem.empty *{color:var(--nx-mut)!important;}
+.nx .timeTargetSafeBtn{background:#f2f4fb!important;color:var(--nx-ink2)!important;border:1px solid var(--nx-line)!important;}
+.nx .timeTargetEdit input,.nx .timeTaskRow input[type=number]{background:#fff!important;color:var(--nx-ink)!important;border:1px solid var(--nx-line)!important;}
+@media(max-width:640px){.nx .timeLedgerIdle{flex-wrap:wrap!important;}.nx .timeLedgerIdle>em{flex:1 1 100%!important;margin-left:0!important;}}
+
+/* ---------- 资料库 / 底部 ---------- */
+.nx #refBox{background:var(--nx-surface)!important;border:1px solid var(--nx-line)!important;}
+.nx #refBox .refGroup,.nx #refBox .refGrid,.nx #refBox .refGroupBody,.nx #refBox .refItem,.nx #refBox details{background:transparent!important;}
+.nx #refBox .refLink,.nx #refBox .refPlain{background:#f6f7fb!important;color:var(--nx-ink2)!important;border:1px solid var(--nx-line)!important;}
+.nx #refBox .refLink:hover{color:#0090d8!important;}
+.nx #legendBox{background:var(--nx-surface)!important;border:1px solid var(--nx-line)!important;}
+.nx #legendBox .legendGrid,.nx #legendBox .legendGrid span{background:transparent!important;}
+.nx #legendBox .legendGrid b{background:#eef1fb!important;color:#d61b6e!important;}
+.nx #legendBox summary{color:var(--nx-ink)!important;}
+.nx #dayTabs .mobileModeHint{background:#f2f4fb!important;color:var(--nx-ink2)!important;border:1px solid var(--nx-line)!important;}
+.nx #modeText{background:#f2f4fb!important;color:var(--nx-ink2)!important;}
+.nx .quickLinks a{background:rgba(15,181,255,.1)!important;border:1px solid var(--nx-line)!important;color:#0090d8!important;}
+.nx .summaryGrid .card h2{background:var(--nx-grad)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;}
+.nx .notice strong{color:#d61b6e!important;}
+
+/* ---------- 弹窗 / 编辑器 / 输入 ---------- */
+.nx .ghModalCard,.nx .taskEditorCard,.nx .refEditorCard,.nx .gameQuestEditorCard,
+.nx .timeDetailModalCard,.nx .stepPopover,.nx .controlCenterMenu{
+  background:#ffffff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;box-shadow:0 24px 60px rgba(40,44,90,.25)!important;
+}
+.nx .ghInput,.nx .cfgTitle,.nx .cfgUrl,.nx .refItemTitle,.nx .refItemUrl,
+.nx input[type=text],.nx input[type=password],.nx input[type=url],.nx textarea,.nx select,.nx .lockInput{
+  background:#f6f7fb!important;color:var(--nx-ink)!important;border:1px solid var(--nx-line)!important;
+}
+.nx input::placeholder,.nx textarea::placeholder{color:var(--nx-mut)!important;}
+.nx .cfgTask,.nx .refCfgGroup,.nx .ghSecretPanel,.nx .taskEditorCommandDeck,.nx .editorTip,.nx .editorSearchBox,
+.nx .cfgGrid,.nx .cfgField,.nx .refItemsBox,.nx .refItemEdit,.nx .refCfgGrid,.nx .refCfgFlags,.nx .refMiniField,
+.nx .gameQuestEditGroup,.nx .gameQuestEditHead,.nx .gameQuestMetaDetails{background:#f6f7fb!important;border-color:var(--nx-line)!important;}
+.nx .cfgField label,.nx .cfgTask label,.nx .ghLabel,.nx .cfgDays label,.nx .cfgFlags label,.nx .refCfgFlags label{color:var(--nx-ink2)!important;}
+.nx .cfgDays label,.nx .cfgFlags label,.nx .refCfgFlags label{background:#fff!important;border:1px solid var(--nx-line)!important;}
+.nx .ghLog{background:#0f1220!important;color:#7fe0ff!important;border:1px solid var(--nx-line)!important;}
+.nx .controlCenterMenu button{background:transparent!important;color:var(--nx-ink)!important;border-bottom:1px solid var(--nx-line2)!important;}
+.nx .controlCenterMenu button:hover{background:#eef1fb!important;}
+.nx .controlCenterBackdrop{background:rgba(20,22,40,.4)!important;}
+.nx .stepChip{background:#f2f4fb!important;border-color:var(--nx-line)!important;color:var(--nx-ink2)!important;}
+.nx .stepChip.done{background:var(--nx-grad)!important;color:#fff!important;border:0!important;}
+
+/* ---------- toast / 浮动计时器 ---------- */
+.nx .toastBox{background:var(--nx-dark)!important;color:#fff!important;border:0!important;}
+.nx .timerFloatMain b{color:var(--nx-ink)!important;}
+.nx .timerFloatMain em{color:var(--nx-mut)!important;}
+.nx .timerFloatClock{color:#0090d8!important;}
+
+/* ---------- 锁屏（保留 98 的星城背景，卡片走亮色玻璃）---------- */
+.nx .lockCard{background:rgba(255,255,255,.92)!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink)!important;}
+.nx .lockTitle{color:var(--nx-ink)!important;}
+.nx .lockSub,.nx .lockFoot,.nx .lockRemember{color:var(--nx-mut)!important;}
+.nx .lockBadge{background:var(--nx-ink)!important;color:#fff!important;border:0!important;box-shadow:inset 0 -2px 0 var(--nx-yellow)!important;}
+.nx .lockUnlockBtn{background:var(--nx-grad)!important;color:#fff!important;border:0!important;box-shadow:0 12px 26px rgba(255,46,136,.32)!important;}
+
+/* ============================================================
+   手机端排版收紧：让「正式任务」尽快出现（旧版头部+控制台占了 ~600px）
+   ============================================================ */
+@media(max-width:720px){
+  .nx .inertiaHeader{padding:12px 13px!important;}
+  .nx .inertiaSubtitle{display:none!important;}                 /* 省 ~74px 说明文字 */
+  .nx .inertiaHeroTitle{font-size:clamp(24px,8.5vw,38px)!important;letter-spacing:-.03em!important;}
+  .nx .inertiaHeroMark{width:46px!important;height:46px!important;}
+  .nx .inertiaBrandRow{gap:6px!important;}
+  .nx .inertiaToolbar{gap:6px!important;row-gap:6px!important;}
+  .nx .inertiaToolbar .pill,.nx .githubInlineState{font-size:10px!important;padding:3px 8px!important;}
+  .nx .taskRingControlHead{gap:2px!important;}
+  .nx .taskRingControlHead strong{font-size:15px!important;}
+  .nx .taskRingActionRow{gap:6px!important;}
+  .nx .taskRingActionRow button{padding:8px 6px!important;font-size:12px!important;}
+  .nx #orbitPanel{display:none!important;}                       /* 周概览环手机端收起，让位任务 */
+  .nx .viewIntro{display:none!important;}
+  .nx .inertiaBrandRow{display:none!important;}                  /* 装饰徽章行 */
+  .nx .inertiaHeroCopy{gap:2px!important;}
+  .nx #cycleLabel{font-size:9px!important;padding:3px 7px!important;}
+  .nx .taskRingControlPanel{padding:12px!important;}
+  .nx .taskRingControlHead{margin-bottom:2px!important;}
+  .nx .taskRingControlHead strong{font-size:14px!important;}
+  .nx .taskProgressWrap .progress-meta span:last-child{display:none!important;} /* 冗长说明「只统计…」 */
+  .nx .taskProgressWrap{margin-top:8px!important;}
+  /* 修复周计划卡头部错乱：旧皮在手机端把 3 块塞进 2 列导致「分数」溢出。
+     改成可换行的 flex：图标+标题一行，分数不够就掉到下一行，绝不溢出。 */
+  .nx.nx .missionHead{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:6px 8px!important;grid-template-columns:none!important;}
+  .nx.nx .missionHead .missionIcon{flex:0 0 auto!important;}
+  .nx.nx .missionHead .missionTitleBlock{flex:1 1 0!important;min-width:0!important;overflow:hidden!important;}
+  .nx.nx .missionHead .missionTitleBlock b,.nx.nx .missionHead .missionTitleBlock span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+  .nx.nx .missionHead .missionScore{flex:0 0 auto!important;text-align:right!important;}
+  .nx.nx .missionHead .missionScore strong,.nx.nx .missionHead .missionScore em{white-space:nowrap!important;}
+}

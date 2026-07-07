@@ -2253,6 +2253,14 @@ function renderGameQuestPanel(){
     ${modeTabs}
     ${body}
   </div>`;
+  // 重渲染会重建可横向滚动的 tab 条，默认回到最左，导致点了靠右的「异环」后视图跳回开头。
+  // 渲染后同步把选中的 tab 居中滚入视野（只动 tab 条自身横向滚动，不影响页面滚动）。
+  [".gameQuestFilterTabs",".gameQuestDays"].forEach(sc=>{
+    const strip=panel.querySelector(sc);const act=strip&&strip.querySelector(".active");
+    if(!strip||!act||strip.scrollWidth<=strip.clientWidth+2)return;
+    const sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();
+    strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth-ar.width)/2;
+  });
 }
 
 function openGameQuestEditor(){
