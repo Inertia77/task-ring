@@ -1,33 +1,44 @@
 {
-  "version": 3,
+  "version": 4,
   "privacy": "coded-state-keys",
-  "updatedAt": "2026-06-29T00:00:00.000Z",
+  "updatedAt": "2026-07-07T00:00:00.000Z",
   "tasks": [
     {
-      "id": "example-task",
+      "id": "example-daily",
       "code": "t001",
       "cat": "life",
-      "title": "示例任务",
-      "days": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
+      "title": "示例：每日保底任务",
+      "days": [1, 2, 3, 4, 5, 6, 0],
       "url": "",
       "core": true,
       "optional": false,
       "important": false,
       "enabled": true,
+      "time_category": "body",
+      "estimated_minutes": 20,
+      "weekly_minutes": 140,
+      "plan_mode": "daily",
       "steps": [
-        {
-          "id": "step-1",
-          "code": "s01",
-          "title": "小步骤",
-          "enabled": true
-        }
+        { "id": "step-1", "code": "s01", "title": "小步骤 A", "enabled": true },
+        { "id": "step-2", "code": "s02", "title": "小步骤 B", "enabled": true }
       ]
+    },
+    {
+      "id": "example-weekly",
+      "code": "t002",
+      "cat": "language",
+      "title": "示例：周计划池任务",
+      "days": [1, 3, 5],
+      "url": "https://example.com",
+      "core": false,
+      "optional": false,
+      "important": true,
+      "enabled": true,
+      "time_category": "language",
+      "estimated_minutes": 30,
+      "weekly_minutes": 180,
+      "plan_mode": "weekly",
+      "steps": []
     }
   ],
   "refs": [
@@ -35,37 +46,28 @@
       "id": "example-ref",
       "title": "参考链接组",
       "enabled": true,
-      "collapsed": false,
       "items": [
-        {
-          "id": "link-1",
-          "title": "示例链接",
-          "url": "https://example.com",
-          "enabled": true
-        }
+        { "id": "link-1", "title": "示例链接", "url": "https://example.com", "enabled": true }
       ]
     }
   ],
   "gameQuest": {
-    "version": 1,
-    "updatedAt": "2026-06-29T00:00:00.000Z",
+    "version": 2,
+    "updatedAt": "2026-07-07T00:00:00.000Z",
     "games": [
-      {
-        "id": "ww",
-        "name": "鸣潮",
-        "short": "鸣潮",
-        "icon": "🌊",
-        "accent": "cyan",
-        "enabled": true
-      }
+      { "id": "ww", "name": "鸣潮", "short": "鸣潮", "icon": "🌊", "accent": "cyan", "enabled": true }
     ],
     "schedule": {
       "1": {
         "ww": [
-          "日常体力",
-          "周常清理"
+          { "id": "ww-daily", "title": "日常体力", "plan_mode": "daily" }
         ]
       }
+    },
+    "weekly": {
+      "ww": [
+        { "id": "ww-weekly", "title": "深塔 / 海墟", "plan_mode": "weekly" }
+      ]
     }
   }
 }

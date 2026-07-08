@@ -401,6 +401,16 @@ td.blank{background:#f7f0e4!important;}
 .gameQuestMiniCheckBtnV2{background:#fffdf8!important;border-color:rgba(201,154,61,.28)!important;}
 .gameQuestTopTimer,.gameQuestTodayQuick{background:#fffdf8!important;border-color:rgba(201,154,61,.30)!important;color:#263f95!important;}
 .gameQuestTopTimer.active{background:linear-gradient(135deg,#253f9a,#6f7eea)!important;color:#fff!important;}
+/* v21 把计时按钮内文字/图标设成白色（配深色底）。v22 改成浅色底后会白字白底看不见，
+   非 active 态改回深色；active 态是深色渐变底，保持白字。 */
+.gameQuestTopTimer:not(.active) span,
+.gameQuestTopTimer:not(.active) b{color:#263f95!important;}
+.gameQuestTopTimer:not(.active) em{color:#6b7590!important;}
+.gameQuestTopTimer:not(.active) span{background:rgba(37,63,149,.10)!important;}
+.gameQuestTopTimer.active span,
+.gameQuestTopTimer.active b{color:#fff!important;}
+.gameQuestTopTimer.active em{color:rgba(255,255,255,.82)!important;}
+.gameQuestTopTimer.active span{background:rgba(255,255,255,.18)!important;}
 /* Time ledger */
 .timePanelShell.v20{border-radius:20px!important;background:transparent!important;border:0!important;box-shadow:none!important;}
 .timePanelShell.v20 .timePanelHeader{background:linear-gradient(120deg,#fffdf8,#fff3d6,#f1ecff)!important;border-color:rgba(201,154,61,.34)!important;border-radius:20px!important;box-shadow:var(--royal-shadow-soft)!important;}

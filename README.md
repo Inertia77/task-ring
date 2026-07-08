@@ -1,101 +1,159 @@
-# task-ring
+# TASK RING ⚡
 
-个人任务环静态网页。这个版本把原来的单个 `index.html` 拆成了 HTML / CSS / JS / 图片资源，便于后续继续开发、维护和 Push 到 GitHub Pages。⚡
+个人任务环静态网页（v22 · Royal Atelier）。纯静态页面，无需构建工具，直接部署到 GitHub Pages。
+本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机——没有 Token 也能本机离线使用。
+
+页面地址：<https://inertia77.github.io/task-ring/>
+
+## 功能概览
+
+顶部导航在五个分区间切换：
+
+- **今日执行环 DAILY**：只放真正今天要出现的任务（每日保底、指定日、遗留）。
+- **周计划池 WEEK**：不必每天打卡、按本周时间目标推进的主线（语言 / IT / 科学 / 创作等）。
+- **游戏作战区 GAME**：游戏日常/周常独立管理，分「今日清理」与「本周作战池」。
+- **时间账本 TIME**：开始计时、按分类看本周投入、复盘时间流向。
+- **资料库 LIB**：固定入口 / 不定期 / 月度 / 年度项目，只做链接，不进任务环。
 
 ## 目录结构
 
 ```text
 task-ring/
-├─ index.html                    # 页面骨架，只保留 DOM 结构和资源引用
+├─ index.html                    # 页面骨架：DOM、meta、图标、CSS/JS 引用
 ├─ assets/
 │  ├─ css/
-│  │  ├─ main.css                # CSS 入口，按顺序 import 下列文件
-│  │  ├─ 00-foundation.css       # 基础变量、布局、表格、移动端基础
-│  │  ├─ 10-task-ui.css          # 任务名、链接、步骤、完成动效
-│  │  ├─ 20-cutin-avatars.css    # 角色 cut-in / avatar 演出
-│  │  ├─ 30-world-visuals.css    # 大型世界观视觉系统
-│  │  └─ 90-overrides.css        # v9/v10 紧凑化与修正覆盖层
+│  │  ├─ main.css                # CSS 入口，按顺序 @import 下列各层
+│  │  ├─ 00-foundation.css       # 变量、reset、基础布局
+│  │  ├─ 10-task-ui.css          # 任务表格 / 卡片 / 链接 / 步骤
+│  │  ├─ 20-cutin-avatars.css    # 角色 cut-in / 完成演出
+│  │  ├─ 30-world-visuals.css    # 世界观视觉系统
+│  │  ├─ 90-overrides.css        # INERTIA 综合覆盖层
+│  │  ├─ 95-v20-polish.css       # v20 微调（并 @import views/*.css）
+│  │  ├─ 96-v21-clarity.css      # v21 收敛：高对比、白底卡片
+│  │  ├─ 97-royal-anime.css      # v22 皇家二次元皮肤
+│  │  ├─ 98-atelier-gate.css     # 收尾层：锁屏背景、减少动态效果支持
+│  │  └─ views/                  # 分区样式（editor/game/time/weekly）
 │  ├─ js/
-│  │  ├─ data/default-data.js    # 默认任务、参考链接、随机演出角色数据
-│  │  └─ app.js                  # 页面渲染、编辑器、同步、状态逻辑
-│  ├─ images/
-│  │  ├─ css/                    # 从 CSS 里抽出的背景/头像图
-│  │  └─ cutins/                 # 从 JS 随机演出里抽出的角色图
-│  └─ icons/favicon.svg          # 浏览器图标
-├─ docs/
-│  ├─ STRUCTURE.md               # 开发维护说明
-│  ├─ taskring-config.example.json
-│  └─ ASSET_MANIFEST.json
+│  │  ├─ data/default-data.js    # 默认任务、参考链接、游戏配置、随机演出角色
+│  │  ├─ app.js                  # 渲染、状态、软锁、同步、编辑器、时间账本
+│  │  └─ views/                  # v20/v21 分区渲染 + 启动覆盖脚本
+│  ├─ images/{css,cutins}/       # 图片资源（清单见 docs/ASSET_MANIFEST.json）
+│  └─ icons/favicon.{svg,png}    # 站点图标（盾牌+闪电+对勾）
+├─ docs/                         # 文档，见下「文档」
 ├─ .gitignore
 └─ .nojekyll                     # 让 GitHub Pages 原样发布静态资源
 ```
 
 ## 本地启动
 
-在仓库根目录执行：
+在仓库根目录执行（Windows / PowerShell）：
 
 ```powershell
 py -m http.server 8000 --bind 127.0.0.1
 ```
 
-然后打开：
-
-```text
-http://127.0.0.1:8000/
-```
-
-Mac / Linux 或 Python 命令是 `python3` 的环境：
+Mac / Linux 或 `python3` 环境：
 
 ```bash
 python3 -m http.server 8000
 ```
 
-## 推送到 GitHub
+然后打开 <http://127.0.0.1:8000/>。
 
-把这个文件夹里的内容复制到你的 `task-ring` 本地仓库根目录后执行：
+> 需要 Web Crypto（软锁哈希、配置加密）时，务必用 `http://127.0.0.1` 或 GitHub Pages 打开，
+> 直接双击 `file://` 打开会缺少 `crypto.subtle`。
+
+## 本机软锁与 Gist 同步
+
+「进门解锁」和「GitHub Gist 同步」是分开的：
+
+- **本机软锁**负责进入页面。第一次输入解锁码后会在当前浏览器记住解锁状态，刷新不再要求输入。
+- **GitHub Token** 只负责 Gist 云同步。Token 未设置 / 过期 / 读取失败时，页面仍可进入，
+  只会切换成本机/内置数据模式并提示补充 Token。
+- 总控菜单里的「立即上锁（下次需密码）」会写入手动锁定标记，即使之前选了「记住」也必须重新输入解锁码。
+
+初始解锁码：
+
+```text
+taskring2026
+```
+
+> 注意：这是浏览器前端软锁，只适合防止普通路人误入，**不是服务器级鉴权**，不适合保护高敏感资料。
+> 真要做强安全需要后端登录与服务端鉴权。
+
+### 手动上锁机制
+
+点「总控 → 立即上锁」后写入 `localStorage: taskring_softlock_manual_v1 = 1`。
+只要这个标记存在，启动时就不会使用之前「记住本机」的状态，必须重新输入密码；校验成功后标记自动清除。
+
+### 修改软锁密码
+
+代码里保存的是密码的 **SHA-256 哈希**，不写明文。改密码步骤：
+
+1. 生成新密码的 SHA-256。PowerShell：
+
+   ```powershell
+   $p = "你的新密码"
+   $b = [System.Text.Encoding]::UTF8.GetBytes($p)
+   $h = [System.Security.Cryptography.SHA256]::Create().ComputeHash($b)
+   [BitConverter]::ToString($h).Replace("-", "").ToLower()
+   ```
+
+   或 Node.js：
+
+   ```bash
+   node -e "console.log(require('crypto').createHash('sha256').update('你的新密码').digest('hex'))"
+   ```
+
+2. 打开 `assets/js/app.js`，找到 `const SOFT_LOCK_HASH="…";`，把引号里的哈希换成新值。
+   **不要在注释里写明文密码**——本站点公开发布，注释会一起泄露。
+
+3. 已解锁过的浏览器可能仍有旧的「记住本机」状态。测试新密码前，先在「总控 → 立即上锁」，
+   或在开发者工具里清除这些 key：
+
+   ```text
+   localStorage:  taskring_softlock_trusted_v1
+   localStorage:  taskring_softlock_trusted_until_v1
+   localStorage:  taskring_softlock_manual_v1
+   sessionStorage: taskring_softlock_session_v1
+   ```
+
+## 图片资源库
+
+图片清单与用途见 [`docs/ASSET_MANIFEST.json`](docs/ASSET_MANIFEST.json)。目前各图归位如下：
+
+- `assets/icons/favicon.svg` — 浏览器标签图标（盾牌+闪电+对勾），页头品牌标志内联同款。
+- `assets/icons/favicon.png` — 上图高清版：apple-touch-icon（iOS 主屏）+ og:image 分享缩略图。
+- `assets/images/css/background-collage.png` — 锁屏「星城之门」全屏背景。
+- `assets/images/css/vivian-portrait.png` — 锁屏卡片顶部圆形「门卫」头像。
+- `assets/images/css/avatar-{life,gamecreate,language}.png` — 完成演出经典 cut-in 头像。
+- `assets/images/cutins/cutin-*.png` — 随机完成演出角色（16 位）。
+
+换图直接替换文件，不要再塞 base64；改动后同步更新 `ASSET_MANIFEST.json`。
+
+## 部署到 GitHub Pages
+
+把内容提交到 `task-ring` 仓库的发布分支：
 
 ```bash
-git status
 git add .
-git commit -m "Refactor task-ring into maintainable static structure"
+git commit -m "Update task-ring"
 git push origin main
 ```
 
+`.nojekyll` 已保证静态资源原样发布。
+
 ## 维护规则
 
-- 改任务、默认链接、游戏作战区默认一周配置、随机完成角色：优先改 `assets/js/data/default-data.js`。
-- 改渲染逻辑、编辑器、同步逻辑：改 `assets/js/app.js`。
-- 改样式：先看 `assets/css/main.css` 的 import 顺序，再去对应 CSS 文件改。
-- 不建议再把 CSS / JS / base64 图片塞回 `index.html`。那是把厨房、卧室、发动机都装进一个行李箱，能跑，但不好修。
+- 改任务 / 默认链接 / 游戏一周配置 / 随机完成角色：先改 `assets/js/data/default-data.js`。
+- 改渲染 / 编辑器 / 同步 / 软锁哈希：改 `assets/js/app.js`（周计划池渲染在 `assets/js/views/v21-boot.js`）。
+- 改样式：先看 `assets/css/main.css` 的 import 顺序，尽量在最后几层（97/98）做小修，别回头拆旧层。
+- 别再把 CSS / JS / base64 图片塞回 `index.html`。
 
+## 文档
 
-## v10.8 追加开发说明
-
-- 手机端任务卡改为：第一行显示分类/状态/任务属性，第二行只显示任务名称，避免长标题挤掉标签。
-- 状态标签短码化：保/重/选/延/锁/补/旧/忽。页面主任务区下方有低干扰说明。
-- 本次主要改动文件：`index.html`、`assets/js/app.js`、`assets/css/90-overrides.css`。
-
-
-## v10.9 追加开发说明
-
-- 新增 `游戏作战区`：放在主任务环上方，并行独立管理游戏日常、周常、深渊/危局、资料整理等内容。
-- 支持按星期编辑一周游戏任务：点击游戏作战区的「编辑一周」，每个游戏一格，一行就是一条任务。
-- 游戏任务完成状态复用原有 GitHub Gist 状态同步；游戏任务配置合并进 `taskring-config.json` 加密同步。旧主任务环里的游戏项本版暂不强制删除，避免破坏现有云端配置。
-- 本次同步更新 `.gitignore`，追加 `tmp_bk/`，并按你给的忽略规则整理。
-- 本次主要改动文件：`index.html`、`.gitignore`、`assets/js/data/default-data.js`、`assets/js/app.js`、`assets/css/90-overrides.css`。
-
-
-## v11.0 追加开发说明
-
-- 新增 `Time Budget Ring / 时间配额环`：主任务卡片支持「开始计时」「暂停」「继续」「完成并记录」「放弃」。
-- 计时数据默认保存在浏览器 `localStorage`：`taskring_time_active_v1` 保存当前计时，`taskring_time_logs_v1` 保存历史时长。暂不写入 GitHub Gist，避免先把私密时间流水同步到云端。
-- 任务编辑器新增「时间分类」和「预计分钟」字段，用于本周预算统计和超时提醒。
-- 完成并记录会自动把对应任务勾选完成；短时间测试也会按最少 1 分钟写入日志，方便确认功能是否正常。
-- 本次主要改动文件：`index.html`、`assets/js/app.js`、`assets/css/90-overrides.css`。
-
-## Time Budget Ring v13
-
-- 任务行支持开始计时，并显示「本周已用 / 每周目标」。点击周时长徽章可查看该任务本周计时明细。
-- 任务编辑器新增「每周目标分钟」，随 `taskring-config.json` 加密同步到 GitHub/Gist。
-- 游戏作战区顶部新增整体计时按钮，记录为 `gamequest-board`，计入游戏分类与 `taskring-state.json` 的 `time_logs`。
-- 历史计时记录进入 GitHub/Gist 同步；当前正在运行的计时器仍仅保存在本机，避免多设备互相覆盖。
+- [`docs/STRUCTURE.md`](docs/STRUCTURE.md) — 架构与维护指南（CSS 分层、JS 分层、同步要点）。
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — 版本变更历史汇总（v10.8 → v22 及后续维护）。
+- [`docs/ASSET_MANIFEST.json`](docs/ASSET_MANIFEST.json) — 图片资产清单与用途。
+- [`docs/taskring-config.example.json`](docs/taskring-config.example.json) — 任务配置 schema 样例（v4）。
+- `docs/V16_…` ~ `docs/V22_…` — 各版本的详细设计笔记（保留原文）。

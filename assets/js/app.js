@@ -520,8 +520,76 @@ let gameQuestBoardMode=["today","week"].includes(localStorage.getItem(GQ_BOARD_M
 let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"";
 let ghSaveTimer=null;
 let ghSaving=false;
-function lockApp(msg="需要 Token 解锁"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg}
+let ghPromptedThisLoad=false;
+const SOFT_LOCK_HASH="bead83688f2ba2f37b42341f55c53c97e50ae7c0d521f6b67cdd7da0befda9ed"; // sha256(解锁码)。不要在此写明文；改密码见 README「修改软锁密码」。
+const SOFT_LOCK_TRUST_KEY="taskring_softlock_trusted_v1";
+const SOFT_LOCK_TRUST_UNTIL_KEY="taskring_softlock_trusted_until_v1";
+const SOFT_LOCK_SESSION_KEY="taskring_softlock_session_v1";
+const SOFT_LOCK_MANUAL_KEY="taskring_softlock_manual_v1";
+const SOFT_LOCK_REMEMBER_DAYS=365;
+function lockApp(msg="输入本机解锁码进入任务环。GitHub Token 只用于云同步。"){document.body.classList.add("locked");const sub=document.querySelector(".lockSub");if(sub)sub.textContent=msg;setLockError("");setTimeout(()=>document.getElementById("lockCodeInput")?.focus(),60)}
 function unlockApp(){document.body.classList.remove("locked")}
+function setLockError(msg=""){const el=document.getElementById("lockError");if(el)el.textContent=msg}
+function hexFromBytes(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+async function sha256Hex(text){
+  if(!globalThis.crypto?.subtle)throw new Error("当前浏览器环境不支持 Web Crypto。请用 http://127.0.0.1 或 GitHub Pages 打开。");
+  const data=new TextEncoder().encode(String(text||""));
+  return hexFromBytes(await globalThis.crypto.subtle.digest("SHA-256",data));
+}
+function isManualSoftLocked(){return localStorage.getItem(SOFT_LOCK_MANUAL_KEY)==="1"}
+function forceSoftLock(){localStorage.setItem(SOFT_LOCK_MANUAL_KEY,"1");clearSoftLockTrust()}
+function releaseSoftLock(){localStorage.removeItem(SOFT_LOCK_MANUAL_KEY)}
+function isSoftLockTrusted(){
+  if(isManualSoftLocked())return false;
+  if(sessionStorage.getItem(SOFT_LOCK_SESSION_KEY)==="1")return true;
+  if(localStorage.getItem(SOFT_LOCK_TRUST_KEY)!=="1")return false;
+  const until=Number(localStorage.getItem(SOFT_LOCK_TRUST_UNTIL_KEY)||"0");
+  if(until&&Date.now()>until){clearSoftLockTrust();return false}
+  return true;
+}
+function trustSoftLock(remember=true){
+  releaseSoftLock();
+  sessionStorage.setItem(SOFT_LOCK_SESSION_KEY,"1");
+  if(remember){
+    localStorage.setItem(SOFT_LOCK_TRUST_KEY,"1");
+    localStorage.setItem(SOFT_LOCK_TRUST_UNTIL_KEY,String(Date.now()+SOFT_LOCK_REMEMBER_DAYS*24*60*60*1000));
+  }
+}
+function clearSoftLockTrust(){localStorage.removeItem(SOFT_LOCK_TRUST_KEY);localStorage.removeItem(SOFT_LOCK_TRUST_UNTIL_KEY);sessionStorage.removeItem(SOFT_LOCK_SESSION_KEY)}
+function applyLocalConfigIfAny(){const localCfg=loadLocalTaskConfig();if(localCfg)applyTaskConfig(localCfg,false);return !!localCfg}
+function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本机/内置数据。需要云同步时请设置 Gist Token。"){
+  unlockApp();
+  applyLocalConfigIfAny();
+  renderAll();
+  if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");}
+  ghLog(msg);
+  if(promptToken&&!ghPromptedThisLoad){
+    ghPromptedThisLoad=true;
+    showToast("本机已解锁；需要云同步请设置 Gist Token","warn",2800);
+    setTimeout(openGhModal,320);
+  }
+}
+async function handleSoftUnlock(){
+  const input=document.getElementById("lockCodeInput");
+  const btn=document.getElementById("lockUnlockBtn");
+  const code=String(input?.value||"").trim();
+  if(!code){setLockError("请输入解锁码。默认初始码是 README 里说明的那一个。");input?.focus();return}
+  try{
+    setBtnBusy(btn,true,"校验中…");
+    const ok=(await sha256Hex(code))===SOFT_LOCK_HASH;
+    if(!ok){setLockError("解锁码不对。别急，任务环还在，只是门卫不认识你。");input?.select?.();return}
+    trustSoftLock(document.getElementById("lockRememberDevice")?.checked!==false);
+    setLockError("");
+    showToast("已解锁，本机已记住。","ok",1800);
+    if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未设置 Gist Token，当前使用本机/内置数据。")
+  }catch(err){
+    console.error(err);
+    setLockError(String(err.message||err));
+  }finally{
+    setBtnBusy(btn,false);
+  }
+}
+function softLockNow(msg="已手动上锁。输入本机解锁码才能重新进入。"){forceSoftLock();closeGhModal();closeControlCenter();const input=document.getElementById("lockCodeInput");if(input)input.value="";setGhStatus("GitHub：已手动上锁","off");lockApp(msg);showToast("TASK RING 已上锁，下次需密码","ok",2200)}
 function ghLog(msg){const el=document.getElementById("ghLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus");if(!el)return;const short=String(text||"").replace(/^GitHub：?/,"")||"未设置";el.className=`githubInlineState ${cls||"off"}`;el.setAttribute("title",String(text||"GitHub：未设置"));const label=el.querySelector(".ghInlineText");if(label)label.textContent=short;else el.textContent=short;}
 function ghToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
@@ -672,19 +740,48 @@ function applyGhStates(states){
   });
   return {applied,migrated};
 }
-async function ghPull(){if(!ghToken()){if(LOCAL_PREVIEW_UNLOCK){setGhStatus("GitHub：本地预览","off");ghLog("本地预览模式：未连接云端，只使用内置/本机缓存数据。");unlockApp();renderAll();return}setGhStatus("GitHub：未设置","off");ghLog("请先设置 Token");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。");return}try{setGhStatus("GitHub：读取中","sync");migrateLegacyLocalStates();const gist=await ghFetchGist();const cfgResult=await ghParseConfig(gist);
-const localCfg=loadLocalTaskConfig();
-const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
-applyTaskConfig(cfgToUse,false);
-if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
-if(cfgResult.mode==="plaintext"){
-  ghLog("检测到旧版明文配置，正在自动转为加密配置…");
-  try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
+async function ghPull(){
+  if(!ghToken()){
+    enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
+    return;
+  }
+  try{
+    unlockApp();
+    setGhStatus("GitHub：读取中","sync");
+    migrateLegacyLocalStates();
+    const gist=await ghFetchGist();
+    const cfgResult=await ghParseConfig(gist);
+    const localCfg=loadLocalTaskConfig();
+    const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
+    applyTaskConfig(cfgToUse,false);
+    if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
+    if(cfgResult.mode==="plaintext"){
+      ghLog("检测到旧版明文配置，正在自动转为加密配置…");
+      try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
+    }
+    if(cfgResult.mode==="error"&&localCfg){
+      ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
+    }
+    const state=ghParseState(gist);
+    const localStates=collectGhLocalStates();
+    const localCount=Object.keys(localStates).length;
+    const result=applyGhStates(state.states||{});
+    const timeResult=mergeGhTimeLogs(state.time_logs||[]);
+    if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
+    setGhStatus("GitHub：已同步","on");
+    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);
+    unlockApp();
+    renderAll();
+    if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)
+  }catch(err){
+    console.error(err);
+    setGhStatus("GitHub：读取失败","err");
+    ghLog(String(err.message||err));
+    enterLocalMode(false,"Gist 同步失败，已继续使用本机/内置数据。Token 可能失效、权限不足，或网络读取失败。");
+    showToast("Gist 同步失败；需要时请更新 Token","warn",3000);
+    setTimeout(openGhModal,360);
+  }
 }
-if(cfgResult.mode==="error"&&localCfg){
-  ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
-}
-const state=ghParseState(gist);const localStates=collectGhLocalStates();const localCount=Object.keys(localStates).length;const result=applyGhStates(state.states||{});const timeResult=mergeGhTimeLogs(state.time_logs||[]);if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}setGhStatus("GitHub：已同步","on");ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);unlockApp();renderAll();if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)}catch(err){console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));lockApp("Token 无效、权限不足，或读取 Gist 失败。请重新输入 Token。")}}
 async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_meta:{limit:TIME_GH_LOG_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
@@ -728,12 +825,47 @@ function closeControlCenter(){
   document.body.classList.remove("controlCenterOpen");
 }
 function toggleControlCenter(){const m=ensureControlCenterPortal();if(!m)return;m.classList.contains("hidden")?openControlCenter():closeControlCenter()}
-function initGithubSyncUI(){document.getElementById("lockUnlockBtn")?.addEventListener("click",openGhModal);document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);document.getElementById("githubStatus")?.addEventListener("click",openGhModal);document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});document.getElementById("controlGameQuestEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openGameQuestEditor()});document.getElementById("controlTaskEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openTaskEditor()});document.getElementById("controlRefEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openRefEditor()});document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{if(confirm("确认清除本机保存的 GitHub Token？")){setGhToken("");setGhStatus("GitHub：未设置","off");ghLog("Token 已清除");lockApp("Token 已清除。请输入本机 GitHub Token 解锁。")}});if(ghToken())ghPull();else if(LOCAL_PREVIEW_UNLOCK){setGhStatus("GitHub：本地预览","off");ghLog("本地预览模式：未连接云端，只使用内置/本机缓存数据。");unlockApp()}else{setGhStatus("GitHub：未设置","off");lockApp("请输入本机 GitHub Token 解锁。未解锁时不会显示任务模板。")}}
+function initGithubSyncUI(){
+  document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
+  document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});
+  document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);
+  document.getElementById("githubStatus")?.addEventListener("click",openGhModal);
+  document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});
+  document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});
+  document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
+  document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
+  document.getElementById("controlGameQuestEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openGameQuestEditor()});
+  document.getElementById("controlTaskEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openTaskEditor()});
+  document.getElementById("controlRefEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openRefEditor()});
+  document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
+  document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
+  document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
+  document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});
+  document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);
+  document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));
+  document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{
+    if(confirm("确认清除本机保存的 GitHub Token？页面不会上锁，只会切回本机模式。")){
+      setGhToken("");
+      setGhStatus("GitHub：未设置","off");
+      ghLog("Token 已清除，已切回本机模式");
+      enterLocalMode(true,"Token 已清除；当前使用本机/内置数据。需要云同步时请重新填写 Gist Token。");
+    }
+  });
+  if(isSoftLockTrusted()){
+    unlockApp();
+    if(ghToken())ghPull();
+    else enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"本机已记住解锁；未设置 Gist Token，当前使用本机/内置数据。");
+  }else{
+    setGhStatus(isManualSoftLocked()?"GitHub：已手动上锁":"GitHub：等待解锁","off");
+    lockApp(isManualSoftLocked()?"已手动上锁。输入本机解锁码才能重新进入。":"输入本机解锁码进入任务环。GitHub Token 只用于云同步，不再用于开门。");
+  }
+}
 
 
 /* === v8.2 Hidden Task Editor === */
 let editorCounter=0;
 function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
+
 function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor();document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
 function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
 function cfgEsc(v){return escapeHtml(String(v??""))}
@@ -2121,6 +2253,14 @@ function renderGameQuestPanel(){
     ${modeTabs}
     ${body}
   </div>`;
+  // 重渲染会重建可横向滚动的 tab 条，默认回到最左，导致点了靠右的「异环」后视图跳回开头。
+  // 渲染后同步把选中的 tab 居中滚入视野（只动 tab 条自身横向滚动，不影响页面滚动）。
+  [".gameQuestFilterTabs",".gameQuestDays"].forEach(sc=>{
+    const strip=panel.querySelector(sc);const act=strip&&strip.querySelector(".active");
+    if(!strip||!act||strip.scrollWidth<=strip.clientWidth+2)return;
+    const sr=strip.getBoundingClientRect(),ar=act.getBoundingClientRect();
+    strip.scrollLeft+=(ar.left-sr.left)-(strip.clientWidth-ar.width)/2;
+  });
 }
 
 function openGameQuestEditor(){
@@ -2129,6 +2269,7 @@ function openGameQuestEditor(){
   const modal=document.getElementById("gameQuestEditorModal");
   try{
     gameQuestDraftConfig=deepClone(gameQuestConfig||normalizeGameQuestConfig(defaultGameQuestConfig));
+    gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
     gameQuestEditorDay=Number.isInteger(gameQuestSelectedDay)?gameQuestSelectedDay:today;
     if(modal){modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");}
     renderGameQuestEditor();
@@ -2181,42 +2322,66 @@ function removeGameQuestGame(id){
   if(!confirm(`确认删除「${target.name}」？对应每天清单也会一起删掉。`))return;
   gameQuestDraftConfig.games=arr.filter(g=>g.id!==id);
   Object.keys(gameQuestDraftConfig.schedule||{}).forEach(day=>{if(gameQuestDraftConfig.schedule[day])delete gameQuestDraftConfig.schedule[day][id]});
+  if(gameQuestDraftConfig.dailyByGame)delete gameQuestDraftConfig.dailyByGame[id];
   renderGameQuestEditor();
   gameQuestEditorLog(`已删除：${target.name}`);
+}
+// v23: 游戏「今日/指定日」改为按游戏排任务，每条任务勾选星期几出现（和普通任务编辑器同款体验）。
+// 存储格式仍是 schedule[星期][游戏]=[任务]，只是编辑时用 dailyByGame 这个中间模型：
+//   dailyByGame[游戏id] = [{title, days:[1,2,3,4,5,6,0]}]
+function gameQuestDaySortValue(d){return Number(d)===0?7:Number(d)}
+function buildGameQuestDailyByGame(cfg){
+  const map={};
+  (cfg?.games||[]).forEach(g=>{map[g.id]=[]});
+  [1,2,3,4,5,6,0].forEach(day=>{
+    const dayObj=(cfg?.schedule||{})[String(day)]||{};
+    (cfg?.games||[]).forEach(g=>{
+      if(!map[g.id])map[g.id]=[];
+      normalizeGameQuestTaskList(dayObj[g.id],"scheduled").forEach(t=>{
+        if(t.plan_mode==="weekly")return;
+        const sig=t.title.trim().toLowerCase();
+        let ex=map[g.id].find(x=>x.title.trim().toLowerCase()===sig);
+        if(!ex){ex={title:t.title,days:[]};map[g.id].push(ex)}
+        if(!ex.days.includes(day))ex.days.push(day);
+      });
+    });
+  });
+  Object.values(map).forEach(list=>list.forEach(t=>t.days.sort((a,b)=>gameQuestDaySortValue(a)-gameQuestDaySortValue(b))));
+  return map;
+}
+function ensureGameQuestDailyByGame(cfg){
+  if(!cfg.dailyByGame||typeof cfg.dailyByGame!=="object")cfg.dailyByGame=buildGameQuestDailyByGame(cfg);
+  (cfg.games||[]).forEach(g=>{if(!Array.isArray(cfg.dailyByGame[g.id]))cfg.dailyByGame[g.id]=[]});
+  return cfg.dailyByGame;
+}
+function applyDailyByGameToSchedule(cfg){
+  const schedule={};
+  [1,2,3,4,5,6,0].forEach(day=>{schedule[String(day)]={}});
+  (cfg.games||[]).forEach(g=>{
+    const list=(cfg.dailyByGame&&cfg.dailyByGame[g.id])||[];
+    const seen=new Set();
+    list.forEach(t=>{
+      const title=String(t.title||"").trim();
+      const days=Array.isArray(t.days)?[...new Set(t.days.map(Number))].filter(d=>[0,1,2,3,4,5,6].includes(d)):[];
+      if(!title||!days.length)return;
+      const sig=title.toLowerCase();
+      if(seen.has(sig))return;
+      seen.add(sig);
+      const plan_mode=days.length>=7?"daily":"scheduled";
+      days.forEach(day=>{
+        const key=String(day);
+        if(!schedule[key][g.id])schedule[key][g.id]=[];
+        schedule[key][g.id].push({title,plan_mode});
+      });
+    });
+  });
+  cfg.schedule=schedule;
 }
 function collectGameQuestEditorState(){
   if(!gameQuestDraftConfig)return;
   if(!gameQuestDraftConfig.weekly)gameQuestDraftConfig.weekly={};
-  const weeklyFromSchedule={};
-  const dayObj={};
-  document.querySelectorAll("[data-gq-edit-game]").forEach(area=>{
-    const id=area.dataset.gqEditGame;
-    const dailyLines=[];
-    normalizeGameQuestTaskList(area.value,"scheduled").forEach(t=>{
-      if(t.plan_mode==="weekly"){
-        if(!weeklyFromSchedule[id])weeklyFromSchedule[id]=[];
-        weeklyFromSchedule[id].push({...t,plan_mode:"weekly"});
-      }else dailyLines.push({...t,plan_mode:t.plan_mode||inferGameQuestPlanMode(t,"scheduled")});
-    });
-    if(dailyLines.length)dayObj[id]=gameQuestTaskStoreList(dailyLines,"scheduled");
-  });
-  gameQuestDraftConfig.schedule[gameQuestDayKey(gameQuestEditorDay)]=dayObj;
-  document.querySelectorAll("[data-gq-weekly-edit-game]").forEach(area=>{
-    const id=area.dataset.gqWeeklyEditGame;
-    const weeklyLines=gameQuestTaskStoreList(normalizeGameQuestTaskList(area.value,"weekly").map(t=>({...t,plan_mode:"weekly"})),"weekly");
-    const merged=[...weeklyLines,...gameQuestTaskStoreList(weeklyFromSchedule[id]||[],"weekly")];
-    const used=new Set();
-    gameQuestDraftConfig.weekly[id]=merged.filter(t=>{
-      const sig=String(t.id||t.title).toLowerCase();
-      if(used.has(sig))return false;
-      used.add(sig);
-      return true;
-    });
-  });
-  Object.keys(weeklyFromSchedule).forEach(id=>{
-    if(document.querySelector(`[data-gq-weekly-edit-game="${safeCssEscape(id)}"]`))return;
-    gameQuestDraftConfig.weekly[id]=gameQuestTaskStoreList([...(gameQuestDraftConfig.weekly[id]||[]),...weeklyFromSchedule[id]],"weekly");
-  });
+  if(!gameQuestDraftConfig.dailyByGame)gameQuestDraftConfig.dailyByGame={};
+  // 1) 游戏大卡元数据（放前面，保证下面按 id 收集时 id 稳定）
   const games=[...document.querySelectorAll("[data-gq-game-row]")].map((row,idx)=>({
     id:row.dataset.gqGameRow||`gq-${idx+1}`,
     name:row.querySelector('.gqMetaName')?.value.trim()||`游戏 ${idx+1}`,
@@ -2226,14 +2391,75 @@ function collectGameQuestEditorState(){
     enabled:row.querySelector('.gqMetaEnabled')?.checked!==false
   }));
   if(games.length)gameQuestDraftConfig.games=games;
+  // 2) 每天/指定日：按游戏卡收集，每条任务读它勾选的星期（空标题也先留在内存里，重渲染不丢）
+  document.querySelectorAll("[data-gq-daily-game]").forEach(card=>{
+    const gid=card.dataset.gqDailyGame;
+    const rows=[...card.querySelectorAll("[data-gq-daily-row]")];
+    gameQuestDraftConfig.dailyByGame[gid]=rows.map(row=>({
+      title:row.querySelector(".gqDailyTaskTitle")?.value.trim()||"",
+      days:[...row.querySelectorAll(".gqDayBox:checked")].map(b=>Number(b.value))
+    }));
+  });
+  // 3) 本周池：保留原来的一行一条文本框
+  document.querySelectorAll("[data-gq-weekly-edit-game]").forEach(area=>{
+    const id=area.dataset.gqWeeklyEditGame;
+    gameQuestDraftConfig.weekly[id]=gameQuestTaskStoreList(normalizeGameQuestTaskList(area.value,"weekly").map(t=>({...t,plan_mode:"weekly"})),"weekly");
+  });
+  // 4) 把 dailyByGame 展开回 schedule[星期][游戏] 存储格式
+  applyDailyByGameToSchedule(gameQuestDraftConfig);
+}
+function addGameQuestDailyTask(gameId){
+  collectGameQuestEditorState();
+  if(!gameQuestDraftConfig.dailyByGame)gameQuestDraftConfig.dailyByGame={};
+  if(!Array.isArray(gameQuestDraftConfig.dailyByGame[gameId]))gameQuestDraftConfig.dailyByGame[gameId]=[];
+  gameQuestDraftConfig.dailyByGame[gameId].push({title:"",days:[1,2,3,4,5,6,0]});
+  renderGameQuestEditor();
+  const card=document.querySelector(`[data-gq-daily-game="${safeCssEscape(gameId)}"]`);
+  const inputs=card?.querySelectorAll(".gqDailyTaskTitle");
+  const last=inputs&&inputs[inputs.length-1];
+  if(last){last.focus();last.scrollIntoView({behavior:"smooth",block:"nearest"})}
+}
+function removeGameQuestDailyTask(gameId,index){
+  collectGameQuestEditorState();
+  const list=gameQuestDraftConfig.dailyByGame&&gameQuestDraftConfig.dailyByGame[gameId];
+  if(!Array.isArray(list))return;
+  list.splice(index,1);
+  renderGameQuestEditor();
+}
+function moveGameQuestDailyTask(gameId,index,offset){
+  collectGameQuestEditorState();
+  const list=gameQuestDraftConfig.dailyByGame&&gameQuestDraftConfig.dailyByGame[gameId];
+  if(!Array.isArray(list))return;
+  const next=index+offset;
+  if(next<0||next>=list.length)return;
+  [list[index],list[next]]=[list[next],list[index]];
+  renderGameQuestEditor();
+}
+function gameQuestDailyRowHtml(gameId,t,idx,total){
+  const dayNums=Array.isArray(t.days)?t.days.map(Number):[];
+  const dayChips=[1,2,3,4,5,6,0].map(d=>{
+    const on=dayNums.includes(d);
+    return `<label class="gqDayChip"><input type="checkbox" class="gqDayBox" value="${d}" ${on?"checked":""}><span>${escapeHtml(dayName(d))}</span></label>`;
+  }).join("");
+  const last=(Number(total)||1)-1;
+  return `<div class="gqDailyRow" data-gq-daily-row="${idx}">
+    <input class="gqDailyTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="任务名，例如：日常体力 / App签到 / 清体力">
+    <div class="gqDayPicker" role="group" aria-label="出现的星期">${dayChips}</div>
+    <div class="gqDailyRowOps">
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="up" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx<=0?"disabled":""} title="上移" aria-label="上移">↑</button>
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="down" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx>=last?"disabled":""} title="下移" aria-label="下移">↓</button>
+      <button type="button" class="gqDailyMiniBtn" data-gq-daily-fill data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="一键设为每天出现">每天</button>
+      <button type="button" class="gqDailyMiniBtn danger" data-gq-del-daily data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="删除这条任务" aria-label="删除">✕</button>
+    </div>
+  </div>`;
 }
 function renderGameQuestEditor(){
   const list=document.getElementById("gameQuestEditorList");
   const tabs=document.getElementById("gameQuestEditorDays");
-  if(!list||!tabs)return;
+  if(!list)return;
   const cfg=gameQuestDraftConfig||normalizeGameQuestConfig(gameQuestConfig||defaultGameQuestConfig);
-  tabs.innerHTML=days.map(d=>`<button type="button" class="gameQuestEditorDayBtn ${d.id===gameQuestEditorDay?"active":""}" data-gq-editor-day="${d.id}">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</button>`).join("");
-  const day=cfg.schedule[gameQuestDayKey(gameQuestEditorDay)]||{};
+  ensureGameQuestDailyByGame(cfg);
+  if(tabs)tabs.innerHTML="";// v23：不再按天切换编辑，星期改到每条任务上勾选
   const metaRows=(cfg.games||[]).map((g,idx)=>`<div class="gqMetaRow gqMetaRowV2" data-gq-game-row="${escapeHtml(g.id)}">
     <div class="gqMetaIconEditor">
       <div class="gqIconPreview" aria-hidden="true">${escapeHtml(g.icon||'🎮')}</div>
@@ -2250,23 +2476,28 @@ function renderGameQuestEditor(){
     <div class="gqMetaActions"><button type="button" class="gqMetaBtn" data-gq-move="up" data-gq-row-id="${escapeHtml(g.id)}" ${idx===0?'disabled':''}>↑</button><button type="button" class="gqMetaBtn" data-gq-move="down" data-gq-row-id="${escapeHtml(g.id)}" ${idx===cfg.games.length-1?'disabled':''}>↓</button><button type="button" class="gqMetaBtn danger" data-gq-delete="${escapeHtml(g.id)}">删除</button></div>
   </div>`).join('');
   const enabledGames=(cfg.games||[]).filter(g=>g.enabled!==false);
-  const scheduleRows=enabledGames.map(g=>{
-    const value=gameQuestTaskLines(day[g.id],"scheduled").join("\n");
-    return `<div class="gameQuestEditRow gameQuestEditRowV2 accent-${escapeHtml(g.accent)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>今日/指定日</em></div><textarea data-gq-edit-game="${escapeHtml(g.id)}" placeholder="每天或指定日需要看的任务，一行一条。\n例如：日常体力\n日常 / 咖啡 / 刮刮乐\n资料关注">${escapeHtml(value)}</textarea></div>`;
-  }).join("")||`<div class="gameQuestEmpty compact"><b>还没有启用中的游戏卡。</b><span>先在下面新增或启用一张卡，再回来写清单。</span></div>`;
+  const dayLegend=`<div class="gqDayLegend" aria-hidden="true"><span class="gqDayLegendLead">星期</span>${[1,2,3,4,5,6,0].map(d=>`<span class="${d===today?"today":""}">${escapeHtml(dayName(d))}</span>`).join("")}</div>`;
+  const dailyCards=enabledGames.map(g=>{
+    const items=cfg.dailyByGame[g.id]||[];
+    const rows=items.length?items.map((t,idx)=>gameQuestDailyRowHtml(g.id,t,idx,items.length)).join("")
+      :`<div class="gqDailyEmpty">还没有任务。点右上角「＋ 任务」加一条，然后勾选它要在星期几出现。</div>`;
+    return `<div class="gqDailyCard accent-${escapeHtml(g.accent)}" data-gq-daily-game="${escapeHtml(g.id)}">
+      <div class="gqDailyCardHead">
+        <span class="gqDailyIcon">${escapeHtml(g.icon)}</span>
+        <div class="gqDailyTitleWrap"><b>${escapeHtml(g.name)}</b><em>今日 / 指定日</em></div>
+        <button type="button" class="gqDailyAddBtn" data-gq-add-daily="${escapeHtml(g.id)}">＋ 任务</button>
+      </div>
+      <div class="gqDailyRows">${rows}</div>
+    </div>`;
+  }).join("")||`<div class="gameQuestEmpty compact"><b>还没有启用中的游戏卡。</b><span>先在下面「游戏大卡设置」里新增或启用一张卡，再回来排任务。</span></div>`;
   const weeklyRows=enabledGames.map(g=>{
     const value=gameQuestTaskLines((cfg.weekly||{})[g.id],"weekly").join("\n");
     return `<div class="gameQuestEditRow gameQuestEditRowV2 gameQuestWeeklyEditRow accent-${escapeHtml(g.accent)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>本周池</em></div><textarea data-gq-weekly-edit-game="${escapeHtml(g.id)}" placeholder="本周做一次即可的任务，一行一条。\n例如：周常清理\n深塔/海墟/全息\n式舆/危局/鏖战\n模拟宇宙/末日/虚构检查">${escapeHtml(value)}</textarea></div>`;
   }).join("");
-  list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup"><div class="gameQuestEditHead"><div><b>${dayName(gameQuestEditorDay)} 今日/指定日清单</b><span>这里的任务会出现在游戏作战区「今日清理」。周常/深渊类任务建议放到下面的本周池。</span></div></div>${scheduleRows}</section><section class="gameQuestEditGroup gameQuestWeeklyGroup"><div class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>这里的任务不绑定某一天，只在游戏作战区「本周作战池」推进，不会混进普通周计划池。</span></div></div>${weeklyRows}</section><details class="gameQuestMetaDetails"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
-  gameQuestEditorLog(`正在编辑：${dayName(gameQuestEditorDay)}。上方是今日/指定日；中间是游戏本周池。`);
+  list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup gameQuestDailyGroupV3"><div class="gameQuestEditHead"><div><b>每天 / 指定日清单</b><span>每个游戏一张卡：先写任务名，再勾它要出现的星期。勾满一整周＝每日任务，只勾几天＝指定日任务；周常/深渊类请放到下面的本周池。</span></div></div>${enabledGames.length?dayLegend:""}<div class="gqDailyDeck">${dailyCards}</div></section><section class="gameQuestEditGroup gameQuestWeeklyGroup"><div class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>这里的任务不绑定某一天，只在游戏作战区「本周作战池」推进，不会混进普通周计划池。保留一行一条的写法。</span></div></div>${weeklyRows}</section><details class="gameQuestMetaDetails"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
+  gameQuestEditorLog("按游戏排任务：写任务名 + 勾星期即可，不用再一天天复制。本周池维持一行一条。🎮");
 }
 
-function switchGameQuestEditorDay(dayId){
-  collectGameQuestEditorState();
-  gameQuestEditorDay=Number(dayId);
-  renderGameQuestEditor();
-}
 async function saveGameQuestConfig(){
   const btn=document.getElementById("saveGameQuestBtn");
   try{
@@ -2300,6 +2531,7 @@ async function saveGameQuestConfig(){
 function resetGameQuestDraft(){
   if(!confirm("确认重载当前已保存的游戏配置？编辑器里的未保存修改会丢失。"))return;
   gameQuestDraftConfig=deepClone(gameQuestConfig||taskConfig?.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig));
+  gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
   renderGameQuestEditor();
   gameQuestEditorLog("已重载当前已保存配置。未保存的编辑已丢弃。");
 }
@@ -2313,6 +2545,7 @@ function importGameQuestConfig(){
   if(!raw)return;
   try{
     gameQuestDraftConfig=normalizeGameQuestConfig(JSON.parse(raw));
+    gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
     renderGameQuestEditor();
     gameQuestEditorLog("已导入游戏配置，保存后生效。");
   }catch(err){
@@ -2328,10 +2561,17 @@ function initGameQuestUI(){
   document.getElementById("resetGameQuestBtn")?.addEventListener("click",resetGameQuestDraft);
   document.getElementById("exportGameQuestBtn")?.addEventListener("click",exportGameQuestConfig);
   document.getElementById("importGameQuestBtn")?.addEventListener("click",importGameQuestConfig);
-  document.getElementById("gameQuestEditorDays")?.addEventListener("click",e=>{const btn=e.target.closest("[data-gq-editor-day]");if(btn)switchGameQuestEditorDay(Number(btn.dataset.gqEditorDay))});
   document.getElementById("gameQuestEditorList")?.addEventListener("click",e=>{
     const addBtn=e.target.closest("#addGameQuestCardBtn");
     if(addBtn){e.preventDefault();addGameQuestGame();return}
+    const addDaily=e.target.closest("[data-gq-add-daily]");
+    if(addDaily){e.preventDefault();addGameQuestDailyTask(addDaily.dataset.gqAddDaily);return}
+    const delDaily=e.target.closest("[data-gq-del-daily]");
+    if(delDaily){e.preventDefault();removeGameQuestDailyTask(delDaily.dataset.gqGame,Number(delDaily.dataset.gqIndex));return}
+    const moveDaily=e.target.closest("[data-gq-daily-move]");
+    if(moveDaily){e.preventDefault();moveGameQuestDailyTask(moveDaily.dataset.gqGame,Number(moveDaily.dataset.gqIndex),moveDaily.dataset.gqDailyMove==="up"?-1:1);return}
+    const fillDaily=e.target.closest("[data-gq-daily-fill]");
+    if(fillDaily){e.preventDefault();const row=fillDaily.closest("[data-gq-daily-row]");row?.querySelectorAll(".gqDayBox").forEach(b=>{b.checked=true});return}
     const moveBtn=e.target.closest("[data-gq-move][data-gq-row-id]");
     if(moveBtn){e.preventDefault();moveGameQuestGame(moveBtn.dataset.gqRowId,moveBtn.dataset.gqMove==='up'?-1:1);return}
     const iconBtn=e.target.closest("[data-gq-icon]");

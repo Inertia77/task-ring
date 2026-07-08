@@ -1,0 +1,2887 @@
+/* ==========================================================================
+   101 Human Neon Workbench
+   Final layer: game-flavored, but tuned for actual daily use.
+   ========================================================================== */
+
+:root{
+  --ux-bg:#07090d;
+  --ux-wall:#0b0f15;
+  --ux-panel:#111821;
+  --ux-panel-2:#151d28;
+  --ux-panel-3:#1b2532;
+  --ux-text:#f2f6ff;
+  --ux-muted:#a7b3c5;
+  --ux-soft:#d8e2ef;
+  --ux-paper:#f4f7fb;
+  --ux-paper-2:#ffffff;
+  --ux-paper-text:#111827;
+  --ux-paper-muted:#58677d;
+  --ux-line:rgba(219,230,244,.18);
+  --ux-line-strong:rgba(219,230,244,.32);
+  --ux-cyan:#18d9f4;
+  --ux-lime:#e8ff1a;
+  --ux-pink:#ff3f8f;
+  --ux-violet:#8b6cff;
+  --ux-orange:#ff9f43;
+  --ux-green:#43e58a;
+  --ux-red:#ef476f;
+  --ux-radius:8px;
+  --ux-radius-sm:6px;
+  --ux-shadow:0 18px 50px rgba(0,0,0,.34);
+  --ux-shadow-soft:0 10px 28px rgba(0,0,0,.20);
+  --ux-font:Inter,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  --ux-display:"Arial Black","Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;letter-spacing:0!important}
+html{background:var(--ux-bg)!important;scroll-behavior:smooth}
+body,body.nx{
+  margin:0!important;
+  min-height:100vh!important;
+  overflow-x:hidden!important;
+  color:var(--ux-text)!important;
+  font-family:var(--ux-font)!important;
+  line-height:1.45!important;
+  background:
+    linear-gradient(180deg,rgba(7,9,13,.88),rgba(7,9,13,.96) 54%,#07090d),
+    url("../images/css/background-collage.png") center top/cover fixed no-repeat!important;
+}
+body::before,body.nx::before{
+  content:""!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+  background:
+    linear-gradient(115deg,transparent 0 63%,rgba(24,217,244,.12) 63% 64%,transparent 64%),
+    linear-gradient(68deg,transparent 0 76%,rgba(255,63,143,.10) 76% 77%,transparent 77%),
+    repeating-linear-gradient(135deg,rgba(232,255,26,.065) 0 1px,transparent 1px 28px)!important;
+}
+body::after,body.nx::after{content:none!important}
+.wrap,body.nx .wrap{
+  position:relative!important;
+  width:min(1660px,100%)!important;
+  max-width:1660px!important;
+  margin:0 auto!important;
+  padding:14px 14px 44px!important;
+  background:transparent!important;
+}
+::selection{background:var(--ux-lime);color:#05070b}
+:focus-visible{
+  outline:2px solid var(--ux-lime)!important;
+  outline-offset:2px!important;
+  box-shadow:0 0 0 4px rgba(24,217,244,.22)!important;
+}
+body.locked{overflow:hidden!important}
+body.locked .wrap{display:none!important}
+body:not(.locked) .lockScreen{display:none!important}
+
+body.nx.nx.nx :is(.viewIntro,.mainRingBanner,.versionNote),
+body.nx.nx.nx :is(.viewIntro.viewPanel.active,.mainRingBanner.viewPanel.active,.versionNote.viewPanel.active){
+  display:none!important;
+}
+
+/* Base type */
+body.nx.nx.nx :is(h1,h2,h3,b,strong,.taskText,.taskName,.mTitle,.missionTitleBlock b,.gameQuestName,.activeTimerTitle,.timeTaskName b,.refSummaryTitle,.taskEditorTitle,.ghModalTitle,.lockTitle){
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx :is(p,em,small,.subtitle,.inertiaSubtitle,.progress-meta,.taskMetaLine,.mMeta,.taskRingModeText,.missionTitleBlock span,.missionScore em,.gameQuestMetaStrip,.weeklySubtasks summary,.timeTaskValue span,.activeTimerSub,.dailyText,.refSummarySub,.footer,.taskEditorSub,.ghModalSub,.ghHint,.taskEditorHint){
+  color:var(--ux-muted)!important;
+}
+
+/* Surfaces */
+body.nx.nx.nx :is(.inertiaHeader,.viewDock,.taskRingControlPanel,.orbitPanel,.tableBox,.mobileBox,.weeklyShell,.weeklyCommandHero,.weeklyMissionGroup,.weeklyMissionCard,.gameQuestShell,.gameQuestShell.gameQuestStandalone,.gameQuestTopBarStandalone,.gameQuestDailyPane,.gameQuestWeeklyPane,.gameQuestCard,.gameQuestCardV2,.gameQuestWeeklyCard,.timePanelShell,.timePanelHeader,.timeLedgerIdle,.timeTaskRow,.timeBudgetRow,.activeTimerCard,.priorityRefBox,.legendBox,.refGroup,.dailyReminder,.summaryGrid .card,.notice,.weeklyActiveHint,.gameQuestMetaStrip,.timeLogItem){
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line)!important;
+  background:linear-gradient(180deg,rgba(17,24,33,.97),rgba(10,14,20,.97))!important;
+  color:var(--ux-text)!important;
+  box-shadow:var(--ux-shadow-soft)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+}
+
+/* Controls */
+body.nx.nx.nx button,
+body.nx.nx.nx .pill,
+body.nx.nx.nx :is(.missionLink,.quickLinks a,.refLink){
+  min-height:36px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid rgba(203,216,232,.72)!important;
+  background:linear-gradient(180deg,#ffffff,#e7eef7)!important;
+  color:#0b1220!important;
+  box-shadow:0 3px 0 rgba(0,0,0,.32),0 8px 18px rgba(0,0,0,.16)!important;
+  font-family:var(--ux-font)!important;
+  font-weight:800!important;
+  text-decoration:none!important;
+  text-align:center!important;
+  cursor:pointer!important;
+}
+body.nx.nx.nx button:hover,
+body.nx.nx.nx :is(.missionLink,.quickLinks a,.refLink):hover{
+  transform:translateY(-1px)!important;
+  border-color:rgba(232,255,26,.74)!important;
+  filter:contrast(1.02) saturate(1.08)!important;
+}
+body.nx.nx.nx button:active{transform:translateY(1px)!important;box-shadow:0 1px 0 rgba(0,0,0,.45)!important}
+body.nx.nx.nx :is(#showUndone,.controlCenterBtn,.ghSetupBtn,.missionPrimary,.gameQuestModeBtn.active,.timeSubTabs button.active,.weeklyCategoryTab.active,.editorScopeTabs button.active,#saveConfigBtn,#saveRefConfigBtn,#saveGameQuestBtn,#ghSaveTokenBtn,#addTaskBtn,#addRefGroupBtn,.weeklyTargetActions .primary,.lockUnlockBtn,#taskEditorBottomSaveBtn,#refEditorBottomSaveBtn,#gameQuestEditorBottomSaveBtn){
+  border-color:#05070b!important;
+  background:linear-gradient(135deg,var(--ux-lime) 0 48%,var(--ux-cyan) 48% 100%)!important;
+  color:#05070b!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.48),0 14px 28px rgba(24,217,244,.18)!important;
+}
+body.nx.nx.nx :is(.softDangerBtn,.ghostDanger,.ghDangerBtn,.timerGhost,button[data-timer-abandon],button[data-op="remove"],button[data-refop="remove"],.gqMetaBtn.danger,.gqDailyMiniBtn.danger){
+  border-color:rgba(239,71,111,.70)!important;
+  background:linear-gradient(180deg,#9f1239,#ef476f)!important;
+  color:#fff!important;
+}
+body.nx.nx.nx :is(input,textarea,select,.ghInput,.cfgTitle,.cfgUrl,.refItemTitle,.refItemUrl,.lockInput){
+  min-height:38px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #cbd7e6!important;
+  background:#fff!important;
+  color:#101827!important;
+  box-shadow:none!important;
+  font:inherit!important;
+}
+body.nx.nx.nx textarea{min-height:96px!important;resize:vertical!important;line-height:1.55!important}
+body.nx.nx.nx input::placeholder,
+body.nx.nx.nx textarea::placeholder{color:#7b8798!important}
+body.nx.nx.nx input[type="checkbox"]{accent-color:var(--ux-lime)!important}
+
+/* Header */
+body.nx.nx.nx .inertiaHeader{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:12px 18px!important;
+  align-items:center!important;
+  padding:16px!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(110deg,rgba(244,247,251,.97) 0 56%,rgba(13,18,26,.98) 56% 100%)!important;
+  box-shadow:var(--ux-shadow)!important;
+}
+body.nx.nx.nx .inertiaHeader::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  background:
+    linear-gradient(90deg,transparent 0 52%,var(--ux-lime) 52% 52.4%,transparent 52.4%),
+    repeating-linear-gradient(135deg,transparent 0 13px,rgba(7,9,13,.07) 13px 15px,transparent 15px 28px)!important;
+}
+body.nx.nx.nx .inertiaHeader::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0 0 0 auto!important;
+  width:34%!important;
+  pointer-events:none!important;
+  background:repeating-linear-gradient(-35deg,rgba(24,217,244,.18) 0 7px,transparent 7px 17px)!important;
+}
+body.nx.nx.nx .inertiaHeroBrand{
+  position:relative!important;
+  z-index:1!important;
+  display:grid!important;
+  grid-template-columns:62px minmax(0,1fr)!important;
+  gap:13px!important;
+  align-items:center!important;
+  min-width:0!important;
+}
+body.nx.nx.nx .inertiaHeroMark{
+  width:62px!important;
+  height:62px!important;
+  border-radius:var(--ux-radius)!important;
+  background:#07090d!important;
+  border:2px solid #07090d!important;
+  box-shadow:0 0 0 3px var(--ux-lime),0 12px 28px rgba(0,0,0,.32)!important;
+  transform:none!important;
+}
+body.nx.nx.nx .inertiaHeroTitle{
+  display:flex!important;
+  align-items:baseline!important;
+  gap:8px!important;
+  margin:0!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  line-height:.98!important;
+}
+body.nx.nx.nx :is(.inertiaTitleCn,.inertiaTitleSlash,.inertiaTitleEn,.titleGlow){
+  font-family:var(--ux-display)!important;
+  font-style:italic!important;
+  white-space:nowrap!important;
+  text-shadow:none!important;
+}
+body.nx.nx.nx .inertiaTitleCn{font-size:40px!important;color:#080b11!important}
+body.nx.nx.nx .inertiaTitleSlash{font-size:32px!important;color:#d31365!important}
+body.nx.nx.nx :is(.inertiaTitleEn,.titleGlow){
+  flex:1 1 auto!important;
+  min-width:0!important;
+  font-size:40px!important;
+  color:#713eff!important;
+  -webkit-text-fill-color:initial!important;
+  background:none!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .inertiaSubtitle{
+  max-width:900px!important;
+  margin:5px 0 0!important;
+  color:#263244!important;
+  font-size:13px!important;
+  font-weight:720!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .inertiaBrandRow{gap:6px!important;margin-bottom:4px!important}
+body.nx.nx.nx :is(.inertiaOwnerBadge,.inertiaVersionBadge){
+  min-height:22px!important;
+  padding:4px 8px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #080b11!important;
+  background:var(--ux-lime)!important;
+  color:#080b11!important;
+  font-size:10px!important;
+  font-family:var(--ux-display)!important;
+  box-shadow:2px 2px 0 #080b11!important;
+}
+body.nx.nx.nx .inertiaVersionBadge{background:var(--ux-cyan)!important}
+body.nx.nx.nx .globalToolbar{
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(110px,1fr))!important;
+  gap:8px!important;
+  max-width:520px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx .globalToolbar :is(button,.pill,.githubInlineState){
+  min-height:36px!important;
+  height:36px!important;
+  padding:0 10px!important;
+  font-size:12px!important;
+  border-radius:var(--ux-radius-sm)!important;
+}
+body.nx.nx.nx .githubInlineState{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  border:1px solid var(--ux-line)!important;
+  background:#111821!important;
+  color:var(--ux-text)!important;
+  box-shadow:none!important;
+}
+
+/* Navigation */
+body.nx.nx.nx .viewDock{
+  position:sticky!important;
+  top:8px!important;
+  z-index:90!important;
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:12px 0!important;
+  padding:8px!important;
+  background:rgba(8,11,17,.96)!important;
+  box-shadow:var(--ux-shadow-soft)!important;
+}
+body.nx.nx.nx .viewDockBtn{
+  min-width:0!important;
+  min-height:52px!important;
+  padding:8px 9px!important;
+  display:grid!important;
+  place-items:center!important;
+  gap:2px!important;
+  color:var(--ux-text)!important;
+  background:linear-gradient(180deg,#151d28,#0e141d)!important;
+  border:1px solid rgba(219,230,244,.12)!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+body.nx.nx.nx .viewDockBtn span{
+  color:var(--ux-cyan)!important;
+  font-size:10px!important;
+  font-family:var(--ux-display)!important;
+  line-height:1!important;
+}
+body.nx.nx.nx .viewDockBtn b{
+  color:var(--ux-text)!important;
+  font-size:13px!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .viewDockBtn.active{
+  border-color:#05070b!important;
+  background:linear-gradient(135deg,var(--ux-lime) 0 54%,var(--ux-cyan) 54% 100%)!important;
+  color:#05070b!important;
+}
+body.nx.nx.nx .viewDockBtn.active :is(span,b){color:#05070b!important}
+
+/* Daily area */
+body.nx.nx.nx .taskRingControlPanel{
+  display:grid!important;
+  gap:12px!important;
+  margin:0 0 12px!important;
+  padding:14px!important;
+}
+body.nx.nx.nx .taskRingControlHead{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  align-items:center!important;
+  margin:0!important;
+}
+body.nx.nx.nx .taskRingControlHead span,
+body.nx.nx.nx :is(.weeklyCommandHero span,.gameQuestTopTitle span,.timePanelHeader span,.activeTimerKicker){
+  display:inline-flex!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:3px 8px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#05070b!important;
+  color:var(--ux-lime)!important;
+  font-family:var(--ux-display)!important;
+  font-size:10px!important;
+  line-height:1!important;
+  text-transform:uppercase!important;
+}
+body.nx.nx.nx .taskRingActionRow{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin:0!important;
+}
+body.nx.nx.nx .taskRingActionRow button{
+  min-height:36px!important;
+  padding:0 13px!important;
+}
+body.nx.nx.nx .taskRingModeText,
+body.nx.nx.nx #modeText{
+  min-width:0!important;
+  padding:8px 10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid rgba(24,217,244,.26)!important;
+  background:#0a0f16!important;
+  color:var(--ux-cyan)!important;
+  font-size:12px!important;
+}
+body.nx.nx.nx :is(.progress,.taskProgressWrap .progress,.missionMeter,.groupMeter,.weeklyTaskMeter,.timeBudgetBar,.timeTaskMeter,.gameQuestProgressRail,.orbitMeter){
+  height:8px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(219,230,244,.14)!important;
+  background:#070b11!important;
+  overflow:hidden!important;
+}
+body.nx.nx.nx :is(#bar,.missionMeter i,.groupMeter i,.weeklyTaskMeter i,.timeBudgetBar span,.timeTaskMeter i,.gameQuestProgressRail span,.orbitMeter span,.allocationChip i::before){
+  background:linear-gradient(90deg,var(--ux-lime),var(--ux-cyan),var(--ux-pink))!important;
+}
+
+/* Tables and mobile task cards */
+body.nx.nx.nx :is(.tableBox,.mainTaskPanel,.mobileBox){
+  margin:0!important;
+  padding:0!important;
+  overflow:auto!important;
+  background:#090d13!important;
+}
+body.nx.nx.nx #taskTable{width:100%!important;border-collapse:separate!important;border-spacing:0!important}
+body.nx.nx.nx #taskTable th{
+  position:sticky!important;
+  top:0!important;
+  z-index:2!important;
+  padding:10px!important;
+  background:#121a24!important;
+  color:var(--ux-text)!important;
+  border-bottom:1px solid var(--ux-line)!important;
+}
+body.nx.nx.nx #taskTable td{
+  background:#0d131b!important;
+  color:var(--ux-text)!important;
+  border-bottom:1px solid rgba(219,230,244,.12)!important;
+}
+body.nx.nx.nx td.taskName{
+  background:#111821!important;
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .mTask{
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line)!important;
+  background:linear-gradient(180deg,#151d28,#0d131b)!important;
+  color:var(--ux-text)!important;
+  box-shadow:var(--ux-shadow-soft)!important;
+}
+
+/* Badges */
+body.nx.nx.nx :is(.taskFlag,.statusBadge,.planModeBadge,.metaBadge,.tag,.badge,.gameQuestTaskBadge,.mWeekPill,.cfgMini,.editorBadge){
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:20px!important;
+  padding:3px 7px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(219,230,244,.20)!important;
+  background:#202b3a!important;
+  color:var(--ux-text)!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx :is(.planModeBadge.weekly,.editorBadge.weekly,.gameQuestTaskBadge.weekly){
+  background:#72224d!important;color:#fff!important;border-color:rgba(255,63,143,.55)!important;
+}
+body.nx.nx.nx :is(.planModeBadge.daily,.editorBadge.daily,.gameQuestTaskBadge.daily){
+  background:#2b3708!important;color:var(--ux-lime)!important;border-color:rgba(232,255,26,.48)!important;
+}
+body.nx.nx.nx :is(.planModeBadge.scheduled,.editorBadge.scheduled,.gameQuestTaskBadge.scheduled){
+  background:#092f38!important;color:#9df5ff!important;border-color:rgba(24,217,244,.48)!important;
+}
+body.nx.nx.nx :is(.tag.hot,.editorBadge.hot,.missionBadges .hot,.weeklyTaskBadges .hot){
+  background:#4c2b08!important;color:#ffd99a!important;border-color:rgba(255,159,67,.5)!important;
+}
+
+/* Weekly */
+body.nx.nx.nx .weeklyShell{
+  display:grid!important;
+  gap:14px!important;
+  padding:14px!important;
+  background:#080c12!important;
+}
+body.nx.nx.nx .weeklyCommandHero{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:14px!important;
+  align-items:center!important;
+  padding:16px!important;
+  overflow:hidden!important;
+  background:linear-gradient(110deg,#151e2a 0 66%,rgba(255,63,143,.20) 66% 100%)!important;
+  border-left:4px solid var(--ux-lime)!important;
+}
+body.nx.nx.nx :is(.weeklyCommandHero b,.gameQuestTopTitle strong,.timePanelHeader b){
+  display:block!important;
+  margin-top:6px!important;
+  color:var(--ux-text)!important;
+  font-family:var(--ux-display)!important;
+  font-size:26px!important;
+  line-height:1.05!important;
+}
+body.nx.nx.nx :is(.weeklyCommandHero em,.gameQuestTopTitle em,.timePanelHeader em){
+  display:block!important;
+  margin-top:5px!important;
+  color:var(--ux-muted)!important;
+  font-style:normal!important;
+  font-size:13px!important;
+}
+body.nx.nx.nx .weeklyHeroStats,
+body.nx.nx.nx .timeStatCards{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+}
+body.nx.nx.nx :is(.weeklyHeroStats>div,.timeStatCards>div){
+  min-width:104px!important;
+  padding:9px 11px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#0d131b!important;
+}
+body.nx.nx.nx :is(.weeklyHeroStats span,.timeStatCards span){
+  display:block!important;
+  color:var(--ux-muted)!important;
+  font-size:11px!important;
+  font-weight:780!important;
+}
+body.nx.nx.nx :is(.weeklyHeroStats b,.timeStatCards b){
+  display:block!important;
+  margin-top:2px!important;
+  color:var(--ux-text)!important;
+  font-size:18px!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTabs,.timeSubTabs,.gameQuestFilterTabs,.gameQuestModeTabs){
+  display:flex!important;
+  gap:8px!important;
+  padding:6px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#090d13!important;
+  overflow-x:auto!important;
+  scrollbar-width:thin!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTab,.timeSubTabs button,.gameQuestFilterTabs button,.gameQuestModeBtn){
+  flex:1 0 auto!important;
+  min-height:42px!important;
+  padding:7px 12px!important;
+  border-color:rgba(219,230,244,.18)!important;
+  background:linear-gradient(180deg,#151d28,#0e141d)!important;
+  color:var(--ux-text)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTab,.gameQuestFilterTabs button,.gameQuestModeBtn) :is(span,em){
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTab,.gameQuestFilterTabs button,.gameQuestModeBtn) b{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:20px!important;
+  padding:2px 7px!important;
+  border-radius:999px!important;
+  background:#070b11!important;
+  color:var(--ux-cyan)!important;
+  border:1px solid rgba(24,217,244,.28)!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTab.active,.timeSubTabs button.active,.gameQuestFilterTabs button.active,.gameQuestModeBtn.active){
+  background:linear-gradient(135deg,var(--ux-lime) 0 54%,var(--ux-cyan) 54% 100%)!important;
+  color:#05070b!important;
+  border-color:#05070b!important;
+}
+body.nx.nx.nx :is(.weeklyCategoryTab.active,.timeSubTabs button.active,.gameQuestFilterTabs button.active,.gameQuestModeBtn.active) :is(span,b,em){
+  color:#05070b!important;
+}
+body.nx.nx.nx .allocationRibbon{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+  gap:10px!important;
+}
+body.nx.nx.nx .allocationChip{
+  min-height:74px!important;
+  padding:11px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#111821!important;
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .allocationChip div{display:flex!important;align-items:center!important;gap:8px!important}
+body.nx.nx.nx .allocationChip b{color:var(--ux-text)!important}
+body.nx.nx.nx .allocationChip em{display:block!important;margin-top:4px!important;color:var(--ux-muted)!important;font-style:normal!important}
+body.nx.nx.nx .allocationChip i{display:block!important;margin-top:9px!important;height:7px!important;border-radius:999px!important;background:#070b11!important;overflow:hidden!important}
+body.nx.nx.nx .weeklyTaskGroups{display:grid!important;gap:12px!important}
+body.nx.nx.nx .weeklyMissionGroup{
+  padding:12px!important;
+  border-left:4px solid var(--ux-cyan)!important;
+  background:#101720!important;
+}
+body.nx.nx.nx .weeklyMissionGroup>header{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin:0 0 10px!important;
+}
+body.nx.nx.nx .weeklyMissionGroup>header>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-width:0!important;
+}
+body.nx.nx.nx .weeklyMissionGroup .groupIcon{
+  width:34px!important;
+  height:34px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+}
+body.nx.nx.nx .weeklyMissionGroup :is(b,strong){color:var(--ux-text)!important}
+body.nx.nx.nx .weeklyMissionGroup small{color:var(--ux-muted)!important}
+body.nx.nx.nx .weeklyMissionGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important;
+  gap:10px!important;
+}
+body.nx.nx.nx .weeklyMissionCard{
+  position:relative!important;
+  min-height:150px!important;
+  padding:12px!important;
+  background:linear-gradient(180deg,#151d28,#0d131b)!important;
+  border-left:4px solid var(--ux-pink)!important;
+}
+body.nx.nx.nx .weeklyMissionCard.running{border-left-color:var(--ux-lime)!important}
+body.nx.nx.nx .weeklyMissionCard.over{border-left-color:var(--ux-red)!important}
+body.nx.nx.nx .missionGlow{display:none!important}
+body.nx.nx.nx .weeklyMissionCard .missionHead{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+body.nx.nx.nx .missionIcon{
+  width:40px!important;
+  height:40px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+}
+body.nx.nx.nx .missionTitleBlock{min-width:0!important}
+body.nx.nx.nx .missionTitleBlock b{
+  display:block!important;
+  font-size:15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .missionTitleBlock span{
+  display:block!important;
+  margin-top:3px!important;
+  font-size:12px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  color:var(--ux-muted)!important;
+}
+body.nx.nx.nx .missionScore{text-align:right!important;min-width:86px!important}
+body.nx.nx.nx .missionScore strong{color:var(--ux-text)!important;font-size:14px!important}
+body.nx.nx.nx .missionScore em{color:var(--ux-muted)!important;font-size:12px!important}
+body.nx.nx.nx .missionActions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin-top:12px!important;
+  background:transparent!important;
+  border:0!important;
+}
+body.nx.nx.nx :is(.missionPrimary,.missionGhost,.missionLink,.safeTargetEdit,.timeTargetSafeBtn){
+  min-height:34px!important;
+  padding:0 12px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+}
+body.nx.nx.nx :is(.missionGhost,.missionLink,.safeTargetEdit,.timeTargetSafeBtn){
+  background:#f4f7fb!important;
+  color:#101827!important;
+}
+body.nx.nx.nx :is(.missionGhost,.missionLink,.safeTargetEdit,.timeTargetSafeBtn) :is(span,b){
+  color:#101827!important;
+}
+body.nx.nx.nx .missionBadges{
+  position:static!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+  margin-top:10px!important;
+  pointer-events:none!important;
+}
+
+/* Game quest */
+body.nx.nx.nx .gameQuestShell{
+  display:grid!important;
+  gap:12px!important;
+  padding:14px!important;
+  background:#080c12!important;
+}
+body.nx.nx.nx .gameQuestTopBarStandalone{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  gap:12px!important;
+  align-items:center!important;
+  padding:15px!important;
+  background:linear-gradient(110deg,#151d28 0 65%,rgba(255,63,143,.24) 65% 100%)!important;
+}
+body.nx.nx.nx .gameQuestTopTimer,
+body.nx.nx.nx .gameQuestTodayQuick,
+body.nx.nx.nx .gameQuestTopProgress{
+  min-height:42px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#0d131b!important;
+  color:var(--ux-text)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .gameQuestTopTimer :is(span,b,em){color:var(--ux-text)!important}
+body.nx.nx.nx .gameQuestTopTimer em{color:var(--ux-muted)!important}
+body.nx.nx.nx .gameQuestDay{
+  min-height:38px!important;
+  padding:7px 10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#111821!important;
+  color:var(--ux-text)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .gameQuestDay :is(span,b){color:var(--ux-text)!important}
+body.nx.nx.nx .gameQuestDay.active{
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+  border-color:#05070b!important;
+}
+body.nx.nx.nx .gameQuestDay.active :is(span,b){color:#05070b!important}
+body.nx.nx.nx .gameQuestMetaStrip{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-height:42px!important;
+  padding:9px 10px!important;
+  background:#0d131b!important;
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .gameQuestMetaStrip :is(span,em,b,strong){
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .gameQuestMetaStrip em{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:24px!important;
+  padding:3px 8px!important;
+  border-radius:999px!important;
+  border:1px solid var(--ux-line)!important;
+  background:#070b11!important;
+  color:var(--ux-muted)!important;
+}
+body.nx.nx.nx :is(.gameQuestGrid,.gameQuestWeeklyGrid){
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;
+  gap:10px!important;
+}
+body.nx.nx.nx :is(.gameQuestCard,.gameQuestCardV2,.gameQuestWeeklyCard){
+  padding:12px!important;
+  min-height:0!important;
+  background:linear-gradient(180deg,#151d28,#0d131b)!important;
+  border-left:4px solid var(--ux-violet)!important;
+}
+body.nx.nx.nx :is(.gameQuestIconOrb,.gqDailyIcon){
+  width:38px!important;
+  height:38px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+}
+body.nx.nx.nx .gameQuestTaskList{display:grid!important;gap:7px!important;margin:8px 0 0!important;padding:0!important;list-style:none!important}
+body.nx.nx.nx .gameQuestTaskList li{list-style:none!important;margin:0!important;padding:0!important}
+body.nx.nx.nx :is(.gameQuestMiniCheckBtn,.gameQuestMiniCheckBtnV2){
+  width:100%!important;
+  min-height:34px!important;
+  display:grid!important;
+  grid-template-columns:auto auto minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:7px 9px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid var(--ux-line)!important;
+  background:#0a0f16!important;
+  color:var(--ux-text)!important;
+  box-shadow:none!important;
+  text-align:left!important;
+}
+body.nx.nx.nx :is(.gameQuestMiniCheckBtn,.gameQuestMiniCheckBtnV2) :is(i,.gameQuestTaskNo){
+  color:var(--ux-text)!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .gameQuestMiniBox{
+  width:18px!important;
+  height:18px!important;
+  border-radius:50%!important;
+  border:2px solid #9aa8bb!important;
+  background:#070b11!important;
+}
+body.nx.nx.nx :is(.gameQuestMiniCheckBtn.done,.gameQuestMiniCheckBtn[aria-pressed="true"],.gameQuestMiniCheckBtnV2.done,.gameQuestMiniCheckBtnV2[aria-pressed="true"]){
+  background:#102019!important;
+  color:#bdfad7!important;
+}
+
+/* Time ledger */
+body.nx.nx.nx .timePanelShell{
+  display:grid!important;
+  gap:12px!important;
+  padding:14px!important;
+  background:#080c12!important;
+}
+body.nx.nx.nx .timePanelHeader{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:15px!important;
+  background:linear-gradient(110deg,#151d28 0 68%,rgba(24,217,244,.18) 68% 100%)!important;
+  border-left:4px solid var(--ux-cyan)!important;
+}
+body.nx.nx.nx .timeLedgerIdle{
+  min-height:50px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  background:#101720!important;
+}
+body.nx.nx.nx .timeLedgerIdle span{
+  width:32px!important;
+  height:32px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-violet),var(--ux-cyan))!important;
+  color:#fff!important;
+}
+body.nx.nx.nx .activeTimerCard{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:12px!important;
+  align-items:center!important;
+  padding:12px!important;
+  border-left:4px solid var(--ux-lime)!important;
+}
+body.nx.nx.nx .timeBudgetList{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+  gap:10px!important;
+}
+body.nx.nx.nx .timeBudgetRow{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:8px!important;
+  align-items:center!important;
+  padding:11px!important;
+}
+body.nx.nx.nx .timeTaskList{display:grid!important;gap:8px!important}
+body.nx.nx.nx .timeTaskRow{
+  display:grid!important;
+  grid-template-columns:minmax(250px,1.2fr) minmax(160px,1fr) auto auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:10px!important;
+  background:#111821!important;
+}
+body.nx.nx.nx .timeTaskName{
+  display:grid!important;
+  grid-template-columns:auto auto minmax(0,1fr)!important;
+  gap:7px!important;
+  align-items:center!important;
+  justify-content:start!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  text-align:left!important;
+}
+body.nx.nx.nx .timeTaskName :is(span,b){min-width:0!important;color:var(--ux-text)!important}
+body.nx.nx.nx .timeTaskName b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+body.nx.nx.nx .timeTaskValue{
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:flex-end!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+}
+body.nx.nx.nx .timeTaskValue b{color:var(--ux-text)!important}
+body.nx.nx.nx .timeTaskValue span{color:var(--ux-muted)!important}
+body.nx.nx.nx .timeLogList{
+  display:grid!important;
+  gap:8px!important;
+  list-style:none!important;
+  margin:0!important;
+  padding:0!important;
+}
+body.nx.nx.nx .timeLogItem{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:10px 12px!important;
+}
+body.nx.nx.nx .timeLogItem :is(b,strong){color:var(--ux-text)!important}
+body.nx.nx.nx .timeLogItem span{color:var(--ux-muted)!important}
+
+/* Library */
+body.nx.nx.nx .priorityRefBox{
+  padding:0!important;
+  overflow:hidden!important;
+  border-left:4px solid var(--ux-pink)!important;
+}
+body.nx.nx.nx :is(.priorityRefBox summary,.legendBox summary){
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:13px!important;
+  color:var(--ux-text)!important;
+  cursor:pointer!important;
+}
+body.nx.nx.nx .refGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important;
+  gap:10px!important;
+  padding:0 12px 12px!important;
+}
+body.nx.nx.nx .refGroup{
+  padding:12px!important;
+  background:#111821!important;
+}
+body.nx.nx.nx :is(.refLink,.refPlain,.quickLinks a){
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:30px!important;
+  padding:5px 9px!important;
+  margin:2px 0!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#0d131b!important;
+  color:#9df5ff!important;
+  border:1px solid rgba(24,217,244,.28)!important;
+  box-shadow:none!important;
+}
+
+/* Modals and editors */
+body.nx.nx.nx :is(.ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.weeklyTargetModal,.timeDetailModal){
+  position:fixed!important;
+  inset:0!important;
+  z-index:9999!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:18px!important;
+  background:rgba(0,0,0,.70)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+}
+body.nx.nx.nx :is(.ghModal.hidden,.taskEditorModal.hidden,.refEditorModal.hidden,.gameQuestEditorModal.hidden,.weeklyTargetModal.hidden,.timeDetailModal.hidden){
+  display:none!important;
+}
+body.nx.nx.nx :is(#taskEditorModal .taskEditorCard,#refEditorModal .refEditorCard,#gameQuestEditorModal .gameQuestEditorCard,.ghModalCard,.weeklyTargetCard,.timeDetailCard,.timeDetailModalCard,.stepPopover,.controlCenterMenu){
+  width:min(1220px,96vw)!important;
+  max-height:92vh!important;
+  overflow:auto!important;
+  padding:0!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid #cbd7e6!important;
+  background:var(--ux-paper)!important;
+  color:var(--ux-paper-text)!important;
+  box-shadow:0 30px 90px rgba(0,0,0,.55)!important;
+}
+body.nx.nx.nx :is(.ghModalCard,.weeklyTargetCard){width:min(560px,96vw)!important}
+body.nx.nx.nx :is(#taskEditorModal,#refEditorModal,#gameQuestEditorModal) .taskEditorHead,
+body.nx.nx.nx .ghModalHead{
+  position:sticky!important;
+  top:0!important;
+  z-index:40!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin:0!important;
+  padding:18px 20px 14px!important;
+  border-bottom:1px solid #cbd7e6!important;
+  background:rgba(244,247,251,.96)!important;
+  color:var(--ux-paper-text)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+}
+body.nx.nx.nx :is(#taskEditorModal,#refEditorModal,#gameQuestEditorModal) :is(.taskEditorTitle,.ghModalTitle){
+  color:var(--ux-paper-text)!important;
+  font-size:24px!important;
+  font-family:var(--ux-display)!important;
+  line-height:1.15!important;
+}
+body.nx.nx.nx :is(#taskEditorModal,#refEditorModal,#gameQuestEditorModal) :is(.taskEditorSub,.ghModalSub){
+  margin-top:5px!important;
+  color:var(--ux-paper-muted)!important;
+  font-size:13px!important;
+  line-height:1.45!important;
+  font-weight:720!important;
+}
+body.nx.nx.nx :is(.ghCloseBtn,.weeklyTargetClose,.timeDetailClose){
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  min-height:38px!important;
+  padding:0!important;
+  border-radius:var(--ux-radius-sm)!important;
+}
+body.nx.nx.nx :is(.taskEditorToolbar,.gameQuestEditorToolbar,.ghActions){
+  position:sticky!important;
+  top:73px!important;
+  z-index:35!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:12px 20px!important;
+  border-bottom:1px solid #d7e1ee!important;
+  background:rgba(244,247,251,.96)!important;
+}
+body.nx.nx.nx :is(.taskEditorHint,.ghHint){
+  margin:14px 20px!important;
+  padding:13px 14px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid #cbd7e6!important;
+  background:#fff!important;
+  color:var(--ux-paper-muted)!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+body.nx.nx.nx :is(.taskEditorList,.refEditorList,.gameQuestEditorList,#gameQuestEditorDays,.ghLog){
+  margin-left:20px!important;
+  margin-right:20px!important;
+}
+body.nx.nx.nx :is(.taskEditorList,.refEditorList,.gameQuestEditorList){
+  display:grid!important;
+  gap:12px!important;
+  color:var(--ux-paper-text)!important;
+}
+body.nx.nx.nx .ghLog{
+  min-height:70px!important;
+  max-height:180px!important;
+  overflow:auto!important;
+  padding:10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #cbd7e6!important;
+  background:#101720!important;
+  color:#9df5ff!important;
+}
+body.nx.nx.nx .editorBottomBar{
+  position:sticky!important;
+  bottom:0!important;
+  z-index:45!important;
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin:14px 0 0!important;
+  padding:12px 20px 16px!important;
+  border-top:1px solid #cbd7e6!important;
+  background:rgba(244,247,251,.96)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+}
+body.nx.nx.nx .editorBottomBar button{min-width:140px!important}
+
+/* Task editor */
+body.nx.nx.nx .taskEditorCommandDeck{
+  position:sticky!important;
+  top:0!important;
+  z-index:8!important;
+  display:grid!important;
+  grid-template-columns:minmax(240px,1fr) auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px!important;
+  margin:0 0 12px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid #cbd7e6!important;
+  background:#fff!important;
+  box-shadow:0 8px 20px rgba(17,24,39,.06)!important;
+}
+body.nx.nx.nx .editorSearchBox{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-height:42px!important;
+  padding:0 12px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #cbd7e6!important;
+  background:#f8fafc!important;
+  color:var(--ux-paper-text)!important;
+}
+body.nx.nx.nx .editorSearchBox input{border:0!important;background:transparent!important;box-shadow:none!important;width:100%!important}
+body.nx.nx.nx .editorScopeTabs{display:flex!important;flex-wrap:wrap!important;gap:7px!important;justify-content:flex-end!important}
+body.nx.nx.nx .editorScopeTabs button{
+  min-height:34px!important;
+  border-color:#cbd7e6!important;
+  background:#eef3f8!important;
+  color:#111827!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .editorTip{
+  grid-column:1/-1!important;
+  color:var(--ux-paper-muted)!important;
+  font-size:12px!important;
+  font-weight:720!important;
+}
+body.nx.nx.nx :is(.taskEditorActiveList,.disabledTaskVaultBody){
+  display:grid!important;
+  gap:10px!important;
+}
+body.nx.nx.nx :is(.cfgTask,.cfgTaskV20,.refCfgGroup,.gameQuestEditGroup,.gameQuestEditRow,.gqDailyCard,.gameQuestMetaDetails,.refItemEdit,.gqMetaRow){
+  border-radius:var(--ux-radius)!important;
+  border:1px solid #cbd7e6!important;
+  background:#fff!important;
+  color:var(--ux-paper-text)!important;
+  box-shadow:0 8px 20px rgba(17,24,39,.06)!important;
+  overflow:hidden!important;
+}
+body.nx.nx.nx .cfgTaskV20[open]{border-color:#8fb5c5!important;box-shadow:0 14px 32px rgba(17,24,39,.10)!important}
+body.nx.nx.nx .cfgTaskV20.filteredOut{display:none!important}
+body.nx.nx.nx .cfgSummaryV20{
+  list-style:none!important;
+  cursor:pointer!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px 14px!important;
+}
+body.nx.nx.nx .cfgSummaryV20::-webkit-details-marker{display:none!important}
+body.nx.nx.nx .cfgSummaryIcon{
+  width:38px!important;
+  height:38px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-cyan),var(--ux-violet))!important;
+  color:#fff!important;
+}
+body.nx.nx.nx .cfgSummaryMain{min-width:0!important}
+body.nx.nx.nx .cfgSummaryMain b{
+  display:block!important;
+  color:var(--ux-paper-text)!important;
+  font-size:15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .cfgSummaryMain span{
+  display:block!important;
+  margin-top:2px!important;
+  color:var(--ux-paper-muted)!important;
+  font-size:12px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.nx.nx.nx .cfgSummaryBadges{display:flex!important;flex-wrap:wrap!important;gap:5px!important;justify-content:flex-end!important}
+body.nx.nx.nx :is(.cfgOps,.cfgSummaryOps,.refMiniOps,.gqMetaActions,.gqDailyRowOps){
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx :is(.cfgOps button,.refMiniOps button,.gqMetaBtn,.gqDailyMiniBtn){
+  min-height:32px!important;
+  padding:0 10px!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .cfgBodyV20{
+  padding:12px 14px 14px!important;
+  border-top:1px solid #e1e8f1!important;
+  background:#f8fafc!important;
+}
+body.nx.nx.nx :is(.cfgGrid,.refCfgGrid,.cfgAdvancedGrid){
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important;
+  gap:10px!important;
+}
+body.nx.nx.nx :is(.cfgField,.refCfgField,.refMiniField,.targetCustomInput,.gqMetaField,.gqIconEditorBody){
+  display:grid!important;
+  gap:6px!important;
+  min-width:0!important;
+  padding:10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #e0e7f0!important;
+  background:#fff!important;
+  color:var(--ux-paper-text)!important;
+}
+body.nx.nx.nx :is(.cfgField.wide,.refCfgField.wide){grid-column:span 2!important}
+body.nx.nx.nx :is(.cfgField label,.refCfgField label,.refMiniField label,.ghLabel,.targetCustomInput span,.cfgDaysLabel,.gqMetaField label,.gqIconEditorBody label){
+  color:#334155!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+body.nx.nx.nx :is(.cfgDays,.cfgFlags,.refCfgFlags,.gqDayPicker){
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+}
+body.nx.nx.nx :is(.cfgDays label,.cfgFlags label,.refCfgFlags label,.gqDayChip,.gqMetaEnabledWrap){
+  min-height:32px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:6px 9px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #cbd7e6!important;
+  background:#f8fafc!important;
+  color:#111827!important;
+  font-weight:760!important;
+}
+body.nx.nx.nx .gqDayChip:has(.gqDayBox:checked){
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+  border-color:#05070b!important;
+}
+body.nx.nx.nx .disabledTaskVault{
+  border:1px dashed #cbd7e6!important;
+  border-radius:var(--ux-radius)!important;
+  background:#f8fafc!important;
+}
+body.nx.nx.nx .disabledTaskVault>summary{
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:13px 14px!important;
+  color:#111827!important;
+  cursor:pointer!important;
+}
+body.nx.nx.nx .disabledTaskVault>summary :is(b,em,span){color:#111827!important}
+
+/* Game editor */
+body.nx.nx.nx #gameQuestEditorDays.gameQuestEditorDays{
+  margin-top:10px!important;
+  padding:8px 20px!important;
+  border-bottom:1px solid #d7e1ee!important;
+  background:rgba(244,247,251,.96)!important;
+}
+body.nx.nx.nx #gameQuestEditorDays:empty{display:none!important}
+body.nx.nx.nx .gameQuestEditGroup{
+  padding:14px!important;
+  background:#f8fafc!important;
+}
+body.nx.nx.nx .gameQuestEditHead{
+  padding:12px!important;
+  margin:0 0 12px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#111821!important;
+  color:var(--ux-text)!important;
+}
+body.nx.nx.nx .gameQuestEditHead :is(b,span){color:var(--ux-text)!important}
+body.nx.nx.nx .gameQuestEditHead span{display:block!important;margin-top:4px!important;color:var(--ux-muted)!important;font-size:12px!important;line-height:1.45!important}
+body.nx.nx.nx .gqDailyDeck{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))!important;
+  gap:12px!important;
+}
+body.nx.nx.nx .gqDailyCard{background:#fff!important}
+body.nx.nx.nx .gqDailyCardHead{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px!important;
+  border-bottom:1px solid #e1e8f1!important;
+  background:#f8fafc!important;
+}
+body.nx.nx.nx .gqDailyTitleWrap b{color:#111827!important}
+body.nx.nx.nx .gqDailyTitleWrap em{color:#58677d!important;font-style:normal!important}
+body.nx.nx.nx .gqDailyRows{display:grid!important;gap:8px!important;padding:12px!important}
+body.nx.nx.nx .gqDailyRow{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:8px!important;
+  align-items:start!important;
+  padding:10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  border:1px solid #e1e8f1!important;
+  background:#fff!important;
+}
+
+body.nx.nx.nx .gqDailyTaskTitle{
+  grid-column:1/-1!important;
+  width:100%!important;
+  min-width:0!important;
+}
+
+body.nx.nx.nx .gqDailyDays,
+body.nx.nx.nx .gqDailyDayChecks,
+body.nx.nx.nx .gqDailyWeekdays,
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayPicker{
+  min-width:0!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayChip{
+  flex:0 0 auto!important;
+}
+
+body.nx.nx.nx .gqDailyRowOps{
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  max-width:132px!important;
+}
+
+body.nx.nx.nx .gqDailyMiniBtn{
+  flex:0 0 32px!important;
+  min-width:32px!important;
+}
+
+body.nx.nx.nx .gqDailyMiniBtn:not(.gqMoveBtn):not(.danger){
+  flex-basis:auto!important;
+  min-width:44px!important;
+}
+body.nx.nx.nx .gameQuestWeeklyGroup .gameQuestEditRow{
+  display:grid!important;
+  grid-template-columns:170px minmax(0,1fr)!important;
+  gap:10px!important;
+  align-items:stretch!important;
+  padding:12px!important;
+  margin-bottom:10px!important;
+}
+body.nx.nx.nx .gameQuestEditGame{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  justify-content:center!important;
+  color:#111827!important;
+}
+body.nx.nx.nx .gameQuestEditGame :is(b,em){color:#111827!important}
+body.nx.nx.nx .gameQuestEditGame em{color:#58677d!important;font-style:normal!important}
+body.nx.nx.nx .gameQuestMetaDetails{
+  margin:14px 20px 20px!important;
+  background:#fff!important;
+}
+body.nx.nx.nx .gameQuestMetaDetails summary{
+  list-style:none!important;
+  cursor:pointer!important;
+  padding:13px 14px!important;
+  color:#111827!important;
+}
+body.nx.nx.nx .gameQuestMetaDetails summary :is(b,em,span){color:#111827!important}
+body.nx.nx.nx .gameQuestMetaBody{padding:12px!important;background:#f8fafc!important}
+body.nx.nx.nx .gqMetaGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;
+  gap:10px!important;
+  margin-top:10px!important;
+}
+body.nx.nx.nx .gqMetaRow{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:9px!important;
+  padding:12px!important;
+}
+body.nx.nx.nx .gqIconPreview{
+  width:42px!important;
+  height:42px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(135deg,var(--ux-cyan),var(--ux-violet))!important;
+  color:#fff!important;
+}
+
+/* Reference editor */
+body.nx.nx.nx .refEditorList{
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr))!important;
+}
+body.nx.nx.nx .refCfgGroup{
+  padding:12px!important;
+}
+body.nx.nx.nx .cfgTop{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding-bottom:10px!important;
+  margin-bottom:10px!important;
+  border-bottom:1px solid #e1e8f1!important;
+}
+body.nx.nx.nx .refItemsBox{
+  display:grid!important;
+  gap:8px!important;
+}
+body.nx.nx.nx .refItemEdit{
+  display:grid!important;
+  grid-template-columns:minmax(80px,1fr) minmax(100px,1fr) auto!important;
+  gap:8px!important;
+  align-items:end!important;
+  padding:10px!important;
+}
+
+/* Weekly target and time detail modals */
+body.nx.nx.nx .weeklyTargetCard{
+  padding:20px!important;
+  background:#fff!important;
+  color:#111827!important;
+}
+body.nx.nx.nx .weeklyTargetHead :is(span,b,em){color:#111827!important}
+body.nx.nx.nx .targetPresetGrid{
+  display:grid!important;
+  grid-template-columns:repeat(5,1fr)!important;
+  gap:8px!important;
+  margin-top:16px!important;
+}
+body.nx.nx.nx .targetPreset.active{
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+}
+body.nx.nx.nx .weeklyTargetActions{
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  margin-top:16px!important;
+}
+body.nx.nx.nx .timeDetailCard{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  background:#fff!important;
+  color:#111827!important;
+  overflow:hidden!important;
+}
+body.nx.nx.nx .timeDetailHead{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:14px 16px!important;
+  border-bottom:1px solid #d7e1ee!important;
+  background:#f8fafc!important;
+}
+body.nx.nx.nx .timeDetailHead :is(span,b){color:#111827!important}
+body.nx.nx.nx .timeDetailBody{padding:14px 16px!important;overflow:auto!important}
+body.nx.nx.nx :is(.timeDetailStats>div,.timeDetailProgress,.timeDetailLogs li){
+  border:1px solid #d7e1ee!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#f8fafc!important;
+  color:#111827!important;
+}
+
+/* Control center */
+body.nx.nx.nx .controlCenterMenu{
+  position:fixed!important;
+  right:14px!important;
+  top:82px!important;
+  width:min(320px,calc(100vw - 28px))!important;
+  display:grid!important;
+  gap:6px!important;
+  padding:10px!important;
+  background:#fff!important;
+  color:#111827!important;
+}
+body.nx.nx.nx .controlCenterMenu.hidden{display:none!important}
+body.nx.nx.nx .controlCenterMenu button{width:100%!important;justify-content:flex-start!important;box-shadow:none!important}
+.toastBox{border-radius:var(--ux-radius)!important;background:#070b11!important;color:var(--ux-text)!important;border:1px solid rgba(232,255,26,.42)!important}
+
+/* Lock */
+.lockScreen{
+  position:fixed!important;
+  inset:0!important;
+  z-index:10000!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:18px!important;
+  background:linear-gradient(180deg,rgba(5,7,11,.82),rgba(5,7,11,.96)),url("../images/css/background-collage.png") center/cover no-repeat!important;
+}
+.lockCard{
+  width:min(520px,94vw)!important;
+  padding:22px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line-strong)!important;
+  background:#111821!important;
+  color:var(--ux-text)!important;
+  box-shadow:var(--ux-shadow)!important;
+}
+.lockBadge{display:inline-flex!important;padding:5px 9px!important;border-radius:var(--ux-radius-sm)!important;background:var(--ux-lime)!important;color:#05070b!important;font-family:var(--ux-display)!important}
+.lockTitle{margin:14px 0 8px!important;font-size:32px!important;font-family:var(--ux-display)!important;color:var(--ux-text)!important}
+.lockForm{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;margin:14px 0 10px!important}
+.lockRemember{display:flex!important;align-items:center!important;gap:7px!important}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}
+}
+
+@media(max-width:1100px){
+  body.nx.nx.nx .inertiaHeader{grid-template-columns:1fr!important}
+  body.nx.nx.nx .globalToolbar{max-width:100%!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.nx.nx.nx .weeklyCommandHero,
+  body.nx.nx.nx .timePanelHeader,
+  body.nx.nx.nx .gameQuestTopBarStandalone{grid-template-columns:1fr!important}
+  body.nx.nx.nx .timeTaskRow{grid-template-columns:minmax(0,1fr) auto!important}
+  body.nx.nx.nx .timeTaskMeter,
+  body.nx.nx.nx .timeTargetSafeBtn{grid-column:1/-1!important}
+}
+
+@media(max-width:760px){
+  body,body.nx{background-attachment:scroll!important}
+  .wrap,body.nx .wrap{padding:8px 8px 34px!important}
+  body.nx.nx.nx .inertiaHeader{padding:10px!important}
+  body.nx.nx.nx .inertiaHeader::after{width:26%!important}
+  body.nx.nx.nx .inertiaHeroBrand{grid-template-columns:48px minmax(0,1fr)!important;gap:9px!important}
+  body.nx.nx.nx .inertiaHeroMark{width:48px!important;height:48px!important}
+  body.nx.nx.nx .inertiaBrandRow{display:none!important}
+  body.nx.nx.nx .inertiaHeroTitle{display:grid!important;grid-template-columns:1fr!important;gap:1px!important}
+  body.nx.nx.nx .inertiaTitleSlash{display:none!important}
+  body.nx.nx.nx :is(.inertiaTitleCn,.inertiaTitleEn,.titleGlow){font-size:26px!important;line-height:1!important}
+  body.nx.nx.nx .inertiaSubtitle{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;font-size:12px!important}
+  body.nx.nx.nx .globalToolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+  body.nx.nx.nx .viewDock{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;overflow:visible!important;padding:6px!important}
+  body.nx.nx.nx .viewDockBtn{width:100%!important;min-width:0!important;min-height:48px!important}
+  body.nx.nx.nx .tableBox{display:none!important}
+  body.nx.nx.nx .mobileBox{display:block!important}
+  body.nx.nx.nx .taskRingControlHead{display:grid!important;gap:8px!important}
+  body.nx.nx.nx .taskRingActionRow{display:grid!important;grid-template-columns:1fr 1fr!important}
+  body.nx.nx.nx .taskRingActionRow button{width:100%!important}
+  body.nx.nx.nx .weeklyShell,
+  body.nx.nx.nx .timePanelShell,
+  body.nx.nx.nx .gameQuestShell{padding:10px!important}
+  body.nx.nx.nx :is(.weeklyCommandHero b,.gameQuestTopTitle strong,.timePanelHeader b){font-size:22px!important}
+  body.nx.nx.nx :is(.weeklyHeroStats,.timeStatCards){display:grid!important;grid-template-columns:1fr 1fr!important}
+  body.nx.nx.nx .weeklyMissionGrid,
+  body.nx.nx.nx :is(.gameQuestGrid,.gameQuestWeeklyGrid),
+  body.nx.nx.nx .gqDailyDeck{grid-template-columns:1fr!important}
+  body.nx.nx.nx .weeklyMissionCard .missionHead{grid-template-columns:auto minmax(0,1fr)!important}
+  body.nx.nx.nx .missionScore{grid-column:2!important;text-align:left!important}
+  body.nx.nx.nx .missionActions>*{flex:1 1 calc(50% - 4px)!important}
+  body.nx.nx.nx .timeBudgetList{grid-template-columns:1fr!important}
+  body.nx.nx.nx .timeTaskRow{grid-template-columns:1fr!important}
+  body.nx.nx.nx .timeTaskName{grid-template-columns:auto minmax(0,1fr)!important}
+  body.nx.nx.nx .timeTaskValue{justify-content:flex-start!important}
+  body.nx.nx.nx .gqDailyRow{grid-template-columns:1fr!important}
+  body.nx.nx.nx .gqDayPicker{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important}
+  body.nx.nx.nx .gameQuestWeeklyGroup .gameQuestEditRow{grid-template-columns:1fr!important}
+  body.nx.nx.nx .refEditorList{grid-template-columns:1fr!important}
+  body.nx.nx.nx .refItemEdit{grid-template-columns:1fr!important}
+  body.nx.nx.nx :is(.ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.weeklyTargetModal,.timeDetailModal){padding:8px!important}
+  body.nx.nx.nx :is(#taskEditorModal .taskEditorCard,#refEditorModal .refEditorCard,#gameQuestEditorModal .gameQuestEditorCard,.ghModalCard,.weeklyTargetCard,.timeDetailCard){width:100%!important;max-height:calc(100vh - 16px)!important}
+  body.nx.nx.nx :is(.taskEditorToolbar,.gameQuestEditorToolbar,.ghActions){top:68px!important;padding:10px 12px!important}
+  body.nx.nx.nx :is(.taskEditorHead,.ghModalHead){padding:14px 12px 10px!important}
+  body.nx.nx.nx :is(.taskEditorList,.refEditorList,.gameQuestEditorList,#gameQuestEditorDays,.ghLog){margin-left:12px!important;margin-right:12px!important}
+  body.nx.nx.nx .taskEditorCommandDeck{grid-template-columns:1fr!important}
+  body.nx.nx.nx .editorScopeTabs{justify-content:flex-start!important}
+  body.nx.nx.nx .cfgSummaryV20{grid-template-columns:auto minmax(0,1fr)!important}
+  body.nx.nx.nx .cfgSummaryBadges,
+  body.nx.nx.nx .cfgSummaryOps{grid-column:1/-1!important;justify-content:flex-start!important}
+  body.nx.nx.nx :is(.cfgField.wide,.refCfgField.wide){grid-column:span 1!important}
+  body.nx.nx.nx .editorBottomBar{display:grid!important;grid-template-columns:1fr!important;padding:10px 12px 12px!important}
+  body.nx.nx.nx .editorBottomBar button{width:100%!important;min-width:0!important}
+  body.nx.nx.nx .targetPresetGrid{grid-template-columns:repeat(2,1fr)!important}
+}
+
+@media(max-width:420px){
+  body.nx.nx.nx :is(.weeklyHeroStats,.timeStatCards){grid-template-columns:1fr!important}
+  body.nx.nx.nx .taskRingActionRow{grid-template-columns:1fr!important}
+  body.nx.nx.nx .missionActions>*{flex-basis:100%!important}
+  body.nx.nx.nx .gqDayPicker{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+
+@media(max-width:360px){
+  body.nx.nx.nx .viewDock{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* Final fixes from rendered contrast audit. */
+body.nx.nx.nx :is(.weeklyCategoryTab.active,.gameQuestModeBtn.active,.gameQuestFilterTabs button.active) b{
+  background:#05070b!important;
+  color:var(--ux-lime)!important;
+  border-color:#05070b!important;
+}
+
+body.nx.nx.nx #timePanel .timeTaskRow .timeTaskName{
+  color:var(--ux-text)!important;
+}
+
+body.nx.nx.nx #timePanel .timeTaskRow .timeTaskName > b,
+body.nx.nx.nx #timePanel .timeTaskRow .timeTaskName > span:not(.planModeBadge){
+  color:var(--ux-text)!important;
+}
+
+body.nx.nx.nx #timePanel .timeLedgerIdle span{
+  background:linear-gradient(135deg,var(--ux-lime),var(--ux-cyan))!important;
+  color:#05070b!important;
+}
+
+body.nx.nx.nx .inertiaTitleCn{
+  background:none!important;
+  color:#f8fbff!important;
+  -webkit-text-fill-color:#f8fbff!important;
+  text-shadow:0 2px 0 #05070b, 0 0 18px rgba(35,217,232,.38)!important;
+}
+
+body.nx.nx.nx .inertiaTitleEn,
+body.nx.nx.nx .titleGlow{
+  color:#9a74ff!important;
+  -webkit-text-fill-color:#9a74ff!important;
+  text-shadow:0 2px 0 #05070b, 0 0 22px rgba(137,93,255,.46)!important;
+}
+
+/* v24 usability fixes: visibility, overflow, and editor ergonomics. */
+body.nx.nx.nx [data-view-panel]:not(.active){
+  display:none!important;
+}
+
+body.nx.nx.nx .globalToolbar{
+  grid-template-columns:minmax(0,.72fr) minmax(0,1fr)!important;
+}
+
+body.nx.nx.nx .globalToolbar :is(.pill,#todayLabel,#cycleLabel){
+  min-width:0!important;
+  width:100%!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  line-height:1.22!important;
+}
+
+body.nx.nx.nx #cycleLabel{
+  grid-column:auto!important;
+  justify-content:center!important;
+  height:auto!important;
+  min-height:38px!important;
+  padding:6px 10px!important;
+  font-size:11px!important;
+}
+
+body.nx.nx.nx .taskRingControlPanel{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+
+body.nx.nx.nx .taskRingControlPanel .progress-wrap{
+  width:100%!important;
+  min-width:0!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer,.weeklyAllocationDrawer){
+  border:1px solid var(--ux-line)!important;
+  border-radius:var(--ux-radius)!important;
+  background:#0d131b!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer,.weeklyAllocationDrawer)>summary{
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-height:38px!important;
+  padding:9px 12px!important;
+  cursor:pointer!important;
+  color:var(--ux-text)!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer,.weeklyAllocationDrawer)>summary::-webkit-details-marker{display:none!important}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer,.weeklyAllocationDrawer)>summary span{
+  color:var(--ux-lime)!important;
+  font-family:var(--ux-display)!important;
+  font-size:11px!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer,.weeklyAllocationDrawer)>summary b{
+  color:var(--ux-cyan)!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer[open],.weeklyAllocationDrawer[open])>summary b::before{
+  content:"收起"!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx :is(.weeklyStatsDrawer[open],.weeklyAllocationDrawer[open])>summary b{
+  font-size:0!important;
+}
+
+body.nx.nx.nx .weeklyStatsDrawer .weeklyHeroStats,
+body.nx.nx.nx .weeklyAllocationDrawer .allocationRibbon{
+  padding:10px!important;
+}
+
+body.nx.nx.nx .weeklyAllocationDrawer:not([open]) .allocationRibbon,
+body.nx.nx.nx .weeklyStatsDrawer:not([open]) .weeklyHeroStats{
+  display:none!important;
+}
+
+body.nx.nx.nx .weeklyAllocationDrawer .allocationRibbon{
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr))!important;
+}
+
+body.nx.nx.nx .weeklyAllocationDrawer .allocationChip{
+  min-height:50px!important;
+  padding:8px!important;
+}
+
+body.nx.nx.nx .weeklyAllocationDrawer .allocationChip em{
+  margin-top:2px!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx .weeklyAllocationDrawer .allocationChip i{
+  margin-top:6px!important;
+  height:5px!important;
+}
+
+body.nx.nx.nx .weeklyMissionGrid{
+  grid-template-columns:repeat(auto-fill,minmax(320px,360px))!important;
+  justify-content:start!important;
+  align-items:start!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard{
+  width:100%!important;
+  min-height:154px!important;
+  display:grid!important;
+  grid-template-rows:auto auto auto auto!important;
+  gap:10px!important;
+  overflow:hidden!important;
+  border-left:0!important;
+  border-top:4px solid var(--ux-cyan)!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionHead{
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:start!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionScore{
+  grid-column:1/-1!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:6px 8px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:linear-gradient(90deg,rgba(24,217,244,.14),rgba(255,63,143,.12))!important;
+  text-align:left!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionScore :is(strong,em){
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionMeter{
+  margin:0!important;
+  height:10px!important;
+  border:1px solid rgba(24,217,244,.22)!important;
+  background:#05070b!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionMeter i{
+  background:linear-gradient(90deg,#6cff7f 0%,#18d9f4 52%,#b56cff 100%)!important;
+  box-shadow:0 0 18px rgba(24,217,244,.42)!important;
+}
+
+body.nx.nx.nx .weeklySubtasks{
+  margin-top:0!important;
+  border:1px solid rgba(219,230,244,.18)!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#0c1118!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .weeklySubtasks>summary{
+  list-style:none!important;
+  min-height:34px!important;
+  padding:8px 10px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  cursor:pointer!important;
+  color:var(--ux-text)!important;
+  font-weight:900!important;
+}
+
+body.nx.nx.nx .weeklySubtasks>summary::-webkit-details-marker{display:none!important}
+body.nx.nx.nx .weeklySubtasks>summary b{color:var(--ux-text)!important}
+body.nx.nx.nx .weeklySubtasks>summary span{color:var(--ux-cyan)!important}
+
+body.nx.nx.nx .weeklyStepList{
+  display:grid!important;
+  gap:7px!important;
+  padding:8px!important;
+}
+
+body.nx.nx.nx .weeklyStepItem{
+  min-height:38px!important;
+  padding:8px 10px!important;
+  border-radius:var(--ux-radius-sm)!important;
+  background:#f8fafc!important;
+  color:#111827!important;
+}
+
+body.nx.nx.nx .weeklyStepItem span{color:#111827!important}
+
+body.nx.nx.nx #refBox.priorityRefBox{
+  background:#eef3f8!important;
+  color:#111827!important;
+  border-color:#cbd7e6!important;
+  box-shadow:var(--ux-shadow-soft)!important;
+}
+
+body.nx.nx.nx #refBox.priorityRefBox>summary{
+  background:#d9dee5!important;
+  border-bottom:1px solid #cbd7e6!important;
+}
+
+body.nx.nx.nx #refBox :is(.refSummaryTitle,.refGroup h3,.refGroup summary,.refGroup summary b){
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  text-shadow:none!important;
+}
+
+body.nx.nx.nx #refBox .refSummarySub{color:#5b6678!important}
+body.nx.nx.nx #refBox .refGroup{
+  min-height:0!important;
+  background:#fff!important;
+  border-color:#cbd7e6!important;
+  box-shadow:0 14px 34px rgba(15,23,42,.14)!important;
+}
+
+body.nx.nx.nx #refBox :is(.refLink,.refPlain){
+  background:#f4f7fb!important;
+  color:#283246!important;
+  border-color:#d7e1ee!important;
+  text-shadow:none!important;
+}
+
+body.nx.nx.nx #refBox :is(.refLink,.refPlain) *{color:#283246!important}
+
+body.nx.nx.nx .timeBudgetList{
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+}
+
+body.nx.nx.nx .timeBudgetRow{
+  min-height:70px!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-content:center!important;
+  gap:7px!important;
+}
+
+body.nx.nx.nx .timeBudgetLabel{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+}
+
+body.nx.nx.nx .timeBudgetLabel :is(b,span){
+  color:var(--ux-text)!important;
+}
+
+body.nx.nx.nx .timeBudgetValue{
+  color:var(--ux-muted)!important;
+  font-weight:900!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx .timeLogGrid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:12px!important;
+}
+
+body.nx.nx.nx .timeRecentLine{
+  min-height:82px!important;
+  padding:14px!important;
+  border-radius:var(--ux-radius)!important;
+  border:1px solid var(--ux-line)!important;
+  background:linear-gradient(180deg,#151d28,#101720)!important;
+  color:var(--ux-text)!important;
+}
+
+body.nx.nx.nx .timeRecentLine>span{
+  display:block!important;
+  margin-bottom:8px!important;
+  color:var(--ux-lime)!important;
+  font-weight:1000!important;
+}
+
+body.nx.nx.nx .timeTodayChips,
+body.nx.nx.nx .timeTaskRank ol{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+body.nx.nx.nx .timeTodayChips span,
+body.nx.nx.nx .timeTaskRank li{
+  min-height:28px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  padding:5px 10px!important;
+  border-radius:999px!important;
+  background:#f4f7fb!important;
+  color:#1b2433!important;
+  font-weight:900!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.7)!important;
+}
+
+body.nx.nx.nx .timeTaskRank li :is(b,span){
+  color:#1b2433!important;
+  white-space:nowrap!important;
+}
+
+body.nx.nx.nx .gameQuestMetaDetails{
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .gameQuestMetaBody{
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .gqMetaGrid{
+  grid-template-columns:repeat(auto-fit,minmax(520px,1fr))!important;
+  align-items:start!important;
+}
+
+body.nx.nx.nx .gqMetaRow{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-areas:
+    "icon icon icon"
+    "name short accent"
+    "enabled actions actions"!important;
+  align-items:end!important;
+  gap:12px!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .gqMetaIconEditor{
+  grid-area:icon!important;
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:58px minmax(0,1fr)!important;
+  gap:12px!important;
+  align-items:start!important;
+}
+body.nx.nx.nx .gqMetaField.name{grid-area:name!important}
+body.nx.nx.nx .gqMetaField.short{grid-area:short!important}
+body.nx.nx.nx .gqMetaField.accent{grid-area:accent!important}
+body.nx.nx.nx .gqMetaEnabledWrap{grid-area:enabled!important;min-height:38px!important}
+body.nx.nx.nx .gqMetaActions{grid-area:actions!important;justify-content:flex-end!important;flex-wrap:wrap!important}
+
+body.nx.nx.nx .gqIconEditorBody{
+  display:grid!important;
+  gap:7px!important;
+  min-width:0!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .gqIconPicker,
+body.nx.nx.nx .gqIconPalette{
+  max-width:100%!important;
+  max-height:none!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:6px!important;
+  padding:2px 2px 6px!important;
+}
+
+body.nx.nx.nx .gqIconPick{
+  flex:0 0 34px!important;
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  box-shadow:none!important;
+}
+
+body.nx.nx.nx .gqMetaRow input,
+body.nx.nx.nx .gqMetaRow select{
+  width:100%!important;
+  min-width:0!important;
+}
+
+body.nx.nx.nx .mTask,
+body.nx.nx.nx .taskCard,
+body.nx.nx.nx .mobileTaskCard{
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .mTask :is(.taskBtns,.mActions,.taskActions){
+  position:static!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  margin-top:8px!important;
+}
+
+body.nx.nx.nx .mTask :is(.taskText,.mTitle,.taskName){
+  color:var(--ux-text)!important;
+  font-weight:900!important;
+  line-height:1.35!important;
+  padding-right:0!important;
+}
+
+body.nx.nx.nx .weeklyTargetCard{
+  position:relative!important;
+  width:min(760px,calc(100vw - 32px))!important;
+  padding:28px 28px 22px!important;
+  overflow:visible!important;
+}
+
+body.nx.nx.nx .weeklyTargetClose{
+  position:absolute!important;
+  top:14px!important;
+  right:14px!important;
+  left:auto!important;
+  z-index:5!important;
+}
+
+body.nx.nx.nx .weeklyTargetHead{
+  padding-right:50px!important;
+}
+
+body.nx.nx.nx .weeklyTargetHead b{
+  display:block!important;
+  color:#111827!important;
+  font-size:20px!important;
+  line-height:1.25!important;
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+}
+
+body.nx.nx.nx .weeklyTargetHead em{
+  color:#475569!important;
+  font-style:normal!important;
+  line-height:1.45!important;
+}
+
+body.nx.nx.nx .weeklyMissionGroup>header{
+  position:relative!important;
+  min-height:58px!important;
+  padding:11px 12px 15px!important;
+  border:1px solid rgba(219,230,244,.18)!important;
+  border-radius:var(--ux-radius)!important;
+  background:#0d131b!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .weeklyMissionGroup>header::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  bottom:0!important;
+  width:var(--w,0%)!important;
+  height:5px!important;
+  background:linear-gradient(90deg,#6cff7f,#18d9f4 55%,#b56cff)!important;
+  box-shadow:0 0 18px rgba(24,217,244,.45)!important;
+}
+
+body.nx.nx.nx .weeklyMissionGroup>header strong{
+  flex:0 0 auto!important;
+  min-width:72px!important;
+  padding:5px 8px!important;
+  border-radius:999px!important;
+  background:#05070b!important;
+  color:var(--ux-text)!important;
+  text-align:center!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  width:var(--w,0%)!important;
+  height:4px!important;
+  background:linear-gradient(90deg,#6cff7f,#18d9f4 55%,#b56cff)!important;
+  box-shadow:0 0 18px rgba(24,217,244,.42)!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard .missionActions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  margin-top:0!important;
+  gap:6px!important;
+}
+
+body.nx.nx.nx .weeklyMissionCard :is(.missionPrimary,.missionGhost,.missionLink,.safeTargetEdit){
+  width:100%!important;
+  min-height:31px!important;
+  padding:0 9px!important;
+  font-size:12px!important;
+}
+
+@media(max-width:760px){
+  body.nx.nx.nx .globalToolbar .controlCenterBtn{grid-column:1!important;grid-row:1!important}
+  body.nx.nx.nx .globalToolbar .ghSetupBtn{grid-column:2!important;grid-row:1!important}
+  body.nx.nx.nx #todayLabel{grid-column:1!important;grid-row:2!important}
+  body.nx.nx.nx .globalToolbar .githubInlineState{grid-column:2!important;grid-row:2!important}
+  body.nx.nx.nx #cycleLabel{
+    grid-column:1/-1!important;
+    grid-row:3!important;
+  }
+  body.nx.nx.nx .gameQuestMetaBody,
+  body.nx.nx.nx .gqMetaGrid,
+  body.nx.nx.nx .gqMetaRow,
+  body.nx.nx.nx .gqIconEditorBody{
+    min-width:0!important;
+    width:100%!important;
+  }
+  body.nx.nx.nx .gqMetaGrid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  body.nx.nx.nx .gameQuestPrimaryBtn.slim{
+    width:100%!important;
+  }
+  body.nx.nx.nx .gqMetaRow{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:
+      "icon"
+      "name"
+      "short"
+      "accent"
+      "enabled"
+      "actions"!important;
+  }
+  body.nx.nx.nx .gqMetaIconEditor{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  body.nx.nx.nx .gqIconPreview{
+    width:54px!important;
+    height:54px!important;
+  }
+  body.nx.nx.nx .gqMetaActions{
+    justify-content:stretch!important;
+  }
+  body.nx.nx.nx .gqMetaActions button{
+    flex:1 1 0!important;
+  }
+}
+
+/* v25 focused readability and editor-density repair */
+body.nx.nx.nx .inertiaTitleEn{
+  background:linear-gradient(90deg,#73ffd7 0%,#2bdcff 46%,#a886ff 78%,#ff4fb1 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:0 0 22px rgba(43,220,255,.18)!important;
+}
+
+body.nx.nx.nx .inertiaSubtitle{
+  max-width:980px!important;
+  color:#d7e3f5!important;
+  text-wrap:balance!important;
+}
+
+body.nx.nx.nx .globalToolbar{
+  position:relative!important;
+  gap:8px!important;
+  align-self:start!important;
+}
+
+body.nx.nx.nx .globalToolbar .githubInlineState{
+  min-width:0!important;
+  width:auto!important;
+  min-height:24px!important;
+  height:24px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  background:rgba(13,19,27,.9)!important;
+  border:1px solid rgba(91,255,167,.32)!important;
+  color:#dfffee!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.2),0 0 18px rgba(91,255,167,.12)!important;
+}
+
+body.nx.nx.nx .globalToolbar .githubInlineState .ghInlineText{
+  color:#dfffee!important;
+}
+
+@media(min-width:761px){
+  body.nx.nx.nx .globalToolbar{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    padding-top:26px!important;
+  }
+  body.nx.nx.nx .globalToolbar .githubInlineState{
+    position:absolute!important;
+    right:0!important;
+    top:0!important;
+    z-index:3!important;
+  }
+}
+
+body.nx.nx.nx #todayLabel,
+body.nx.nx.nx #cycleLabel{
+  position:relative!important;
+  overflow:hidden!important;
+  justify-content:flex-start!important;
+  gap:8px!important;
+  min-height:42px!important;
+  padding:8px 13px!important;
+  border-color:rgba(43,220,255,.36)!important;
+  background:
+    linear-gradient(135deg,rgba(248,251,255,.96) 0 58%,rgba(43,220,255,.18) 58% 100%)!important;
+  color:#111827!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),0 10px 22px rgba(0,0,0,.16)!important;
+}
+
+body.nx.nx.nx #todayLabel::before,
+body.nx.nx.nx #cycleLabel::before{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:44px!important;
+  height:20px!important;
+  padding:0 7px!important;
+  border-radius:999px!important;
+  background:#071017!important;
+  color:#e8ff1a!important;
+  font-family:var(--ux-display)!important;
+  font-size:10px!important;
+  letter-spacing:.08em!important;
+  line-height:1!important;
+  box-shadow:0 0 18px rgba(43,220,255,.16)!important;
+}
+
+body.nx.nx.nx #todayLabel::before{content:"TODAY"!important}
+body.nx.nx.nx #cycleLabel::before{content:"CYCLE"!important}
+
+body.nx.nx.nx .gameQuestTopTitle em{
+  color:#cbd8ec!important;
+  font-weight:850!important;
+  line-height:1.35!important;
+}
+
+body.nx.nx.nx .gameQuestTopMeter{
+  min-width:126px!important;
+  min-height:60px!important;
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr)!important;
+  grid-template-rows:1fr auto!important;
+  align-items:center!important;
+  gap:4px 9px!important;
+  padding:8px 10px!important;
+  border-radius:10px!important;
+  background:
+    linear-gradient(135deg,rgba(8,13,20,.98),rgba(19,28,41,.98)),
+    linear-gradient(135deg,#e8ff1a,#28d7ef,#ff4fb1)!important;
+  border:1px solid rgba(43,220,255,.34)!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+
+body.nx.nx.nx .gameQuestMiniRing{
+  grid-row:1/3!important;
+  position:relative!important;
+  width:42px!important;
+  height:42px!important;
+  border-radius:12px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:
+    conic-gradient(from -90deg,#29dfff var(--p,0%),rgba(255,255,255,.14) 0),
+    linear-gradient(135deg,#e8ff1a,#28d7ef)!important;
+  box-shadow:0 0 20px rgba(40,215,239,.18)!important;
+}
+
+body.nx.nx.nx .gameQuestMiniRing::before{
+  content:""!important;
+  position:absolute!important;
+  inset:5px!important;
+  border-radius:9px!important;
+  background:#f8fbff!important;
+}
+
+body.nx.nx.nx .gameQuestMiniRing i{
+  position:relative!important;
+  z-index:1!important;
+  color:#101827!important;
+  font-family:var(--ux-display)!important;
+  font-size:12px!important;
+  font-style:normal!important;
+  font-weight:950!important;
+}
+
+body.nx.nx.nx .gameQuestTopProgress{
+  align-self:end!important;
+  justify-self:start!important;
+  min-width:62px!important;
+  height:25px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  background:#05070b!important;
+  color:#fff!important;
+  font-family:var(--ux-display)!important;
+  font-size:13px!important;
+  letter-spacing:.02em!important;
+}
+
+body.nx.nx.nx .gameQuestTopMeter::after{
+  content:"BOARD"!important;
+  align-self:start!important;
+  justify-self:start!important;
+  color:#91a0b8!important;
+  font-family:var(--ux-display)!important;
+  font-size:10px!important;
+  letter-spacing:.12em!important;
+}
+
+body.nx.nx.nx .gameQuestWeeklyPane,
+body.nx.nx.nx .gameQuestDailyPane{
+  padding:14px!important;
+  border-radius:10px!important;
+}
+
+body.nx.nx.nx .gameQuestMetaStrip{
+  min-height:48px!important;
+  padding:10px 13px!important;
+  gap:10px!important;
+}
+
+body.nx.nx.nx .gameQuestFilterTabs,
+body.nx.nx.nx .gameQuestDays{
+  padding:8px!important;
+  gap:8px!important;
+  border-radius:10px!important;
+  background:rgba(7,12,19,.62)!important;
+  border:1px solid rgba(219,230,244,.14)!important;
+}
+
+body.nx.nx.nx .gameQuestFilterTabs button,
+body.nx.nx.nx .gameQuestDays button{
+  min-height:42px!important;
+  padding:7px 12px!important;
+  border-radius:8px!important;
+}
+
+body.nx.nx.nx .gameQuestSubHead{
+  min-height:38px!important;
+  padding:8px 11px!important;
+  border-radius:8px!important;
+  color:#111827!important;
+  background:linear-gradient(180deg,#f9fbff,#e9eef6)!important;
+  border:1px solid rgba(203,216,232,.96)!important;
+}
+
+body.nx.nx.nx .gameQuestSubHead :is(span,b){
+  color:#111827!important;
+  line-height:1.25!important;
+}
+
+body.nx.nx.nx .guideGrid{
+  grid-template-columns:repeat(6,minmax(150px,1fr))!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+
+body.nx.nx.nx .guideGrid .quoteCard{
+  min-height:118px!important;
+  padding:15px!important;
+  border-radius:10px!important;
+  background:linear-gradient(145deg,rgba(11,17,25,.94),rgba(17,25,36,.92))!important;
+  border:1px solid rgba(43,220,255,.24)!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.18)!important;
+}
+
+body.nx.nx.nx .guideGrid .quoteCard h2{
+  margin:0 0 12px!important;
+  color:#ff4fb1!important;
+  font-size:18px!important;
+  line-height:1.1!important;
+}
+
+body.nx.nx.nx .guideGrid .quoteCard p{
+  margin:0!important;
+  color:#eaf1fb!important;
+  font-weight:850!important;
+  line-height:1.45!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailCard{
+  width:min(1040px,calc(100vw - 32px))!important;
+  max-height:calc(100vh - 40px)!important;
+  background:#f7fbff!important;
+  color:#101827!important;
+  border:1px solid rgba(203,216,232,.96)!important;
+  box-shadow:0 30px 92px rgba(0,0,0,.36)!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailHead{
+  min-height:70px!important;
+  padding:16px 18px!important;
+  background:linear-gradient(135deg,#f8fbff 0 68%,rgba(43,220,255,.18) 68%)!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailHead span{
+  color:#0b1220!important;
+  font-family:var(--ux-display)!important;
+  letter-spacing:.12em!important;
+  opacity:1!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailHead b{
+  color:#0b1220!important;
+  font-size:20px!important;
+  line-height:1.25!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailClose{
+  width:42px!important;
+  height:42px!important;
+  border-radius:8px!important;
+  color:#111827!important;
+  background:#eef4fb!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailBody{
+  display:grid!important;
+  gap:12px!important;
+  padding:16px 18px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailStats{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailStats>div,
+body.nx.nx.nx #timeDetailModal .timeDetailProgress,
+body.nx.nx.nx #timeDetailModal .timeDetailLogs li{
+  background:#fff!important;
+  border:1px solid #d3deec!important;
+  color:#101827!important;
+  border-radius:10px!important;
+  box-shadow:0 10px 24px rgba(15,23,42,.06)!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailStats>div{
+  min-height:66px!important;
+  padding:12px!important;
+  display:grid!important;
+  align-content:center!important;
+  gap:5px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailStats span,
+body.nx.nx.nx #timeDetailModal .timeDetailProgress span,
+body.nx.nx.nx #timeDetailModal .timeDetailLogs li span{
+  color:#52627a!important;
+  opacity:1!important;
+  font-weight:850!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailStats b,
+body.nx.nx.nx #timeDetailModal .timeDetailProgress b,
+body.nx.nx.nx #timeDetailModal .timeDetailLogs li b{
+  color:#0b1220!important;
+  font-weight:950!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailProgress{
+  padding:12px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailProgress>div{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin-bottom:9px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailProgress i{
+  position:relative!important;
+  display:block!important;
+  height:10px!important;
+  overflow:hidden!important;
+  border-radius:999px!important;
+  background:#e7edf6!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailProgress i::before{
+  content:""!important;
+  display:block!important;
+  width:var(--w,0%)!important;
+  height:100%!important;
+  border-radius:inherit!important;
+  background:linear-gradient(90deg,#8aff6b,#25d8ee 54%,#b56cff)!important;
+  box-shadow:0 0 18px rgba(37,216,238,.36)!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailLogs{
+  display:grid!important;
+  gap:8px!important;
+  list-style:none!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailLogs li{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:48px!important;
+  padding:8px 10px!important;
+}
+
+body.nx.nx.nx #timeDetailModal .timeDetailLogs li button{
+  min-height:34px!important;
+  padding:0 12px!important;
+  border-radius:8px!important;
+  background:linear-gradient(135deg,#fff,#eaf1fa)!important;
+  color:#111827!important;
+}
+
+body.nx.nx.nx #refEditorModal .refEditorList{
+  grid-template-columns:repeat(auto-fit,minmax(540px,1fr))!important;
+  gap:14px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgGroup{
+  padding:16px!important;
+  border-radius:12px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refItemsBox{
+  gap:12px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refItemEdit{
+  grid-template-columns:minmax(150px,.8fr) minmax(260px,1.45fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:12px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniField{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniField label{
+  margin:0!important;
+  color:#1f2a3b!important;
+  white-space:nowrap!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniField input{
+  width:100%!important;
+  min-width:0!important;
+  height:42px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniOps{
+  flex-wrap:nowrap!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniOps button{
+  min-width:42px!important;
+  height:42px!important;
+  padding:0 11px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyDeck{
+  grid-template-columns:repeat(auto-fit,minmax(520px,1fr))!important;
+  gap:16px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyCard{
+  border-radius:12px!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRows{
+  gap:10px!important;
+  padding:14px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRow{
+  grid-template-columns:minmax(180px,.9fr) minmax(270px,1.35fr) auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:10px 12px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyTaskTitle{
+  grid-column:auto!important;
+  height:42px!important;
+  min-width:0!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayPicker{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  min-width:0!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayChip{
+  flex:0 0 40px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyRowOps{
+  flex-wrap:nowrap!important;
+  justify-content:flex-end!important;
+  gap:7px!important;
+}
+
+body.nx.nx.nx #gameQuestEditorModal .gqDailyMiniBtn{
+  min-width:38px!important;
+  height:38px!important;
+  padding:0 9px!important;
+}
+
+.lockScreen{
+  background:
+    linear-gradient(180deg,rgba(5,8,13,.68),rgba(5,8,13,.92)),
+    url("../images/css/background-collage.png") center/cover no-repeat!important;
+}
+
+.lockCard{
+  position:relative!important;
+  width:min(640px,94vw)!important;
+  padding:84px 28px 28px!important;
+  overflow:visible!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,rgba(248,251,255,.97),rgba(233,240,249,.94))!important;
+  border:1px solid rgba(203,216,232,.96)!important;
+  color:#111827!important;
+  box-shadow:0 32px 90px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+
+.lockCard::before{
+  top:-58px!important;
+  width:104px!important;
+  height:104px!important;
+  z-index:1!important;
+  border:4px solid #f8fbff!important;
+  box-shadow:0 18px 34px rgba(4,8,17,.34),0 0 0 5px rgba(43,220,255,.18)!important;
+}
+
+.lockBadge{
+  position:relative!important;
+  z-index:2!important;
+  margin:0 auto 16px!important;
+  display:inline-flex!important;
+  background:#071017!important;
+  color:#e8ff1a!important;
+  border:1px solid rgba(43,220,255,.38)!important;
+  box-shadow:0 0 26px rgba(43,220,255,.2)!important;
+}
+
+.lockTitle{
+  position:relative!important;
+  z-index:2!important;
+  margin:0 0 10px!important;
+  font-size:clamp(34px,6vw,52px)!important;
+  line-height:1.05!important;
+  text-align:center!important;
+  background:linear-gradient(90deg,#101827 0%,#225cff 42%,#00a9c8 72%,#d92a8c 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.9))!important;
+}
+
+.lockSub{
+  color:#334155!important;
+  text-align:center!important;
+  font-weight:900!important;
+}
+
+.lockForm{
+  margin-top:22px!important;
+  padding:10px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.72)!important;
+  border:1px solid rgba(203,216,232,.92)!important;
+}
+
+.lockFoot{
+  color:#53627a!important;
+  max-width:520px!important;
+  margin:20px auto 0!important;
+  line-height:1.55!important;
+}
+
+@media(max-width:1180px){
+  body.nx.nx.nx .guideGrid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+
+@media(max-width:760px){
+  body.nx.nx.nx .globalToolbar{
+    padding-top:0!important;
+  }
+  body.nx.nx.nx .globalToolbar .githubInlineState{
+    position:static!important;
+    grid-column:2!important;
+    grid-row:2!important;
+    justify-content:center!important;
+    min-height:42px!important;
+    height:42px!important;
+  }
+  body.nx.nx.nx #todayLabel,
+  body.nx.nx.nx #cycleLabel{
+    min-height:42px!important;
+    font-size:12px!important;
+  }
+  body.nx.nx.nx #cycleLabel{
+    min-height:54px!important;
+    white-space:normal!important;
+    flex-wrap:wrap!important;
+    line-height:1.25!important;
+    align-content:center!important;
+  }
+  body.nx.nx.nx #todayLabel::before,
+  body.nx.nx.nx #cycleLabel::before{
+    min-width:36px!important;
+    font-size:9px!important;
+  }
+  body.nx.nx.nx .gameQuestTopMeter{
+    min-width:0!important;
+    width:100%!important;
+  }
+  body.nx.nx.nx .guideGrid{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #timeDetailModal .timeDetailCard{
+    width:calc(100vw - 18px)!important;
+    max-height:calc(100vh - 18px)!important;
+  }
+  body.nx.nx.nx #timeDetailModal .timeDetailStats{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #timeDetailModal .timeDetailLogs li{
+    grid-template-columns:minmax(0,1fr) auto!important;
+  }
+  body.nx.nx.nx #timeDetailModal .timeDetailLogs li button{
+    grid-column:1/-1!important;
+    width:100%!important;
+  }
+  body.nx.nx.nx #refEditorModal .refEditorList{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #refEditorModal .refItemEdit,
+  body.nx.nx.nx #refEditorModal .refMiniField{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #refEditorModal .refMiniOps{
+    justify-content:stretch!important;
+  }
+  body.nx.nx.nx #refEditorModal .refMiniOps button{
+    flex:1 1 0!important;
+  }
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyDeck,
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyRow{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayChip{
+    flex:1 1 40px!important;
+  }
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyRowOps{
+    justify-content:stretch!important;
+  }
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyMiniBtn{
+    flex:1 1 0!important;
+  }
+  .lockCard{
+    padding:76px 16px 20px!important;
+  }
+  .lockCard::before{
+    top:-48px!important;
+    width:88px!important;
+    height:88px!important;
+  }
+  .lockForm{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* v25.1 reference library readability and editor reflow */
+body.nx.nx.nx .priorityRefBox .refGroup{
+  background:linear-gradient(180deg,#ffffff,#f7f9fc)!important;
+  color:#162032!important;
+}
+
+body.nx.nx.nx .priorityRefBox .refGroup :is(h2,h3,summary,button,a,span,b,em,li,p){
+  color:#162032!important;
+  opacity:1!important;
+}
+
+body.nx.nx.nx .priorityRefBox .refGroup a,
+body.nx.nx.nx .priorityRefBox .refGroup .refLink{
+  background:#f4f7fb!important;
+  border:1px solid #d6e1ef!important;
+  color:#263248!important;
+  box-shadow:0 8px 18px rgba(15,23,42,.06)!important;
+}
+
+body.nx.nx.nx #refEditorModal .refEditorList{
+  grid-template-columns:1fr!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgGroup{
+  overflow:visible!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgGrid{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:14px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgField{
+  min-width:0!important;
+}
+
+body.nx.nx.nx #refEditorModal .refItemsBox{
+  width:100%!important;
+  grid-template-columns:minmax(0,1fr)!important;
+}
+
+body.nx.nx.nx #refEditorModal .refItemEdit{
+  width:100%!important;
+  overflow:visible!important;
+  grid-template-columns:minmax(170px,.78fr) minmax(360px,1.45fr) auto!important;
+  align-items:center!important;
+}
+
+body.nx.nx.nx #refEditorModal .refMiniOps{
+  min-width:max-content!important;
+}
+
+@media(max-width:760px){
+  body.nx.nx.nx #refEditorModal .refItemEdit{
+    grid-template-columns:1fr!important;
+  }
+  body.nx.nx.nx #refEditorModal .refMiniOps{
+    min-width:0!important;
+  }
+}
+
+/* v25.2 game daily editor reflow */
+@media(min-width:761px){
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyDeck{
+    grid-template-columns:1fr!important;
+  }
+
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyRow{
+    width:100%!important;
+    overflow:visible!important;
+    grid-template-columns:minmax(220px,.82fr) minmax(420px,1.45fr) auto!important;
+  }
+
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyTaskTitle{
+    min-width:0!important;
+  }
+
+  body.nx.nx.nx #gameQuestEditorModal .gqDailyRow .gqDayPicker{
+    min-width:0!important;
+  }
+
+  body.nx.nx.nx #gameQuestEditorModal .gqMetaGrid{
+    grid-template-columns:1fr!important;
+  }
+
+  body.nx.nx.nx #gameQuestEditorModal .gqMetaRow{
+    overflow:visible!important;
+  }
+}

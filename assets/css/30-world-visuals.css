@@ -2094,8 +2094,8 @@ td.taskName a::after,
 
 
 /* =====================================================================
-   v8.1 Soft Lock + GitHub Gist Sync UI
-   普通访问者无 Token 时只看到解锁页，不显示任务模板。
+   v8.2 Local Soft Lock + GitHub Gist Sync UI
+   软锁负责进入页面，GitHub Token 只负责云同步。
    说明：这是前端软锁，不是服务器级鉴权；用于防普通路人。
    ===================================================================== */
 body.locked{min-height:100vh;overflow:hidden}
@@ -2131,13 +2131,34 @@ body:not(.locked) .lockScreen{display:none!important}
   background:linear-gradient(90deg,#102047,#2a5fff 28%,#4fd7ff 48%,#8f61ff 68%,#ff5e98 90%);
   -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 18px rgba(42,95,255,.18))
 }
-.lockSub{margin:0 auto 18px;max-width:420px;color:#43546f;font-size:15px;line-height:1.6;font-weight:900}
-.lockUnlockBtn{
-  padding:12px 20px!important;border-radius:18px!important;
-  font-family:"Arial Black","Noto Sans SC",sans-serif!important;color:#17233f!important;
-  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(236,243,255,.86))!important
+.lockSub{margin:0 auto 18px;max-width:440px;color:#43546f;font-size:15px;line-height:1.6;font-weight:900}
+.lockForm{
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+  margin:0 auto 12px;max-width:460px;
+  padding:8px;border-radius:22px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.82);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.36),0 12px 28px rgba(42,95,255,.08)
 }
-.lockFoot{margin-top:14px;color:#6c7a91;font-size:12px;line-height:1.5;font-weight:760}
+.lockInput{
+  min-width:0;border:0;outline:0;border-radius:16px;padding:13px 14px;
+  background:rgba(255,255,255,.92);color:#17233f;font-weight:900;font-size:15px;
+  box-shadow:inset 0 0 0 1px rgba(37,74,180,.08)
+}
+.lockInput::placeholder{color:#8b97ad;font-weight:800}
+.lockUnlockBtn{
+  padding:12px 18px!important;border-radius:18px!important;white-space:nowrap;
+  font-family:"Arial Black","Noto Sans SC",sans-serif!important;color:#17233f!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(222,238,255,.92))!important;
+  box-shadow:0 10px 26px rgba(42,95,255,.13)!important
+}
+.lockRemember{
+  display:inline-flex;align-items:center;gap:8px;margin:2px auto 10px;padding:7px 12px;border-radius:999px;
+  background:rgba(255,255,255,.56);border:1px solid rgba(255,255,255,.76);
+  color:#50607a;font-size:12px;font-weight:900;cursor:pointer
+}
+.lockRemember input{accent-color:#3854d8}
+.lockError{min-height:20px;margin:0 auto 8px;max-width:420px;color:#ff4d68;font-size:12px;line-height:1.45;font-weight:900}
+.lockFoot{margin-top:8px;color:#6c7a91;font-size:12px;line-height:1.5;font-weight:760}
+@media(max-width:520px){.lockForm{grid-template-columns:1fr}.lockUnlockBtn{width:100%}}
 
 .ghSetupBtn{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(238,245,255,.84))!important;color:#243b6b!important}
 .ghPill{position:relative;padding-left:28px!important}

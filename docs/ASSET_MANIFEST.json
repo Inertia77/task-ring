@@ -1,140 +1,87 @@
-[
-  {
-    "file": "assets/images/css/vivian-portrait.png",
-    "source": "css",
-    "mime": "image/png",
-    "bytes": 73163
-  },
-  {
-    "file": "assets/images/css/avatar-life.png",
-    "source": "css",
-    "mime": "image/png",
-    "bytes": 52761
-  },
-  {
-    "file": "assets/images/css/avatar-gamecreate.png",
-    "source": "css",
-    "mime": "image/png",
-    "bytes": 73163
-  },
-  {
-    "file": "assets/images/css/avatar-language.png",
-    "source": "css",
-    "mime": "image/png",
-    "bytes": 86424
-  },
-  {
-    "file": "assets/images/css/background-pattern-5.svg",
-    "source": "css",
-    "mime": "image/svg+xml",
-    "bytes": 3373
-  },
-  {
-    "file": "assets/images/css/background-pattern-6.svg",
-    "source": "css",
-    "mime": "image/svg+xml",
-    "bytes": 6930
-  },
-  {
-    "file": "assets/images/css/background-collage.png",
-    "source": "css",
-    "mime": "image/png",
-    "bytes": 2515396
-  },
-  {
-    "file": "assets/images/cutins/cutin-richie.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 91908
-  },
-  {
-    "file": "assets/images/cutins/cutin-nanally.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 67617
-  },
-  {
-    "file": "assets/images/cutins/cutin-chiz.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 68639
-  },
-  {
-    "file": "assets/images/cutins/cutin-cyrene.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 73436
-  },
-  {
-    "file": "assets/images/cutins/cutin-castorice.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 89497
-  },
-  {
-    "file": "assets/images/cutins/cutin-cantarella.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 69034
-  },
-  {
-    "file": "assets/images/cutins/cutin-changli.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 81765
-  },
-  {
-    "file": "assets/images/cutins/cutin-phoebe.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 63608
-  },
-  {
-    "file": "assets/images/cutins/cutin-ellen.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 72442
-  },
-  {
-    "file": "assets/images/cutins/cutin-arlecchino.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 88734
-  },
-  {
-    "file": "assets/images/cutins/cutin-camellya.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 74587
-  },
-  {
-    "file": "assets/images/cutins/cutin-burnice.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 73518
-  },
-  {
-    "file": "assets/images/cutins/cutin-roccia.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 70987
-  },
-  {
-    "file": "assets/images/cutins/cutin-cartethyia.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 110326
-  },
-  {
-    "file": "assets/images/cutins/cutin-yixuan.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 66818
-  },
-  {
-    "file": "assets/images/cutins/cutin-astra.png",
-    "source": "js",
-    "mime": "image/png",
-    "bytes": 66055
-  }
-]
+{
+  "note": "task-ring 图片资产清单。source=引用来源，usage=当前用途。改动图片后请同步更新本文件。",
+  "updatedAt": "2026-07-07",
+  "icons": [
+    {
+      "file": "assets/icons/favicon.svg",
+      "source": "html",
+      "mime": "image/svg+xml",
+      "bytes": 2895,
+      "usage": "浏览器标签页图标（<link rel=icon>）：盾牌+闪电+对勾。页头品牌标志 .inertiaHeroMark 内联同款设计。"
+    },
+    {
+      "file": "assets/icons/favicon.png",
+      "source": "html",
+      "mime": "image/png",
+      "bytes": 1443992,
+      "usage": "favicon.svg 的高清 PNG 版：用作 apple-touch-icon（iOS 添加到主屏）与 og:image / twitter 分享缩略图。"
+    }
+  ],
+  "images": [
+    {
+      "file": "assets/images/css/background-collage.png",
+      "source": "css",
+      "mime": "image/png",
+      "bytes": 2515396,
+      "usage": "锁屏「星城之门」全屏背景（98-atelier-gate.css 的 .lockScreen）。曾是旧版 body 背景，v22 起改由锁屏承载。"
+    },
+    {
+      "file": "assets/images/css/vivian-portrait.png",
+      "source": "css",
+      "mime": "image/png",
+      "bytes": 73163,
+      "usage": "锁屏卡片顶部「门卫」圆形头像（98-atelier-gate.css 的 .lockCard::before）。"
+    },
+    {
+      "file": "assets/images/css/avatar-life.png",
+      "source": "css",
+      "mime": "image/png",
+      "bytes": 52761,
+      "usage": "完成演出经典 cut-in「LUCY ORDER」头像（.avatarPortrait.life，见 app.js CLASSIC_CUTINS）。"
+    },
+    {
+      "file": "assets/images/css/avatar-gamecreate.png",
+      "source": "css",
+      "mime": "image/png",
+      "bytes": 73163,
+      "usage": "完成演出经典 cut-in「VIVIAN CHEERS」头像（.avatarPortrait.gamecreate）。"
+    },
+    {
+      "file": "assets/images/css/avatar-language.png",
+      "source": "css",
+      "mime": "image/png",
+      "bytes": 86424,
+      "usage": "完成演出经典 cut-in「REQUIEM INSIGHT」头像（.avatarPortrait.language）。"
+    },
+    {
+      "file": "assets/images/css/background-pattern-5.svg",
+      "source": "css",
+      "mime": "image/svg+xml",
+      "bytes": 3373,
+      "usage": "世界观视觉层背景纹理（30-world-visuals.css）。"
+    },
+    {
+      "file": "assets/images/css/background-pattern-6.svg",
+      "source": "css",
+      "mime": "image/svg+xml",
+      "bytes": 6930,
+      "usage": "世界观视觉层背景纹理（30-world-visuals.css）。"
+    },
+    { "file": "assets/images/cutins/cutin-richie.png", "source": "js", "mime": "image/png", "bytes": 91908, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-nanally.png", "source": "js", "mime": "image/png", "bytes": 67617, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-chiz.png", "source": "js", "mime": "image/png", "bytes": 68639, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-cyrene.png", "source": "js", "mime": "image/png", "bytes": 73436, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-castorice.png", "source": "js", "mime": "image/png", "bytes": 89497, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-cantarella.png", "source": "js", "mime": "image/png", "bytes": 69034, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-changli.png", "source": "js", "mime": "image/png", "bytes": 81765, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-phoebe.png", "source": "js", "mime": "image/png", "bytes": 63608, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-ellen.png", "source": "js", "mime": "image/png", "bytes": 72442, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-arlecchino.png", "source": "js", "mime": "image/png", "bytes": 88734, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-camellya.png", "source": "js", "mime": "image/png", "bytes": 74587, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-burnice.png", "source": "js", "mime": "image/png", "bytes": 73518, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-roccia.png", "source": "js", "mime": "image/png", "bytes": 70987, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-cartethyia.png", "source": "js", "mime": "image/png", "bytes": 110326, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-yixuan.png", "source": "js", "mime": "image/png", "bytes": 66818, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" },
+    { "file": "assets/images/cutins/cutin-astra.png", "source": "js", "mime": "image/png", "bytes": 66055, "usage": "随机完成演出角色（RANDOM_CUTIN_CHARACTERS）。" }
+  ]
+}
