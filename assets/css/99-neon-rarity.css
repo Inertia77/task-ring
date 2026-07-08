@@ -115,7 +115,7 @@ body.nx::after{content:none!important;}
 }
 .nx .taskRingActionRow button:hover,.nx .gameQuestModeBtn:hover,.nx .missionGhost:hover,.nx .weeklyCategoryTab:hover{border-color:var(--nx-pink)!important;color:#d61b6e!important;}
 /* 主 / 激活按钮：撞色渐变 + 白字 */
-.nx button#showUndone,.nx .missionPrimary,.nx .gameQuestModeBtn.active,.nx .timeSubTabs button.active,
+.nx .taskRingActionRow button.active,.nx .missionPrimary,.nx .gameQuestModeBtn.active,.nx .timeSubTabs button.active,
 .nx .editorScopeTabs button.active,.nx .weeklyCategoryTab.active,.nx .gameQuestFilterTabs button.active,
 .nx #saveConfigBtn,.nx #saveRefConfigBtn,.nx #saveGameQuestBtn,.nx #ghSaveTokenBtn,.nx #addTaskBtn,
 .nx #addRefGroupBtn,.nx .taskEditorBottomSaveBtn,.nx .gameQuestDay.active,.nx .gameQuestEditorDayBtn.active{
@@ -176,7 +176,7 @@ body.nx::after{content:none!important;}
 .nx .subtaskBtn span{color:var(--nx-ink2)!important;}
 
 /* ---------- 轨道环 ---------- */
-.nx .orbitCenter{background:#fff!important;}
+.nx .orbitCenter{background:transparent!important;}
 .nx .orbitDay{background:#fff!important;border:1px solid var(--nx-line)!important;color:var(--nx-ink2)!important;}
 .nx .orbitDay.today{border-color:var(--nx-pink)!important;box-shadow:0 0 0 1px rgba(255,46,136,.4)!important;}
 .nx .orbitDayName{color:var(--nx-ink)!important;}
