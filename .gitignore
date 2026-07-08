@@ -18,3 +18,4 @@ taskring-state.json
 # dependency folders, if this project later grows a build step
 node_modules/
 dist/
+.claude/
