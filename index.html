@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜ROYAL ATELIER QUEST v22</title>
+<title>TASK RING｜URBAN TASK COMMAND</title>
 <meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="apple-touch-icon" href="assets/icons/favicon.png"/>
-<meta name="theme-color" content="#f5e4bc"/>
-<meta property="og:title" content="TASK RING｜ROYAL ATELIER QUEST"/>
+<meta name="theme-color" content="#0b0e13"/>
+<meta property="og:title" content="TASK RING｜URBAN TASK COMMAND"/>
 <meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
@@ -46,14 +46,14 @@
       <stop offset="1" stop-color="#020515"/>
     </linearGradient>
     <linearGradient id="hmCyan" x1="13" y1="11" x2="51" y2="55" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#78F7FF"/>
-      <stop offset="0.45" stop-color="#12C9FF"/>
-      <stop offset="1" stop-color="#126BFF"/>
+      <stop offset="0" stop-color="#FFF7A8"/>
+      <stop offset="0.45" stop-color="#F1DF1B"/>
+      <stop offset="1" stop-color="#FF8B1F"/>
     </linearGradient>
     <linearGradient id="hmBolt" x1="18" y1="8" x2="47" y2="56" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.48" stop-color="#DDFBFF"/>
-      <stop offset="1" stop-color="#63E9FF"/>
+      <stop offset="0.48" stop-color="#FFF4A6"/>
+      <stop offset="1" stop-color="#F1DF1B"/>
     </linearGradient>
     <filter id="hmGlow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
       <feGaussianBlur stdDeviation="2.2" result="blur"/>
@@ -85,15 +85,15 @@
     </div>
     <div class="inertiaHeroCopy">
       <div class="inertiaBrandRow">
-        <span class="inertiaOwnerBadge">ROYAL TASK SYSTEM</span>
-        <span class="inertiaVersionBadge">PEARL SYNC</span>
+        <span class="inertiaOwnerBadge">TASK COMMAND</span>
+        <span class="inertiaVersionBadge">CITY HUD</span>
       </div>
       <h1 class="inertiaHeroTitle">
         <span class="inertiaTitleCn">TASK RING</span>
         <span class="inertiaTitleSlash">/</span>
-        <span class="titleGlow inertiaTitleEn">ROYAL QUEST</span>
+        <span class="titleGlow inertiaTitleEn">TASK COMMAND</span>
       </h1>
-      <p class="subtitle inertiaSubtitle">明亮二次元 × 皇家精致风任务环：主任务、周计划、游戏作战、时间账本与资料库分区保持紧密高密度，Token 仅保存在本机。</p>
+      <p class="subtitle inertiaSubtitle">都市机能 × 高密度 HUD 风任务环：主任务、周计划、游戏作战、时间账本与资料库统一成更纯粹的黑灰黄工业风，Token 仅保存在本机。</p>
     </div>
   </div>
   <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
@@ -143,7 +143,7 @@
 </section>
 <section class="taskFirstBanner mainRingBanner viewPanel active" data-view-panel="tasks">
   <div class="mainRingCopy">
-    <div class="taskFirstKicker">ROYAL MAIN RING</div>
+    <div class="taskFirstKicker">MAIN TASK RING</div>
     <div class="taskFirstTitle">星冠主环</div>
     <div class="taskFirstText">今日核心任务集中在这里；长期主线仍进周计划池，不抢主环注意力。</div>
   </div>
@@ -157,10 +157,10 @@
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>v23 游戏作战区编辑器「每天/指定日」改成写任务名 + 勾星期（和普通任务同款，不用再一天天复制），本周池保持一行一条；界面加入游戏化霓虹质感。此前 v22 皇家二次元视觉与可访问性（尊重系统「减少动态效果」）保留。</div>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>当前版本把全局界面统一成更接近都市工业 HUD 的黑灰黄风格；游戏作战区、周计划池、时间账本、资料库与主任务区都使用同一套高对比视觉语言，同时保留高密度与可访问性。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
-<div class="footer">任务环_GitHub同步版｜软锁进门 / Gist 同步 / 本机可离线使用；Token 仅保存在本机</div>
+<div class="footer">任务环｜本机软锁进门 / Gist 同步 / 可离线使用；Token 仅保存在本机</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true">

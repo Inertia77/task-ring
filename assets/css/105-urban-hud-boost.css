@@ -1,0 +1,303 @@
+/* ========================================================================== 
+   105-urban-hud-boost.css
+   更强的都市工业 HUD 风：
+   - 更接近参考图的黑 / 灰 / 黄主调
+   - 更明显的切角、楔形、仪表盘、菜单瓦片感
+   - 不包含任何外部游戏 logo / 官方素材
+   ========================================================================== */
+
+:root{
+  --zhud-bg:#080b10;
+  --zhud-panel:#0d1219;
+  --zhud-panel-2:#111822;
+  --zhud-panel-3:#1b2430;
+  --zhud-border:rgba(255,255,255,.10);
+  --zhud-border-2:rgba(255,255,255,.18);
+  --zhud-text:#f5f7fb;
+  --zhud-muted:#aeb7c6;
+  --zhud-yellow:#f1df1b;
+  --zhud-yellow-2:#fff279;
+  --zhud-red:#ff4b3d;
+  --zhud-orange:#ff7d22;
+  --zhud-white:#ffffff;
+  --zhud-shadow:0 18px 40px rgba(0,0,0,.34);
+  --zhud-radius:18px;
+  --zhud-cut:14px;
+}
+
+/* common tech texture */
+body.nx.nx.nx :is(.inertiaHeader,.viewDock,.viewIntro,.taskRingControlPanel,.taskFirstBanner,.orbitDrawer,.tableBox,.mobileBox,.weeklyShell,.weeklyHero,.weeklyTaskGroupHead,.weeklyTaskCard,.gameQuestShell,.gameQuestTopBarStandalone,.gameQuestMetaStrip,.gameQuestCard,.gameQuestCardV2,.gameQuestWeeklyCard,.timePanelShell,.timePanelHeader,.timeTaskRow,.timeBudgetRow,.timeLogItem,.priorityRefBox,.refGroup,.summaryGrid .card,.legendBox,.notice,.lockCard,.ghModalCard,.taskEditorCard,.refEditorCard,.gameQuestEditorCard,.stepPopover,.timeDetailModalCard,.controlCenterMenu){
+  position:relative!important;
+  overflow:hidden!important;
+}
+body.nx.nx.nx :is(.inertiaHeader,.viewDock,.viewIntro,.taskRingControlPanel,.taskFirstBanner,.orbitDrawer,.tableBox,.mobileBox,.weeklyShell,.weeklyHero,.weeklyTaskGroupHead,.weeklyTaskCard,.gameQuestShell,.gameQuestTopBarStandalone,.gameQuestMetaStrip,.gameQuestCard,.gameQuestCardV2,.gameQuestWeeklyCard,.timePanelShell,.timePanelHeader,.timeTaskRow,.timeBudgetRow,.timeLogItem,.priorityRefBox,.refGroup,.summaryGrid .card,.legendBox,.notice,.lockCard,.ghModalCard,.taskEditorCard,.refEditorCard,.gameQuestEditorCard,.stepPopover,.timeDetailModalCard,.controlCenterMenu)::after{
+  content:""!important;
+  position:absolute!important;
+  inset:auto -20% -1px auto!important;
+  width:42%!important;
+  height:1px!important;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent)!important;
+  transform:rotate(-24deg)!important;
+  opacity:.65!important;
+  pointer-events:none!important;
+}
+body.nx.nx.nx :is(.viewIntro,.taskRingControlPanel,.taskFirstBanner,.weeklyHero,.timePanelHeader,.priorityRefBox,.summaryGrid .card,.notice,.legendBox,.lockCard,.ghModalCard,.taskEditorCard,.refEditorCard,.gameQuestEditorCard){
+  clip-path:polygon(0 0,calc(100% - var(--zhud-cut)) 0,100% var(--zhud-cut),100% 100%,var(--zhud-cut) 100%,0 calc(100% - var(--zhud-cut)))!important;
+}
+body.nx.nx.nx :is(.viewIntro,.taskRingControlPanel,.taskFirstBanner,.weeklyHero,.timePanelHeader,.priorityRefBox,.summaryGrid .card,.notice,.legendBox,.lockCard,.ghModalCard,.taskEditorCard,.refEditorCard,.gameQuestEditorCard)::before{
+  content:""!important;
+  position:absolute!important;
+  right:0!important;
+  top:0!important;
+  width:30px!important;
+  height:30px!important;
+  background:linear-gradient(135deg,transparent 50%,rgba(241,223,27,.92) 50%)!important;
+  pointer-events:none!important;
+}
+
+/* hero mark more yellow / white */
+body.nx.nx.nx .inertiaHeroMark svg defs stop[stop-color="#78F7FF"],
+body.nx.nx.nx .inertiaHeroMark svg defs stop[stop-color="#12C9FF"],
+body.nx.nx.nx .inertiaHeroMark svg defs stop[stop-color="#126BFF"]{stop-color:#f1df1b!important}
+
+/* header stronger */
+body.nx.nx.nx .inertiaHeader{
+  padding:18px 18px 16px!important;
+  border-color:rgba(255,255,255,.12)!important;
+  background:
+    linear-gradient(180deg,rgba(12,17,24,.99),rgba(8,12,18,.99)),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.026) 0 2px,transparent 2px 24px),
+    linear-gradient(90deg,rgba(241,223,27,.08),transparent 33%)!important;
+}
+body.nx.nx.nx .inertiaHeroBrand{grid-template-columns:72px minmax(0,1fr)!important;gap:16px!important}
+body.nx.nx.nx .inertiaHeroMark{
+  width:72px!important;height:72px!important;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important;
+  background:#0a0e14!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.14),0 0 0 4px rgba(241,223,27,.18), var(--zhud-shadow)!important;
+}
+body.nx.nx.nx .inertiaOwnerBadge{
+  background:linear-gradient(180deg,var(--zhud-yellow),#dbc80f)!important;
+  color:#080b10!important;
+  border-color:#080b10!important;
+}
+body.nx.nx.nx .inertiaVersionBadge{
+  background:#161d27!important;color:#e5ecf5!important;border-color:rgba(255,255,255,.12)!important;
+}
+body.nx.nx.nx .inertiaTitleCn{font-size:46px!important;letter-spacing:.02em!important}
+body.nx.nx.nx .inertiaTitleEn{font-size:36px!important;font-weight:1000!important;color:#d3dae5!important}
+body.nx.nx.nx .inertiaSubtitle{font-size:13px!important;max-width:980px!important}
+body.nx.nx.nx .globalToolbar{
+  grid-template-columns:repeat(3,minmax(112px,1fr))!important;
+  align-self:start!important;
+}
+body.nx.nx.nx .globalToolbar > :nth-child(4),
+body.nx.nx.nx .globalToolbar > :nth-child(5){grid-column:span 1!important}
+body.nx.nx.nx .globalToolbar :is(button,.pill,.githubInlineState){
+  min-height:42px!important;height:42px!important;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+}
+body.nx.nx.nx .controlCenterBtn,
+body.nx.nx.nx .ghSetupBtn{background:linear-gradient(180deg,#202a36,#111821)!important}
+body.nx.nx.nx .pill{justify-content:center!important}
+body.nx.nx.nx #todayLabel{background:linear-gradient(180deg,var(--zhud-yellow),#dfcb14)!important;color:#080b10!important;border-color:#080b10!important}
+
+/* control menu becomes tile grid */
+body.nx.nx.nx .controlCenterMenu{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  width:min(420px,calc(100vw - 32px))!important;
+  padding:14px!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,rgba(13,18,26,.98),rgba(8,12,18,.98))!important;
+}
+body.nx.nx.nx .controlCenterMenu.hidden{display:none!important}
+body.nx.nx.nx .controlCenterMenu button{
+  min-height:58px!important;
+  justify-content:flex-start!important;
+  align-items:flex-end!important;
+  padding:10px 12px!important;
+  font-size:13px!important;
+  line-height:1.1!important;
+  background:linear-gradient(180deg,rgba(26,35,47,.98),rgba(13,18,26,.98))!important;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+}
+body.nx.nx.nx .controlCenterMenu button:nth-child(4){background:linear-gradient(180deg,var(--zhud-yellow),#dfcb14)!important;color:#080b10!important;border-color:#080b10!important}
+
+/* view dock closer to shortcut menu */
+body.nx.nx.nx .viewDock{
+  padding:10px!important;
+  gap:10px!important;
+  border-radius:20px!important;
+  background:
+    linear-gradient(180deg,rgba(12,17,24,.98),rgba(8,12,18,.98)),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.02) 0 2px,transparent 2px 22px)!important;
+}
+body.nx.nx.nx .viewDockBtn{
+  min-height:88px!important;
+  padding:12px 14px 10px!important;
+  align-content:space-between!important;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important;
+  background:linear-gradient(180deg,rgba(30,40,53,.98),rgba(12,17,24,.98))!important;
+}
+body.nx.nx.nx .viewDockBtn::before{
+  content:""!important;
+  position:absolute!important;
+  right:10px!important;
+  top:10px!important;
+  width:8px!important;
+  height:8px!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.28)!important;
+}
+body.nx.nx.nx .viewDockBtn::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  bottom:0!important;
+  width:46px!important;
+  height:18px!important;
+  background:linear-gradient(180deg,var(--zhud-yellow),#e0cb15)!important;
+  clip-path:polygon(0 0,100% 0,78% 100%,0 100%)!important;
+  opacity:0!important;
+}
+body.nx.nx.nx .viewDockBtn.active::after{opacity:1!important}
+body.nx.nx.nx .viewDockBtn.active::before{background:#080b10!important}
+body.nx.nx.nx .viewDockBtn span{font-size:10px!important;letter-spacing:.18em!important}
+body.nx.nx.nx .viewDockBtn b{font-size:18px!important}
+
+/* intro / task control */
+body.nx.nx.nx .viewIntro{
+  padding:16px 18px!important;
+  background:linear-gradient(180deg,rgba(15,21,29,.98),rgba(9,13,19,.98))!important;
+}
+body.nx.nx.nx .viewIntro div span,
+body.nx.nx.nx .taskRingControlHead span,
+body.nx.nx.nx .taskFirstKicker{display:inline-flex!important;align-items:center!important;min-height:24px!important;padding:4px 10px!important;border-radius:10px!important;background:rgba(241,223,27,.10)!important;border:1px solid rgba(241,223,27,.44)!important;color:var(--zhud-yellow)!important;letter-spacing:.12em!important}
+body.nx.nx.nx .viewIntro strong,
+body.nx.nx.nx .taskRingControlHead strong,
+body.nx.nx.nx .taskFirstTitle{font-size:28px!important;font-weight:1000!important}
+body.nx.nx.nx .taskRingActionRow{gap:10px!important}
+body.nx.nx.nx .taskRingActionRow button{
+  min-height:42px!important;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+}
+body.nx.nx.nx .progress-wrap{padding:14px!important;border-radius:14px!important;background:#101722!important;border:1px solid rgba(255,255,255,.10)!important}
+body.nx.nx.nx .progress-meta #progressText{color:#fff!important;font-weight:1000!important}
+
+/* orbit more dashboard like */
+body.nx.nx.nx .orbitDrawer summary{
+  padding:14px 16px!important;
+  background:linear-gradient(180deg,rgba(18,25,34,.98),rgba(9,13,19,.98))!important;
+}
+body.nx.nx.nx .orbitDrawerMini{
+  background:
+    radial-gradient(circle at center,#0a0d12 56%,transparent 57%),
+    conic-gradient(var(--zhud-yellow) calc(var(--pct,0) * 1%), rgba(255,255,255,.10) 0)!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx .orbitDrawerMini b,
+body.nx.nx.nx .orbitPct{color:var(--zhud-yellow)!important}
+body.nx.nx.nx .orbitLayout{background:linear-gradient(180deg,rgba(14,20,28,.96),rgba(9,13,19,.98))!important}
+body.nx.nx.nx .orbitCore{background:radial-gradient(circle at center,rgba(255,255,255,.03),transparent 62%)!important}
+body.nx.nx.nx .orbitCenter{
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:linear-gradient(180deg,rgba(17,24,34,.98),rgba(9,13,19,.98))!important;
+}
+body.nx.nx.nx .orbitDays{gap:10px!important}
+body.nx.nx.nx .orbitDay{
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+  background:linear-gradient(180deg,rgba(21,29,40,.98),rgba(12,17,24,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx .orbitDay.today{border-color:rgba(241,223,27,.38)!important;box-shadow:0 0 0 1px rgba(241,223,27,.12)!important}
+
+/* task rows stronger */
+body.nx.nx.nx #taskTable tr:first-child th,
+body.nx.nx.nx .dayTabs,
+body.nx.nx.nx .legendGrid{background:transparent!important}
+body.nx.nx.nx #taskTable th{
+  background:linear-gradient(180deg,#161e29,#0f151d)!important;
+  color:#dfe6f0!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx .taskRow,
+body.nx.nx.nx .mTask{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important}
+body.nx.nx.nx .dayTab{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))!important}
+body.nx.nx.nx .dayTab.active{box-shadow:0 8px 18px rgba(241,223,27,.16)!important}
+
+/* weekly cards more like equipment tiles */
+body.nx.nx.nx .weeklyTaskGroupCollapsible{background:transparent!important;border:0!important;box-shadow:none!important}
+body.nx.nx.nx .weeklyTaskGroupHead{
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important;
+}
+body.nx.nx.nx .weeklyTaskCard{
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important;
+}
+body.nx.nx.nx .weeklyTaskCard::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  width:100%!important;
+  height:8px!important;
+  background:var(--weeklyAccent,var(--zhud-yellow))!important;
+  box-shadow:none!important;
+  inset:0 0 auto 0!important;
+}
+body.nx.nx.nx .weeklyTaskTop{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important}
+
+/* game quest already themed, push further */
+body.nx.nx.nx .gameQuestTopTitle strong{letter-spacing:.01em!important}
+body.nx.nx.nx .gameQuestModeBtn,
+body.nx.nx.nx .gameQuestFilterTabs button,
+body.nx.nx.nx .gameQuestDay,
+body.nx.nx.nx .gameQuestCard,
+body.nx.nx.nx .gameQuestCardV2,
+body.nx.nx.nx .gameQuestWeeklyCard,
+body.nx.nx.nx .gameQuestMetaStrip,
+body.nx.nx.nx .gameQuestSubHead,
+body.nx.nx.nx .gameQuestMiniCheckBtnV2{
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+}
+body.nx.nx.nx .gameQuestModeBtn.active,
+body.nx.nx.nx .gameQuestDay.active,
+body.nx.nx.nx .gameQuestFilterTabs button.active{box-shadow:0 10px 20px rgba(241,223,27,.18)!important}
+body.nx.nx.nx .gameQuestCardTop{padding-right:2px!important}
+body.nx.nx.nx .gameQuestCount{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))!important}
+body.nx.nx.nx .gameQuestCheck{clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))!important}
+body.nx.nx.nx .gameQuestIconOrb{border-radius:10px!important}
+body.nx.nx.nx .gameQuestMiniCheckBtnV2 .gameQuestMiniBox{border-radius:4px!important}
+
+/* time */
+body.nx.nx.nx .timeStatCards>div,
+body.nx.nx.nx .timeBudgetRow,
+body.nx.nx.nx .timeTaskRow,
+body.nx.nx.nx .timeLogItem,
+body.nx.nx.nx .activeTimerCard,
+body.nx.nx.nx .timeSubTabs button{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important}
+
+/* library */
+body.nx.nx.nx #refBox .refGroup,
+body.nx.nx.nx #refBox .refLink,
+body.nx.nx.nx .summaryGrid .card{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))!important}
+body.nx.nx.nx .summaryGrid .card h2{color:#fff!important}
+body.nx.nx.nx .summaryGrid .card ul{color:var(--zhud-muted)!important}
+
+/* footer */
+body.nx.nx.nx .footer{
+  margin-top:16px!important;
+  padding:12px 14px!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,rgba(15,21,29,.96),rgba(9,13,19,.96))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  color:var(--zhud-muted)!important;
+}
+
+@media(max-width:760px){
+  body.nx.nx.nx .globalToolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.nx.nx.nx .inertiaTitleCn{font-size:34px!important}
+  body.nx.nx.nx .inertiaTitleEn{font-size:28px!important}
+  body.nx.nx.nx .viewDockBtn{min-width:154px!important;min-height:78px!important}
+}

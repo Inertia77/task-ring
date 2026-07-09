@@ -1,0 +1,340 @@
+/* ========================================================================== 
+   106-hud-actual-fix.css
+   针对 v27 实际翻车点的修复：
+   1) 把周计划池的发灰大白板彻底改回深色设备面板
+   2) 把主任务表的淡色行改成黑灰硬面板
+   3) 把顶栏日期/周期截断问题修掉
+   4) 让整体更接近“黑面板 + 少量黄高亮 + 白字粗图标”
+   ========================================================================== */
+
+:root{
+  --fix-bg:#070a10;
+  --fix-panel:#0d1218;
+  --fix-panel-2:#131a23;
+  --fix-panel-3:#1a2330;
+  --fix-border:rgba(255,255,255,.10);
+  --fix-border-2:rgba(255,255,255,.16);
+  --fix-text:#f7f9fc;
+  --fix-muted:#9ba7b7;
+  --fix-yellow:#ebdb18;
+  --fix-yellow-2:#fff37b;
+  --fix-red:#ff4f5f;
+  --fix-green:#79d980;
+  --fix-blue:#69d3ff;
+  --fix-violet:#9a83ff;
+}
+
+/* top toolbar layout */
+body.nx.nx.nx .globalToolbar{
+  grid-template-columns:180px 190px minmax(120px,1fr) 190px minmax(240px,1.2fr)!important;
+  gap:10px!important;
+  align-items:stretch!important;
+}
+body.nx.nx.nx .globalToolbar > *{min-width:0!important}
+body.nx.nx.nx #cycleLabel,
+body.nx.nx.nx #todayLabel,
+body.nx.nx.nx #githubStatus{
+  justify-content:flex-start!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  font-size:13px!important;
+  padding-inline:14px!important;
+}
+body.nx.nx.nx #cycleLabel{font-size:12px!important;letter-spacing:.01em!important}
+body.nx.nx.nx #githubStatus{min-width:120px!important}
+
+/* weekly pool: remove pale blocks */
+body.nx.nx.nx .weeklyShell,
+body.nx.nx.nx .weeklyShell.v20,
+body.nx.nx.nx .weeklyShell.v21{
+  background:linear-gradient(180deg,rgba(10,14,20,.99),rgba(7,10,15,.99))!important;
+}
+body.nx.nx.nx .weeklyCommandHero{
+  border:1px solid var(--fix-border)!important;
+  background:
+    linear-gradient(180deg,rgba(13,18,25,.98),rgba(8,12,18,.98)),
+    linear-gradient(90deg,rgba(235,219,24,.08),transparent 32%)!important;
+}
+body.nx.nx.nx .weeklyCommandHero b,
+body.nx.nx.nx .weeklyHero b{color:var(--fix-text)!important}
+body.nx.nx.nx .weeklyCommandHero em,
+body.nx.nx.nx .weeklyHero em{color:var(--fix-muted)!important}
+body.nx.nx.nx .weeklyHeroStats > div{
+  background:linear-gradient(180deg,rgba(24,32,43,.98),rgba(12,17,24,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .weeklyHeroStats > div b{color:var(--fix-yellow)!important}
+
+body.nx.nx.nx .weeklyCategoryTabs{
+  display:flex!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+  padding:2px 0 4px!important;
+}
+body.nx.nx.nx .weeklyCategoryTab{
+  flex:0 0 auto!important;
+  min-width:230px!important;
+  padding:12px 16px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:linear-gradient(180deg,rgba(22,30,40,.98),rgba(11,16,23,.98))!important;
+  color:var(--fix-text)!important;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))!important;
+}
+body.nx.nx.nx .weeklyCategoryTab span{font-size:14px!important;color:var(--fix-text)!important;font-weight:1000!important}
+body.nx.nx.nx .weeklyCategoryTab b{display:block!important;margin-top:4px!important;color:var(--fix-yellow)!important;font-size:18px!important;font-weight:1000!important}
+body.nx.nx.nx .weeklyCategoryTab em{display:block!important;margin-top:2px!important;color:var(--fix-muted)!important;font-size:12px!important;font-style:normal!important;font-weight:900!important}
+body.nx.nx.nx .weeklyCategoryTab.active{
+  border-color:#0a0d12!important;
+  background:linear-gradient(180deg,var(--fix-yellow),#ddca15)!important;
+}
+body.nx.nx.nx .weeklyCategoryTab.active span,
+body.nx.nx.nx .weeklyCategoryTab.active b,
+body.nx.nx.nx .weeklyCategoryTab.active em{color:#090c11!important}
+
+body.nx.nx.nx .allocationRibbon{
+  display:flex!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+}
+body.nx.nx.nx .allocationChip{
+  min-width:170px!important;
+  background:linear-gradient(180deg,rgba(23,31,42,.98),rgba(11,16,23,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  color:var(--fix-text)!important;
+}
+body.nx.nx.nx .allocationChip b{color:#fff!important}
+body.nx.nx.nx .allocationChip em{color:var(--fix-yellow)!important}
+
+body.nx.nx.nx .weeklyMissionGroup,
+body.nx.nx.nx .weeklyTaskGroup{
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(180deg,rgba(12,17,24,.98),rgba(7,10,15,.98))!important;
+  border-radius:20px!important;
+  padding:14px!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .weeklyMissionGroup > header,
+body.nx.nx.nx .weeklyTaskGroupHead{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:12px 14px!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(180deg,rgba(19,26,36,.98),rgba(10,15,22,.98))!important;
+  color:#fff!important;
+}
+body.nx.nx.nx .weeklyMissionGroup > header b,
+body.nx.nx.nx .weeklyTaskGroupHead b{font-size:19px!important;color:#fff!important}
+body.nx.nx.nx .weeklyMissionGroup > header strong,
+body.nx.nx.nx .weeklyTaskGroupHead em{color:var(--fix-yellow)!important;font-size:18px!important;font-style:normal!important;font-weight:1000!important}
+body.nx.nx.nx .weeklyMissionGroup > header small{color:var(--fix-muted)!important}
+body.nx.nx.nx .groupMeter,
+body.nx.nx.nx .weeklyTaskMeter,
+body.nx.nx.nx .missionMeter{
+  background:rgba(255,255,255,.08)!important;
+}
+body.nx.nx.nx .groupMeter i,
+body.nx.nx.nx .weeklyTaskMeter i,
+body.nx.nx.nx .missionMeter i{
+  background:linear-gradient(90deg,var(--fix-yellow),var(--fix-yellow-2))!important;
+  box-shadow:none!important;
+}
+
+body.nx.nx.nx .weeklyMissionGrid,
+body.nx.nx.nx .weeklyTaskGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr))!important;
+  gap:14px!important;
+}
+body.nx.nx.nx .weeklyMissionCard,
+body.nx.nx.nx .weeklyTaskCard{
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:linear-gradient(180deg,rgba(17,24,33,.99),rgba(9,13,19,.99))!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.18)!important;
+  color:var(--fix-text)!important;
+}
+body.nx.nx.nx .weeklyMissionCard::before,
+body.nx.nx.nx .weeklyTaskCard::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;top:0!important;right:0!important;height:8px!important;
+  background:linear-gradient(90deg,var(--fix-yellow),#f3e86a)!important;
+}
+body.nx.nx.nx .weeklyMissionCard > *{position:relative!important;z-index:1!important}
+body.nx.nx.nx .weeklyMissionCard .missionGlow{display:none!important}
+body.nx.nx.nx .missionHead{
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  gap:12px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx .missionIcon{
+  width:44px!important;height:44px!important;border-radius:12px!important;
+  display:grid!important;place-items:center!important;
+  font-size:20px!important;
+  background:linear-gradient(180deg,#212b38,#131a23)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  color:var(--fix-yellow)!important;
+}
+body.nx.nx.nx .missionTitleBlock b{display:block!important;font-size:18px!important;line-height:1.18!important;color:#fff!important}
+body.nx.nx.nx .missionTitleBlock span{display:block!important;margin-top:3px!important;color:var(--fix-muted)!important;font-size:13px!important;line-height:1.35!important}
+body.nx.nx.nx .missionScore{min-width:96px!important;text-align:right!important}
+body.nx.nx.nx .missionScore strong{display:block!important;color:var(--fix-yellow)!important;font-size:18px!important;font-weight:1000!important}
+body.nx.nx.nx .missionScore em{display:block!important;color:var(--fix-muted)!important;font-size:12px!important;font-style:normal!important}
+body.nx.nx.nx .missionActions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin-top:10px!important;
+}
+body.nx.nx.nx .missionActions :is(button,a){
+  min-height:38px!important;
+  padding:0 12px!important;
+  border-radius:12px!important;
+}
+body.nx.nx.nx .missionPrimary{background:linear-gradient(180deg,var(--fix-yellow),#ddca15)!important;color:#090c11!important;border-color:#090c11!important}
+body.nx.nx.nx .missionGhost,
+body.nx.nx.nx .missionLink,
+body.nx.nx.nx .safeTargetEdit{
+  background:linear-gradient(180deg,#232d39,#121922)!important;
+  color:#f3f6fb!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+}
+body.nx.nx.nx .missionBadges{
+  display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:10px!important;
+}
+body.nx.nx.nx .missionBadges span,
+body.nx.nx.nx .weeklyTaskBadges span,
+body.nx.nx.nx .planModeBadge,
+body.nx.nx.nx .taskFlag,
+body.nx.nx.nx .statusBadge,
+body.nx.nx.nx .stepChip{
+  background:#1c2531!important;
+  color:#edf2f8!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:999px!important;
+}
+body.nx.nx.nx .missionBadges .hot,
+body.nx.nx.nx .statusBadge.over,
+body.nx.nx.nx .taskFlag.warn,
+body.nx.nx.nx .taskFlag.miss{background:rgba(255,79,95,.16)!important;color:#ffd9df!important;border-color:rgba(255,79,95,.32)!important}
+body.nx.nx.nx .weeklySubtasks{
+  margin-top:10px!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:#111821!important;
+  border-radius:14px!important;
+}
+body.nx.nx.nx .weeklySubtasks summary{padding:10px 12px!important;color:#fff!important;cursor:pointer!important}
+body.nx.nx.nx .weeklySubtasks summary span{color:var(--fix-yellow)!important}
+body.nx.nx.nx .weeklyStepList{padding:0 12px 12px!important;display:grid!important;gap:8px!important}
+body.nx.nx.nx .weeklyStepItem{
+  display:flex!important;gap:8px!important;align-items:center!important;
+  padding:8px 10px!important;border-radius:10px!important;background:#171f2a!important;border:1px solid rgba(255,255,255,.08)!important;color:#eef3f9!important;
+}
+body.nx.nx.nx .weeklyStepItem.done{opacity:.74!important}
+
+/* main task table: no more pastel rows */
+body.nx.nx.nx .tableBox,
+body.nx.nx.nx #taskTable{background:transparent!important}
+body.nx.nx.nx #taskTable thead th{
+  background:linear-gradient(180deg,#111822,#0b1017)!important;
+  color:#f4f7fb!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx #taskTable tbody tr{background:transparent!important}
+body.nx.nx.nx #taskTable td{
+  border-color:rgba(255,255,255,.08)!important;
+  background:#0d1218!important;
+}
+body.nx.nx.nx #taskTable td.category{
+  position:relative!important;
+  background:linear-gradient(180deg,#101722,#0a0e14)!important;
+  border-right:1px solid rgba(255,255,255,.08)!important;
+}
+body.nx.nx.nx #taskTable td.category::before{
+  content:""!important;
+  position:absolute!important;left:0!important;top:0!important;bottom:0!important;width:8px!important;
+  background:linear-gradient(180deg,var(--fix-yellow),#f1a1c8)!important;
+}
+body.nx.nx.nx .catInner{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  height:100%!important;padding:12px 14px 12px 20px!important;
+  color:#f7f9fc!important;font-size:15px!important;font-weight:1000!important;letter-spacing:.05em!important;
+}
+body.nx.nx.nx #taskTable td.taskName{
+  background:linear-gradient(180deg,#121923,#0b1017)!important;
+  border-left:0!important;
+}
+body.nx.nx.nx .taskRowInner{
+  height:auto!important;max-height:none!important;
+  min-height:66px!important;
+  padding:6px 2px!important;
+  display:grid!important;
+  grid-template-rows:auto auto!important;
+  gap:8px!important;
+}
+body.nx.nx.nx .taskMainLine{
+  color:#fff!important;
+  font-size:18px!important;
+  line-height:1.22!important;
+  min-height:28px!important;
+}
+body.nx.nx.nx .taskMainLine .taskText,
+body.nx.nx.nx .taskMainLine .taskLink{color:#fff!important;text-decoration:none!important}
+body.nx.nx.nx .taskMainLine .taskIcon{
+  width:22px!important;height:22px!important;
+  display:inline-grid!important;place-items:center!important;
+  border-radius:8px!important;
+  background:var(--fix-yellow)!important;
+  color:#090c11!important;
+}
+body.nx.nx.nx .taskMetaLine{
+  color:var(--fix-muted)!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx .taskMetaLine .taskFlagBar{max-width:none!important;flex-wrap:wrap!important;overflow:visible!important}
+body.nx.nx.nx .timerControls .timerHint{background:#171f2a!important;color:#d9e2ee!important;border-color:rgba(255,255,255,.10)!important}
+body.nx.nx.nx .timerControls .timerClock{background:#101721!important;color:var(--fix-yellow)!important;border-color:rgba(255,255,255,.10)!important}
+body.nx.nx.nx .timerControls button{background:#1c2531!important;color:#fff!important;border:1px solid rgba(255,255,255,.10)!important}
+body.nx.nx.nx td.dayCell{
+  background:linear-gradient(180deg,#101722,#0a0f15)!important;
+  color:#d7dfeb!important;
+}
+body.nx.nx.nx td.dayCell.blank{background:linear-gradient(180deg,#0b1017,#090d13)!important;opacity:.45!important}
+body.nx.nx.nx td.activeTodayCell{
+  background:linear-gradient(180deg,#161c26,#0e141d)!important;
+  outline:2px solid rgba(235,219,24,.50)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important;
+}
+body.nx.nx.nx td.activeTodayCell::after{
+  background:var(--fix-yellow)!important;color:#080b10!important;box-shadow:none!important;
+}
+body.nx.nx.nx #taskTable input[type="checkbox"]{
+  accent-color:var(--fix-yellow)!important;
+}
+
+/* mobile task cards */
+body.nx.nx.nx .mTask{
+  background:linear-gradient(180deg,#121923,#0b1017)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .mTask.today{border-color:rgba(235,219,24,.36)!important;box-shadow:0 0 0 1px rgba(235,219,24,.12)!important}
+body.nx.nx.nx .mTitle,.mTitle .taskText,.mTitle .taskLink{color:#fff!important}
+body.nx.nx.nx .mMeta{color:var(--fix-muted)!important}
+
+/* library and summary cards a bit calmer */
+body.nx.nx.nx #refBox .refGroup{background:linear-gradient(180deg,#111823,#0b1017)!important}
+body.nx.nx.nx #refBox .refLink{background:#18212c!important;color:#eef3f9!important}
+body.nx.nx.nx #refBox .refLink:hover{background:linear-gradient(180deg,var(--fix-yellow),#ddca15)!important;color:#090c11!important}
+
+@media(max-width:960px){
+  body.nx.nx.nx .globalToolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.nx.nx.nx #githubStatus{grid-column:1 / -1!important}
+  body.nx.nx.nx #cycleLabel{grid-column:1 / -1!important}
+}

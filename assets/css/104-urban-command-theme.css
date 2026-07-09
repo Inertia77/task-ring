@@ -1,0 +1,386 @@
+/* ========================================================================== 
+   104-urban-command-theme.css
+   全局都市工业 HUD 主题
+   目标：把整个项目统一成接近你给的参考图那种黑/灰/黄为主的高密度 UI，
+   但不出现任何外部游戏 logo / 品牌元素。
+   ========================================================================== */
+:root{
+  --cmd-bg:#090d13;
+  --cmd-bg-2:#0d1219;
+  --cmd-bg-3:#121924;
+  --cmd-panel:#111821;
+  --cmd-panel-2:#171f2b;
+  --cmd-panel-3:#1d2837;
+  --cmd-line:rgba(255,255,255,.11);
+  --cmd-line-2:rgba(255,255,255,.18);
+  --cmd-text:#f5f7fb;
+  --cmd-muted:#adb6c6;
+  --cmd-yellow:#edd91f;
+  --cmd-yellow-2:#f7ea67;
+  --cmd-cyan:#67d7f7;
+  --cmd-violet:#8f79ff;
+  --cmd-danger:#f35c7a;
+  --cmd-ok:#8be17d;
+  --cmd-shadow:0 18px 38px rgba(0,0,0,.34);
+  --cmd-shadow-soft:0 10px 24px rgba(0,0,0,.22);
+  --cmd-radius:18px;
+  --cmd-radius-sm:12px;
+}
+
+body.nx.nx.nx{
+  color:var(--cmd-text)!important;
+  background:
+    linear-gradient(180deg,rgba(7,10,15,.97),rgba(7,10,15,.99)),
+    radial-gradient(circle at 14% 0%,rgba(237,217,31,.10),transparent 26%),
+    radial-gradient(circle at 88% 18%,rgba(103,215,247,.09),transparent 30%),
+    url("../images/css/background-collage.png") center top/cover fixed no-repeat!important;
+}
+body.nx.nx.nx::before{
+  background:
+    linear-gradient(115deg,transparent 0 70%,rgba(255,255,255,.07) 70% 71%,transparent 71%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.026) 0 1px,transparent 1px 24px),
+    linear-gradient(90deg,transparent 0 76%,rgba(237,217,31,.12) 76% 76.5%,transparent 76.5%)!important;
+  opacity:.9!important;
+}
+body.nx.nx.nx .wrap{
+  width:min(1640px,100%)!important;
+  max-width:1640px!important;
+  padding:14px 14px 38px!important;
+}
+
+/* base text */
+body.nx.nx.nx :is(h1,h2,h3,b,strong,.taskText,.taskName,.missionTitleBlock b,.activeTimerTitle,.refSummaryTitle,.taskEditorTitle,.ghModalTitle,.lockTitle,.timeTaskName b){
+  color:var(--cmd-text)!important;
+}
+body.nx.nx.nx :is(p,em,small,.subtitle,.inertiaSubtitle,.progress-meta,.taskMetaLine,.mMeta,.missionTitleBlock span,.dailyText,.refSummarySub,.footer,.taskEditorSub,.ghModalSub,.ghHint,.taskEditorHint,.timeTaskValue span,.activeTimerSub,.weeklyTaskMeta span,.weeklyTaskTitle span){
+  color:var(--cmd-muted)!important;
+}
+
+/* global surfaces */
+body.nx.nx.nx :is(.inertiaHeader,.viewDock,.taskRingControlPanel,.orbitPanel,.tableBox,.mobileBox,.weeklyShell,.weeklyCommandHero,.weeklyMissionGroup,.weeklyMissionCard,.gameQuestShell,.gameQuestTopBarStandalone,.gameQuestDailyPane,.gameQuestWeeklyPane,.gameQuestCard,.gameQuestCardV2,.gameQuestWeeklyCard,.timePanelShell,.timePanelHeader,.timeLedgerIdle,.timeTaskRow,.timeBudgetRow,.activeTimerCard,.priorityRefBox,.legendBox,.refGroup,.dailyReminder,.summaryGrid .card,.notice,.weeklyActiveHint,.gameQuestMetaStrip,.timeLogItem,.lockCard,.ghModalCard,.taskEditorCard,.refEditorCard,.gameQuestEditorCard,.stepPopover,.timeDetailModalCard){
+  border-radius:var(--cmd-radius)!important;
+  border:1px solid var(--cmd-line)!important;
+  background:linear-gradient(180deg,rgba(17,24,33,.98),rgba(10,14,20,.98))!important;
+  color:var(--cmd-text)!important;
+  box-shadow:var(--cmd-shadow-soft)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+}
+
+/* controls */
+body.nx.nx.nx :is(button,.pill,.missionLink,.quickLinks a,.refLink,.taskEditorCard button,.ghModalCard button,.lockUnlockBtn){
+  border-radius:var(--cmd-radius-sm)!important;
+  font-weight:900!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  background:linear-gradient(180deg,#202a37,#121a24)!important;
+  color:var(--cmd-text)!important;
+  box-shadow:0 5px 14px rgba(0,0,0,.18)!important;
+  text-decoration:none!important;
+}
+body.nx.nx.nx :is(button,.missionLink,.quickLinks a,.refLink):hover{
+  transform:translateY(-1px)!important;
+  border-color:rgba(237,217,31,.44)!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.24),0 0 0 1px rgba(237,217,31,.12)!important;
+  filter:none!important;
+}
+body.nx.nx.nx :is(button,.missionLink,.quickLinks a,.refLink):active{transform:translateY(1px)!important}
+body.nx.nx.nx :is(.missionPrimary,.timeSubTabs button.active,.weeklyCategoryTab.active,.editorScopeTabs button.active,#saveConfigBtn,#saveRefConfigBtn,#saveGameQuestBtn,#ghSaveTokenBtn,#addTaskBtn,#addRefGroupBtn,.weeklyTargetActions .primary,.lockUnlockBtn,#taskEditorBottomSaveBtn,#refEditorBottomSaveBtn,#gameQuestEditorBottomSaveBtn,.subtaskBtn){
+  border-color:#0a0d12!important;
+  background:linear-gradient(180deg,var(--cmd-yellow),#e1cb18)!important;
+  color:#080b10!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.42),0 10px 22px rgba(237,217,31,.18)!important;
+}
+body.nx.nx.nx :is(.softDangerBtn,.ghostDanger,.ghDangerBtn,.timerGhost,button[data-timer-abandon],button[data-op="remove"],button[data-refop="remove"],.gqMetaBtn.danger,.gqDailyMiniBtn.danger){
+  background:linear-gradient(180deg,#b81d44,#ea4a73)!important;
+  border-color:rgba(255,255,255,.16)!important;
+  color:#fff!important;
+}
+body.nx.nx.nx :is(input,textarea,select,.ghInput,.cfgTitle,.cfgUrl,.refItemTitle,.refItemUrl,.lockInput){
+  border-radius:12px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  background:linear-gradient(180deg,#151d27,#0e141c)!important;
+  color:#f7fbff!important;
+}
+body.nx.nx.nx :is(input,textarea,select)::placeholder{color:#95a0b1!important}
+body.nx.nx.nx :is(input:focus,textarea:focus,select:focus){
+  outline:none!important;
+  border-color:rgba(237,217,31,.42)!important;
+  box-shadow:0 0 0 3px rgba(237,217,31,.12)!important;
+}
+body.nx.nx.nx input[type="checkbox"]{accent-color:var(--cmd-yellow)!important}
+
+/* header */
+body.nx.nx.nx .inertiaHeader{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:16px 18px!important;
+  align-items:center!important;
+  padding:16px 18px!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(180deg,rgba(14,20,28,.98),rgba(9,13,19,.98)),
+    linear-gradient(90deg,rgba(237,217,31,.06),transparent 35%)!important;
+  box-shadow:var(--cmd-shadow)!important;
+}
+body.nx.nx.nx .inertiaHeader::before{
+  content:""!important;
+  position:absolute!important;inset:0!important;pointer-events:none!important;
+  background:
+    linear-gradient(90deg,transparent 0 69%,rgba(255,255,255,.08) 69% 69.4%,transparent 69.4%),
+    linear-gradient(90deg,transparent 0 74%,rgba(237,217,31,.14) 74% 74.6%,transparent 74.6%),
+    repeating-linear-gradient(135deg,transparent 0 12px,rgba(255,255,255,.03) 12px 14px,transparent 14px 28px)!important;
+}
+body.nx.nx.nx .inertiaHeader::after{content:none!important}
+body.nx.nx.nx .inertiaHeroBrand{
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr)!important;
+  gap:14px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx .inertiaHeroMark{
+  width:64px!important;height:64px!important;border-radius:16px!important;
+  background:#080b11!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  box-shadow:0 0 0 2px rgba(237,217,31,.28),0 14px 28px rgba(0,0,0,.30)!important;
+}
+body.nx.nx.nx .inertiaBrandRow{gap:8px!important;margin-bottom:6px!important}
+body.nx.nx.nx :is(.inertiaOwnerBadge,.inertiaVersionBadge){
+  min-height:24px!important;
+  padding:4px 9px!important;
+  border-radius:10px!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  background:#0c1118!important;
+  color:var(--cmd-yellow)!important;
+  box-shadow:none!important;
+  font-size:10px!important;
+}
+body.nx.nx.nx .inertiaVersionBadge{color:#d6ddec!important;background:#131a23!important}
+body.nx.nx.nx .inertiaHeroTitle{
+  display:flex!important;align-items:baseline!important;gap:10px!important;line-height:.96!important;margin:0!important;min-width:0!important;
+}
+body.nx.nx.nx :is(.inertiaTitleCn,.inertiaTitleSlash,.inertiaTitleEn,.titleGlow){
+  font-style:italic!important;
+  text-shadow:none!important;
+  background:none!important;
+  -webkit-text-fill-color:initial!important;
+}
+body.nx.nx.nx .inertiaTitleCn{font-size:42px!important;color:#ffffff!important}
+body.nx.nx.nx .inertiaTitleSlash{font-size:32px!important;color:var(--cmd-yellow)!important}
+body.nx.nx.nx :is(.inertiaTitleEn,.titleGlow){font-size:38px!important;color:#cfd7e4!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.nx.nx.nx .inertiaSubtitle{margin-top:6px!important;font-size:13px!important;font-weight:760!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:var(--cmd-muted)!important}
+body.nx.nx.nx .globalToolbar{
+  display:grid!important;grid-template-columns:repeat(2,minmax(120px,1fr))!important;gap:8px!important;max-width:520px!important;
+}
+body.nx.nx.nx .globalToolbar :is(button,.pill,.githubInlineState){
+  min-height:38px!important;height:38px!important;padding:0 11px!important;font-size:12px!important;
+}
+body.nx.nx.nx .githubInlineState{background:#0f151d!important;color:var(--cmd-text)!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important}
+body.nx.nx.nx .ghInlineDot{background:var(--cmd-yellow)!important}
+
+/* dock */
+body.nx.nx.nx .viewDock{
+  position:sticky!important;top:8px!important;z-index:90!important;
+  padding:8px!important;
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;
+  background:linear-gradient(180deg,rgba(13,18,26,.98),rgba(9,13,19,.98))!important;
+  box-shadow:var(--cmd-shadow-soft)!important;
+}
+body.nx.nx.nx .viewDockBtn{
+  min-height:70px!important;
+  display:grid!important;align-content:center!important;justify-items:start!important;gap:3px!important;
+  padding:12px 14px!important;
+  border-radius:14px!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  background:linear-gradient(180deg,rgba(21,29,40,.96),rgba(11,16,23,.96))!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .viewDockBtn span{font-size:11px!important;letter-spacing:.16em!important;color:var(--cmd-muted)!important}
+body.nx.nx.nx .viewDockBtn b{font-size:17px!important;line-height:1.1!important;color:var(--cmd-text)!important}
+body.nx.nx.nx .viewDockBtn.active{
+  border-color:#0a0d12!important;
+  background:linear-gradient(180deg,var(--cmd-yellow),#e1cb18)!important;
+  box-shadow:0 10px 22px rgba(237,217,31,.16)!important;
+}
+body.nx.nx.nx .viewDockBtn.active span,
+body.nx.nx.nx .viewDockBtn.active b{color:#080b10!important}
+body.nx.nx.nx .viewDockBtn.active::after{display:none!important}
+
+/* generic panels and labels */
+body.nx.nx.nx .notice{border-left:4px solid var(--cmd-yellow)!important;color:#dce3ee!important;background:linear-gradient(180deg,rgba(17,24,33,.96),rgba(10,14,20,.98))!important}
+body.nx.nx.nx .notice strong{color:#fff!important}
+body.nx.nx.nx .pill{background:#131a23!important;color:var(--cmd-text)!important}
+body.nx.nx.nx .progress,.nx .taskProgressWrap .progress,.nx .missionMeter,.nx .groupMeter,.nx .weeklyTaskMeter,.nx .timeBudgetBar,.nx .timeTaskMeter,.nx .orbitMeter{background:rgba(255,255,255,.10)!important;border-radius:999px!important}
+body.nx.nx.nx :is(#bar,.missionMeter i,.groupMeter i,.weeklyTaskMeter i,.timeBudgetBar span,.timeTaskMeter i,.orbitMeter span,.allocationChip i::before){background:linear-gradient(90deg,var(--cmd-yellow),#f6e864)!important;box-shadow:0 0 16px rgba(237,217,31,.18)!important;border-radius:999px!important}
+
+/* main tasks */
+body.nx.nx.nx .taskFirstCard,
+body.nx.nx.nx .tableBox,
+body.nx.nx.nx .mobileBox,
+body.nx.nx.nx .orbitPanel{overflow:hidden!important}
+body.nx.nx.nx .taskFirstKicker,
+body.nx.nx.nx .weeklyHero span,
+body.nx.nx.nx .timePanelHeader span,
+body.nx.nx.nx .gameQuestTopTitle span,
+body.nx.nx.nx .refHead span{
+  color:var(--cmd-yellow)!important;
+}
+body.nx.nx.nx .taskFirstTitle,
+body.nx.nx.nx .weeklyHero b,
+body.nx.nx.nx .timePanelHeader b,
+body.nx.nx.nx .refHead b{color:#fff!important}
+body.nx.nx.nx .summaryGrid .card{position:relative!important;overflow:hidden!important}
+body.nx.nx.nx .summaryGrid .card::before{content:""!important;position:absolute!important;left:0!important;top:0!important;bottom:0!important;width:4px!important;background:var(--cmd-yellow)!important}
+body.nx.nx.nx .dayTab,
+body.nx.nx.nx .taskRingModeBtn{
+  border-radius:12px!important;
+  background:#131b25!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  color:var(--cmd-text)!important;
+}
+body.nx.nx.nx .dayTab.active,
+body.nx.nx.nx .taskRingModeBtn.active{
+  background:linear-gradient(180deg,var(--cmd-yellow),#e2cc18)!important;
+  border-color:#090c11!important;
+  color:#090c11!important;
+}
+body.nx.nx.nx .taskRow,
+body.nx.nx.nx .mTask,
+body.nx.nx.nx .dailyReminder .dailyItem{
+  background:linear-gradient(180deg,rgba(20,28,39,.98),rgba(11,16,23,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .taskMainLine .taskText,
+body.nx.nx.nx .mTaskTitleLine .taskText{font-size:17px!important;font-weight:1000!important;color:#fff!important;text-shadow:none!important}
+body.nx.nx.nx .taskMainLine .taskIcon,
+body.nx.nx.nx .mTaskTitleLine .taskIcon{background:var(--cmd-yellow)!important;color:#090c11!important;border-radius:8px!important;box-shadow:none!important}
+body.nx.nx.nx .subtaskBtn{min-height:32px!important}
+body.nx.nx.nx .subtaskBtn:hover{filter:none!important}
+body.nx.nx.nx .stepPopover{background:linear-gradient(180deg,rgba(20,28,39,.99),rgba(11,16,23,.99))!important;color:var(--cmd-text)!important}
+body.nx.nx.nx .stepPopover :is(strong,span,b){color:var(--cmd-text)!important}
+
+/* weekly */
+body.nx.nx.nx .weeklyShell.v19{background:linear-gradient(180deg,rgba(14,20,28,.98),rgba(9,13,19,.98))!important}
+body.nx.nx.nx .weeklyHero{
+  border-radius:18px!important;
+  padding:18px!important;
+  background:
+    linear-gradient(180deg,rgba(17,24,35,.98),rgba(10,14,20,.98)),
+    linear-gradient(90deg,rgba(237,217,31,.08),transparent 36%)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx .weeklyHeroStats>div,
+body.nx.nx.nx .weeklySummaryItem,
+body.nx.nx.nx .allocationChip{
+  background:linear-gradient(180deg,rgba(20,28,39,.98),rgba(11,16,23,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:14px!important;
+  color:var(--cmd-text)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx .weeklySummaryItem span,
+body.nx.nx.nx .allocationChip span{color:var(--cmd-muted)!important}
+body.nx.nx.nx .weeklySummaryItem b,
+body.nx.nx.nx .allocationChip b{color:#fff!important}
+body.nx.nx.nx .weeklyTaskGroupHead{
+  padding:12px 14px!important;
+  border-radius:14px!important;
+  background:linear-gradient(180deg,rgba(17,24,35,.96),rgba(10,14,20,.96))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+body.nx.nx.nx .weeklyTaskGroupHead b{font-size:18px!important;color:#fff!important}
+body.nx.nx.nx .weeklyTaskGroupHead em{color:var(--cmd-yellow)!important;font-style:normal!important;font-weight:1000!important}
+body.nx.nx.nx .weeklyTaskCard{
+  border-radius:16px!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  background:linear-gradient(180deg,rgba(19,27,37,.98),rgba(10,15,22,.98))!important;
+  color:var(--cmd-text)!important;
+}
+body.nx.nx.nx .weeklyTaskTop{
+  padding:10px 12px!important;
+  border-radius:12px!important;
+  background:linear-gradient(90deg,rgba(237,217,31,.95),rgba(247,234,103,.72))!important;
+  border:1px solid rgba(0,0,0,.18)!important;
+}
+body.nx.nx.nx .weeklyTaskTop :is(b,span,em),
+body.nx.nx.nx .weeklyTaskTitle :is(b,span),
+body.nx.nx.nx .weeklyTaskBadges span,
+body.nx.nx.nx .weeklyTargetInline,
+body.nx.nx.nx .weeklyDetailBtn{color:#0b0e13!important}
+body.nx.nx.nx .weeklyTaskTitle b{font-size:15px!important;font-weight:1000!important}
+body.nx.nx.nx .weeklyOpenLink{background:#121923!important;border:1px solid rgba(255,255,255,.10)!important;color:var(--cmd-yellow)!important;border-radius:10px!important}
+body.nx.nx.nx .weeklyStartBtn{background:linear-gradient(180deg,var(--cmd-yellow),#e2cc18)!important;color:#090c11!important;border-color:#090c11!important}
+body.nx.nx.nx .weeklyStartBtn.active{background:linear-gradient(180deg,#68d8f6,#38c5ef)!important;color:#0a0d12!important}
+body.nx.nx.nx .weeklyDetailBtn,
+body.nx.nx.nx .weeklyTargetInline{background:#141b24!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:10px!important}
+body.nx.nx.nx .weeklyTargetInline input{background:transparent!important;border:0!important;color:var(--cmd-yellow)!important}
+
+/* time ledger */
+body.nx.nx.nx .timePanelShell.v19{background:linear-gradient(180deg,rgba(14,20,28,.98),rgba(9,13,19,.98))!important}
+body.nx.nx.nx .timePanelHeader{padding:18px!important}
+body.nx.nx.nx .timeStatCards>div,
+body.nx.nx.nx .timeBudgetRow,
+body.nx.nx.nx .timeTaskRow,
+body.nx.nx.nx .timeLogItem,
+body.nx.nx.nx .activeTimerCard,
+body.nx.nx.nx .timeLedgerIdle{
+  background:linear-gradient(180deg,rgba(19,27,37,.98),rgba(10,15,22,.98))!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:14px!important;
+}
+body.nx.nx.nx .timeStatCards>div b,
+body.nx.nx.nx .timeBudgetValue,
+body.nx.nx.nx .activeTimerClock{color:var(--cmd-yellow)!important}
+body.nx.nx.nx .timeSubTabs{background:#0f151d!important;border-radius:14px!important;padding:6px!important}
+body.nx.nx.nx .timeSubTabs button{border-radius:11px!important;background:transparent!important;color:var(--cmd-muted)!important;box-shadow:none!important;border:0!important}
+body.nx.nx.nx .timeSubTabs button.active{background:linear-gradient(180deg,var(--cmd-yellow),#e2cc18)!important;color:#090c11!important;border:1px solid #090c11!important}
+body.nx.nx.nx .activeTimerKicker{color:var(--cmd-yellow)!important}
+body.nx.nx.nx .timeGameQuestRow{background:linear-gradient(90deg,rgba(237,217,31,.15),rgba(19,27,37,.98) 40%,rgba(10,15,22,.98))!important}
+body.nx.nx.nx .timeTargetReadOnly{background:#141b24!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:10px!important}
+
+/* library */
+body.nx.nx.nx #refBox.priorityRefBox{background:linear-gradient(180deg,rgba(14,20,28,.98),rgba(9,13,19,.98))!important}
+body.nx.nx.nx #refBox .refGrid{gap:14px!important}
+body.nx.nx.nx #refBox .refGroup{
+  position:relative!important;overflow:hidden!important;padding:0!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:linear-gradient(180deg,rgba(17,24,35,.98),rgba(10,14,20,.98))!important;
+}
+body.nx.nx.nx #refBox .refGroup::before{content:""!important;position:absolute!important;left:0!important;top:0!important;bottom:0!important;width:5px!important;background:var(--cmd-yellow)!important}
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+2)::before{background:var(--cmd-cyan)!important}
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+3)::before{background:var(--cmd-violet)!important}
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+4)::before{background:#ff78a7!important}
+body.nx.nx.nx #refBox .refGroup>summary{padding:13px 15px 11px 18px!important;background:linear-gradient(90deg,rgba(255,255,255,.03),transparent)!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+body.nx.nx.nx #refBox .refGroup>summary span:first-child{font-size:15px!important;font-weight:1000!important;color:#fff!important}
+body.nx.nx.nx #refBox .refGroupBody{padding:12px 13px 14px 18px!important}
+body.nx.nx.nx #refBox .refLink{background:#141b24!important;color:#e8eef8!important;border:1px solid rgba(255,255,255,.10)!important}
+body.nx.nx.nx #refBox .refLink:hover{background:linear-gradient(180deg,var(--cmd-yellow),#e2cc18)!important;color:#090c11!important;border-color:#090c11!important}
+
+/* editors + lock */
+body.nx.nx.nx .lockScreen{background:rgba(4,6,10,.84)!important;backdrop-filter:blur(10px)!important}
+body.nx.nx.nx .lockCard,
+body.nx.nx.nx .ghModalCard,
+body.nx.nx.nx .taskEditorCard,
+body.nx.nx.nx .refEditorCard,
+body.nx.nx.nx .gameQuestEditorCard{
+  border-radius:20px!important;
+  background:linear-gradient(180deg,rgba(17,24,35,.99),rgba(10,14,20,.99))!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+}
+body.nx.nx.nx .lockBadge{background:#121923!important;color:var(--cmd-yellow)!important;border:1px solid rgba(255,255,255,.12)!important}
+body.nx.nx.nx .lockTitle{color:#fff!important}
+body.nx.nx.nx .lockFoot{color:var(--cmd-muted)!important}
+
+/* small responsive */
+@media(max-width:1080px){
+  body.nx.nx.nx .viewDock{grid-template-columns:repeat(5,minmax(120px,1fr))!important;overflow-x:auto!important}
+}
+@media(max-width:760px){
+  body.nx.nx.nx .inertiaHeader{grid-template-columns:1fr!important}
+  body.nx.nx.nx .inertiaSubtitle{white-space:normal!important}
+  body.nx.nx.nx .globalToolbar{max-width:none!important}
+  body.nx.nx.nx .viewDock{display:flex!important;overflow-x:auto!important}
+  body.nx.nx.nx .viewDockBtn{min-width:148px!important;min-height:64px!important}
+  body.nx.nx.nx .weeklyHeroStats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
