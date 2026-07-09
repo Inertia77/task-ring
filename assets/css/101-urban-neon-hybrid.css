@@ -123,7 +123,7 @@ body.nx.nx.nx :is(.missionLink,.quickLinks a,.refLink):hover{
   filter:contrast(1.02) saturate(1.08)!important;
 }
 body.nx.nx.nx button:active{transform:translateY(1px)!important;box-shadow:0 1px 0 rgba(0,0,0,.45)!important}
-body.nx.nx.nx :is(#showUndone,.controlCenterBtn,.ghSetupBtn,.missionPrimary,.gameQuestModeBtn.active,.timeSubTabs button.active,.weeklyCategoryTab.active,.editorScopeTabs button.active,#saveConfigBtn,#saveRefConfigBtn,#saveGameQuestBtn,#ghSaveTokenBtn,#addTaskBtn,#addRefGroupBtn,.weeklyTargetActions .primary,.lockUnlockBtn,#taskEditorBottomSaveBtn,#refEditorBottomSaveBtn,#gameQuestEditorBottomSaveBtn){
+body.nx.nx.nx :is(.missionPrimary,.gameQuestModeBtn.active,.timeSubTabs button.active,.weeklyCategoryTab.active,.editorScopeTabs button.active,#saveConfigBtn,#saveRefConfigBtn,#saveGameQuestBtn,#ghSaveTokenBtn,#addTaskBtn,#addRefGroupBtn,.weeklyTargetActions .primary,.lockUnlockBtn,#taskEditorBottomSaveBtn,#refEditorBottomSaveBtn,#gameQuestEditorBottomSaveBtn){
   border-color:#05070b!important;
   background:linear-gradient(135deg,var(--ux-lime) 0 48%,var(--ux-cyan) 48% 100%)!important;
   color:#05070b!important;
@@ -2884,4 +2884,212 @@ body.nx.nx.nx #refEditorModal .refMiniOps{
   body.nx.nx.nx #gameQuestEditorModal .gqMetaRow{
     overflow:visible!important;
   }
+}
+
+/* ============================================================
+   v26 UI/UX refinement — 5 reported notes (2026-07)
+   (1) toolbar primary buttons: drop the harsh two-colour diagonal seam
+   (3) daily filter highlight follows the actually-active mode
+   (4) weekly plan cards: opaque, calmer single-hue accent + subtle texture
+   (5) mobile weekly card score row no longer clipped
+   ============================================================ */
+
+/* (1) 总控 / GitHub同步: cohesive single-hue sheen, no hard lime/cyan divide */
+body.nx.nx.nx .controlCenterBtn{
+  border:1px solid #05070b!important;
+  background:linear-gradient(135deg,#f4ff77,var(--ux-lime))!important;
+  color:#05070b!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.42),0 12px 26px rgba(232,255,26,.20)!important;
+}
+body.nx.nx.nx .ghSetupBtn{
+  border:1px solid #05070b!important;
+  background:linear-gradient(135deg,#74ecff,var(--ux-cyan))!important;
+  color:#05070b!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.42),0 12px 26px rgba(24,217,244,.22)!important;
+}
+
+/* (3) daily ring filter buttons: highlight the active mode only */
+body.nx.nx.nx .taskRingActionRow button.active{
+  border:1px solid #05070b!important;
+  background:linear-gradient(135deg,var(--ux-lime) 0 48%,var(--ux-cyan) 48% 100%)!important;
+  color:#05070b!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.48),0 14px 28px rgba(24,217,244,.18)!important;
+}
+
+/* (4) weekly plan cards: opaque surface, one calm cyan accent, subtle texture */
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard{
+  background:linear-gradient(180deg,#171f2b,#111823)!important;
+  border:1px solid rgba(219,230,244,.12)!important;
+  border-top:3px solid rgba(24,217,244,.55)!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.05)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard::before{
+  background:linear-gradient(90deg,#18d9f4,#57c7ff)!important;
+  box-shadow:0 0 10px rgba(24,217,244,.25)!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard.over{
+  border-top-color:rgba(239,71,111,.6)!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard.over::before{
+  background:linear-gradient(90deg,#ef476f,#ff86a4)!important;
+  box-shadow:0 0 10px rgba(239,71,111,.25)!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard .missionMeter{
+  border:1px solid rgba(24,217,244,.20)!important;
+}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard .missionMeter i{
+  background:linear-gradient(90deg,#18d9f4,#4a8ff0)!important;
+  box-shadow:0 0 10px rgba(24,217,244,.28)!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard .missionScore{
+  background:rgba(255,255,255,.045)!important;
+  border:1px solid rgba(219,230,244,.12)!important;
+}
+body.nx.nx.nx .weeklyTaskGroups .weeklyMissionCard .missionIcon{
+  background:linear-gradient(135deg,rgba(24,217,244,.24),rgba(24,217,244,.08))!important;
+  border:1px solid rgba(24,217,244,.30)!important;
+  color:#bdf1ff!important;
+}
+/* group-level meters share the same calm cyan family for cohesion */
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionGroup>header::before,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionGroup .groupMeter i{
+  background:linear-gradient(90deg,#18d9f4,#4a8ff0)!important;
+  box-shadow:0 0 10px rgba(24,217,244,.22)!important;
+}
+
+/* (5) mobile: weekly card score row must not be clipped to 64px */
+@media(max-width:760px){
+  body.nx.nx.nx .weeklyMissionCard .missionScore{
+    max-width:none!important;
+    min-width:0!important;
+    width:auto!important;
+    grid-column:1/-1!important;
+  }
+}
+
+/* ============================================================
+   v27 UI/UX refinement — 5 further notes (2026-07)
+   (1) weekly plan cards that reached their target recede (de-emphasised)
+   (2) mobile daily card: timer week-chip no longer clipped
+   (3) game quest header: tidier meter/button arrangement
+   (4) daily ring dial now shown on mobile (compact)
+   (5) daily ring dial redesigned — larger, dark-cohesive, quality feel
+   ============================================================ */
+
+/* (5) daily orbit ring: proper size + dark-theme cohesion (desktop) */
+body.nx.nx.nx .orbitPanel{padding:16px 18px!important;}
+body.nx.nx.nx .orbitLayout{
+  grid-template-columns:150px minmax(0,1fr)!important;
+  gap:20px!important;
+  align-items:center!important;
+}
+body.nx.nx.nx .orbitCore{
+  width:132px!important;height:132px!important;margin:0 auto!important;
+  border:0!important;
+  background:conic-gradient(from -90deg,#18d9f4 var(--pct,0%),rgba(255,255,255,.09) 0)!important;
+  box-shadow:0 0 26px rgba(24,217,244,.16),inset 0 0 0 1px rgba(255,255,255,.06)!important;
+}
+body.nx.nx.nx .orbitCore::after{
+  inset:11px!important;border-radius:50%!important;
+  background:radial-gradient(circle at 50% 34%,#1b2534,#0c1119)!important;
+  box-shadow:inset 0 0 0 1px rgba(24,217,244,.18),inset 0 10px 22px rgba(0,0,0,.45)!important;
+}
+body.nx.nx.nx .orbitPct{color:#eaf6ff!important;font-size:30px!important;}
+body.nx.nx.nx .orbitLabel{color:#5fe3ff!important;font-size:11px!important;letter-spacing:.16em!important;}
+body.nx.nx.nx .orbitTiny{color:#9fb0c6!important;}
+body.nx.nx.nx .orbitTitle{color:#f2f6ff!important;}
+body.nx.nx.nx .orbitSub{color:#9fb0c6!important;}
+body.nx.nx.nx #orbitPanel .orbitDay{
+  background:linear-gradient(180deg,#151d28,#0f151d)!important;
+  border:1px solid rgba(219,230,244,.12)!important;
+  color:var(--ux-soft)!important;
+}
+body.nx.nx.nx #orbitPanel .orbitDayName{color:var(--ux-text)!important;}
+body.nx.nx.nx #orbitPanel .orbitDayMeta span{color:var(--ux-muted)!important;}
+body.nx.nx.nx #orbitPanel .orbitDay.today{
+  border-color:rgba(24,217,244,.5)!important;
+  box-shadow:0 0 0 1px rgba(24,217,244,.28),0 8px 18px rgba(24,217,244,.12)!important;
+}
+body.nx.nx.nx #orbitPanel .orbitDay.attention{border-color:rgba(255,159,67,.5)!important;}
+body.nx.nx.nx #orbitPanel .orbitDay.failed{border-color:rgba(239,71,111,.5)!important;}
+body.nx.nx.nx #orbitPanel .orbitMeter{background:rgba(255,255,255,.08)!important;}
+body.nx.nx.nx #orbitPanel .orbitMeter>span{background:linear-gradient(90deg,#18d9f4,#4a8ff0)!important;}
+
+/* (1) weekly plan cards that hit their target recede into the background.
+   Uses static muted colours (reliable) + a soft opacity; hover/focus restores. */
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done{
+  opacity:.72!important;
+  background:linear-gradient(180deg,#12171f,#0d1219)!important;
+  border-color:rgba(219,230,244,.08)!important;
+  border-top:3px solid rgba(67,229,138,.5)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done:hover,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done:focus-within{
+  opacity:1!important;
+}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionTitleBlock b{color:#93a2b6!important;}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done :is(.missionTitleBlock span,.missionScore strong){color:#71808f!important;}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionIcon{
+  background:linear-gradient(135deg,rgba(67,229,138,.2),rgba(67,229,138,.06))!important;
+  border-color:rgba(67,229,138,.3)!important;
+  color:#9be9bd!important;
+}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done::before,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionMeter i{
+  background:linear-gradient(90deg,#43e58a,#2fb56a)!important;
+  box-shadow:none!important;
+}
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionScore em{
+  color:#7fe0a8!important;font-weight:900!important;
+}
+
+/* (3) game quest header: on wide screens keep title/meter/timer/今日 on one row */
+@media(min-width:1101px){
+  body.nx.nx.nx .gameQuestTopBarStandalone{
+    grid-template-columns:minmax(0,1fr) auto auto auto!important;
+  }
+  body.nx.nx.nx .gameQuestTodayQuick{
+    align-self:center!important;
+    min-width:78px!important;
+  }
+}
+
+/* (3) game quest header: mid + small screens use a tidy 2×2 (title|meter / timer|今日) */
+@media(max-width:1100px){
+  body.nx.nx.nx .gameQuestTopBarStandalone{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:"title meter" "timer today"!important;
+    gap:10px!important;
+    align-items:center!important;
+  }
+  body.nx.nx.nx .gameQuestTopTitle{grid-area:title!important;}
+  body.nx.nx.nx .gameQuestTopMeter{grid-area:meter!important;}
+  body.nx.nx.nx .gameQuestTopTimer{grid-area:timer!important;}
+  body.nx.nx.nx .gameQuestTodayQuick{grid-area:today!important;min-width:84px!important;}
+}
+
+@media(max-width:760px){
+  /* (4) show the daily ring dial on mobile, compact layout */
+  body.nx.nx.nx #orbitPanel{display:block!important;}
+  body.nx.nx.nx .orbitLayout{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+    justify-items:center!important;
+  }
+  body.nx.nx.nx .orbitCore{width:118px!important;height:118px!important;}
+  body.nx.nx.nx .orbitPct{font-size:27px!important;}
+  body.nx.nx.nx .orbitSide{width:100%!important;}
+  body.nx.nx.nx .orbitTop{justify-content:center!important;text-align:center!important;}
+  body.nx.nx.nx .orbitDays{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:5px!important;}
+  body.nx.nx.nx #orbitPanel .orbitDay{min-height:56px!important;padding:6px 3px!important;}
+  body.nx.nx.nx #orbitPanel .orbitDayName{font-size:10.5px!important;white-space:nowrap!important;}
+  body.nx.nx.nx #orbitPanel .orbitDayMeta{font-size:10px!important;}
+
+  /* (2) mobile daily card: timer takes its own row so the week-chip isn't clipped */
+  body.nx.nx.nx .mTask .mMeta{align-items:center!important;row-gap:6px!important;}
+  body.nx.nx.nx .mTask .mMeta .timerControls{flex:1 0 100%!important;justify-content:flex-start!important;margin-left:0!important;}
+  body.nx.nx.nx .mTask .mMeta .timerWeekChip{max-width:none!important;}
 }
