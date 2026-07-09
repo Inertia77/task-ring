@@ -33,7 +33,7 @@
     const saved=localStorage.getItem(WEEKLY_CATEGORY_TAB_KEY)||"";
     if(saved==="all"&&rows.length)return "all";
     if(rows.some(row=>row.cat===saved))return saved;
-    return rows[0]?.cat||"all";
+    return "all";
   }
   function weeklyCategoryTabsHtml(rows,active,total){
     if(rows.length<=1)return "";
@@ -109,15 +109,8 @@
     }).join("");
     const cards=grouped||`<div class="weeklyEmpty"><b>周计划池为空</b><span>在任务编辑器里把任务模式设为「周计划池」，它就会出现在这里。</span></div>`;
     el.innerHTML=`<div class="weeklyShell v20 v21"><div class="weeklyCommandHero"><div><span>WEEKLY ALLOCATION</span><b>周计划池</b><em>这里看本周时间投向；用类别 tab 切换，不再把所有主线铺成一整面墙。</em></div><div class="weeklyHeroStats"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}${categoryTabs}${summaries?`<div class="allocationRibbon">${summaries}</div>`:""}<div class="weeklyTaskGroups">${cards}</div></div>`;
-    // 手机端类别 tab 是横向滚动条：renderAll 重建后 scrollLeft 会归零，
-    // 导致点了靠右的「科学」等 tab 视觉上又跳回最左。渲染后把选中的 tab 居中滚入视野，
-    // 只动 tab 条自身的横向滚动，不影响页面上下滚动。（和游戏作战区同款处理）
-    const tabStrip=el.querySelector(".weeklyCategoryTabs");
-    const activeTab=tabStrip&&tabStrip.querySelector(".weeklyCategoryTab.active");
-    if(tabStrip&&activeTab&&tabStrip.scrollWidth>tabStrip.clientWidth+2){
-      const sr=tabStrip.getBoundingClientRect(),ar=activeTab.getBoundingClientRect();
-      tabStrip.scrollLeft+=(ar.left-sr.left)-(tabStrip.clientWidth-ar.width)/2;
-    }
+    // Scroll position is restored globally by app.js. Do not auto-center a category tab here,
+    // otherwise refresh/re-render jumps away from the user's current viewport.
   }
   window.renderWeeklyPlanPanel=renderWeeklyPlanPanelV21;
   document.body.addEventListener("click",e=>{

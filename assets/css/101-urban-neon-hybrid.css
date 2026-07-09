@@ -3093,3 +3093,374 @@ body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionScore em{
   body.nx.nx.nx .mTask .mMeta .timerControls{flex:1 0 100%!important;justify-content:flex-start!important;margin-left:0!important;}
   body.nx.nx.nx .mTask .mMeta .timerWeekChip{max-width:none!important;}
 }
+
+/* ============================================================
+   v28 reported UX fixes
+   ============================================================ */
+
+body.nx.nx.nx .stepPopover{
+  width:min(420px,calc(100vw - 24px))!important;
+  max-width:calc(100vw - 24px)!important;
+  max-height:min(420px,calc(100vh - 24px))!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .stepPopover .stepPopoverBody{
+  max-height:min(310px,calc(100vh - 118px))!important;
+}
+
+body.nx.nx.nx .stepPopover .stepChip span{
+  max-width:280px!important;
+}
+
+body.nx.nx.nx #todayLabel,
+body.nx.nx.nx #cycleLabel{
+  display:flex!important;
+  align-items:center!important;
+  border-color:#8ccfe0!important;
+  background:#f8fbff!important;
+  color:#0f172a!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.88),0 10px 22px rgba(0,0,0,.14)!important;
+}
+
+body.nx.nx.nx #todayLabel::before,
+body.nx.nx.nx #cycleLabel::before{
+  flex:0 0 auto!important;
+  background:#071017!important;
+  color:#e8ff1a!important;
+  box-shadow:none!important;
+}
+
+body.nx.nx.nx #refBox.priorityRefBox{
+  background:linear-gradient(180deg,#f8fbff 0%,#eaf3fb 100%)!important;
+  border-color:#bed3e8!important;
+}
+
+body.nx.nx.nx #refBox.priorityRefBox>summary{
+  background:linear-gradient(90deg,#f7fbff 0%,#e5fbff 46%,#fff1f7 100%)!important;
+  border-bottom:1px solid #c8d9ea!important;
+}
+
+body.nx.nx.nx #refBox .refGrid{
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr))!important;
+  gap:12px!important;
+  padding:12px!important;
+}
+
+body.nx.nx.nx #refBox .refGroup{
+  --refAccent:#18d9f4;
+  --refSoft:#ebfbff;
+  background:linear-gradient(180deg,#ffffff 0%,var(--refSoft) 100%)!important;
+  border:1px solid #c8d9ea!important;
+  border-top:4px solid var(--refAccent)!important;
+  box-shadow:0 14px 28px rgba(15,23,42,.10)!important;
+}
+
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+2){--refAccent:#ff3f8f;--refSoft:#fff0f6}
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+3){--refAccent:#8b6cff;--refSoft:#f4f1ff}
+body.nx.nx.nx #refBox .refGroup:nth-child(4n+4){--refAccent:#43e58a;--refSoft:#effdf5}
+
+body.nx.nx.nx #refBox .refGroup summary{
+  padding:0 0 10px!important;
+  color:#111827!important;
+}
+
+body.nx.nx.nx #refBox :is(.refLink,.refPlain){
+  background:#ffffff!important;
+  border-color:#cad8e8!important;
+  color:#1f2937!important;
+  box-shadow:0 6px 14px rgba(15,23,42,.06)!important;
+}
+
+body.nx.nx.nx #refBox .refLink:hover{
+  border-color:var(--refAccent)!important;
+  color:#071017!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgGroup{
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgSummary{
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin:0!important;
+  padding:12px 14px!important;
+  cursor:pointer!important;
+  border-bottom:1px solid #d6e1ef!important;
+  background:#ffffff!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgSummary::-webkit-details-marker{display:none!important}
+
+body.nx.nx.nx #refEditorModal .refCfgSummaryMain{
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgSummaryMain b{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  color:#111827!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgBody{
+  padding:14px!important;
+}
+
+body.nx.nx.nx #refEditorModal .refCfgGroup:not([open]) .refCfgBody{
+  display:none!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyTaskGroups .weeklyMissionCard,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard{
+  background:#141d29!important;
+  border-color:rgba(219,230,244,.14)!important;
+  border-top-color:#18d9f4!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.25)!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.over{
+  background:#1a1721!important;
+  border-top-color:#ef476f!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done{
+  background:#10161e!important;
+  border-top-color:#43e58a!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard::before,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard .missionMeter i,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionGroup .groupMeter i{
+  background:#18d9f4!important;
+  box-shadow:0 0 12px rgba(24,217,244,.34)!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.over::before,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.over .missionMeter i{
+  background:#ef476f!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done::before,
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionMeter i{
+  background:#43e58a!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard .missionScore{
+  background:#0d141d!important;
+  border-color:rgba(219,230,244,.14)!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard .missionIcon{
+  background:#20e6ff!important;
+  border-color:#bdf7ff!important;
+  color:#031018!important;
+  box-shadow:0 0 18px rgba(32,230,255,.35)!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.done .missionIcon{
+  background:#69f59c!important;
+  border-color:#c4ffd7!important;
+  color:#06130b!important;
+}
+
+body.nx.nx.nx #weeklyPlanPanel .weeklyMissionCard.over .missionIcon{
+  background:#ff6f9d!important;
+  border-color:#ffd1df!important;
+  color:#18040c!important;
+}
+
+body.nx.nx.nx #orbitPanel[data-view-panel]:not(.active),
+body.nx.nx.nx:not([data-app-view="tasks"]) #orbitPanel{
+  display:none!important;
+}
+
+body.nx.nx.nx #orbitPanel{
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+body.nx.nx.nx .orbitDrawer{
+  width:100%!important;
+}
+
+body.nx.nx.nx .orbitDrawer>summary{
+  list-style:none!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:70px!important;
+  padding:12px 14px!important;
+  cursor:pointer!important;
+}
+
+body.nx.nx.nx .orbitDrawer>summary::-webkit-details-marker{display:none!important}
+
+body.nx.nx.nx .orbitDrawerMini{
+  position:relative!important;
+  flex:0 0 52px!important;
+  width:52px!important;
+  height:52px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:50%!important;
+  background:conic-gradient(from -90deg,#18d9f4 var(--pct,0%),rgba(255,255,255,.12) 0)!important;
+  box-shadow:0 0 16px rgba(24,217,244,.22)!important;
+}
+
+body.nx.nx.nx .orbitDrawerMini::after{
+  content:""!important;
+  position:absolute!important;
+  inset:7px!important;
+  border-radius:50%!important;
+  background:#0c1119!important;
+}
+
+body.nx.nx.nx .orbitDrawerMini b{
+  position:relative!important;
+  z-index:1!important;
+  color:#f8fbff!important;
+  font-size:14px!important;
+}
+
+body.nx.nx.nx .orbitDrawerText{
+  min-width:0!important;
+  display:grid!important;
+  gap:2px!important;
+}
+
+body.nx.nx.nx .orbitDrawerText strong{color:#f2f6ff!important}
+body.nx.nx.nx .orbitDrawerText em{color:#9fb0c6!important;font-style:normal!important}
+
+body.nx.nx.nx .orbitDrawerToggle{
+  margin-left:auto!important;
+  color:#18d9f4!important;
+  font-weight:900!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx .orbitDrawer[open] .orbitDrawerToggle{
+  font-size:0!important;
+}
+
+body.nx.nx.nx .orbitDrawer[open] .orbitDrawerToggle::after{
+  content:"收起"!important;
+  font-size:12px!important;
+}
+
+body.nx.nx.nx .orbitDrawerBody{
+  padding:0 14px 14px!important;
+}
+
+@media(max-width:700px){
+  body.nx.nx.nx .stepPopover{
+    left:12px!important;
+    right:12px!important;
+    width:auto!important;
+  }
+}
+
+@media(max-width:760px){
+  body.nx.nx.nx #orbitPanel[data-view-panel]:not(.active),
+  body.nx.nx.nx:not([data-app-view="tasks"]) #orbitPanel{
+    display:none!important;
+  }
+
+  body.nx.nx.nx .taskRingActionRow{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+
+  body.nx.nx.nx .taskRingActionRow button{
+    min-height:34px!important;
+    height:34px!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:0 4px!important;
+    font-size:0!important;
+    line-height:1!important;
+  }
+
+  body.nx.nx.nx .taskRingActionRow button::after{
+    font-size:11.5px!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+
+  body.nx.nx.nx #showUndone::after{content:"未完成"!important}
+  body.nx.nx.nx #showToday::after{content:"今天"!important}
+  body.nx.nx.nx #showAll::after{content:"全周"!important}
+  body.nx.nx.nx #resetCurrentWeek::after{content:"重置"!important}
+
+  body.nx.nx.nx .mobileBox{
+    overflow:visible!important;
+    padding:8px!important;
+  }
+
+  body.nx.nx.nx .mTask{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    grid-template-columns:26px minmax(0,1fr)!important;
+    align-items:flex-start!important;
+    overflow:visible!important;
+  }
+
+  body.nx.nx.nx .mTaskBody{
+    height:auto!important;
+    max-height:none!important;
+    grid-template-rows:none!important;
+    gap:7px!important;
+    overflow:visible!important;
+  }
+
+  body.nx.nx.nx .mTask :is(.mTagLine,.mTitle,.mMeta,.mTaskTitleLine){
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+
+  body.nx.nx.nx .mTask .mMeta{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:6px!important;
+    line-height:1.25!important;
+  }
+
+  body.nx.nx.nx .mTask .timerControls{
+    flex:1 1 100%!important;
+    justify-content:flex-start!important;
+    min-width:0!important;
+  }
+
+  body.nx.nx.nx .orbitDrawer:not([open]) .orbitDrawerBody{
+    display:none!important;
+  }
+
+  body.nx.nx.nx .orbitDrawer>summary{
+    min-height:64px!important;
+    padding:10px 12px!important;
+  }
+
+  body.nx.nx.nx .orbitDrawerMini{
+    flex-basis:48px!important;
+    width:48px!important;
+    height:48px!important;
+  }
+}

@@ -492,7 +492,7 @@ applyTaskConfig(loadLocalTaskConfig()||buildDefaultConfig(),false);
 const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
 const mobileCatNames={life:"生活",gamecreate:"创作",language:"学习"};
 function catMobileName(catKey,c){return mobileCatNames[catKey]||c?.name||catKey||"任务"}
-const ROLLOVER_HOUR=4;function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}const realNow=new Date();const operationalNow=getOperationalDate(realNow);const today=operationalNow.getDay();let viewMode="undone";let mobileDay=today;
+const ROLLOVER_HOUR=4;function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}const realNow=new Date();const operationalNow=getOperationalDate(realNow);const today=operationalNow.getDay();const UI_VIEW_MODE_KEY="taskring_view_mode_v1";const UI_MOBILE_DAY_KEY="taskring_mobile_day_v1";const savedViewMode=localStorage.getItem(UI_VIEW_MODE_KEY);const savedMobileDay=Number(localStorage.getItem(UI_MOBILE_DAY_KEY));let viewMode=["undone","today","all"].includes(savedViewMode)?savedViewMode:"undone";let mobileDay=[0,1,2,3,4,5,6].includes(savedMobileDay)?savedMobileDay:today;
 function pad(n){return String(n).padStart(2,"0")}
 function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function dayName(id){return days.find(d=>d.id===id)?.name||""}
@@ -513,6 +513,8 @@ const GH_PREFIX="taskring_github_v2_";
 const APP_VIEW_KEY=`${GH_PREFIX}active_view_v1`;
 const GQ_BOARD_MODE_KEY=`${GH_PREFIX}gamequest_board_mode_v1`;
 const GQ_WEEKLY_FILTER_KEY=`${GH_PREFIX}gamequest_weekly_filter_v1`;
+const UI_SCROLL_STATE_KEY="taskring_ui_scroll_state_v1";
+const ORBIT_DRAWER_OPEN_KEY="taskring_orbit_drawer_open_v1";
 const APP_VIEWS=new Set(["tasks","weekly","game","time","library"]);
 const LOCAL_PREVIEW_UNLOCK=["localhost","127.0.0.1","::1"].includes(location.hostname)&&new URLSearchParams(location.search).has("preview");
 let activeAppView=APP_VIEWS.has(localStorage.getItem(APP_VIEW_KEY))?localStorage.getItem(APP_VIEW_KEY):"tasks";
@@ -766,13 +768,14 @@ async function ghPull(){
     const localStates=collectGhLocalStates();
     const localCount=Object.keys(localStates).length;
     const result=applyGhStates(state.states||{});
+    const deletedResult=mergeGhTimeLogDeletes(state.time_logs_deleted||state.deleted_time_logs||{});
     const timeResult=mergeGhTimeLogs(state.time_logs||[]);
     if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
     setGhStatus("GitHub：已同步","on");
-    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);
+    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
     unlockApp();
     renderAll();
-    if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)
+    if(result.migrated>0||timeResult.changed||deletedResult.changed)setTimeout(()=>ghPush(true),1200)
   }catch(err){
     console.error(err);
     setGhStatus("GitHub：读取失败","err");
@@ -782,7 +785,7 @@ async function ghPull(){
     setTimeout(openGhModal,360);
   }
 }
-async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_meta:{limit:TIME_GH_LOG_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
+async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const deletedLogs=collectGhDeletedTimeLogs();const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_deleted:deletedLogs,time_logs_meta:{limit:TIME_GH_LOG_LIMIT,deleted_limit:TIME_GH_DELETED_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条；删除记录 ${Object.keys(deletedLogs).length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
 function syncRemoveCycle(cycle=cycleYmd){clearGhLocalCycle(cycle);scheduleGhSave()}
@@ -1245,24 +1248,26 @@ function collectRefItemsFromGroup(row){
   });
 }
 function refEditorGroupHtml(g){
-  return `<div class="refCfgGroup ${g.enabled===false?"disabled":""}" data-id="${cfgEsc(g.id)}">
-    <div class="cfgTop">
-      <div><span class="cfgMini">${cfgEsc(g.id||"")}</span></div>
+  return `<details class="refCfgGroup ${g.enabled===false?"disabled":""}" data-id="${cfgEsc(g.id)}" open>
+    <summary class="cfgTop refCfgSummary">
+      <div class="refCfgSummaryMain"><span class="cfgMini">${cfgEsc(g.id||"")}</span><b>${cfgEsc(g.title||"资料分组")}</b></div>
       <div class="cfgOps">
         <button data-refop="up">上移</button><button data-refop="down">下移</button><button data-refop="copy">复制</button><button data-refop="remove" class="ghDangerBtn">删除</button>
       </div>
-    </div>
-    <div class="refCfgGrid">
-      <div>
-        <div class="refCfgField"><label>分组名</label><input class="refGroupTitle" value="${cfgEsc(g.title)}"></div>
-        <div class="refCfgFlags"><label><input type="checkbox" class="refGroupEnabled" ${g.enabled!==false?"checked":""}>启用</label></div>
-        <details class="cfgAdvanced"><summary>高级：ID（一般不要改）</summary>
-          <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
-        </details>
+    </summary>
+    <div class="refCfgBody">
+      <div class="refCfgGrid">
+        <div>
+          <div class="refCfgField"><label>分组名</label><input class="refGroupTitle" value="${cfgEsc(g.title)}"></div>
+          <div class="refCfgFlags"><label><input type="checkbox" class="refGroupEnabled" ${g.enabled!==false?"checked":""}>启用</label></div>
+          <details class="cfgAdvanced"><summary>高级：ID（一般不要改）</summary>
+            <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
+          </details>
+        </div>
+        <div class="refCfgField"><label>资料条目</label>${refItemsEditorHtml(g.items)}<div class="refEditHint">标题和链接分开填；没有 URL 的条目会显示为普通文字，带 URL 的会显示为链接按钮。</div></div>
       </div>
-      <div class="refCfgField"><label>资料条目</label>${refItemsEditorHtml(g.items)}<div class="refEditHint">标题和链接分开填；没有 URL 的条目会显示为普通文字，带 URL 的会显示为链接按钮。</div></div>
     </div>
-  </div>`;
+  </details>`;
 }
 function renderRefEditor(){
   const list=document.getElementById("refEditorList");
@@ -1353,6 +1358,8 @@ function initRefEditorUI(){
   document.getElementById("refEditorList")?.addEventListener("click",e=>{
     const itemBtn=e.target.closest("button[data-refitemop]");
     if(itemBtn){
+      e.preventDefault();
+      e.stopPropagation();
       const group=itemBtn.closest(".refCfgGroup");
       const box=group?.querySelector(".refItemsBox");
       const itemRow=itemBtn.closest(".refItemEdit");
@@ -1390,6 +1397,8 @@ function initRefEditorUI(){
     }
     const btn=e.target.closest("button[data-refop]");
     if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
     const row=btn.closest(".refCfgGroup");
     if(!row)return;
     const op=btn.dataset.refop;
@@ -1484,16 +1493,87 @@ function setActiveAppView(view){
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game")renderGameQuestPanel();
 }
+const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList"];
+let restoreUiScrollFromStorage=true;
+let uiScrollSaveTimer=null;
+function readUiScrollState(){try{return JSON.parse(localStorage.getItem(UI_SCROLL_STATE_KEY)||"{}")||{}}catch(e){return {}}}
+function collectUiScrollState(){
+  const state={window:{x:window.scrollX||0,y:window.scrollY||0},activeAppView,viewMode,mobileDay,lists:{}};
+  UI_SCROLL_SELECTORS.forEach(selector=>{
+    document.querySelectorAll(selector).forEach((el,idx)=>{
+      if(!el)return;
+      state.lists[`${selector}|${idx}`]={left:el.scrollLeft||0,top:el.scrollTop||0};
+    });
+  });
+  return state;
+}
+function restoreUiScrollState(state){
+  if(!state||typeof state!=="object")return;
+  const apply=()=>{
+    Object.entries(state.lists||{}).forEach(([key,pos])=>{
+      const [selector,idxText]=key.split("|");
+      const el=document.querySelectorAll(selector)[Number(idxText)||0];
+      if(el&&pos){el.scrollLeft=Number(pos.left)||0;el.scrollTop=Number(pos.top)||0}
+    });
+    if(state.window){
+      window.scrollTo(Number(state.window.x)||0,Number(state.window.y)||0);
+    }
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(apply));
+}
+function saveUiScrollStateNow(){localStorage.setItem(UI_SCROLL_STATE_KEY,JSON.stringify(collectUiScrollState()))}
+function scheduleUiScrollSave(){clearTimeout(uiScrollSaveTimer);uiScrollSaveTimer=setTimeout(saveUiScrollStateNow,120)}
+window.addEventListener("scroll",scheduleUiScrollSave,{passive:true});
+window.addEventListener("pagehide",saveUiScrollStateNow);
+window.addEventListener("beforeunload",saveUiScrollStateNow);
+document.addEventListener("scroll",e=>{
+  const el=e.target;
+  if(!(el instanceof Element))return;
+  if(UI_SCROLL_SELECTORS.some(selector=>el.matches(selector)))scheduleUiScrollSave();
+},true);
+function persistDailyViewState(){localStorage.setItem(UI_VIEW_MODE_KEY,viewMode);localStorage.setItem(UI_MOBILE_DAY_KEY,String(mobileDay))}
+function setDailyViewMode(mode){
+  viewMode=["undone","today","all"].includes(mode)?mode:"undone";
+  if(viewMode!=="all")mobileDay=today;
+  persistDailyViewState();
+  renderAll();
+}
 
 const TIME_ACTIVE_KEY="taskring_time_active_v1";
 const TIME_LOGS_KEY="taskring_time_logs_v1";
 const TIME_LOG_LIMIT=800;
 const TIME_GH_LOG_LIMIT=600;
+const TIME_LOG_DELETED_KEY="taskring_time_log_deleted_v1";
+const TIME_GH_DELETED_LIMIT=1200;
 const TIME_LEDGER_VIEW_KEY="taskring_time_ledger_view_v1";
 const TIME_LEDGER_VIEWS=new Set(["overview","tasks","logs"]);
 let timeLedgerView=TIME_LEDGER_VIEWS.has(localStorage.getItem(TIME_LEDGER_VIEW_KEY))?localStorage.getItem(TIME_LEDGER_VIEW_KEY):"overview";
 function readJsonLocal(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){console.warn("local json parse failed",key,e);return fallback}}
 function writeJsonLocal(key,value){localStorage.setItem(key,JSON.stringify(value))}
+function trimDeletedTimeLogMap(map,limit=TIME_GH_DELETED_LIMIT){
+  return Object.fromEntries(Object.entries(map||{}).filter(([id])=>id).sort((a,b)=>String(b[1]||"").localeCompare(String(a[1]||""))).slice(0,limit));
+}
+function normalizeDeletedTimeLogMap(value){
+  const raw=Array.isArray(value)?Object.fromEntries(value.map(id=>[id,""])):(value&&typeof value==="object"?value:{});
+  const fallbackTs=new Date(0).toISOString();
+  const out={};
+  Object.entries(raw).forEach(([id,ts])=>{if(id)out[String(id)]=String(ts||fallbackTs)});
+  return trimDeletedTimeLogMap(out);
+}
+function readDeletedTimeLogMap(){return normalizeDeletedTimeLogMap(readJsonLocal(TIME_LOG_DELETED_KEY,{}))}
+function writeDeletedTimeLogMap(map,shouldSync=true){writeJsonLocal(TIME_LOG_DELETED_KEY,trimDeletedTimeLogMap(map));if(shouldSync)scheduleGhSave()}
+function markTimeLogDeleted(logId,shouldSync=true){const deleted=readDeletedTimeLogMap();deleted[String(logId)]=new Date().toISOString();writeDeletedTimeLogMap(deleted,shouldSync)}
+function collectGhDeletedTimeLogs(){return readDeletedTimeLogMap()}
+function mergeGhTimeLogDeletes(cloudDeleted={}){
+  const before=readDeletedTimeLogMap();
+  const cloud=normalizeDeletedTimeLogMap(cloudDeleted);
+  const merged={...before};
+  Object.entries(cloud).forEach(([id,ts])=>{if(!merged[id]||String(ts)>String(merged[id]))merged[id]=ts});
+  const trimmed=trimDeletedTimeLogMap(merged);
+  const changed=JSON.stringify(trimmed)!==JSON.stringify(before);
+  if(changed)writeDeletedTimeLogMap(trimmed,false);
+  return {changed,count:Object.keys(trimmed).length};
+}
 function readActiveTimer(){const t=readJsonLocal(TIME_ACTIVE_KEY,null);return t&&t.kind?normalizeActiveTimer(t):null}
 function normalizeActiveTimer(t){return {...t,accumulated_seconds:Number(t.accumulated_seconds||0),paused:!!t.paused}}
 function writeActiveTimer(t){writeJsonLocal(TIME_ACTIVE_KEY,t)}
@@ -1522,18 +1602,21 @@ function normalizeTimeLog(log){
     status:log.status||"completed"
   };
 }
-function readTimeLogs(){return readJsonLocal(TIME_LOGS_KEY,[]).map(normalizeTimeLog).filter(Boolean)}
+function readTimeLogs(){const deleted=readDeletedTimeLogMap();return readJsonLocal(TIME_LOGS_KEY,[]).map(normalizeTimeLog).filter(Boolean).filter(log=>!deleted[log.id])}
 function writeTimeLogs(logs,shouldSync=true){
-  const normalized=(logs||[]).map(normalizeTimeLog).filter(Boolean).slice(-TIME_LOG_LIMIT);
+  const deleted=readDeletedTimeLogMap();
+  const normalized=(logs||[]).map(normalizeTimeLog).filter(Boolean).filter(log=>!deleted[log.id]).slice(-TIME_LOG_LIMIT);
   writeJsonLocal(TIME_LOGS_KEY,normalized);
   if(shouldSync)scheduleGhSave();
 }
 function collectGhTimeLogs(){return readTimeLogs().slice(-TIME_GH_LOG_LIMIT)}
 function mergeGhTimeLogs(cloudLogs=[]){
   const before=readTimeLogs();
+  const deleted=readDeletedTimeLogMap();
   const map=new Map();
   before.forEach(log=>map.set(log.id,log));
   (Array.isArray(cloudLogs)?cloudLogs:[]).map(normalizeTimeLog).filter(Boolean).forEach(log=>{
+    if(deleted[log.id])return;
     const old=map.get(log.id);
     if(!old||String(log.ended_at||"")>String(old.ended_at||""))map.set(log.id,log);
   });
@@ -1614,6 +1697,7 @@ function deleteTimeLog(logId){
   const target=logs.find(log=>log.id===logId);
   if(!target){showToast("找不到这条记录","err");return}
   if(!confirm(`删除这条时间记录？\n${target.title} · ${fmtMinutes(target.duration_minutes)} · ${fmtLogWhen(target)}`))return;
+  markTimeLogDeleted(logId,false);
   writeTimeLogs(logs.filter(log=>log.id!==logId));
   showToast("已删除时间记录","warn",1400);
   closeTimeDetailModal();
@@ -2689,6 +2773,12 @@ function orbitDayStats(dayId){
   for(const o of list){const st=occurrenceState(o.t,o.dayId,o.cycle);if(st.done)done++;if(st.failed)failed++;if(st.overdue)overdue++;if(st.warn)warn++;if(st.ignored)ignored++;}
   return {total:list.length,done,failed,overdue,warn,ignored,attention:failed+overdue+warn};
 }
+function isOrbitDrawerOpen(){
+  const saved=localStorage.getItem(ORBIT_DRAWER_OPEN_KEY);
+  if(saved==="1")return true;
+  if(saved==="0")return false;
+  return window.innerWidth>760;
+}
 function renderOrbitPanel(){
   const el=document.getElementById("orbitPanel");
   if(!el)return;
@@ -2698,8 +2788,10 @@ function renderOrbitPanel(){
   const pct=total?Math.round(done/total*100):100;
   const carry=carryoverOccurrences().length;
   const nodes=days.map(d=>{const s=orbitDayStats(d.id);const p=s.total?Math.round(s.done/s.total*100):100;const cls=[d.id===today?"today":"",s.failed?"failed":"",s.attention&&!s.failed?"attention":""].join(" ");const alert=s.failed?`<span class="orbitFail">×${s.failed}</span>`:s.attention?`<span class="orbitWarn">!${s.attention}</span>`:`<span>${s.done}/${s.total}</span>`;return `<div class="orbitDay ${cls}" title="${escapeHtml(d.name)}：${s.done}/${s.total} 完成${s.attention?`，注意 ${s.attention}`:""}"><div class="orbitDayName">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</div><div class="orbitDayMeta"><span>${s.done}/${s.total}</span>${alert}</div><div class="orbitMeter" style="--w:${p}%"><span></span></div></div>`}).join("");
-  el.innerHTML=`<div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">TODAY</span><span class="orbitTiny">${done}/${total}${carry?` · 遗留${carry}`:""}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">Task Ring</div><div class="orbitSub">按日推进，异常高亮。</div></div></div><div class="orbitDays">${nodes}</div></div></div>`;
+  const summary=`${done}/${total}${carry?` · 遗留${carry}`:""}`;
+  el.innerHTML=`<details class="orbitDrawer" ${isOrbitDrawerOpen()?"open":""}><summary><span class="orbitDrawerMini" style="--pct:${pct}%"><b>${pct}%</b></span><span class="orbitDrawerText"><strong>今日执行环</strong><em>${summary}</em></span><span class="orbitDrawerToggle">展开</span></summary><div class="orbitDrawerBody"><div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">TODAY</span><span class="orbitTiny">${summary}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">Task Ring</div><div class="orbitSub">按日推进，异常高亮。</div></div></div><div class="orbitDays">${nodes}</div></div></div></div></details>`;
 }
+document.addEventListener("toggle",e=>{if(e.target?.matches?.(".orbitDrawer"))localStorage.setItem(ORBIT_DRAWER_OPEN_KEY,e.target.open?"1":"0")},true);
 
 function closeSubtaskPopover(){
   document.getElementById("subtaskPopover")?.remove();
@@ -2758,7 +2850,7 @@ function openSubtaskPopover(btn){
   }
 }
 function expandAllRefGroups(){const box=document.getElementById("refBox");if(box)box.open=true;document.querySelectorAll(".refGroup").forEach(g=>g.open=true)}
-function renderAll(){renderGameQuestPanel();renderWeeklyPlanPanel();renderTimePanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress();renderTimerDock();applyActiveAppView()}
+function renderAll(){const uiState=restoreUiScrollFromStorage?readUiScrollState():collectUiScrollState();renderGameQuestPanel();renderWeeklyPlanPanel();renderTimePanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress();renderTimerDock();applyActiveAppView();restoreUiScrollState(uiState);restoreUiScrollFromStorage=false}
 function closeEditorsByBackdrop(target){
   if(target.id==="taskEditorModal")closeTaskEditor();
   if(target.id==="refEditorModal")closeRefEditor();
@@ -2774,4 +2866,4 @@ document.body.addEventListener("click",e=>{
 },true);
 document.body.addEventListener("click",e=>{const viewBtn=e.target.closest("[data-view-target]");if(viewBtn){e.preventDefault();e.stopPropagation();setActiveAppView(viewBtn.dataset.viewTarget);return}const timeTab=e.target.closest("[data-time-tab]");if(timeTab){e.preventDefault();e.stopPropagation();setTimeLedgerView(timeTab.dataset.timeTab);return}if(e.target.closest("[data-time-modal-close]")){e.preventDefault();e.stopPropagation();closeTimeDetailModal();return}if(e.target.id==="timeDetailModal"){closeTimeDetailModal();return}const timeDelete=e.target.closest("[data-time-log-delete]");if(timeDelete){e.preventDefault();e.stopPropagation();deleteTimeLog(timeDelete.dataset.timeLogDelete);return}const taskTimeDetail=e.target.closest("[data-time-task-detail]");if(taskTimeDetail){e.preventDefault();e.stopPropagation();openTaskTimeDetail(taskTimeDetail.dataset.timeTaskDetail);return}const gqTimerStart=e.target.closest("[data-timer-start-gamequest]");if(gqTimerStart){e.preventDefault();e.stopPropagation();startGameQuestTimer(Number(gqTimerStart.dataset.gamequestDay),gqTimerStart.dataset.cycle||cycleYmd);return}const timerStart=e.target.closest("[data-timer-start-task]");if(timerStart){e.preventDefault();e.stopPropagation();startTaskTimer(timerStart.dataset.timerStartTask,Number(timerStart.dataset.timerDay),timerStart.dataset.timerCycle||cycleYmd);return}if(e.target.closest("[data-timer-pause]")){e.preventDefault();e.stopPropagation();pauseActiveTimer();return}if(e.target.closest("[data-timer-resume]")){e.preventDefault();e.stopPropagation();resumeActiveTimer();return}if(e.target.closest("[data-timer-complete]")){e.preventDefault();e.stopPropagation();completeActiveTimer(true);return}if(e.target.closest("[data-timer-abandon]")){e.preventDefault();e.stopPropagation();abandonActiveTimer();return}const controlGameEditor=e.target.closest("#controlGameQuestEditorBtn");if(controlGameEditor){e.preventDefault();e.stopPropagation();openGameQuestEditor();return}const controlTaskEditor=e.target.closest("#controlTaskEditorBtn");if(controlTaskEditor){e.preventDefault();e.stopPropagation();openTaskEditor();return}const controlRefEditor=e.target.closest("#controlRefEditorBtn");if(controlRefEditor){e.preventDefault();e.stopPropagation();openRefEditor();return}const gqModeBtn=e.target.closest("[data-gamequest-board-mode]");if(gqModeBtn){e.preventDefault();e.stopPropagation();setGameQuestBoardMode(gqModeBtn.dataset.gamequestBoardMode);return}const gqWeeklyItemBtn=e.target.closest("[data-gq-weekly-item-btn]");if(gqWeeklyItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyItemBtn.dataset.cycle||cycleYmd;const next=gqWeeklyItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyItemDone(gqWeeklyItemBtn.dataset.gamequestWeeklyGame,gqWeeklyItemBtn.dataset.gamequestWeeklyItem,next,gqWeeklyItemBtn,cyc);return}const gqWeeklyCardBtn=e.target.closest("[data-gq-weekly-card-btn]");if(gqWeeklyCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyCardBtn.dataset.cycle||cycleYmd;const next=gqWeeklyCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyDone(gqWeeklyCardBtn.dataset.gamequestWeeklyGame,next,gqWeeklyCardBtn,cyc);return}const gqItemBtn=e.target.closest("[data-gq-item-btn]");if(gqItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqItemBtn.dataset.cycle||cycleYmd;const next=gqItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestItemDone(gqItemBtn.dataset.gamequestItemGame,Number(gqItemBtn.dataset.gamequestItemDay),gqItemBtn.dataset.gamequestItem,next,gqItemBtn,cyc);return}const gqCardBtn=e.target.closest("[data-gq-card-btn]");if(gqCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqCardBtn.dataset.cycle||cycleYmd;const next=gqCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestDone(gqCardBtn.dataset.gamequestGame,Number(gqCardBtn.dataset.gamequestDay),next,gqCardBtn,cyc);return}if(e.target.closest("#controlCenterBtn")||e.target.closest("#controlCenterMenu")){}else closeControlCenter();const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);setGameQuestBoardMode("today");return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqCollapsedBar=e.target.closest("[data-gq-collapsed-toggle]");if(gqCollapsedBar){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;setGameQuestBoardMode("today");return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const target=e.target;if(target?.matches?.("[data-time-target-task]")){updateTaskWeeklyTarget(target.dataset.timeTargetTask,target.value);return}const cb=target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-item-game][data-gamequest-item-day][data-gamequest-item]")){setGameQuestItemDone(cb.dataset.gamequestItemGame,Number(cb.dataset.gamequestItemDay),cb.dataset.gamequestItem,cb.checked,cb,cyc);return}if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!document.getElementById("gameQuestEditorModal")?.classList.contains("hidden"))closeGameQuestEditor();else if(!document.getElementById("taskEditorModal")?.classList.contains("hidden"))closeTaskEditor();else if(!document.getElementById("refEditorModal")?.classList.contains("hidden"))closeRefEditor();else if(!document.getElementById("ghModal")?.classList.contains("hidden"))closeGhModal();else if(!document.getElementById("timeDetailModal")?.classList.contains("hidden"))closeTimeDetailModal();else closeSubtaskPopover();});
-function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();initGameQuestUI();setInterval(renderTimerLive,1000);setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
+function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>setDailyViewMode("today"));document.getElementById("showAll").addEventListener("click",()=>setDailyViewMode("all"));document.getElementById("showUndone").addEventListener("click",()=>setDailyViewMode("undone"));document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();initGameQuestUI();setInterval(renderTimerLive,1000);setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
