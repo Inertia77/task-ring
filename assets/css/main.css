@@ -1,13 +1,11 @@
-@import url("./00-foundation.css");
-@import url("./10-task-ui.css");
-@import url("./20-cutin-avatars.css");
-@import url("./30-world-visuals.css");
-@import url("./90-overrides.css");
-@import url("./100-game-quest-v3.css");
-@import url("./102-v24-feedback-fixes.css");
-@import url("./103-gamequest-hud.css");
-@import url("./104-urban-command-theme.css");
-@import url("./105-urban-hud-boost.css");
-
-/* Entry stylesheet. Keep only the files above in the clean package. */
-@import url("./106-hud-actual-fix.css");
+@import url("./tokens.css?v=20260710.1");
+@import url("./base.css?v=20260710.2");
+@import url("./layout.css?v=20260710.1");
+@import url("./components.css?v=20260710.2");
+@import url("./daily.css?v=20260710.2");
+@import url("./weekly.css?v=20260710.1");
+@import url("./game.css?v=20260710.1");
+@import url("./time.css?v=20260710.2");
+@import url("./library.css?v=20260710.1");
+@import url("./editors.css?v=20260710.3");
+@import url("./responsive.css?v=20260710.3");

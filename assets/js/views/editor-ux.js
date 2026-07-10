@@ -95,7 +95,7 @@
     const modal=document.createElement("div");
     modal.id="weeklyTargetModal";
     modal.className="weeklyTargetModal";
-    modal.innerHTML=`<div class="weeklyTargetCard"><button type="button" class="weeklyTargetClose" data-target-close>×</button><div class="weeklyTargetHead"><span>WEEK TARGET</span><b>${escapeHtml(task.title)}</b><em>本周已投入 ${fmtMinutes(used)}。这里要点「保存目标」才会改配置。</em></div><div class="targetPresetGrid">${presets}</div><label class="targetCustomInput"><span>自定义分钟</span><input type="number" min="0" max="10080" step="5" value="${cur}" data-target-value></label><div class="weeklyTargetActions"><button type="button" data-target-close>取消</button><button type="button" class="primary" data-target-save="${escapeHtml(taskId)}">保存目标</button></div></div>`;
+    modal.innerHTML=`<div class="weeklyTargetCard"><button type="button" class="weeklyTargetClose" data-target-close aria-label="关闭">×</button><div class="weeklyTargetHead"><span>WEEK TARGET</span><b>${escapeHtml(task.title)}</b><em>本周已投入 ${fmtMinutes(used)}。这里要点「保存目标」才会改配置。</em></div><div class="targetPresetGrid">${presets}</div><label class="targetCustomInput"><span>自定义分钟</span><input type="number" min="0" max="10080" step="5" value="${cur}" data-target-value></label><div class="weeklyTargetActions"><button type="button" data-target-close>取消</button><button type="button" class="primary" data-target-save="${escapeHtml(taskId)}">保存目标</button></div></div>`;
     document.body.appendChild(modal);
     setTimeout(()=>modal.querySelector("[data-target-value]")?.focus(),60);
   };

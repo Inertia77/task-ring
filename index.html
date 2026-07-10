@@ -3,105 +3,63 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TASK RING｜URBAN TASK COMMAND</title>
+<title>TASK RING｜任务指挥中心</title>
 <meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="apple-touch-icon" href="assets/icons/favicon.png"/>
-<meta name="theme-color" content="#0b0e13"/>
-<meta property="og:title" content="TASK RING｜URBAN TASK COMMAND"/>
+<meta name="theme-color" content="#f4f1e9"/>
+<meta property="og:title" content="TASK RING｜任务指挥中心"/>
 <meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260710.6"/>
 </head>
 <body class="nx locked">
 
-<div id="lockScreen" class="lockScreen">
+<div id="lockScreen" class="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
   <div class="lockCard">
-    <div class="lockBadge">INERTIA PRIVATE QUEST</div>
-    <h1 class="lockTitle">TASK RING 已锁定</h1>
-    <p class="lockSub">输入本机解锁码进入任务环。GitHub Token 只用于云同步，不再用于开门。</p>
+    <div class="lockBadge"><span>TR</span> 本机访问验证</div>
+    <h1 class="lockTitle" id="lockTitle">TaskRing 已锁定</h1>
+    <p class="lockSub">输入本机解锁码继续。解锁与 GitHub 同步相互独立。</p>
     <div class="lockForm" role="form" aria-label="TASK RING 本机软锁">
-      <input id="lockCodeInput" class="lockInput" type="password" autocomplete="current-password" placeholder="输入解锁码">
+      <label class="srOnly" for="lockCodeInput">本机解锁码</label>
+      <input id="lockCodeInput" class="lockInput" type="password" autocomplete="current-password" placeholder="输入解锁码" aria-describedby="lockError">
       <button id="lockUnlockBtn" class="lockUnlockBtn" type="button">解锁任务环</button>
     </div>
     <label class="lockRemember"><input id="lockRememberDevice" type="checkbox" checked> 记住这台浏览器，下次直接进入</label>
-    <div id="lockError" class="lockError" aria-live="polite"></div>
-    <div class="lockFoot">这是本地浏览器软锁，用来防止路人误入；不是服务器级安全认证。点「立即上锁」后会强制要求重新输入解锁码。未设置 Gist Token 时，进入后会提示你补充 Token 进行云同步。</div>
+    <div id="lockError" class="lockError" aria-live="polite"></div><div class="lockDefaultHint">初始解锁码：<code>taskring2026</code></div>
+    <div class="lockFoot">这是本地浏览器软锁，不是服务器级认证。支持直接打开 HTML、localhost 与 GitHub Pages。</div>
   </div>
 </div>
 
 <div class="wrap">
 <header class="inertiaHeader">
   <div class="inertiaHeroBrand">
-    <div class="inertiaHeroMark" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Task Ring 闪电执行标志">
-  <defs>
-    <linearGradient id="hmBg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#050A24"/>
-      <stop offset="0.52" stop-color="#06113A"/>
-      <stop offset="1" stop-color="#020515"/>
-    </linearGradient>
-    <linearGradient id="hmCyan" x1="13" y1="11" x2="51" y2="55" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFF7A8"/>
-      <stop offset="0.45" stop-color="#F1DF1B"/>
-      <stop offset="1" stop-color="#FF8B1F"/>
-    </linearGradient>
-    <linearGradient id="hmBolt" x1="18" y1="8" x2="47" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.48" stop-color="#FFF4A6"/>
-      <stop offset="1" stop-color="#F1DF1B"/>
-    </linearGradient>
-    <filter id="hmGlow" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="2.2" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.02  0 0 0 0 0.62  0 0 0 0 1  0 0 0 0.9 0" result="blueGlow"/>
-      <feMerge><feMergeNode in="blueGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="hmSoftGlow" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="1.4" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.75  0 0 0 0 1  0 0 0 0.75 0" result="cyanGlow"/>
-      <feMerge><feMergeNode in="cyanGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="url(#hmBg)"/>
-  <path d="M17 18.5 L32 10.5 L47 18.5 L47 40.5 L32 54 L17 40.5 Z"
-        fill="none" stroke="url(#hmCyan)" stroke-width="4.2" stroke-linejoin="round"
-        stroke-linecap="round" opacity="0.95" filter="url(#hmSoftGlow)"/>
-  <path d="M37.7 5.7 L15.2 33.4 H29.2 L23.7 58.3 L49.4 27.8 H35.5 Z"
-        fill="url(#hmBolt)" stroke="#BFFFFF" stroke-width="1.35" stroke-linejoin="round"
-        filter="url(#hmGlow)"/>
-  <path d="M37.7 5.7 L24.4 31.5 H35.5 Z" fill="#FFFFFF" opacity="0.55"/>
-  <path d="M29.2 33.4 L23.7 58.3 L35.4 32.8 Z" fill="#05BFFF" opacity="0.22"/>
-  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
-        fill="none" stroke="#EFFFFF" stroke-width="5.2" stroke-linecap="round"
-        stroke-linejoin="round" filter="url(#hmSoftGlow)"/>
-  <path d="M35.7 43.3 L41.2 48.9 L52 36.7"
-        fill="none" stroke="#65EAFF" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" opacity="0.9"/>
-</svg>
-    </div>
+    <div class="inertiaHeroMark" aria-hidden="true"><img src="assets/icons/favicon.svg" alt=""></div>
     <div class="inertiaHeroCopy">
       <div class="inertiaBrandRow">
-        <span class="inertiaOwnerBadge">TASK COMMAND</span>
-        <span class="inertiaVersionBadge">CITY HUD</span>
+        <span class="inertiaOwnerBadge">TASKRING SYSTEM</span>
+        <span class="inertiaVersionBadge">LOCAL FIRST</span>
       </div>
       <h1 class="inertiaHeroTitle">
         <span class="inertiaTitleCn">TASK RING</span>
         <span class="inertiaTitleSlash">/</span>
-        <span class="titleGlow inertiaTitleEn">TASK COMMAND</span>
+        <span class="titleGlow inertiaTitleEn">任务指挥中心</span>
       </h1>
-      <p class="subtitle inertiaSubtitle">都市机能 × 高密度 HUD 风任务环：主任务、周计划、游戏作战、时间账本与资料库统一成更纯粹的黑灰黄工业风，Token 仅保存在本机。</p>
+      <p class="subtitle inertiaSubtitle">把今天、这周与长期资料放进同一套高密度任务系统。先执行，再复盘。</p>
     </div>
   </div>
   <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
     <button id="controlCenterBtn" class="controlCenterBtn">总控</button>
     <button id="githubSetupBtn" class="ghSetupBtn">GitHub同步</button>
     <span class="githubInlineState off" id="githubStatus" title="GitHub：未设置"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span>
-    <span class="pill" id="todayLabel">今天：识别中</span>
-    <span class="pill" id="cycleLabel">周期：计算中</span>
+    <span class="pill todayPill" id="todayLabel">今天：识别中</span>
+    <button type="button" id="returnTodayBtn" class="returnTodayBtn" hidden>返回今天</button>
+    <span class="pill cyclePill" id="cycleLabel">周期：计算中</span>
+    <button type="button" id="controlLockQuickBtn" class="headerLockBtn" aria-label="立即锁定 TaskRing">锁定</button>
   </div>
   <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true">
     <button id="controlGithubBtn">同步设置</button>
@@ -115,11 +73,11 @@
   </div>
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 页面切换">
-  <button type="button" class="viewDockBtn active" data-view-target="tasks"><span>DAILY</span><b>今日执行环</b></button>
-  <button type="button" class="viewDockBtn" data-view-target="weekly"><span>WEEK</span><b>周计划池</b></button>
-  <button type="button" class="viewDockBtn" data-view-target="game"><span>GAME</span><b>游戏作战区</b></button>
-  <button type="button" class="viewDockBtn" data-view-target="time"><span>TIME</span><b>时间账本</b></button>
-  <button type="button" class="viewDockBtn" data-view-target="library"><span>LIB</span><b>资料库</b></button>
+  <button type="button" class="viewDockBtn active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">今日执行环</span><span class="dockMobileLabel">今日</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划池</span><span class="dockMobileLabel">周计划</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏作战区</span><span class="dockMobileLabel">游戏</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="time" aria-current="false"><i class="dockGlyph" aria-hidden="true">◷</i><span>TIME</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">时间</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="library" aria-current="false"><i class="dockGlyph" aria-hidden="true">▤</i><span>LIB</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
 </nav>
 <section class="viewIntro viewPanel active" data-view-panel="tasks">
   <div><span>MAIN RING</span><strong>今日执行环</strong></div>
@@ -143,8 +101,8 @@
 </section>
 <section class="taskFirstBanner mainRingBanner viewPanel active" data-view-panel="tasks">
   <div class="mainRingCopy">
-    <div class="taskFirstKicker">MAIN TASK RING</div>
-    <div class="taskFirstTitle">星冠主环</div>
+    <div class="taskFirstKicker">DAILY COMMAND</div>
+    <div class="taskFirstTitle">今日任务面板</div>
     <div class="taskFirstText">今日核心任务集中在这里；长期主线仍进周计划池，不抢主环注意力。</div>
   </div>
 </section>
@@ -155,28 +113,28 @@
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
-<details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon">📚</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
-<section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon">📌</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
-<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>近期优化：</strong>当前版本把全局界面统一成更接近都市工业 HUD 的黑灰黄风格；游戏作战区、周计划池、时间账本、资料库与主任务区都使用同一套高对比视觉语言，同时保留高密度与可访问性。</div>
+<details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
+<section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
+<div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>界面说明：</strong>冷灰白背景、石墨结构色与单一黄色焦点。重要状态同时使用文字、边框和图形表达。</div>
 <div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
-<div class="footer">任务环｜本机软锁进门 / Gist 同步 / 可离线使用；Token 仅保存在本机</div>
+<div class="footer">TASK RING｜本机软锁 / Gist 同步 / 可离线使用；Token 仅保存在本机</div>
 </div>
 
-<div id="ghModal" class="ghModal hidden" aria-hidden="true">
+<div id="ghModal" class="ghModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ghModalTitle">
   <div class="ghModalCard">
     <div class="ghModalHead">
       <div>
-        <div class="ghModalTitle">GitHub Gist 同步设置</div>
+        <div class="ghModalTitle" id="ghModalTitle">GitHub Gist 同步设置</div>
         <div class="ghModalSub">软锁只负责进门；Token 只负责 Gist 云同步，并且只保存在当前设备浏览器里。</div>
       </div>
-      <button id="ghCloseBtn" class="ghCloseBtn">×</button>
+      <button id="ghCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
     </div>
     <div id="ghGistPanel" class="ghSecretPanel">
       <div class="ghSecretTitle">Gist ID</div>
       <div id="ghGistMasked" class="ghSecretText">未解锁不显示；已内置到同步引擎。</div>
     </div>
-    <label class="ghLabel">GitHub Token（classic token，只勾 gist 权限）</label>
+    <label class="ghLabel" for="ghTokenInput">GitHub Token（classic token，只勾 gist 权限）</label>
     <input id="ghTokenInput" class="ghInput" type="password" placeholder="ghp_... 或 github_pat_...">
     <div class="ghHint">页面地址：https://inertia77.github.io/task-ring/<br>状态文件：taskring-state.json｜配置文件：taskring-config.json（自动加密同步，无需额外口令）<br>没有 Token 也可以本机使用；需要跨设备同步时再填写。</div>
     <div class="ghActions">
@@ -190,14 +148,14 @@
 </div>
 
 
-<div id="gameQuestEditorModal" class="gameQuestEditorModal hidden" aria-hidden="true">
+<div id="gameQuestEditorModal" class="gameQuestEditorModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="gameQuestEditorTitle">
   <div class="gameQuestEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle">游戏作战区编辑器</div>
+        <div class="taskEditorTitle" id="gameQuestEditorTitle">游戏作战区编辑器</div>
         <div class="taskEditorSub">整理游戏卡、每天清单和图标。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
       </div>
-      <button id="gameQuestEditorCloseBtn" class="ghCloseBtn">×</button>
+      <button id="gameQuestEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
     </div>
     <div class="taskEditorToolbar gameQuestEditorToolbar">
       <button id="saveGameQuestBtn">保存游戏任务</button>
@@ -218,18 +176,18 @@
   </div>
 </div>
 
-<div id="taskEditorModal" class="taskEditorModal hidden" aria-hidden="true">
+<div id="taskEditorModal" class="taskEditorModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="taskEditorTitle">
   <div class="taskEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle">任务编辑器</div>
+        <div class="taskEditorTitle" id="taskEditorTitle">任务编辑器</div>
         <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。不同设备可用不同 Token，仍能读取同一套任务配置。</div>
       </div>
-      <button id="taskEditorCloseBtn" class="ghCloseBtn">×</button>
+      <button id="taskEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
     </div>
     <div class="taskEditorToolbar">
       <button id="addTaskBtn">新增任务</button>
-      <button id="saveConfigBtn">保存配置并同步</button>
+      <button id="saveConfigBtn">保存配置（有 Token 时同步）</button>
       <button id="exportConfigBtn">导出 JSON</button>
       <button id="importConfigBtn">导入 JSON</button>
       <button id="reloadSavedConfigBtn">重载已保存配置</button>
@@ -243,23 +201,23 @@
     <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
       <button id="taskEditorBottomCloseBtn" type="button">关闭编辑器</button>
-      <button id="taskEditorBottomSaveBtn" type="button">保存配置并同步</button>
+      <button id="taskEditorBottomSaveBtn" type="button">保存配置</button>
     </div>
   </div>
 </div>
 
-<div id="refEditorModal" class="refEditorModal hidden" aria-hidden="true">
+<div id="refEditorModal" class="refEditorModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="refEditorTitle">
   <div class="refEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle">资料库编辑器</div>
+        <div class="taskEditorTitle" id="refEditorTitle">资料库编辑器</div>
         <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起加密写入 Gist 并跨设备同步。</div>
       </div>
-      <button id="refEditorCloseBtn" class="ghCloseBtn">×</button>
+      <button id="refEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
     </div>
     <div class="taskEditorToolbar">
       <button id="addRefGroupBtn">新增分组</button>
-      <button id="saveRefConfigBtn">保存资料库并同步</button>
+      <button id="saveRefConfigBtn">保存资料库（有 Token 时同步）</button>
       <button id="exportRefConfigBtn">导出资料库 JSON</button>
       <button id="importRefConfigBtn">导入资料库 JSON</button>
       <button id="reloadRefConfigBtn">重载已保存配置</button>
@@ -271,19 +229,15 @@
     <pre id="refEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
       <button id="refEditorBottomCloseBtn" type="button">关闭编辑器</button>
-      <button id="refEditorBottomSaveBtn" type="button">保存资料库并同步</button>
+      <button id="refEditorBottomSaveBtn" type="button">保存资料库</button>
     </div>
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/views/weekly-view.js"></script>
-<script src="assets/js/views/time-ledger-view.js"></script>
-<script src="assets/js/views/game-view.js"></script>
-<script src="assets/js/views/editor-ux.js"></script>
-<script src="assets/js/views/v20-boot.js"></script>
-<script src="assets/js/views/v21-boot.js"></script>
-<script src="assets/js/views/ux-polish.js"></script>
+<script src="assets/js/data/default-data.js?v=20260710.1"></script>
+<script src="assets/js/app.js?v=20260710.3"></script>
+<script src="assets/js/views/time-ledger-view.js?v=20260710.1"></script>
+<script src="assets/js/views/editor-ux.js?v=20260710.1"></script>
+<script src="assets/js/views/product-ui.js?v=20260710.4"></script>
 </body>
 </html>

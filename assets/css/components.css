@@ -1,0 +1,56 @@
+.toolbar button, .taskRingActionRow button, .ghActions button, .taskEditorToolbar button, .editorScopeTabs button, .targetPreset, .weeklyTargetActions button, .refExpandAllBtn, .returnTodayBtn, .headerLockBtn {
+  min-height: var(--tap-size);
+  padding: 8px 13px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+button:hover, a:hover { filter: brightness(.97); }
+button:active, a:active { filter: brightness(.92); }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .58; }
+.toolbar button:hover, .taskRingActionRow button:hover, .ghActions button:hover, .taskEditorToolbar button:hover { border-color: var(--color-line-strong); }
+.taskRingActionRow .active, .editorScopeTabs .active, .timeSubTabs .active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
+.softDangerBtn, .ghDangerBtn, .ghostDanger { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 38%, var(--color-line)); background: var(--color-danger-soft); }
+.pill, .githubInlineState { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; padding: 8px 11px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); font-size: 12px; font-weight: 700; }
+.githubInlineState .ghInlineDot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-muted); }
+.githubInlineState.on .ghInlineDot { background: var(--color-success); }
+.githubInlineState.sync .ghInlineDot { background: var(--color-warning); }
+.githubInlineState.err .ghInlineDot { background: var(--color-danger); }
+.toastBox { position: fixed; z-index: 1200; right: 20px; bottom: 20px; max-width: min(420px, calc(100vw - 40px)); padding: 12px 16px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-success); border-radius: var(--radius-sm); background: var(--color-panel); box-shadow: var(--shadow-float); opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity var(--motion-fast), transform var(--motion-fast); }
+.toastBox.show { opacity: 1; transform: translateY(0); }
+.toastBox.warn { border-left-color: var(--color-warning); }
+.toastBox.err { border-left-color: var(--color-danger); }
+.controlCenterMenu { position: absolute; z-index: 300; top: calc(100% - 10px); right: 20px; display: grid; width: min(320px, calc(100vw - 40px)); padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-float); }
+.controlCenterMenu.hidden, .controlCenterBackdrop.hidden { display: none; }
+.controlCenterMenu button { min-height: var(--tap-size); padding: 9px 12px; border-radius: 7px; background: transparent; text-align: left; }
+.controlCenterMenu button:hover { background: var(--color-panel-soft); }
+.controlCenterBackdrop { position: fixed; inset: 0; z-index: 250; background: rgba(23,23,20,.28); }
+.statusBadge, .planModeBadge, .taskFlag, .editorBadge, .missionBadges span, .gameQuestTaskBadge, .mWeekPill, .dailyMetaChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-panel-soft);
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.importantFlag, .hot, .statusBadge.overdue, .mWeekPill.warn { border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-line)); color: var(--color-danger); background: var(--color-danger-soft); }
+.statusBadge.running { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-primary); }
+.statusBadge.paused { border-color: var(--color-warning); background: var(--color-warning-soft); color: var(--color-warning); }
+.emptyState, .weeklyEmpty, .gameQuestEmpty, .editorEmptyState, .refEmpty { display: grid; gap: 8px; justify-items: start; padding: 24px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-md); background: var(--color-panel-soft); color: var(--color-muted); }
+.emptyState strong, .weeklyEmpty b, .gameQuestEmpty b, .editorEmptyState b, .refEmpty strong { color: var(--color-ink); font-size: 16px; }
+.sectionSummary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.sectionSummaryMain { flex: 1 1 220px; min-width: 0; }
+.sectionSummaryMain b { display: block; overflow-wrap: anywhere; font-size: 16px; }
+.sectionSummaryMain span { color: var(--color-muted); font-size: 12px; }
+.sectionSummaryMetrics { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.summaryChevron { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--color-panel-soft); transition: transform var(--motion-fast); }
+details[open] > summary .summaryChevron { transform: rotate(180deg); }
+.loadingSkeleton { min-height: 88px; border-radius: var(--radius-md); background: linear-gradient(90deg, var(--color-panel-soft), white, var(--color-panel-soft)); background-size: 200% 100%; animation: skeleton 1.2s linear infinite; }
+@keyframes skeleton { to { background-position: -200% 0; } }
