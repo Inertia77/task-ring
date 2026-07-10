@@ -22,10 +22,37 @@
   overflow: auto;
 }
 .ghModalCard, .weeklyTargetCard { width: min(100%, 620px); padding: 20px; }
+.timeDetailCard { width: min(100%, 760px); max-height: min(780px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); overflow: hidden; }
 .ghModalHead, .taskEditorHead, .timeDetailHead { position: sticky; top: 0; z-index: 4; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--color-line); background: color-mix(in srgb, var(--color-panel) 96%, transparent); backdrop-filter: blur(10px); }
 .ghModalHead > div, .taskEditorHead > div, .timeDetailHead > div { flex: 1 1 auto; min-width: 0; }
 .ghModalTitle, .taskEditorTitle, .timeDetailTitle { font-size: var(--section-title); font-weight: 800; }
 .ghModalSub, .taskEditorSub { color: var(--color-muted); }
+.timeDetailHead { position: static; align-items: center; padding: 16px 18px; border-bottom: 0; background: var(--color-ink); color: white; backdrop-filter: none; }
+.timeDetailHead > div > span { display: block; color: var(--color-primary); font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.timeDetailHead > div > b { display: block; overflow-wrap: anywhere; font-size: 20px; }
+.timeDetailHead > div > em { display: block; color: #cbc7be; font-size: 11px; font-style: normal; }
+.timeDetailClose { flex: 0 0 var(--tap-size); width: var(--tap-size); height: var(--tap-size); border: 1px solid #67645e; border-radius: 50%; background: #2b2b27; color: white; font-size: 22px; }
+.timeDetailClose:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.timeDetailBody { display: grid; gap: 10px; min-width: 0; padding: 14px; background: #f3f0e8; overflow-y: auto; }
+.timeDetailStats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.timeDetailStats > div { min-width: 0; padding: 10px 11px; border: 1px solid var(--color-card-line); border-radius: var(--radius-sm); background: var(--color-card); box-shadow: 0 2px 0 rgba(23,23,20,.05); }
+.timeDetailStats span, .timeDetailStats b { display: block; }
+.timeDetailStats span { color: var(--color-muted); font-size: 11px; }
+.timeDetailStats b { margin-top: 2px; font-size: 20px; line-height: 1.15; }
+.timeDetailProgress { padding: 11px 12px; border: 1px solid var(--color-card-line); border-radius: var(--radius-sm); background: var(--color-card); }
+.timeDetailProgress > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.timeDetailProgress span { color: var(--color-muted); font-size: 11px; }
+.timeDetailProgress b { font-size: 13px; }
+.timeDetailProgress > i { display: block; height: 7px; margin-top: 8px; border-radius: 999px; background: #e6e1d7; overflow: hidden; }
+.timeDetailProgress > i::after { content: ""; display: block; width: var(--w,0%); height: 100%; border-radius: inherit; background: var(--color-info); }
+.timeDetailProgress.over > i::after { background: var(--color-warning); }
+.timeDetailLogs { margin: 0; padding: 0; border: 1px solid var(--color-card-line); border-radius: var(--radius-sm); background: var(--color-card); list-style: none; overflow: hidden; }
+.timeDetailLogs li { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; align-items: center; min-height: 48px; padding: 6px 9px; border-bottom: 1px solid var(--color-line); }
+.timeDetailLogs li:last-child { border-bottom: 0; }
+.timeDetailLogs li > span { min-width: 0; color: var(--color-muted); font-size: 12px; overflow-wrap: anywhere; }
+.timeDetailLogs li > b { white-space: nowrap; }
+.timeDetailLogs button { min-width: var(--tap-size); min-height: var(--tap-size); border-radius: 7px; background: var(--color-danger-soft); color: var(--color-danger); }
+.timeDetailLogs .empty { grid-template-columns: minmax(0,1fr) auto; min-height: 64px; border-left: 4px solid var(--color-primary); }
 .ghCloseBtn, .weeklyTargetClose { flex: 0 0 var(--tap-size); width: var(--tap-size); height: var(--tap-size); border: 1px solid var(--color-line); border-radius: 50%; background: var(--color-panel-soft); font-size: 22px; }
 .ghSecretPanel, .ghHint, .taskEditorHint { margin: 14px 20px 0; padding: 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); color: var(--color-muted); }
 .ghModalCard .ghSecretPanel, .ghModalCard .ghHint { margin-left: 0; margin-right: 0; }

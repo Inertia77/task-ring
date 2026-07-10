@@ -268,8 +268,22 @@
     const current=visibleStats||todayStats;
     return `<div class="gameQuestMetricSet"><span class="gameQuestMetric"><strong>${current.done}/${current.total}</strong><em>ITEMS</em></span><span class="gameQuestMetric"><strong>${current.cardsDone}/${current.cards}</strong><em>大任务</em></span><span class="gameQuestMetric"><strong>${Math.max(0,current.total-current.done)}</strong><em>剩余</em></span><span class="gameQuestMetric"><strong>${weeklyStats.done}/${weeklyStats.total}</strong><em>本周指标</em></span></div>`;
   }
+  const GAME_STRIP_SELECTORS=[".gameQuestDays",".gameQuestFilterTabs",".gameQuestGameTabs"];
+  function captureGameStripScroll(panel){
+    return GAME_STRIP_SELECTORS.reduce((state,selector)=>{const strip=panel.querySelector(selector);if(strip)state[selector]=strip.scrollLeft;return state},{});
+  }
+  function restoreGameStripScroll(panel,state){
+    requestAnimationFrame(()=>GAME_STRIP_SELECTORS.forEach(selector=>{
+      const strip=panel.querySelector(selector);if(!strip)return;
+      const saved=state[selector];
+      if(Number.isFinite(saved)){strip.scrollLeft=Math.min(saved,Math.max(0,strip.scrollWidth-strip.clientWidth));return}
+      const active=strip.querySelector(".active");if(!active||strip.scrollWidth<=strip.clientWidth+2)return;
+      strip.scrollLeft=Math.max(0,active.offsetLeft-(strip.clientWidth-active.offsetWidth)/2);
+    }));
+  }
   window.renderGameQuestPanel=function(){
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
+    const stripScroll=captureGameStripScroll(panel);
     const todayStats=gameQuestStats(gameQuestSelectedDay);
     const actualTodayStats=gameQuestStats(today);
     const weeklyStats=gameQuestWeeklyStats();
@@ -294,11 +308,13 @@
       body=`<div class="gameQuestWeeklyPane"><div class="gameQuestMetaStrip"><span>周常、深境与本周一次性目标</span><em>${weeklyStats.pct}% WEEK POOL</em></div>${filters}<div class="gameQuestSubHead"><span>${gameQuestWeeklyFilter==="all"?"全部游戏":"当前游戏"}</span>${gameMetrics(actualTodayStats,weeklyStats,visibleStats)}</div><div class="gameQuestGrid focused">${cards||'<div class="gameQuestEmpty"><b>本周作战池为空</b><span>从游戏任务编辑器添加周任务。</span><button type="button" data-open-game-editor>打开编辑器</button></div>'}</div></div>`;
     }
     panel.innerHTML=`<div class="gameQuestShell">${top}${modes}${body}</div>`;
+    restoreGameStripScroll(panel,stripScroll);
   };
 
   function libraryItem(item,index,group,updatedAt){
     const url=safeUrl(item.url),title=escapeHtml(item.title||"未命名资料"),host=url?new URL(url).hostname.replace(/^www\./,""):"本机备注";
-    return `<article class="refItem refItemCard ${url?"":"refPlain"}" data-library-card data-library-text="${escapeHtml(`${group.title} ${item.title} ${host}`.toLowerCase())}"><span class="refItemNo">${String(index+1).padStart(2,"0")}</span><span class="refItemCopy"><strong title="${title}">${title}</strong><span>${escapeHtml(group.title)} · ${escapeHtml(host)}</span></span><span class="refItemMeta"><span>${url?"LINK":"NOTE"}</span><span>${updatedAt?`更新 ${escapeHtml(updatedAt)}`:"本机配置"}</span></span><span class="refItemActions">${url?`<a class="refItemAction" href="${url}" target="_blank" rel="noopener noreferrer">快速打开 ↗</a>`:'<span class="refItemAction disabled">待补链接</span>'}<button type="button" class="refItemAction" data-open-ref-editor="1" aria-label="编辑资料：${title}">编辑</button></span></article>`;
+    const meta=`${host} · ${url?"LINK":"NOTE"} · ${updatedAt||"本机"}`;
+    return `<article class="refItem refItemCard ${url?"":"refPlain"}" data-library-card data-library-text="${escapeHtml(`${group.title} ${item.title} ${host}`.toLowerCase())}"><span class="refItemNo">${String(index+1).padStart(2,"0")}</span><span class="refItemCopy"><strong title="${title}">${title}</strong><span title="${escapeHtml(meta)}">${escapeHtml(meta)}</span></span><span class="refItemActions">${url?`<a class="refItemAction refItemOpen" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="快速打开：${title}" title="快速打开：${title}">↗</a>`:`<span class="refItemAction refItemOpen disabled" aria-label="未设置链接" title="未设置链接">—</span>`}</span></article>`;
   }
   window.renderReferenceLibrary=function(){
     const grid=document.getElementById("refGrid");if(!grid)return;

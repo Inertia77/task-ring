@@ -42,6 +42,17 @@
 .orbitDays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
 .orbitDay { min-width: 0; padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .orbitDay.today { border-color: var(--color-ink); box-shadow: inset 0 -3px var(--color-primary); }
+.orbitDayName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 750; }
+.orbitDayMeta { display: flex; align-items: stretch; gap: 4px; margin-top: 5px; }
+.orbitDayMeta > span { display: grid; align-content: center; min-width: 0; min-height: 38px; padding: 3px 5px; border-radius: 6px; background: var(--color-card); text-align: center; }
+.orbitDayMeta b, .orbitDayMeta em { display: block; min-width: 0; }
+.orbitDayMeta b { font-size: 14px; line-height: 1.1; }
+.orbitDayMeta em { color: var(--color-muted); font-size: 9px; font-style: normal; }
+.orbitDone { flex: 1 1 auto; }
+.orbitAlert { flex: 0 0 40px; }
+.orbitFail b, .orbitWarn b { color: var(--color-danger); }
+.orbitMeter { height: 4px; margin-top: 6px; border-radius: 999px; background: #e7e2d8; overflow: hidden; }
+.orbitMeter > span { display: block; width: var(--w,0%); height: 100%; background: var(--color-success); }
 .mainTaskPanel { display: none; }
 .mainTaskPanelMobile.active { display: block; }
 .mobileBox { min-width: 0; }
@@ -95,7 +106,7 @@
 .dailyGroup { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: visible; }
 .dailyGroup > summary { padding: 14px 16px; border-radius: inherit; }
 .dailyGroup[open] > summary { border-bottom: 1px solid var(--color-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 .dailyCard, .mTask {
   position: relative;
   display: grid;
@@ -104,10 +115,11 @@
   height: auto;
   min-height: 0;
   padding: 14px;
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-card-line);
   border-left: 4px solid var(--daily-accent, var(--color-line-strong));
   border-radius: var(--radius-md);
-  background: var(--color-panel);
+  background: var(--color-card);
+  box-shadow: 0 2px 0 rgba(23,23,20,.05);
   overflow: visible;
 }
 .dailyCard:hover { border-color: var(--color-line-strong); transform: translateY(-1px); }

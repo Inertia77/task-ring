@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260710.12"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260710.14"/>
 </head>
 <body class="nx locked">
 
@@ -47,7 +47,7 @@
       <h1 class="inertiaHeroTitle">
         <span class="inertiaTitleCn">TASK RING</span>
         <span class="inertiaTitleSlash">/</span>
-        <span class="titleGlow inertiaTitleEn">任务指挥中心</span>
+        <span class="titleGlow inertiaTitleEn">Centre de Commandement</span>
       </h1>
       <p class="subtitle inertiaSubtitle">把今天、这周与长期资料放进同一套高密度任务系统。先执行，再复盘。</p>
     </div>
@@ -92,10 +92,10 @@
     <div class="taskRingModeText" id="modeText">只看今日未完成模式</div>
   </div>
   <div class="taskRingActionRow">
-    <button id="showUndone" type="button">只看今日未完成</button>
-    <button id="showToday" type="button">只看今天</button>
-    <button id="showAll" type="button">显示全周</button>
-    <button id="resetCurrentWeek" type="button" class="softDangerBtn">重置本周</button>
+    <button id="showUndone" type="button">今日未完成</button>
+    <button id="showToday" type="button">今天</button>
+    <button id="showAll" type="button">全周</button>
+    <button id="resetCurrentWeek" type="button" class="softDangerBtn">重置</button>
   </div>
   <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计今日执行环，不影响周计划池 / 游戏作战区</span></div><div class="progress"><div id="bar"></div></div></div>
 </section>
@@ -116,7 +116,7 @@
 <details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
 <div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>界面说明：</strong>冷灰白背景、石墨结构色与单一黄色焦点。重要状态同时使用文字、边框和图形表达。</div>
-<div class="summaryGrid guideGrid viewPanel" data-view-panel="library"><div class="card"><h2>使用顺序</h2><ul><li>先看今日执行环</li><li>长期主线进周计划池</li><li>资料入口独立查看</li></ul></div><div class="card"><h2>节奏</h2><ul><li>每日保底不掉线</li><li>周目标看时间投入</li><li>复盘用时间账本</li></ul></div><div class="card"><h2>锁与同步</h2><ul><li>软锁负责本机进门</li><li>Token 只负责 Gist 同步</li><li>无 Token 时可本机使用</li></ul></div></div>
+<div class="commandMotto viewPanel" data-view-panel="library"><span>TR / NOTE</span><p>Avance avec intention — chaque petite victoire construit la suivante.</p></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
 <div class="footer">TASK RING｜本机软锁 / Gist 同步 / 可离线使用；Token 仅保存在本机</div>
 </div>
@@ -235,9 +235,9 @@
 </div>
 
 <script src="assets/js/data/default-data.js?v=20260710.1"></script>
-<script src="assets/js/app.js?v=20260710.4"></script>
+<script src="assets/js/app.js?v=20260710.5"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20260710.1"></script>
 <script src="assets/js/views/editor-ux.js?v=20260710.1"></script>
-<script src="assets/js/views/product-ui.js?v=20260710.5"></script>
+<script src="assets/js/views/product-ui.js?v=20260710.6"></script>
 </body>
 </html>
