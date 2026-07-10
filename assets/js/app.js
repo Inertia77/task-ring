@@ -48,14 +48,14 @@ function slugifyId(s, fallback="custom"){
 
 /* === v11.0 Time Budget / Focus Timer helpers === */
 const timeCategoryDefs={
-  game:{name:"游戏",short:"游戏",icon:"🎮",budget:720},
-  language:{name:"语言",short:"语言",icon:"🗣️",budget:360},
-  it_ai:{name:"IT / AI",short:"IT",icon:"🤖",budget:360},
-  science:{name:"自然科学",short:"科学",icon:"🔭",budget:180},
-  creator:{name:"创作 / 数据库",short:"创作",icon:"✍️",budget:240},
-  body:{name:"身体 / 生活维护",short:"身体",icon:"🏃",budget:180},
-  economy:{name:"经济 / 资产",short:"经济",icon:"¥",budget:240},
-  life:{name:"生活杂务",short:"生活",icon:"◇",budget:180}
+  game:{name:"游戏",short:"游戏",icon:"GM",budget:720},
+  language:{name:"语言",short:"语言",icon:"LG",budget:360},
+  it_ai:{name:"IT / AI",short:"IT",icon:"AI",budget:360},
+  science:{name:"自然科学",short:"科学",icon:"SC",budget:180},
+  creator:{name:"创作 / 数据库",short:"创作",icon:"CR",budget:240},
+  body:{name:"身体 / 生活维护",short:"身体",icon:"BD",budget:180},
+  economy:{name:"经济 / 资产",short:"经济",icon:"FN",budget:240},
+  life:{name:"生活杂务",short:"生活",icon:"LF",budget:180}
 };
 const timeCategoryOrder=["game","language","it_ai","science","creator","body","economy","life"];
 function normalizeTimeCategory(v,fallback="life"){
@@ -265,7 +265,7 @@ function normalizeGameQuestConfig(config){
       id,
       name,
       short:String(g.short||name).trim()||name,
-      icon:String(g.icon||"🎮").trim()||"🎮",
+      icon:String(g.icon||"GQ").trim()||"GQ",
       accent:String(g.accent||["cyan","amber","violet","blue","rose","gold"][idx%6]).trim()||"cyan",
       enabled:g.enabled!==false
     };
@@ -492,13 +492,28 @@ applyTaskConfig(loadLocalTaskConfig()||buildDefaultConfig(),false);
 const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
 const mobileCatNames={life:"生活",gamecreate:"创作",language:"学习"};
 function catMobileName(catKey,c){return mobileCatNames[catKey]||c?.name||catKey||"任务"}
-const ROLLOVER_HOUR=4;function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}const realNow=new Date();const operationalNow=getOperationalDate(realNow);const today=operationalNow.getDay();let viewMode="undone";let mobileDay=today;
+const ROLLOVER_HOUR=4;
+function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}
+function getUrlDateOverride(){
+  try{
+    const raw=new URLSearchParams(location.search).get("date");
+    if(!raw||!/^\d{4}-\d{2}-\d{2}$/.test(raw))return null;
+    const d=new Date(`${raw}T12:00:00`);
+    if(Number.isNaN(d.getTime())||`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`!==raw)return null;
+    return d;
+  }catch(_){return null}
+}
+const realNow=new Date();
+const urlDateOverride=getUrlDateOverride();
+const operationalNow=getOperationalDate(urlDateOverride||realNow);
+const today=operationalNow.getDay();
+const UI_VIEW_MODE_KEY="taskring_view_mode_v1";const UI_MOBILE_DAY_KEY="taskring_mobile_day_v1";const SAVED_VIEW_MODE=localStorage.getItem(UI_VIEW_MODE_KEY);let viewMode=["undone","today","all"].includes(SAVED_VIEW_MODE)?SAVED_VIEW_MODE:"undone";const SAVED_MOBILE_DAY=Number(localStorage.getItem(UI_MOBILE_DAY_KEY));let mobileDay=[0,1,2,3,4,5,6].includes(SAVED_MOBILE_DAY)?SAVED_MOBILE_DAY:today;
 function pad(n){return String(n).padStart(2,"0")}
 function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function dayName(id){return days.find(d=>d.id===id)?.name||""}
 function dayNamesFor(t){return t.days.map(dayName).join("・")}
 function getCycleStart(date){const ref=new Date(date);const d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),4,0,0,0);const day=ref.getDay();const daysSinceMonday=(day+6)%7;d.setDate(d.getDate()-daysSinceMonday);if(ref<d)d.setDate(d.getDate()-7);return d}
-const cycleStart=getCycleStart(realNow);
+const cycleStart=getCycleStart(urlDateOverride||realNow);
 const cycleEnd=new Date(cycleStart);cycleEnd.setDate(cycleStart.getDate()+7);
 const cycleYmd=ymd(cycleStart);
 const prevCycleStart=new Date(cycleStart);prevCycleStart.setDate(cycleStart.getDate()-7);
@@ -513,11 +528,13 @@ const GH_PREFIX="taskring_github_v2_";
 const APP_VIEW_KEY=`${GH_PREFIX}active_view_v1`;
 const GQ_BOARD_MODE_KEY=`${GH_PREFIX}gamequest_board_mode_v1`;
 const GQ_WEEKLY_FILTER_KEY=`${GH_PREFIX}gamequest_weekly_filter_v1`;
+const UI_SCROLL_STATE_KEY="taskring_ui_scroll_state_v1";
+const ORBIT_DRAWER_OPEN_KEY="taskring_orbit_drawer_open_v1";
 const APP_VIEWS=new Set(["tasks","weekly","game","time","library"]);
 const LOCAL_PREVIEW_UNLOCK=["localhost","127.0.0.1","::1"].includes(location.hostname)&&new URLSearchParams(location.search).has("preview");
 let activeAppView=APP_VIEWS.has(localStorage.getItem(APP_VIEW_KEY))?localStorage.getItem(APP_VIEW_KEY):"tasks";
-let gameQuestBoardMode=["today","week"].includes(localStorage.getItem(GQ_BOARD_MODE_KEY))?localStorage.getItem(GQ_BOARD_MODE_KEY):"today";
-let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"";
+let gameQuestBoardMode="today";
+let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"all";
 let ghSaveTimer=null;
 let ghSaving=false;
 let ghPromptedThisLoad=false;
@@ -531,10 +548,51 @@ function lockApp(msg="输入本机解锁码进入任务环。GitHub Token 只用
 function unlockApp(){document.body.classList.remove("locked")}
 function setLockError(msg=""){const el=document.getElementById("lockError");if(el)el.textContent=msg}
 function hexFromBytes(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+function sha256Fallback(text){
+  const rightRotate=(v,a)=>(v>>>a)|(v<<(32-a));
+  let ascii=unescape(encodeURIComponent(String(text||"")));
+  const maxWord=Math.pow(2,32), words=[];
+  const bitLength=ascii.length*8;
+  let hash=sha256Fallback.h=sha256Fallback.h||[], k=sha256Fallback.k=sha256Fallback.k||[], primeCounter=k.length;
+  const isComposite={};
+  for(let candidate=2;primeCounter<64;candidate++){
+    if(!isComposite[candidate]){
+      for(let i=0;i<313;i+=candidate)isComposite[i]=candidate;
+      hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+      k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64!==56)ascii+='\x00';
+  for(let i=0;i<ascii.length;i++)words[i>>2]|=ascii.charCodeAt(i)<<((3-i)%4)*8;
+  words[words.length]=(bitLength/maxWord)|0;
+  words[words.length]=bitLength;
+  for(let j=0;j<words.length;){
+    const w=words.slice(j,j+=16), oldHash=hash.slice(0);
+    hash=hash.slice(0,8);
+    for(let i=0;i<64;i++){
+      const w15=w[i-15], w2=w[i-2], a=hash[0], e=hash[4];
+      const temp1=hash[7]+(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:((w[i-16]+(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))+w[i-7]+(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0));
+      const temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(temp1+temp2)|0,a,hash[1],hash[2],(hash[3]+temp1)|0,e,hash[5],hash[6]];
+    }
+    for(let i=0;i<8;i++)hash[i]=(hash[i]+oldHash[i])|0;
+  }
+  let result='';
+  for(let i=0;i<8;i++)for(let j=3;j+1;j--){const b=(hash[i]>>(j*8))&255;result+=(b<16?'0':'')+b.toString(16)}
+  return result;
+}
 async function sha256Hex(text){
-  if(!globalThis.crypto?.subtle)throw new Error("当前浏览器环境不支持 Web Crypto。请用 http://127.0.0.1 或 GitHub Pages 打开。");
-  const data=new TextEncoder().encode(String(text||""));
-  return hexFromBytes(await globalThis.crypto.subtle.digest("SHA-256",data));
+  const value=String(text||"");
+  if(globalThis.crypto?.subtle&&globalThis.TextEncoder){
+    try{
+      const data=new TextEncoder().encode(value);
+      return hexFromBytes(await globalThis.crypto.subtle.digest("SHA-256",data));
+    }catch(err){
+      console.warn("Web Crypto SHA-256 unavailable; using local fallback.",err);
+    }
+  }
+  return sha256Fallback(value);
 }
 function isManualSoftLocked(){return localStorage.getItem(SOFT_LOCK_MANUAL_KEY)==="1"}
 function forceSoftLock(){localStorage.setItem(SOFT_LOCK_MANUAL_KEY,"1");clearSoftLockTrust()}
@@ -565,8 +623,7 @@ function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本
   ghLog(msg);
   if(promptToken&&!ghPromptedThisLoad){
     ghPromptedThisLoad=true;
-    showToast("本机已解锁；需要云同步请设置 Gist Token","warn",2800);
-    setTimeout(openGhModal,320);
+    showToast("本机已解锁；需要云同步时可点 GitHub 同步设置 Token。","warn",3000);
   }
 }
 async function handleSoftUnlock(){
@@ -580,6 +637,9 @@ async function handleSoftUnlock(){
     if(!ok){setLockError("解锁码不对。别急，任务环还在，只是门卫不认识你。");input?.select?.();return}
     trustSoftLock(document.getElementById("lockRememberDevice")?.checked!==false);
     setLockError("");
+    unlockApp();
+    applyLocalConfigIfAny();
+    renderAll();
     showToast("已解锁，本机已记住。","ok",1800);
     if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未设置 Gist Token，当前使用本机/内置数据。")
   }catch(err){
@@ -766,13 +826,14 @@ async function ghPull(){
     const localStates=collectGhLocalStates();
     const localCount=Object.keys(localStates).length;
     const result=applyGhStates(state.states||{});
+    const deletedResult=mergeGhTimeLogDeletes(state.time_logs_deleted||state.deleted_time_logs||{});
     const timeResult=mergeGhTimeLogs(state.time_logs||[]);
     if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
     setGhStatus("GitHub：已同步","on");
-    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条`);
+    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
     unlockApp();
     renderAll();
-    if(result.migrated>0||timeResult.changed)setTimeout(()=>ghPush(true),1200)
+    if(result.migrated>0||timeResult.changed||deletedResult.changed)setTimeout(()=>ghPush(true),1200)
   }catch(err){
     console.error(err);
     setGhStatus("GitHub：读取失败","err");
@@ -782,7 +843,7 @@ async function ghPull(){
     setTimeout(openGhModal,360);
   }
 }
-async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_meta:{limit:TIME_GH_LOG_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
+async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const deletedLogs=collectGhDeletedTimeLogs();const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_deleted:deletedLogs,time_logs_meta:{limit:TIME_GH_LOG_LIMIT,deleted_limit:TIME_GH_DELETED_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条；删除记录 ${Object.keys(deletedLogs).length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
 function scheduleGhSave(){if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
 function syncRemoveCycle(cycle=cycleYmd){clearGhLocalCycle(cycle);scheduleGhSave()}
@@ -807,13 +868,38 @@ function controlBackdrop(){
   }
   return b;
 }
+function positionControlCenter(){
+  const m=controlMenu();
+  const trigger=document.getElementById("controlCenterBtn");
+  if(!m||!trigger||m.classList.contains("hidden"))return;
+  const compact=window.matchMedia("(max-width: 700px)").matches;
+  m.classList.toggle("controlCenterSheet",compact);
+  m.style.removeProperty("left");
+  m.style.removeProperty("right");
+  m.style.removeProperty("top");
+  m.style.removeProperty("bottom");
+  m.style.removeProperty("max-height");
+  if(compact)return;
+  const edge=12;
+  const rect=trigger.getBoundingClientRect();
+  const width=m.offsetWidth;
+  const height=m.offsetHeight;
+  const left=Math.min(window.innerWidth-width-edge,Math.max(edge,rect.right-width));
+  const below=rect.bottom+8;
+  const top=below+height<=window.innerHeight-edge?below:Math.max(edge,rect.top-height-8);
+  m.style.left=`${Math.round(left)}px`;
+  m.style.top=`${Math.round(top)}px`;
+  m.style.maxHeight=`${Math.max(220,window.innerHeight-top-edge)}px`;
+}
 function openControlCenter(){
   const m=ensureControlCenterPortal();
   if(!m)return;
   controlBackdrop().classList.remove("hidden");
   m.classList.remove("hidden");
   m.setAttribute("aria-hidden","false");
+  document.getElementById("controlCenterBtn")?.setAttribute("aria-expanded","true");
   document.body.classList.add("controlCenterOpen");
+  positionControlCenter();
 }
 function closeControlCenter(){
   const m=controlMenu();
@@ -821,10 +907,13 @@ function closeControlCenter(){
     m.classList.add("hidden");
     m.setAttribute("aria-hidden","true");
   }
+  document.getElementById("controlCenterBtn")?.setAttribute("aria-expanded","false");
   controlBackdrop()?.classList.add("hidden");
   document.body.classList.remove("controlCenterOpen");
 }
 function toggleControlCenter(){const m=ensureControlCenterPortal();if(!m)return;m.classList.contains("hidden")?openControlCenter():closeControlCenter()}
+window.addEventListener("resize",positionControlCenter,{passive:true});
+window.addEventListener("scroll",positionControlCenter,{passive:true});
 function initGithubSyncUI(){
   document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
   document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});
@@ -834,9 +923,6 @@ function initGithubSyncUI(){
   document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});
   document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
-  document.getElementById("controlGameQuestEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openGameQuestEditor()});
-  document.getElementById("controlTaskEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openTaskEditor()});
-  document.getElementById("controlRefEditorBtn")?.addEventListener("click",()=>{closeControlCenter();openRefEditor()});
   document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
   document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
   document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
@@ -970,10 +1056,10 @@ function collectEditorConfig(){
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
-  if(!ghToken()){openGhModal();taskEditorLog("请先设置 GitHub Token。");showToast("请先设置 GitHub Token","warn");return}
   try{
-    setBtnBusy(btn,true,"同步中…");
-    showToast("配置加密同步中…","warn",1600);
+    const shouldSync=!!ghToken();
+    setBtnBusy(btn,true,shouldSync?"同步中…":"保存中…");
+    showToast(shouldSync?"配置加密同步中…":"配置保存到本机中…","warn",1600);
     const before=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
     const cfg=collectEditorConfig();
     const beforeCounts=configCounts(before);
@@ -984,12 +1070,18 @@ async function saveEditorConfig(){
     }
     saveLocalTaskConfig(cfg,"任务编辑器保存前");
     applyTaskConfig(cfg,true);
-    setGhStatus("GitHub：保存配置中","sync");
-    await ghPatchConfig(cfg);
-    setGhStatus("GitHub：已同步","on");
-    taskEditorLog(`配置已加密同步：${cfg.tasks.length} 个任务。`);
-    ghLog("任务配置已加密保存到 taskring-config.json");
-    showToast("配置已加密同步到 GitHub","ok");
+    if(shouldSync){
+      setGhStatus("GitHub：保存配置中","sync");
+      await ghPatchConfig(cfg);
+      setGhStatus("GitHub：已同步","on");
+      taskEditorLog(`配置已保存到本机并加密同步：${cfg.tasks.length} 个任务。`);
+      ghLog("任务配置已加密保存到 taskring-config.json");
+      showToast("配置已保存并同步到 GitHub","ok");
+    }else{
+      setGhStatus("GitHub：本机模式","off");
+      taskEditorLog(`配置已保存到本机：${cfg.tasks.length} 个任务。设置 Token 后可跨设备同步。`);
+      showToast("配置已保存到本机","ok");
+    }
   }catch(err){
     console.error(err);
     setGhStatus("GitHub：配置保存失败","err");
@@ -1154,7 +1246,6 @@ function initTaskEditorUI(){
   document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
   document.getElementById("taskEditorCloseBtn")?.addEventListener("click",closeTaskEditor);
   document.getElementById("taskEditorBottomCloseBtn")?.addEventListener("click",closeTaskEditor);
-  document.getElementById("addTaskBtn")?.addEventListener("click",addEditorTask);
   document.getElementById("saveConfigBtn")?.addEventListener("click",saveEditorConfig);
   document.getElementById("taskEditorBottomSaveBtn")?.addEventListener("click",saveEditorConfig);
   document.getElementById("exportConfigBtn")?.addEventListener("click",exportEditorConfig);
@@ -1245,24 +1336,26 @@ function collectRefItemsFromGroup(row){
   });
 }
 function refEditorGroupHtml(g){
-  return `<div class="refCfgGroup ${g.enabled===false?"disabled":""}" data-id="${cfgEsc(g.id)}">
-    <div class="cfgTop">
-      <div><span class="cfgMini">${cfgEsc(g.id||"")}</span></div>
+  return `<details class="refCfgGroup ${g.enabled===false?"disabled":""}" data-id="${cfgEsc(g.id)}" open>
+    <summary class="cfgTop refCfgSummary">
+      <div class="refCfgSummaryMain"><span class="cfgMini">${cfgEsc(g.id||"")}</span><b>${cfgEsc(g.title||"资料分组")}</b></div>
       <div class="cfgOps">
         <button data-refop="up">上移</button><button data-refop="down">下移</button><button data-refop="copy">复制</button><button data-refop="remove" class="ghDangerBtn">删除</button>
       </div>
-    </div>
-    <div class="refCfgGrid">
-      <div>
-        <div class="refCfgField"><label>分组名</label><input class="refGroupTitle" value="${cfgEsc(g.title)}"></div>
-        <div class="refCfgFlags"><label><input type="checkbox" class="refGroupEnabled" ${g.enabled!==false?"checked":""}>启用</label></div>
-        <details class="cfgAdvanced"><summary>高级：ID（一般不要改）</summary>
-          <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
-        </details>
+    </summary>
+    <div class="refCfgBody">
+      <div class="refCfgGrid">
+        <div>
+          <div class="refCfgField"><label>分组名</label><input class="refGroupTitle" value="${cfgEsc(g.title)}"></div>
+          <div class="refCfgFlags"><label><input type="checkbox" class="refGroupEnabled" ${g.enabled!==false?"checked":""}>启用</label></div>
+          <details class="cfgAdvanced"><summary>高级：ID（一般不要改）</summary>
+            <div class="refCfgField"><label>分组 ID</label><input class="refGroupId" value="${cfgEsc(g.id)}"></div>
+          </details>
+        </div>
+        <div class="refCfgField"><label>资料条目</label>${refItemsEditorHtml(g.items)}<div class="refEditHint">标题和链接分开填；没有 URL 的条目会显示为普通文字，带 URL 的会显示为链接按钮。</div></div>
       </div>
-      <div class="refCfgField"><label>资料条目</label>${refItemsEditorHtml(g.items)}<div class="refEditHint">标题和链接分开填；没有 URL 的条目会显示为普通文字，带 URL 的会显示为链接按钮。</div></div>
     </div>
-  </div>`;
+  </details>`;
 }
 function renderRefEditor(){
   const list=document.getElementById("refEditorList");
@@ -1282,21 +1375,27 @@ function collectRefEditorConfig(){
 }
 async function saveRefConfig(){
   const btn=document.getElementById("saveRefConfigBtn");
-  if(!ghToken()){openGhModal();refEditorLog("请先设置 GitHub Token。");showToast("请先设置 GitHub Token","warn");return}
   try{
-    setBtnBusy(btn,true,"同步中…");
-    showToast("资料库加密同步中…","warn",1500);
+    const shouldSync=!!ghToken();
+    setBtnBusy(btn,true,shouldSync?"同步中…":"保存中…");
+    showToast(shouldSync?"资料库加密同步中…":"资料库保存到本机中…","warn",1500);
     const refs=collectRefEditorConfig();
     const base=normalizeTaskConfig(taskConfig||buildDefaultConfig());
     const cfg=normalizeTaskConfig({...base,refs,updatedAt:new Date().toISOString()});
     saveLocalTaskConfig(cfg);
     applyTaskConfig(cfg,true);
-    setGhStatus("GitHub：保存配置中","sync");
-    await ghPatchConfig(cfg);
-    setGhStatus("GitHub：已同步","on");
-    refEditorLog(`资料库已加密同步：${refs.length} 个分组。`);
-    ghLog("资料库配置已合并进 taskring-config.json 并加密同步");
-    showToast("资料库已加密同步到 GitHub","ok");
+    if(shouldSync){
+      setGhStatus("GitHub：保存配置中","sync");
+      await ghPatchConfig(cfg);
+      setGhStatus("GitHub：已同步","on");
+      refEditorLog(`资料库已保存到本机并加密同步：${refs.length} 个分组。`);
+      ghLog("资料库配置已合并进 taskring-config.json 并加密同步");
+      showToast("资料库已保存并同步到 GitHub","ok");
+    }else{
+      setGhStatus("GitHub：本机模式","off");
+      refEditorLog(`资料库已保存到本机：${refs.length} 个分组。`);
+      showToast("资料库已保存到本机","ok");
+    }
   }catch(err){
     console.error(err);
     setGhStatus("GitHub：配置保存失败","err");
@@ -1353,6 +1452,8 @@ function initRefEditorUI(){
   document.getElementById("refEditorList")?.addEventListener("click",e=>{
     const itemBtn=e.target.closest("button[data-refitemop]");
     if(itemBtn){
+      e.preventDefault();
+      e.stopPropagation();
       const group=itemBtn.closest(".refCfgGroup");
       const box=group?.querySelector(".refItemsBox");
       const itemRow=itemBtn.closest(".refItemEdit");
@@ -1390,6 +1491,8 @@ function initRefEditorUI(){
     }
     const btn=e.target.closest("button[data-refop]");
     if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
     const row=btn.closest(".refCfgGroup");
     if(!row)return;
     const op=btn.dataset.refop;
@@ -1473,6 +1576,7 @@ function applyActiveAppView(){
     const isActive=btn.dataset.viewTarget===activeAppView;
     btn.classList.toggle("active",isActive);
     btn.setAttribute("aria-pressed",isActive?"true":"false");
+    if(btn.matches(".viewDockBtn"))btn.setAttribute("aria-current",isActive?"page":"false");
   });
 }
 function setActiveAppView(view){
@@ -1484,16 +1588,87 @@ function setActiveAppView(view){
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game")renderGameQuestPanel();
 }
+const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList"];
+let restoreUiScrollFromStorage=true;
+let uiScrollSaveTimer=null;
+function readUiScrollState(){try{return JSON.parse(localStorage.getItem(UI_SCROLL_STATE_KEY)||"{}")||{}}catch(e){return {}}}
+function collectUiScrollState(){
+  const state={window:{x:window.scrollX||0,y:window.scrollY||0},activeAppView,viewMode,mobileDay,lists:{}};
+  UI_SCROLL_SELECTORS.forEach(selector=>{
+    document.querySelectorAll(selector).forEach((el,idx)=>{
+      if(!el)return;
+      state.lists[`${selector}|${idx}`]={left:el.scrollLeft||0,top:el.scrollTop||0};
+    });
+  });
+  return state;
+}
+function restoreUiScrollState(state){
+  if(!state||typeof state!=="object")return;
+  const apply=()=>{
+    Object.entries(state.lists||{}).forEach(([key,pos])=>{
+      const [selector,idxText]=key.split("|");
+      const el=document.querySelectorAll(selector)[Number(idxText)||0];
+      if(el&&pos){el.scrollLeft=Number(pos.left)||0;el.scrollTop=Number(pos.top)||0}
+    });
+    if(state.window){
+      window.scrollTo(Number(state.window.x)||0,Number(state.window.y)||0);
+    }
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(apply));
+}
+function saveUiScrollStateNow(){localStorage.setItem(UI_SCROLL_STATE_KEY,JSON.stringify(collectUiScrollState()))}
+function scheduleUiScrollSave(){clearTimeout(uiScrollSaveTimer);uiScrollSaveTimer=setTimeout(saveUiScrollStateNow,120)}
+window.addEventListener("scroll",scheduleUiScrollSave,{passive:true});
+window.addEventListener("pagehide",saveUiScrollStateNow);
+window.addEventListener("beforeunload",saveUiScrollStateNow);
+document.addEventListener("scroll",e=>{
+  const el=e.target;
+  if(!(el instanceof Element))return;
+  if(UI_SCROLL_SELECTORS.some(selector=>el.matches(selector)))scheduleUiScrollSave();
+},true);
+function persistDailyViewState(){localStorage.setItem(UI_VIEW_MODE_KEY,viewMode);localStorage.setItem(UI_MOBILE_DAY_KEY,String(mobileDay))}
+function setDailyViewMode(mode){
+  viewMode=["undone","today","all"].includes(mode)?mode:"undone";
+  if(viewMode!=="all")mobileDay=today;
+  persistDailyViewState();
+  renderAll();
+}
 
 const TIME_ACTIVE_KEY="taskring_time_active_v1";
 const TIME_LOGS_KEY="taskring_time_logs_v1";
 const TIME_LOG_LIMIT=800;
 const TIME_GH_LOG_LIMIT=600;
+const TIME_LOG_DELETED_KEY="taskring_time_log_deleted_v1";
+const TIME_GH_DELETED_LIMIT=1200;
 const TIME_LEDGER_VIEW_KEY="taskring_time_ledger_view_v1";
 const TIME_LEDGER_VIEWS=new Set(["overview","tasks","logs"]);
 let timeLedgerView=TIME_LEDGER_VIEWS.has(localStorage.getItem(TIME_LEDGER_VIEW_KEY))?localStorage.getItem(TIME_LEDGER_VIEW_KEY):"overview";
 function readJsonLocal(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){console.warn("local json parse failed",key,e);return fallback}}
 function writeJsonLocal(key,value){localStorage.setItem(key,JSON.stringify(value))}
+function trimDeletedTimeLogMap(map,limit=TIME_GH_DELETED_LIMIT){
+  return Object.fromEntries(Object.entries(map||{}).filter(([id])=>id).sort((a,b)=>String(b[1]||"").localeCompare(String(a[1]||""))).slice(0,limit));
+}
+function normalizeDeletedTimeLogMap(value){
+  const raw=Array.isArray(value)?Object.fromEntries(value.map(id=>[id,""])):(value&&typeof value==="object"?value:{});
+  const fallbackTs=new Date(0).toISOString();
+  const out={};
+  Object.entries(raw).forEach(([id,ts])=>{if(id)out[String(id)]=String(ts||fallbackTs)});
+  return trimDeletedTimeLogMap(out);
+}
+function readDeletedTimeLogMap(){return normalizeDeletedTimeLogMap(readJsonLocal(TIME_LOG_DELETED_KEY,{}))}
+function writeDeletedTimeLogMap(map,shouldSync=true){writeJsonLocal(TIME_LOG_DELETED_KEY,trimDeletedTimeLogMap(map));if(shouldSync)scheduleGhSave()}
+function markTimeLogDeleted(logId,shouldSync=true){const deleted=readDeletedTimeLogMap();deleted[String(logId)]=new Date().toISOString();writeDeletedTimeLogMap(deleted,shouldSync)}
+function collectGhDeletedTimeLogs(){return readDeletedTimeLogMap()}
+function mergeGhTimeLogDeletes(cloudDeleted={}){
+  const before=readDeletedTimeLogMap();
+  const cloud=normalizeDeletedTimeLogMap(cloudDeleted);
+  const merged={...before};
+  Object.entries(cloud).forEach(([id,ts])=>{if(!merged[id]||String(ts)>String(merged[id]))merged[id]=ts});
+  const trimmed=trimDeletedTimeLogMap(merged);
+  const changed=JSON.stringify(trimmed)!==JSON.stringify(before);
+  if(changed)writeDeletedTimeLogMap(trimmed,false);
+  return {changed,count:Object.keys(trimmed).length};
+}
 function readActiveTimer(){const t=readJsonLocal(TIME_ACTIVE_KEY,null);return t&&t.kind?normalizeActiveTimer(t):null}
 function normalizeActiveTimer(t){return {...t,accumulated_seconds:Number(t.accumulated_seconds||0),paused:!!t.paused}}
 function writeActiveTimer(t){writeJsonLocal(TIME_ACTIVE_KEY,t)}
@@ -1522,18 +1697,21 @@ function normalizeTimeLog(log){
     status:log.status||"completed"
   };
 }
-function readTimeLogs(){return readJsonLocal(TIME_LOGS_KEY,[]).map(normalizeTimeLog).filter(Boolean)}
+function readTimeLogs(){const deleted=readDeletedTimeLogMap();return readJsonLocal(TIME_LOGS_KEY,[]).map(normalizeTimeLog).filter(Boolean).filter(log=>!deleted[log.id])}
 function writeTimeLogs(logs,shouldSync=true){
-  const normalized=(logs||[]).map(normalizeTimeLog).filter(Boolean).slice(-TIME_LOG_LIMIT);
+  const deleted=readDeletedTimeLogMap();
+  const normalized=(logs||[]).map(normalizeTimeLog).filter(Boolean).filter(log=>!deleted[log.id]).slice(-TIME_LOG_LIMIT);
   writeJsonLocal(TIME_LOGS_KEY,normalized);
   if(shouldSync)scheduleGhSave();
 }
 function collectGhTimeLogs(){return readTimeLogs().slice(-TIME_GH_LOG_LIMIT)}
 function mergeGhTimeLogs(cloudLogs=[]){
   const before=readTimeLogs();
+  const deleted=readDeletedTimeLogMap();
   const map=new Map();
   before.forEach(log=>map.set(log.id,log));
   (Array.isArray(cloudLogs)?cloudLogs:[]).map(normalizeTimeLog).filter(Boolean).forEach(log=>{
+    if(deleted[log.id])return;
     const old=map.get(log.id);
     if(!old||String(log.ended_at||"")>String(old.ended_at||""))map.set(log.id,log);
   });
@@ -1595,7 +1773,7 @@ function ensureTimeDetailModal(){
   m.id="timeDetailModal";
   m.className="timeDetailModal hidden";
   m.setAttribute("aria-hidden","true");
-  m.innerHTML=`<div class="timeDetailCard" role="dialog" aria-modal="true"><div class="timeDetailHead"><div><span>TIME DETAIL</span><b id="timeDetailTitle">时间明细</b></div><button type="button" class="timeDetailClose" data-time-modal-close title="关闭">×</button></div><div class="timeDetailBody" id="timeDetailBody"></div></div>`;
+  m.innerHTML=`<div class="timeDetailCard" role="dialog" aria-modal="true"><div class="timeDetailHead"><div><span>TIME LEDGER / DETAIL</span><b id="timeDetailTitle">时间明细</b><em>投入、目标与最近记录</em></div><button type="button" class="timeDetailClose" data-time-modal-close title="关闭" aria-label="关闭">×</button></div><div class="timeDetailBody" id="timeDetailBody"></div></div>`;
   document.body.appendChild(m);
   return m;
 }
@@ -1614,6 +1792,7 @@ function deleteTimeLog(logId){
   const target=logs.find(log=>log.id===logId);
   if(!target){showToast("找不到这条记录","err");return}
   if(!confirm(`删除这条时间记录？\n${target.title} · ${fmtMinutes(target.duration_minutes)} · ${fmtLogWhen(target)}`))return;
+  markTimeLogDeleted(logId,false);
   writeTimeLogs(logs.filter(log=>log.id!==logId));
   showToast("已删除时间记录","warn",1400);
   closeTimeDetailModal();
@@ -1633,6 +1812,19 @@ function openTaskTimeDetail(taskId){
   const lines=week.slice(0,14).map(log=>`<li><span>${fmtLogWhen(log)}</span><b>${fmtMinutes(log.duration_minutes)}</b><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="empty"><span>本周还没有计时记录</span><b>0m</b></li>`;
   const body=`<div class="timeDetailStats"><div><span>今日</span><b>${fmtMinutes(todayUsed)}</b></div><div><span>本周</span><b>${fmtMinutes(used)}</b></div><div><span>累计</span><b>${fmtMinutes(allUsed)}</b></div></div><div class="timeDetailProgress ${target&&used>target?"over":""}" style="--w:${target?Math.min(100,pct):0}%"><div><span>本周目标</span><b>${target?`${fmtMinutes(used)} / ${fmtMinutes(target)}`:"未设置目标"}</b></div><i></i></div><ul class="timeDetailLogs">${lines}</ul>`;
   openTimeDetailModal(task.title,body);
+}
+function openGameQuestTimeDetail(){
+  const all=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")).sort(timeLogSortDesc);
+  const week=all.filter(isLogInCurrentCycle);
+  const todayLogs=all.filter(isLogToday);
+  const active=readActiveTimer();
+  const activeMinutes=active&&active.kind==="gamequest"?Math.max(1,Math.round(activeTimerElapsedSeconds(active)/60)):0;
+  const used=week.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
+  const todayUsed=todayLogs.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
+  const allUsed=all.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
+  const lines=week.slice(0,20).map(log=>`<li><span>${fmtLogWhen(log)} · ${escapeHtml(log.title)}</span><b>${fmtMinutes(log.duration_minutes)}</b><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="empty"><span>本周还没有游戏作战区记录</span><b>0m</b></li>`;
+  const body=`<div class="timeDetailStats"><div><span>今日</span><b>${fmtMinutes(todayUsed)}</b></div><div><span>本周</span><b>${fmtMinutes(used)}</b></div><div><span>累计</span><b>${fmtMinutes(allUsed)}</b></div></div><div class="timeDetailProgress" style="--w:${used?100:0}%"><div><span>统计方式</span><b>游戏作战区整体计时${activeMinutes?` · 当前 ${fmtMinutes(activeMinutes)}`:""}</b></div><i></i></div><ul class="timeDetailLogs">${lines}</ul>`;
+  openTimeDetailModal("游戏作战区",body);
 }
 function setTimeLedgerView(view){
   timeLedgerView=TIME_LEDGER_VIEWS.has(view)?view:"overview";
@@ -1762,9 +1954,9 @@ function timerControlsHtml(t,dayId,cycle=cycleYmd){
   const weekChip=`<button type="button" class="timerWeekChip ${over?"over":""}" title="${escapeHtml(label)}｜点击查看本周明细" data-time-task-detail="${escapeHtml(t.id)}"><span>周</span><b>${weekText}</b></button>`;
   if(same){
     const time=fmtTimer(activeTimerElapsedSeconds(active));
-    return `<span class="timerControls timerCompact activeMini ${active.paused?"paused":"running"} ${over?"overTarget":""}" title="${escapeHtml(label)}">${weekChip}<span class="timerNowChip"><i>${active.paused?"⏸":"⏱"}</i><b data-live-timer>${time}</b></span></span>`;
+    return `<span class="timerControls timerCompact activeMini ${active.paused?"paused":"running"} ${over?"overTarget":""}" title="${escapeHtml(label)}">${weekChip}<span class="timerNowChip"><i>${active.paused?"Ⅱ":"◷"}</i><b data-live-timer>${time}</b></span></span>`;
   }
-  return `<span class="timerControls timerCompact startMini ${over?"overTarget":""}" title="${escapeHtml(label)}"><button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}">⏱ ${taskEstimatedMinutes(t)}m</button>${weekChip}</span>`;
+  return `<span class="timerControls timerCompact startMini ${over?"overTarget":""}" title="${escapeHtml(label)}"><button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}">◷ ${taskEstimatedMinutes(t)}m</button>${weekChip}</span>`;
 }
 
 
@@ -1862,7 +2054,7 @@ function renderTimePanel(){
   const activeTarget=active?.kind==="task"?taskWeeklyMinutes(taskById(active.task_id)||{}):0;
   const activeUsed=active?.kind==="task"?taskWeekMinutesUsed(active.task_id)+Math.round(activeTimerElapsedSeconds(active)/60):0;
   const activeWeekText=active?.kind==="task"&&activeTarget?` · 本周 ${fmtMinutes(activeUsed)} / ${fmtMinutes(activeTarget)}`:"";
-  const activeHtml=active?`<div class="activeTimerCard ${active.paused?"paused":"running"} ${activeWarn?"warn":""}"><div class="activeTimerMain"><div class="activeTimerKicker">${active.paused?"PAUSED":"FOCUS TIMER"}</div><div class="activeTimerTitle">${escapeHtml(active.title)}</div><div class="activeTimerSub">${timeCategoryLabel(active.category)} · 预计 ${active.estimated_minutes||"?"}m${activeWeekText}${activeWarn?" · 已超过预计 2 倍，确认是否忘关":""}</div></div><div class="activeTimerRight"><div class="activeTimerClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="activeTimerActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成并记录</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div></div></div>`:`<div class="timeLedgerIdle"><span>⏱</span><b>当前没有计时中</b><em>从任务、周计划池或游戏作战区开始计时。</em></div>`;
+  const activeHtml=active?`<div class="activeTimerCard ${active.paused?"paused":"running"} ${activeWarn?"warn":""}"><div class="activeTimerMain"><div class="activeTimerKicker">${active.paused?"PAUSED":"FOCUS TIMER"}</div><div class="activeTimerTitle">${escapeHtml(active.title)}</div><div class="activeTimerSub">${timeCategoryLabel(active.category)} · 预计 ${active.estimated_minutes||"?"}m${activeWeekText}${activeWarn?" · 已超过预计 2 倍，确认是否忘关":""}</div></div><div class="activeTimerRight"><div class="activeTimerClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="activeTimerActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成并记录</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div></div></div>`:`<div class="timeLedgerIdle"><span>◷</span><b>当前没有计时中</b><em>从任务、周计划池或游戏作战区开始计时。</em></div>`;
   const overviewRows=timeCategoryOrder.map(k=>{
     const def=timeCategoryDefs[k];
     const used=week[k]||0;
@@ -1926,19 +2118,23 @@ function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){const
 function carryoverOccurrences(){const out=[];const todayP=weekPos(today);for(const t of ringBlocks()){if(t.days.length===1){const d=t.days[0];if(weekPos(d)<todayP&&!isDone(t.id,d,cycleYmd))out.push({t,dayId:d,cycle:cycleYmd,carry:true})}else{const last=lastScheduledDay(t);if(weekPos(last)<todayP&&!isDone(t.id,last,cycleYmd))out.push({t,dayId:last,cycle:cycleYmd,carry:true})}if(t.days.includes(0)&&isLastScheduled(t,0)&&!isDone(t.id,0,prevCycleYmd)){out.push({t,dayId:0,cycle:prevCycleYmd,carry:true,prev:true})}}return out}
 function todayOccurrences(includeDone=true){const carry=carryoverOccurrences();const carryMap=new Map(carry.map(o=>[o.t.id,o]));let arr=[];for(const t of ringBlocks()){if(t.days.includes(today))arr.push({t,dayId:today,cycle:cycleYmd,current:true});const c=carryMap.get(t.id);if(c)arr.push(c)}const seen=new Set();arr=arr.filter(o=>{const k=`${o.cycle}_${o.t.id}_${o.dayId}`;if(seen.has(k))return false;seen.add(k);return true});if(!includeDone)arr=arr.filter(o=>!isDone(o.t.id,o.dayId,o.cycle));return arr}
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function safeUrl(url){if(!url)return "";try{const u=new URL(url,window.location.href);if(u.protocol==="http:"||u.protocol==="https:")return u.href}catch(e){}return ""}
-function refItemHtml(item){
-  const title=escapeHtml(item.title);
-  const url=safeUrl(item.url);
-  return `<div class="refItem">${url?`<a class="refLink" href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`:`<span class="refLink refPlain">${title}</span>`}</div>`;
+function refItemHtml(item,index=0,groupTitle="资料"){
+  const title=escapeHtml(item?.title||"未命名");
+  const url=safeUrl(item?.url);
+  const no=String(index+1).padStart(2,"0");
+  const host=url?(()=>{try{return new URL(url).hostname.replace(/^www\./,"")}catch(_){return "外部链接"}})():"本机条目";
+  const body=`<span class="refItemNo">${no}</span><span class="refItemCopy"><strong>${title}</strong><span>${escapeHtml(groupTitle)} · ${escapeHtml(host)}</span></span><span class="refItemMeta"><span>${url?"LINK":"NOTE"}</span><span>${url?"快速入口":"未设置链接"}</span></span>${url?`<span class="refItemAction">打开 ↗</span>`:`<span class="refItemAction disabled">待补充</span>`}`;
+  return url?`<a class="refItem refItemCard" href="${url}" target="_blank" rel="noopener noreferrer">${body}</a>`:`<div class="refItem refItemCard refPlain">${body}</div>`;
 }
 function renderReferenceLibrary(){
   const grid=document.getElementById("refGrid");
   if(!grid)return;
   const groups=(refGroups||[]).filter(g=>g.enabled!==false);
-  grid.innerHTML=groups.map(g=>{
+  grid.innerHTML=groups.map((g,groupIndex)=>{
     const items=(g.items||[]).filter(i=>i.enabled!==false);
-    return `<details class="refGroup" open><summary><span>${escapeHtml(g.title)}</span><span class="refGroupCaret">▾</span></summary><div class="refGroupBody">${items.length?items.map(refItemHtml).join(""):`<div class="refItem"><span class="refLink refPlain">暂未设置链接</span></div>`}</div></details>`;
-  }).join("");
+    const code=String(groupIndex+1).padStart(2,"0");
+    return `<details class="refGroup" open style="--ref-index:${groupIndex}"><summary><span class="refGroupNo">${code}</span><span class="refGroupTitle">${escapeHtml(g.title)}</span><span class="refGroupCount">${items.length} 项</span><span class="refGroupCaret">▾</span></summary><div class="refGroupBody">${items.length?items.map((item,i)=>refItemHtml(item,i,g.title)).join(""):`<div class="refEmpty"><strong>这个分组还没有资料</strong><span>从资料库编辑器添加入口或备注。</span><button type="button" data-open-ref-editor="1">新增资料</button></div>`}</div></details>`;
+  }).join("")||`<div class="refEmpty"><strong>资料库暂无启用分组</strong><span>可以从总控进入资料库编辑器新增。</span><button type="button" data-open-ref-editor="1">新增资料</button></div>`;
 }
 
 function titleHtml(t){const title=escapeHtml(t.title);const url=safeUrl(t.url);return url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"><span class="taskText">${title}</span><span class="linkIcon" aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}function tagHtml(t){
@@ -1956,7 +2152,7 @@ function frontCheckHtml(t,dayId,cycle=cycleYmd){const st=occurrenceState(t,dayId
 function stepPanelHtml(t,dayId,catCls,cycle=cycleYmd){
   if(!hasSteps(t.id))return "";
   const prog=stepProgress(t,dayId,cycle);
-  return `<button type="button" class="subtaskBtn ${catCls||""}" title="分任务 ${prog.done}/${prog.total}" data-subtask-task="${escapeHtml(t.id)}" data-subtask-day="${dayId}" data-subtask-cycle="${escapeHtml(cycle)}"><span class="subtaskDot"></span><span>分 ${prog.done}/${prog.total}</span></button>`;
+  return `<details class="subtaskInline ${catCls||""}" open data-subtask-inline="${escapeHtml(t.id)}"><summary><span>子任务</span><strong>${prog.done}/${prog.total}</strong><em>${prog.done===prog.total?"已完成":"可收起"}</em></summary><div class="subtaskInlineList">${subtaskPopoverRows(t,dayId,cycle)}</div></details>`;
 }
 function visibleDaysForMode(){if(viewMode==="all")return days;return [days.find(d=>d.id===today)]}
 function visibleBlocksForMode(){if(viewMode==="all")return ringBlocks();return todayOccurrences(viewMode==="today").map(o=>o.t)}
@@ -1972,7 +2168,7 @@ function compactTaskMeta(t,st=null,meta=""){
   return bits.join("")||`<span class="metaSpacer">&nbsp;</span>`;
 }
 function taskRowHtml(t,c,metaHtml,stepHtml="",frontCheck="",dayId=stepContextDay(t),cycle=cycleYmd){
-  return `<div class="taskRowInner"><div class="taskMainLine">${frontCheck}${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="taskMetaLine">${stepHtml||""}${metaHtml}${timerControlsHtml(t,dayId,cycle)}</div></div>`;
+  return `<div class="taskRowInner"><div class="taskMainLine">${frontCheck}${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="taskMetaLine">${metaHtml}${timerControlsHtml(t,dayId,cycle)}</div>${stepHtml||""}</div>`;
 }
 function catCellHtml(c){return `<div class="catInner">${escapeHtml(c.name)}</div>`}
 function renderTable(){const table=document.getElementById("taskTable");const isAll=viewMode==="all";const vDays=visibleDaysForMode();let html=`<thead><tr><th class="catHead">区分</th><th class="taskHead">任务</th>${isAll?vDays.map(d=>`<th class="dayHead ${d.id===today?"todayHead":""}">${d.name}${d.id===today?"｜今日":""}</th>`).join(""):""}</tr></thead><tbody>`;if(isAll){for(const t of ringBlocks()){const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const ctxDay=stepContextDay(t);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t),stepPanelHtml(t,ctxDay,c.cls,cycleYmd),"",ctxDay,cycleYmd)}</td>`;for(const d of vDays){if(t.days.includes(d.id)){html+=cellHtml(t,d.id,cycleYmd,d.id===today?"activeTodayCell":"")}else{html+=`<td class="dayCell blank"></td>`}}html+=`</tr>`}}else{const occs=todayOccurrences(viewMode==="today");if(!occs.length){html+=`<tr><td class="category" style="background:#f4f7fb"><div class="catInner">完成</div></td><td class="taskName"><div class="taskRowInner emptyRow"><div class="taskMainLine">今日执行环已经清空。长期主线请切到「周计划池」继续推进。</div><div class="taskMetaLine"><span class="metaSpacer">&nbsp;</span></div></div></td></tr>`}else{for(const o of occs){const t=o.t;const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const st=occurrenceState(t,o.dayId,o.cycle);const meta=occurrenceMeta(t,o.dayId,o.cycle);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t,st,meta),stepPanelHtml(t,o.dayId,c.cls,o.cycle),frontCheckHtml(t,o.dayId,o.cycle),o.dayId,o.cycle)}</td></tr>`}}}table.innerHTML=html+`</tbody>`}
@@ -1990,7 +2186,7 @@ function renderMobileCards(){
     const metaMain=meta?`<span class="mobileMetaText">${meta}</span>`:`<span class="mobileMetaText metaSpacer">&nbsp;</span>`;
     const stepSlot=steps?`<span class="mobileStepSlot">${steps}</span>`:"";
     const topLine=`<div class="mTagLine"><span class="badge" style="background:${c.color}">${escapeHtml(catMobileName(t.cat,c))}</span>${taskMiniRingHtml(t,dayId,cycle)}${tagHtml(t)}${statusBadges(st)}</div>`;
-    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody">${topLine}<div class="mTitle mTaskTitleLine ${c.cls}Task"><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="mMeta">${stepSlot}${metaMain}${timerControlsHtml(t,dayId,cycle)}</div></div></div>`;
+    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody">${topLine}<div class="mTitle mTaskTitleLine ${c.cls}Task"><span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="mMeta">${metaMain}${timerControlsHtml(t,dayId,cycle)}</div>${stepSlot}</div></div>`;
   };
   const renderGroup=(label,list,extraCls="",dayId=null)=>{
     const stats=mobileGroupSummary(list,dayId);
@@ -2162,7 +2358,7 @@ function gameQuestCardHtml(entry,dayId){
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 今日清理完成" data-gq-card-btn="1" data-gamequest-game="${escapeHtml(g.id)}" data-gamequest-day="${dayId}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
-      <span class="gameQuestIcon gameQuestIconOrb">${escapeHtml(g.icon)}</span>
+      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
       <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${escapeHtml(g.short||g.name)}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
@@ -2180,7 +2376,7 @@ function gameQuestWeeklyCardHtml(entry){
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 本周任务完成" data-gq-weekly-card-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
-      <span class="gameQuestIcon gameQuestIconOrb">${escapeHtml(g.icon)}</span>
+      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
       <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">本周池 · ${escapeHtml(g.short||g.name)}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
@@ -2210,16 +2406,17 @@ function renderGameQuestPanel(){
       <span class="gameQuestMiniRing" style="--p:${gameQuestBoardMode==="week"?weekly.pct:week.pct}%"><i>${gameQuestBoardMode==="week"?weekly.pct:week.pct}%</i></span>
       <b class="gameQuestTopProgress">${gameQuestBoardMode==="week"?`${weekly.done}/${weekly.total}`:`${week.done}/${week.total}`}</b>
     </div>
-    <button type="button" class="gameQuestTopTimer ${gqActive?"active":""}" data-timer-start-gamequest="1" data-gamequest-day="${gameQuestSelectedDay}" data-cycle="${escapeHtml(cycleYmd)}" title="把整个游戏作战区作为一个整体记录时间"><span>${gqActive?(active.paused?"⏸":"⏱"):"⏱"}</span><b ${gqActive?"data-live-timer":""}>${gqTimerLabel}</b><em>${gqTimerSub}</em></button>
+    <button type="button" class="gameQuestTopTimer ${gqActive?"active":""}" data-timer-start-gamequest="1" data-gamequest-day="${gameQuestSelectedDay}" data-cycle="${escapeHtml(cycleYmd)}" title="把整个游戏作战区作为一个整体记录时间"><span>${gqActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><b ${gqActive?"data-live-timer":""}>${gqTimerLabel}</b><em>${gqTimerSub}</em></button>
     <button type="button" class="gameQuestTodayQuick" id="gameQuestTodayBtn">今日</button>
   </div>`;
   let body="";
   if(gameQuestBoardMode==="week"){
     const weeklyEntries=gameQuestWeeklyEntries();
-    let activeWeeklyFilter=gameQuestWeeklyFilter||"";
-    if(!(activeWeeklyFilter==="all"&&weeklyEntries.length)&&!weeklyEntries.some(e=>String(e.game.id)===activeWeeklyFilter)){
-      activeWeeklyFilter=weeklyEntries[0]?.game?.id||"all";
-      gameQuestWeeklyFilter=activeWeeklyFilter;
+    let activeWeeklyFilter=gameQuestWeeklyFilter||"all";
+    if(activeWeeklyFilter!=="all"&&!weeklyEntries.some(e=>String(e.game.id)===activeWeeklyFilter)){
+      activeWeeklyFilter="all";
+      gameQuestWeeklyFilter="all";
+      localStorage.setItem(GQ_WEEKLY_FILTER_KEY,gameQuestWeeklyFilter);
     }
     const visibleWeeklyEntries=activeWeeklyFilter==="all"?weeklyEntries:weeklyEntries.filter(e=>String(e.game.id)===activeWeeklyFilter);
     const visibleWeeklyStats={
@@ -2229,12 +2426,12 @@ function renderGameQuestPanel(){
       cardsDone:visibleWeeklyEntries.filter(e=>e.cardDone).length
     };
     const activeWeeklyTitle=activeWeeklyFilter==="all"?"本周作战池":(visibleWeeklyEntries[0]?.game?.name||"本周作战池");
-    const weeklyFilterTabs=weeklyEntries.length>1?`<nav class="gameQuestFilterTabs" aria-label="本周作战池游戏筛选"><button type="button" class="${activeWeeklyFilter==="all"?"active":""}" data-gq-weekly-filter="all"><span>全部</span><b>${weekly.done}/${weekly.total}</b></button>${weeklyEntries.map(e=>`<button type="button" class="${activeWeeklyFilter===String(e.game.id)?"active":""}" data-gq-weekly-filter="${escapeHtml(e.game.id)}"><span>${escapeHtml(e.game.icon)} ${escapeHtml(e.game.short||e.game.name)}</span><b>${e.done}/${e.total}</b></button>`).join("")}</nav>`:"";
+    const weeklyFilterTabs=weeklyEntries.length>1?`<nav class="gameQuestFilterTabs" aria-label="本周作战池游戏筛选"><button type="button" class="${activeWeeklyFilter==="all"?"active":""}" data-gq-weekly-filter="all"><span>全部</span><b>${weekly.done}/${weekly.total}</b></button>${weeklyEntries.map(e=>`<button type="button" class="${activeWeeklyFilter===String(e.game.id)?"active":""}" data-gq-weekly-filter="${escapeHtml(e.game.id)}"><span>${escapeHtml(e.game.short||e.game.name)}</span><b>${e.done}/${e.total}</b></button>`).join("")}</nav>`:"";
     const weeklyCards=visibleWeeklyEntries.length?visibleWeeklyEntries.map(e=>gameQuestWeeklyCardHtml(e)).join(""):`<div class="gameQuestEmpty"><b>本周游戏池还没有任务。</b><span>去总控里的「游戏任务编辑器」把周常/深渊/危局放进本周池。</span></div>`;
     body=`<div class="gameQuestWeeklyPane">
       <div class="gameQuestMetaStrip"><span>周常 / 深渊危局 / 本周只需完成一次的游戏任务</span><em>${weekly.pct}% WEEK POOL</em></div>
       ${weeklyFilterTabs}
-      <div class="gameQuestSubHead"><span>${escapeHtml(activeWeeklyTitle)}</span><b>${visibleWeeklyStats.done}/${visibleWeeklyStats.total} items ｜ 大任务 ${visibleWeeklyStats.cardsDone}/${visibleWeeklyStats.cards}</b></div>
+      <div class="gameQuestSubHead"><span>${escapeHtml(activeWeeklyTitle)}</span><div class="gameQuestMetricSet"><span class="gameQuestMetric"><strong>${visibleWeeklyStats.done}/${visibleWeeklyStats.total}</strong><em>ITEMS</em></span><span class="gameQuestMetric"><strong>${visibleWeeklyStats.cardsDone}/${visibleWeeklyStats.cards}</strong><em>大任务</em></span><span class="gameQuestMetric remaining"><strong>${Math.max(0,visibleWeeklyStats.total-visibleWeeklyStats.done)}</strong><em>剩余</em></span></div></div>
       <div class="gameQuestGrid gameQuestWeeklyGrid">${weeklyCards}</div>
     </div>`;
   }else{
@@ -2244,7 +2441,7 @@ function renderGameQuestPanel(){
     body=`<div class="gameQuestDailyPane">
       <div class="gameQuestMetaStrip"><span>每天/指定日清理：刷体力、签到、资料确认</span><em>${week.pct}% DAILY BOARD</em></div>
       <div class="gameQuestDays">${gameQuestDayTabsHtml()}</div>
-      <div class="gameQuestSubHead"><span>${escapeHtml(dayName(gameQuestSelectedDay))}${gameQuestSelectedDay===today?"｜今日":""}</span><b>${selectedStats.done}/${selectedStats.total} items ｜ 大任务 ${selectedStats.cardsDone}/${selectedStats.cards}</b></div>
+      <div class="gameQuestSubHead"><span>${escapeHtml(dayName(gameQuestSelectedDay))}${gameQuestSelectedDay===today?"｜今日":""}</span><div class="gameQuestMetricSet"><span class="gameQuestMetric"><strong>${selectedStats.done}/${selectedStats.total}</strong><em>ITEMS</em></span><span class="gameQuestMetric"><strong>${selectedStats.cardsDone}/${selectedStats.cards}</strong><em>大任务</em></span><span class="gameQuestMetric remaining"><strong>${Math.max(0,selectedStats.total-selectedStats.done)}</strong><em>剩余</em></span></div></div>
       <div class="gameQuestGrid">${cards}</div>
     </div>`;
   }
@@ -2285,8 +2482,8 @@ function closeGameQuestEditor(){
   document.getElementById("gameQuestEditorModal")?.setAttribute("aria-hidden","true");
 }
 function gameQuestEditorLog(msg){const el=document.getElementById("gameQuestEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
-const GAMEQUEST_ICON_PRESETS=["🌊","⚡","🚂","🛰️","🌀","🎮","🗡️","✨","🔥","💎","🌙","🧊","🎲","👾","📡","🚀"];
-function gameQuestIconPickerHtml(current="🎮"){
+const GAMEQUEST_ICON_PRESETS=["GQ","ACT","RPG","SIM","AVG","SR","TD","ARPG","MOBA","FPS","RTS","RHY","PUZ","CARD","COOP","LIVE"];
+function gameQuestIconPickerHtml(current="GQ"){
   return `<div class="gqIconPicker">${GAMEQUEST_ICON_PRESETS.map(icon=>`<button type="button" class="gqIconPick ${icon===current?"active":""}" data-gq-icon="${escapeHtml(icon)}">${escapeHtml(icon)}</button>`).join("")}</div>`;
 }
 function gameQuestAccentOptions(selected="cyan"){
@@ -2296,14 +2493,14 @@ function gameQuestAccentOptions(selected="cyan"){
 function createGameQuestDraftGame(){
   const idx=(gameQuestDraftConfig?.games?.length||0)+1;
   const accents=["cyan","amber","violet","blue","rose","gold"];
-  return {id:`gq-${Date.now().toString(36)}-${idx}`,name:`新游戏 ${idx}`,short:`游戏 ${idx}`,icon:"🎮",accent:accents[(idx-1)%accents.length],enabled:true};
+  return {id:`gq-${Date.now().toString(36)}-${idx}`,name:`新游戏 ${idx}`,short:`游戏 ${idx}`,icon:"GQ",accent:accents[(idx-1)%accents.length],enabled:true};
 }
 function addGameQuestGame(){
   collectGameQuestEditorState();
   if(!gameQuestDraftConfig)gameQuestDraftConfig=normalizeGameQuestConfig(gameQuestConfig||defaultGameQuestConfig);
   gameQuestDraftConfig.games.push(createGameQuestDraftGame());
   renderGameQuestEditor();
-  gameQuestEditorLog("已新增游戏卡。先占坑，再改名，老办法很稳。🎮");
+  gameQuestEditorLog("已新增游戏卡。先占坑，再改名，老办法很稳。");
 }
 function moveGameQuestGame(id,offset){
   collectGameQuestEditorState();
@@ -2386,7 +2583,7 @@ function collectGameQuestEditorState(){
     id:row.dataset.gqGameRow||`gq-${idx+1}`,
     name:row.querySelector('.gqMetaName')?.value.trim()||`游戏 ${idx+1}`,
     short:row.querySelector('.gqMetaShort')?.value.trim()||row.querySelector('.gqMetaName')?.value.trim()||`游戏 ${idx+1}`,
-    icon:row.querySelector('.gqMetaIcon')?.value.trim()||'🎮',
+    icon:row.querySelector('.gqMetaIcon')?.value.trim()||'GQ',
     accent:row.querySelector('.gqMetaAccent')?.value||'cyan',
     enabled:row.querySelector('.gqMetaEnabled')?.checked!==false
   }));
@@ -2462,11 +2659,11 @@ function renderGameQuestEditor(){
   if(tabs)tabs.innerHTML="";// v23：不再按天切换编辑，星期改到每条任务上勾选
   const metaRows=(cfg.games||[]).map((g,idx)=>`<div class="gqMetaRow gqMetaRowV2" data-gq-game-row="${escapeHtml(g.id)}">
     <div class="gqMetaIconEditor">
-      <div class="gqIconPreview" aria-hidden="true">${escapeHtml(g.icon||'🎮')}</div>
+      <div class="gqIconPreview" aria-hidden="true">${escapeHtml(g.icon||'GQ')}</div>
       <div class="gqIconEditorBody">
         <label>图标</label>
-        <input class="gqMetaIcon" value="${escapeHtml(g.icon||'🎮')}" maxlength="4" placeholder="🎮">
-        ${gameQuestIconPickerHtml(g.icon||'🎮')}
+        <input class="gqMetaIcon" value="${escapeHtml(g.icon||'GQ')}" maxlength="4" placeholder="GQ">
+        ${gameQuestIconPickerHtml(g.icon||'GQ')}
       </div>
     </div>
     <div class="gqMetaField name"><label>大任务名</label><input class="gqMetaName" value="${escapeHtml(g.name||'')}" placeholder="例如：鸣潮"></div>
@@ -2481,21 +2678,25 @@ function renderGameQuestEditor(){
     const items=cfg.dailyByGame[g.id]||[];
     const rows=items.length?items.map((t,idx)=>gameQuestDailyRowHtml(g.id,t,idx,items.length)).join("")
       :`<div class="gqDailyEmpty">还没有任务。点右上角「＋ 任务」加一条，然后勾选它要在星期几出现。</div>`;
-    return `<div class="gqDailyCard accent-${escapeHtml(g.accent)}" data-gq-daily-game="${escapeHtml(g.id)}">
-      <div class="gqDailyCardHead">
+    const uiKey=`game-editor-daily:${g.id}`;
+    const uiOpen=window.TaskRingProductUi?.openAttribute?.(uiKey,g.id===enabledGames[0]?.id)||"";
+    return `<details class="gqDailyCard accent-${escapeHtml(g.accent)}" data-gq-daily-game="${escapeHtml(g.id)}" data-ui-details-key="${escapeHtml(uiKey)}"${uiOpen}>
+      <summary class="gqDailyCardHead">
         <span class="gqDailyIcon">${escapeHtml(g.icon)}</span>
-        <div class="gqDailyTitleWrap"><b>${escapeHtml(g.name)}</b><em>今日 / 指定日</em></div>
+        <div class="gqDailyTitleWrap"><b>${escapeHtml(g.name)}</b><em>今日 / 指定日 · ${items.length} 项</em></div>
         <button type="button" class="gqDailyAddBtn" data-gq-add-daily="${escapeHtml(g.id)}">＋ 任务</button>
-      </div>
+      </summary>
       <div class="gqDailyRows">${rows}</div>
-    </div>`;
+    </details>`;
   }).join("")||`<div class="gameQuestEmpty compact"><b>还没有启用中的游戏卡。</b><span>先在下面「游戏大卡设置」里新增或启用一张卡，再回来排任务。</span></div>`;
   const weeklyRows=enabledGames.map(g=>{
     const value=gameQuestTaskLines((cfg.weekly||{})[g.id],"weekly").join("\n");
     return `<div class="gameQuestEditRow gameQuestEditRowV2 gameQuestWeeklyEditRow accent-${escapeHtml(g.accent)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>本周池</em></div><textarea data-gq-weekly-edit-game="${escapeHtml(g.id)}" placeholder="本周做一次即可的任务，一行一条。\n例如：周常清理\n深塔/海墟/全息\n式舆/危局/鏖战\n模拟宇宙/末日/虚构检查">${escapeHtml(value)}</textarea></div>`;
   }).join("");
-  list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup gameQuestDailyGroupV3"><div class="gameQuestEditHead"><div><b>每天 / 指定日清单</b><span>每个游戏一张卡：先写任务名，再勾它要出现的星期。勾满一整周＝每日任务，只勾几天＝指定日任务；周常/深渊类请放到下面的本周池。</span></div></div>${enabledGames.length?dayLegend:""}<div class="gqDailyDeck">${dailyCards}</div></section><section class="gameQuestEditGroup gameQuestWeeklyGroup"><div class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>这里的任务不绑定某一天，只在游戏作战区「本周作战池」推进，不会混进普通周计划池。保留一行一条的写法。</span></div></div>${weeklyRows}</section><details class="gameQuestMetaDetails"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
-  gameQuestEditorLog("按游戏排任务：写任务名 + 勾星期即可，不用再一天天复制。本周池维持一行一条。🎮");
+  const weeklyKey="game-editor-weekly";
+  const weeklyOpen=window.TaskRingProductUi?.openAttribute?.(weeklyKey,false)||"";
+  list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup gameQuestDailyGroupV3"><div class="gameQuestEditHead"><div><b>每天 / 指定日清单</b><span>每个游戏一张卡：先写任务名，再勾它要出现的星期。勾满一整周＝每日任务，只勾几天＝指定日任务；周常/深渊类请放到下面的本周池。</span></div></div>${enabledGames.length?dayLegend:""}<div class="gqDailyDeck">${dailyCards}</div></section><details class="gameQuestEditGroup gameQuestWeeklyGroup" data-ui-details-key="${weeklyKey}"${weeklyOpen}><summary class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>${enabledGames.length} 个游戏 · 周常、深境与一次性目标</span></div><span>展开</span></summary><div class="gameQuestWeeklyBody">${weeklyRows}</div></details><details class="gameQuestMetaDetails" data-ui-details-key="game-editor-meta"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
+  gameQuestEditorLog("按游戏排任务：写任务名 + 勾星期即可，不用再一天天复制。本周池维持一行一条。");
 }
 
 async function saveGameQuestConfig(){
@@ -2518,7 +2719,7 @@ async function saveGameQuestConfig(){
     }else{
       showToast("游戏作战区已保存到本机","ok");
     }
-    gameQuestEditorLog("保存完成。旧兵法：先稳住阵地，再谈花活。🎮");
+    gameQuestEditorLog("保存完成。旧兵法：先稳住阵地，再谈花活。");
   }catch(err){
     console.error(err);
     setGhStatus("GitHub：配置保存失败","err");
@@ -2596,7 +2797,7 @@ const CLASSIC_CUTINS = [
   {kind:"classic",key:"gamecreate",cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"]},
   {kind:"classic",key:"language",cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"]}
 ];
-const RANDOM_CUTIN_POOL = [...CLASSIC_CUTINS, ...RANDOM_CUTIN_CHARACTERS.map(c=>({kind:"image",cls:"custom",...c}))];
+const RANDOM_CUTIN_POOL = [...CLASSIC_CUTINS];
 const RANDOM_GLOBAL_FX_POOL = ["life","gamecreate","language","stellar","crimson","tide","rose","neon","butterfly","ink"];
 function pickRandomItem(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function playGlobalEffect(cat){
@@ -2630,7 +2831,7 @@ function playGlobalEffect(cat){
     spawn("fxCoin",mobile?10:18,["¥","$","◆","✦"],el=>el.style.setProperty("--spin",`${-180+Math.random()*360}deg`));
   }else if(fx==="gamecreate"){
     spawn("fxPetal",mobile?18:32,["✿","❀","✦","✧","✺"],(el,i)=>{el.style.color=["#ff4dd2","#45dfff","#9b6dff","#ffdb4d"][i%4]});
-    spawn("fxLightning",mobile?8:14,["⚡","✦"]);
+    spawn("fxLightning",mobile?8:14,["✦","+"]);
   }else if(fx==="language"){
     spawn("fxDrop",n,null,el=>{el.style.opacity=`${0.34+Math.random()*0.20}`});
     spawn("fxMath",mobile?8:14,["∫","Σ","π","√x","E=mc²","lim","φ","dx","∞"]);
@@ -2647,7 +2848,7 @@ function playGlobalEffect(cat){
     spawn("fxRose",mobile?22:40,["✿","❀","✦","♡","✧"]);
   }else if(fx==="neon"){
     spawn("fxRibbon",mobile?18:34,null);
-    spawn("fxStarlet",mobile?14:26,["✦","⚡","★","✧"]);
+    spawn("fxStarlet",mobile?14:26,["✦","+","★","✧"]);
   }else if(fx==="butterfly"){
     spawn("fxButterfly",mobile?16:30,["🦋","✦","◇","✧"],(el,i)=>{el.style.setProperty("--c1",["#9d7cff","#6bdcff","#ff8edb"][i%3])});
   }else if(fx==="ink"){
@@ -2668,8 +2869,7 @@ function playBurst(anchor,cat){
   const marginY=mobile?138:190;
   x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));
   y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));
-  const makeClassicCard=(key,title,sub,tail)=>`<div class="avatarCutin ${key}"><div class="avatarHalo ${key}"></div><div class="avatarPortrait ${key}"></div><div class="avatarSpark s1">✦</div><div class="avatarSpark s2">♥</div><div class="avatarSpark s3">✧</div><div class="avatarText"><span class="line1">${title}</span><span class="line2">${sub}</span><span class="line3">${tail}</span></div></div>`;
-  const makeImageCard=(cfg)=>`<div class="customCutin bg-${cfg.bg||"pink"}" style="--a1:${cfg.a1};--a2:${cfg.a2}"><div class="customFrame"></div><div class="customPortrait" style="background-image:url('${cfg.img}')"></div><div class="customSigil"></div><div class="customText"><span class="name">${cfg.name}</span><span class="sub">${cfg.sub}</span><span class="tail">${cfg.tail}</span></div></div>`;
+  const makeClassicCard=(key,title,sub,tail)=>`<div class="systemCutin ${key}"><span class="systemCutinCode">CLEAR +01</span><strong>${title}</strong><span>${sub}</span><em>${tail}</em></div>`;
   const cfg=pickRandomItem(RANDOM_CUTIN_POOL);
   const burst=document.createElement("div");
   burst.className=`burstFX randomCutin ${cfg.cls||cfg.key}`;
@@ -2677,7 +2877,7 @@ function playBurst(anchor,cat){
   burst.style.top=y+"px";
   const particles=(cfg.particles&&cfg.particles.length?cfg.particles:["✦","✧","◆","♡","★","◇"]);
   const particleHtml=particles.slice(0,7).map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");
-  const card=cfg.kind==="classic"?makeClassicCard(cfg.key,cfg.title,cfg.sub,cfg.tail):makeImageCard(cfg);
+  const card=makeClassicCard(cfg.key,cfg.title,cfg.sub,cfg.tail);
   burst.innerHTML=`<div class="burstInner">${card}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;
   document.body.appendChild(burst);
   setTimeout(()=>burst.remove(),580);
@@ -2689,6 +2889,12 @@ function orbitDayStats(dayId){
   for(const o of list){const st=occurrenceState(o.t,o.dayId,o.cycle);if(st.done)done++;if(st.failed)failed++;if(st.overdue)overdue++;if(st.warn)warn++;if(st.ignored)ignored++;}
   return {total:list.length,done,failed,overdue,warn,ignored,attention:failed+overdue+warn};
 }
+function isOrbitDrawerOpen(){
+  const saved=localStorage.getItem(ORBIT_DRAWER_OPEN_KEY);
+  if(saved==="1")return true;
+  if(saved==="0")return false;
+  return window.innerWidth>760;
+}
 function renderOrbitPanel(){
   const el=document.getElementById("orbitPanel");
   if(!el)return;
@@ -2697,9 +2903,11 @@ function renderOrbitPanel(){
   const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;
   const pct=total?Math.round(done/total*100):100;
   const carry=carryoverOccurrences().length;
-  const nodes=days.map(d=>{const s=orbitDayStats(d.id);const p=s.total?Math.round(s.done/s.total*100):100;const cls=[d.id===today?"today":"",s.failed?"failed":"",s.attention&&!s.failed?"attention":""].join(" ");const alert=s.failed?`<span class="orbitFail">×${s.failed}</span>`:s.attention?`<span class="orbitWarn">!${s.attention}</span>`:`<span>${s.done}/${s.total}</span>`;return `<div class="orbitDay ${cls}" title="${escapeHtml(d.name)}：${s.done}/${s.total} 完成${s.attention?`，注意 ${s.attention}`:""}"><div class="orbitDayName">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</div><div class="orbitDayMeta"><span>${s.done}/${s.total}</span>${alert}</div><div class="orbitMeter" style="--w:${p}%"><span></span></div></div>`}).join("");
-  el.innerHTML=`<div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">TODAY</span><span class="orbitTiny">${done}/${total}${carry?` · 遗留${carry}`:""}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">Task Ring</div><div class="orbitSub">按日推进，异常高亮。</div></div></div><div class="orbitDays">${nodes}</div></div></div>`;
+  const nodes=days.map(d=>{const s=orbitDayStats(d.id);const p=s.total?Math.round(s.done/s.total*100):100;const cls=[d.id===today?"today":"",s.failed?"failed":"",s.attention&&!s.failed?"attention":""].join(" ");const alert=s.failed?`<span class="orbitAlert orbitFail"><b>×${s.failed}</b><em>锁定</em></span>`:s.attention?`<span class="orbitAlert orbitWarn"><b>!${s.attention}</b><em>关注</em></span>`:"";return `<div class="orbitDay ${cls}" title="${escapeHtml(d.name)}：完成 ${s.done}/${s.total}${s.attention?`，需关注 ${s.attention}`:""}"><div class="orbitDayName">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</div><div class="orbitDayMeta"><span class="orbitDone"><b>${s.done}/${s.total}</b><em>完成</em></span>${alert}</div><div class="orbitMeter" style="--w:${p}%"><span></span></div></div>`}).join("");
+  const summary=`完成 ${done}/${total}${carry?` · 遗留 ${carry} 项`:""}`;
+  el.innerHTML=`<details class="orbitDrawer" ${isOrbitDrawerOpen()?"open":""}><summary><span class="orbitDrawerMini" style="--pct:${pct}%"><b>${pct}%</b></span><span class="orbitDrawerText"><strong>今日执行环</strong><em>${summary}</em></span><span class="orbitDrawerToggle">展开</span></summary><div class="orbitDrawerBody"><div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">今日完成率</span><span class="orbitTiny">${summary}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">一周执行分布</div><div class="orbitSub">每格依次显示完成数与需关注数。</div></div></div><div class="orbitDays">${nodes}</div></div></div></div></details>`;
 }
+document.addEventListener("toggle",e=>{if(e.target?.matches?.(".orbitDrawer"))localStorage.setItem(ORBIT_DRAWER_OPEN_KEY,e.target.open?"1":"0")},true);
 
 function closeSubtaskPopover(){
   document.getElementById("subtaskPopover")?.remove();
@@ -2758,7 +2966,7 @@ function openSubtaskPopover(btn){
   }
 }
 function expandAllRefGroups(){const box=document.getElementById("refBox");if(box)box.open=true;document.querySelectorAll(".refGroup").forEach(g=>g.open=true)}
-function renderAll(){renderGameQuestPanel();renderWeeklyPlanPanel();renderTimePanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress();renderTimerDock();applyActiveAppView()}
+function renderAll(){const uiState=restoreUiScrollFromStorage?readUiScrollState():collectUiScrollState();renderGameQuestPanel();renderWeeklyPlanPanel();renderTimePanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress();renderTimerDock();applyActiveAppView();restoreUiScrollState(uiState);restoreUiScrollFromStorage=false}
 function closeEditorsByBackdrop(target){
   if(target.id==="taskEditorModal")closeTaskEditor();
   if(target.id==="refEditorModal")closeRefEditor();
@@ -2772,6 +2980,40 @@ document.body.addEventListener("click",e=>{
   e.stopPropagation();
   setGameQuestWeeklyFilter(gqWeeklyFilterBtn.dataset.gqWeeklyFilter||"all");
 },true);
-document.body.addEventListener("click",e=>{const viewBtn=e.target.closest("[data-view-target]");if(viewBtn){e.preventDefault();e.stopPropagation();setActiveAppView(viewBtn.dataset.viewTarget);return}const timeTab=e.target.closest("[data-time-tab]");if(timeTab){e.preventDefault();e.stopPropagation();setTimeLedgerView(timeTab.dataset.timeTab);return}if(e.target.closest("[data-time-modal-close]")){e.preventDefault();e.stopPropagation();closeTimeDetailModal();return}if(e.target.id==="timeDetailModal"){closeTimeDetailModal();return}const timeDelete=e.target.closest("[data-time-log-delete]");if(timeDelete){e.preventDefault();e.stopPropagation();deleteTimeLog(timeDelete.dataset.timeLogDelete);return}const taskTimeDetail=e.target.closest("[data-time-task-detail]");if(taskTimeDetail){e.preventDefault();e.stopPropagation();openTaskTimeDetail(taskTimeDetail.dataset.timeTaskDetail);return}const gqTimerStart=e.target.closest("[data-timer-start-gamequest]");if(gqTimerStart){e.preventDefault();e.stopPropagation();startGameQuestTimer(Number(gqTimerStart.dataset.gamequestDay),gqTimerStart.dataset.cycle||cycleYmd);return}const timerStart=e.target.closest("[data-timer-start-task]");if(timerStart){e.preventDefault();e.stopPropagation();startTaskTimer(timerStart.dataset.timerStartTask,Number(timerStart.dataset.timerDay),timerStart.dataset.timerCycle||cycleYmd);return}if(e.target.closest("[data-timer-pause]")){e.preventDefault();e.stopPropagation();pauseActiveTimer();return}if(e.target.closest("[data-timer-resume]")){e.preventDefault();e.stopPropagation();resumeActiveTimer();return}if(e.target.closest("[data-timer-complete]")){e.preventDefault();e.stopPropagation();completeActiveTimer(true);return}if(e.target.closest("[data-timer-abandon]")){e.preventDefault();e.stopPropagation();abandonActiveTimer();return}const controlGameEditor=e.target.closest("#controlGameQuestEditorBtn");if(controlGameEditor){e.preventDefault();e.stopPropagation();openGameQuestEditor();return}const controlTaskEditor=e.target.closest("#controlTaskEditorBtn");if(controlTaskEditor){e.preventDefault();e.stopPropagation();openTaskEditor();return}const controlRefEditor=e.target.closest("#controlRefEditorBtn");if(controlRefEditor){e.preventDefault();e.stopPropagation();openRefEditor();return}const gqModeBtn=e.target.closest("[data-gamequest-board-mode]");if(gqModeBtn){e.preventDefault();e.stopPropagation();setGameQuestBoardMode(gqModeBtn.dataset.gamequestBoardMode);return}const gqWeeklyItemBtn=e.target.closest("[data-gq-weekly-item-btn]");if(gqWeeklyItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyItemBtn.dataset.cycle||cycleYmd;const next=gqWeeklyItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyItemDone(gqWeeklyItemBtn.dataset.gamequestWeeklyGame,gqWeeklyItemBtn.dataset.gamequestWeeklyItem,next,gqWeeklyItemBtn,cyc);return}const gqWeeklyCardBtn=e.target.closest("[data-gq-weekly-card-btn]");if(gqWeeklyCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyCardBtn.dataset.cycle||cycleYmd;const next=gqWeeklyCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyDone(gqWeeklyCardBtn.dataset.gamequestWeeklyGame,next,gqWeeklyCardBtn,cyc);return}const gqItemBtn=e.target.closest("[data-gq-item-btn]");if(gqItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqItemBtn.dataset.cycle||cycleYmd;const next=gqItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestItemDone(gqItemBtn.dataset.gamequestItemGame,Number(gqItemBtn.dataset.gamequestItemDay),gqItemBtn.dataset.gamequestItem,next,gqItemBtn,cyc);return}const gqCardBtn=e.target.closest("[data-gq-card-btn]");if(gqCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqCardBtn.dataset.cycle||cycleYmd;const next=gqCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestDone(gqCardBtn.dataset.gamequestGame,Number(gqCardBtn.dataset.gamequestDay),next,gqCardBtn,cyc);return}if(e.target.closest("#controlCenterBtn")||e.target.closest("#controlCenterMenu")){}else closeControlCenter();const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);setGameQuestBoardMode("today");return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqCollapsedBar=e.target.closest("[data-gq-collapsed-toggle]");if(gqCollapsedBar){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;setGameQuestBoardMode("today");return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const target=e.target;if(target?.matches?.("[data-time-target-task]")){updateTaskWeeklyTarget(target.dataset.timeTargetTask,target.value);return}const cb=target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-item-game][data-gamequest-item-day][data-gamequest-item]")){setGameQuestItemDone(cb.dataset.gamequestItemGame,Number(cb.dataset.gamequestItemDay),cb.dataset.gamequestItem,cb.checked,cb,cyc);return}if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
+document.body.addEventListener("click",e=>{const viewBtn=e.target.closest("[data-view-target]");if(viewBtn){e.preventDefault();e.stopPropagation();setActiveAppView(viewBtn.dataset.viewTarget);return}const timeTab=e.target.closest("[data-time-tab]");if(timeTab){e.preventDefault();e.stopPropagation();setTimeLedgerView(timeTab.dataset.timeTab);return}if(e.target.closest("[data-time-modal-close]")){e.preventDefault();e.stopPropagation();closeTimeDetailModal();return}if(e.target.id==="timeDetailModal"){closeTimeDetailModal();return}const timeDelete=e.target.closest("[data-time-log-delete]");if(timeDelete){e.preventDefault();e.stopPropagation();deleteTimeLog(timeDelete.dataset.timeLogDelete);return}const taskTimeDetail=e.target.closest("[data-time-task-detail]");if(taskTimeDetail){e.preventDefault();e.stopPropagation();openTaskTimeDetail(taskTimeDetail.dataset.timeTaskDetail);return}const gameTimeDetail=e.target.closest("[data-time-gamequest-detail]");if(gameTimeDetail){e.preventDefault();e.stopPropagation();openGameQuestTimeDetail();return}const gqTimerStart=e.target.closest("[data-timer-start-gamequest]");if(gqTimerStart){e.preventDefault();e.stopPropagation();startGameQuestTimer(Number(gqTimerStart.dataset.gamequestDay),gqTimerStart.dataset.cycle||cycleYmd);return}const timerStart=e.target.closest("[data-timer-start-task]");if(timerStart){e.preventDefault();e.stopPropagation();startTaskTimer(timerStart.dataset.timerStartTask,Number(timerStart.dataset.timerDay),timerStart.dataset.timerCycle||cycleYmd);return}if(e.target.closest("[data-timer-pause]")){e.preventDefault();e.stopPropagation();pauseActiveTimer();return}if(e.target.closest("[data-timer-resume]")){e.preventDefault();e.stopPropagation();resumeActiveTimer();return}if(e.target.closest("[data-timer-complete]")){e.preventDefault();e.stopPropagation();completeActiveTimer(true);return}if(e.target.closest("[data-timer-abandon]")){e.preventDefault();e.stopPropagation();abandonActiveTimer();return}const controlGameEditor=e.target.closest("#controlGameQuestEditorBtn");if(controlGameEditor){e.preventDefault();e.stopPropagation();openGameQuestEditor();return}const controlTaskEditor=e.target.closest("#controlTaskEditorBtn");if(controlTaskEditor){e.preventDefault();e.stopPropagation();openTaskEditor();return}const controlRefEditor=e.target.closest("#controlRefEditorBtn");if(controlRefEditor){e.preventDefault();e.stopPropagation();openRefEditor();return}const gqModeBtn=e.target.closest("[data-gamequest-board-mode]");if(gqModeBtn){e.preventDefault();e.stopPropagation();setGameQuestBoardMode(gqModeBtn.dataset.gamequestBoardMode);return}const gqWeeklyItemBtn=e.target.closest("[data-gq-weekly-item-btn]");if(gqWeeklyItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyItemBtn.dataset.cycle||cycleYmd;const next=gqWeeklyItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyItemDone(gqWeeklyItemBtn.dataset.gamequestWeeklyGame,gqWeeklyItemBtn.dataset.gamequestWeeklyItem,next,gqWeeklyItemBtn,cyc);return}const gqWeeklyCardBtn=e.target.closest("[data-gq-weekly-card-btn]");if(gqWeeklyCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqWeeklyCardBtn.dataset.cycle||cycleYmd;const next=gqWeeklyCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestWeeklyDone(gqWeeklyCardBtn.dataset.gamequestWeeklyGame,next,gqWeeklyCardBtn,cyc);return}const gqItemBtn=e.target.closest("[data-gq-item-btn]");if(gqItemBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqItemBtn.dataset.cycle||cycleYmd;const next=gqItemBtn.getAttribute("aria-pressed")!=="true";setGameQuestItemDone(gqItemBtn.dataset.gamequestItemGame,Number(gqItemBtn.dataset.gamequestItemDay),gqItemBtn.dataset.gamequestItem,next,gqItemBtn,cyc);return}const gqCardBtn=e.target.closest("[data-gq-card-btn]");if(gqCardBtn){e.preventDefault();e.stopPropagation();closeSubtaskPopover();const cyc=gqCardBtn.dataset.cycle||cycleYmd;const next=gqCardBtn.getAttribute("aria-pressed")!=="true";setGameQuestDone(gqCardBtn.dataset.gamequestGame,Number(gqCardBtn.dataset.gamequestDay),next,gqCardBtn,cyc);return}if(e.target.closest("#controlCenterBtn")||e.target.closest("#controlCenterMenu")){}else closeControlCenter();const gqDay=e.target.closest("[data-gamequest-day-select]");if(gqDay){e.preventDefault();gameQuestSelectedDay=Number(gqDay.dataset.gamequestDaySelect);setGameQuestBoardMode("today");return}const gqToggle=e.target.closest("#gameQuestToggleBtn");if(gqToggle){e.preventDefault();toggleGameQuestCollapsed();return}const gqCollapsedBar=e.target.closest("[data-gq-collapsed-toggle]");if(gqCollapsedBar){e.preventDefault();toggleGameQuestCollapsed();return}const gqToday=e.target.closest("#gameQuestTodayBtn");if(gqToday){e.preventDefault();gameQuestSelectedDay=today;setGameQuestBoardMode("today");return}const refEditorQuick=e.target.closest("[data-open-ref-editor]");if(refEditorQuick){e.preventDefault();e.stopPropagation();openRefEditor();return}const refBtn=e.target.closest("#refExpandAllBtn");if(refBtn){e.preventDefault();e.stopPropagation();expandAllRefGroups();return}const btn=e.target.closest(".subtaskBtn");if(btn){e.preventDefault();e.stopPropagation();openSubtaskPopover(btn);return}if(e.target.closest(".stepPopoverClose")){e.preventDefault();closeSubtaskPopover();return}if(["taskEditorModal","refEditorModal","gameQuestEditorModal","ghModal"].includes(e.target.id)){closeEditorsByBackdrop(e.target);return}if(!e.target.closest("#subtaskPopover"))closeSubtaskPopover();});document.body.addEventListener("change",e=>{const target=e.target;if(target?.matches?.("[data-time-target-task]")){updateTaskWeeklyTarget(target.dataset.timeTargetTask,target.value);return}const cb=target;if(!cb||!cb.matches('input[type="checkbox"]'))return;if(cb.dataset.locked==="1"||cb.disabled){e.preventDefault();renderAll();return}const cyc=cb.dataset.cycle||cycleYmd;if(cb.matches("[data-gamequest-item-game][data-gamequest-item-day][data-gamequest-item]")){setGameQuestItemDone(cb.dataset.gamequestItemGame,Number(cb.dataset.gamequestItemDay),cb.dataset.gamequestItem,cb.checked,cb,cyc);return}if(cb.matches("[data-gamequest-game][data-gamequest-day]")){setGameQuestDone(cb.dataset.gamequestGame,Number(cb.dataset.gamequestDay),cb.checked,cb,cyc);return}if(cb.matches("[data-parent][data-step][data-day]")){setStepDone(cb.dataset.parent,cb.dataset.step,Number(cb.dataset.day),cb.checked,cb,cyc);return}if(cb.matches("[data-task][data-day]")){setDone(cb.dataset.task,Number(cb.dataset.day),cb.checked,cb,true,cyc)}});
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!document.getElementById("gameQuestEditorModal")?.classList.contains("hidden"))closeGameQuestEditor();else if(!document.getElementById("taskEditorModal")?.classList.contains("hidden"))closeTaskEditor();else if(!document.getElementById("refEditorModal")?.classList.contains("hidden"))closeRefEditor();else if(!document.getElementById("ghModal")?.classList.contains("hidden"))closeGhModal();else if(!document.getElementById("timeDetailModal")?.classList.contains("hidden"))closeTimeDetailModal();else closeSubtaskPopover();});
-function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}document.getElementById("todayLabel").textContent=`今天：${dayName(today)}`;document.getElementById("cycleLabel").textContent=`周期：${ymd(cycleStart)} 04:00 ～ ${ymd(cycleEnd)} 04:00`;document.getElementById("showToday").addEventListener("click",()=>{viewMode="today";mobileDay=today;renderAll()});document.getElementById("showAll").addEventListener("click",()=>{viewMode="all";renderAll()});document.getElementById("showUndone").addEventListener("click",()=>{viewMode="undone";mobileDay=today;renderAll()});document.getElementById("resetCurrentWeek").addEventListener("click",resetCurrentWeek);document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);renderAll();initGithubSyncUI();initTaskEditorUI();initRefEditorUI();initGameQuestUI();setInterval(renderTimerLive,1000);setInterval(()=>{const refreshedRealNow=new Date();const refreshedOperationalNow=getOperationalDate(refreshedRealNow);const refreshedCycleStart=getCycleStart(refreshedRealNow);const dayChanged=refreshedOperationalNow.getDay()!==today;const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);if(dayChanged||cycleChanged){location.reload()}},60*1000);
+function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}
+const todayLabel=document.getElementById("todayLabel");
+if(todayLabel)todayLabel.textContent=urlDateOverride?`查看：${ymd(operationalNow)} ${dayName(today)}`:`今天：${dayName(today)}`;
+const cycleLabel=document.getElementById("cycleLabel");
+if(cycleLabel)cycleLabel.textContent=`周期：${ymd(cycleStart)} ～ ${ymd(cycleEnd)}`;
+const returnTodayBtn=document.getElementById("returnTodayBtn");
+if(returnTodayBtn){
+  returnTodayBtn.hidden=!urlDateOverride;
+  returnTodayBtn.addEventListener("click",()=>{const u=new URL(location.href);u.searchParams.delete("date");location.href=u.toString()});
+}
+document.getElementById("controlLockQuickBtn")?.addEventListener("click",()=>softLockNow());
+document.getElementById("showToday")?.addEventListener("click",()=>setDailyViewMode("today"));
+document.getElementById("showAll")?.addEventListener("click",()=>setDailyViewMode("all"));
+document.getElementById("showUndone")?.addEventListener("click",()=>setDailyViewMode("undone"));
+document.getElementById("resetCurrentWeek")?.addEventListener("click",resetCurrentWeek);
+document.getElementById("clearExpired")?.addEventListener("click",completeCarryoverTasks);
+let taskRingCoreBooted=false;
+window.TaskRingCoreBoot=function(){
+  if(taskRingCoreBooted)return;
+  taskRingCoreBooted=true;
+  renderAll();
+  initGithubSyncUI();
+  initTaskEditorUI();
+  initRefEditorUI();
+  initGameQuestUI();
+  setInterval(renderTimerLive,1000);
+  setInterval(()=>{
+    const refreshedRealNow=new Date();
+    const refreshedOperationalNow=getOperationalDate(refreshedRealNow);
+    const refreshedCycleStart=getCycleStart(refreshedRealNow);
+    const dayChanged=refreshedOperationalNow.getDay()!==today;
+    const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);
+    if(dayChanged||cycleChanged)location.reload();
+  },60*1000);
+};

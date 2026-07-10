@@ -1,0 +1,198 @@
+@media (max-width: 1024px) {
+  .wrap { padding: 14px; }
+  .inertiaHeader { grid-template-columns: minmax(0,1fr); }
+  .inertiaToolbar { grid-template-columns: repeat(3,minmax(0,1fr)); justify-content: stretch; }
+  .weeklyMissionGrid, .dailyGroupBody, .gameQuestGrid { grid-template-columns: minmax(0,1fr); }
+  .allocationRibbon { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .missionActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .timeTaskRow { grid-template-columns: minmax(200px,1fr) minmax(80px,1fr) 100px; }
+  .timeTargetEdit { grid-column: 1/-1; }
+  .cfgSummaryV20 { grid-template-columns: 42px minmax(0,1fr) auto; }
+  .cfgSummaryBadges { grid-column: 2; }
+  .cfgOps { grid-column: 1/-1; justify-content: flex-end; }
+}
+
+@media (max-width: 700px) {
+  html { scroll-padding-bottom: calc(var(--nav-mobile-height) + 20px + env(safe-area-inset-bottom)); }
+  body { padding-bottom: calc(var(--nav-mobile-height) + 14px + env(safe-area-inset-bottom)); background-size: 24px 24px; }
+  .wrap { padding: calc(8px + env(safe-area-inset-top)) 8px 10px; }
+  .inertiaHeader { gap: 8px; margin-bottom: 8px; padding: 10px; border-radius: var(--radius-md); }
+  .inertiaHeroBrand { gap: 9px; }
+  .inertiaHeroMark { flex-basis: 44px; width: 44px; padding: 7px; border-radius: 10px; }
+  .inertiaBrandRow { display: none; }
+  .inertiaHeroTitle { margin: 0; font-size: 21px; }
+  .inertiaTitleSlash, .inertiaTitleEn { display: none; }
+  .inertiaSubtitle { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; }
+  .inertiaToolbar { grid-template-columns: repeat(4,minmax(0,1fr)); grid-template-areas: "control github status lock" "today cycle cycle return"; gap: 5px; }
+  .inertiaToolbar .controlCenterBtn { grid-area: control; }
+  .inertiaToolbar .ghSetupBtn { grid-area: github; }
+  .inertiaToolbar .githubInlineState { grid-area: status; }
+  .inertiaToolbar .headerLockBtn { grid-area: lock; }
+  .inertiaToolbar .todayPill { grid-area: today; }
+  .inertiaToolbar .cyclePill { grid-area: cycle; }
+  .inertiaToolbar .returnTodayBtn { grid-area: return; }
+  .inertiaToolbar > * { width: 100%; min-height: var(--tap-size); padding-inline: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+  .inertiaToolbar .cyclePill { font-size: 10px; }
+  .controlCenterMenu, .controlCenterMenu.controlCenterSheet { top: auto; right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; grid-template-columns: repeat(2,minmax(0,1fr)); width: auto; max-height: calc(100dvh - var(--nav-mobile-height) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding: 7px; }
+  .controlCenterMenu button { padding: 6px 8px; }
+  .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 500; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 16px; }
+  .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 28px 20px; justify-items: center; min-height: 56px; padding: 4px 2px; text-align: center; }
+  .viewDockBtn .dockGlyph { grid-row: auto; width: 28px; height: 28px; }
+  .viewDockBtn > span, .dockDesktopLabel { display: none; }
+  .viewDockBtn b { width: 100%; font-size: 12px; }
+  .dockMobileLabel { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .viewIntro.active { display: grid; grid-template-columns: minmax(94px,.42fr) minmax(0,1fr); gap: 8px; margin-bottom: 8px; padding: 9px 10px; }
+  .viewIntro strong { font-size: 16px; }
+  .viewIntro p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; line-height: 1.4; }
+  .taskFirstBanner, .taskFirstBanner.active { display: none; }
+  .taskRingControlPanel { margin-bottom: 8px; padding: 10px; }
+  .taskRingControlHead { gap: 6px; }
+  .taskRingControlHead > div:first-child { flex-basis: 180px; }
+  .taskRingControlHead strong { font-size: 17px; }
+  .taskRingModeText { padding: 4px 7px; }
+  .taskRingActionRow { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; margin: 7px 0; }
+  .taskRingActionRow button { min-width: 0; padding: 4px 2px; font-size: 11px; line-height: 1.15; }
+  .progress-wrap { padding: 7px 8px; }
+  .progress-meta span:last-child { display: none; }
+  .orbitPanel { margin-bottom: 8px; }
+  .orbitDrawer > summary { min-height: 52px; padding: 6px 9px; }
+  .orbitDrawerMini { flex-basis: 36px; width: 36px; height: 36px; }
+  .orbitDrawerMini b { width: 28px; height: 28px; font-size: 10px; }
+  .orbitDrawerBody { padding: 0 10px 10px; }
+  .orbitLayout { grid-template-columns: 82px minmax(0,1fr); gap: 7px; }
+  .orbitTop { display: none; }
+  .orbitStats { grid-template-columns: 90px minmax(0,1fr); gap: 8px; }
+  .orbitCore { min-height: 76px; }
+  .orbitPct { font-size: 19px; }
+  .orbitTiny { display: none; }
+  .orbitDays { display: flex; overflow-x: auto; }
+  .orbitDay { flex: 0 0 100px; }
+  .dayTabs { margin-bottom: 6px; }
+  .dailyStatusStrip { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+  .dailyStatusItem { padding: 7px 6px; }
+  .dailyStatusItem span { font-size: 10px; }
+  .dailyStatusItem b { font-size: 13px; }
+  .dailyGroups { gap: 7px; }
+  .dailyGroup > summary { padding: 9px 10px; }
+  .dailyGroupBody { gap: 6px; padding: 6px; }
+  .dailyCard { padding: 10px; }
+  .dailyMain { grid-template-columns: minmax(0,1fr) var(--tap-size); }
+  .dailyActions { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin-top: 8px; }
+  .dailyActions button, .dailyActions a { min-width: 0; }
+  .subtaskInline { margin-top: 8px; }
+  .weekMatrixHeader { grid-template-columns: minmax(0,1fr); gap: 8px; padding: 10px; }
+  .weekMatrixHeader > div:first-child > em { line-height: 1.35; }
+  .weekMatrixSummary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); justify-content: stretch; }
+  .weekMatrixSummary span { min-width: 0; padding: 5px 4px; }
+  .weekMatrixTable { min-width: 680px; }
+  .weekMatrixTable thead th:first-child, .weekMatrixTask { position: static; width: 190px; }
+  .weekMatrixDay, .weekMatrixBlank { width: 70px; height: 60px; padding: 3px; }
+  .weekMatrixCheck { min-height: 52px; }
+  .weeklyCommandHero, .timePanelHeader { grid-template-columns: minmax(0,1fr); padding: 12px; }
+  .weeklyHeroStats, .timeStatCards { justify-content: stretch; }
+  .weeklyHeroStats > div, .timeStatCards > div { flex: 1 1 90px; min-width: 0; }
+  .allocationRibbon { display: flex; min-width: 0; overflow-x: auto; }
+  .allocationChip { flex: 0 0 145px; }
+  .missionHead { grid-template-columns: 40px minmax(0,1fr); }
+  .missionScore { grid-column: 2; display: flex; flex-wrap: wrap; gap: 5px 10px; text-align: left; }
+  .missionActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .missionPrimary { grid-column: 1/-1; }
+  .gameQuestTopBar { grid-template-columns: minmax(0,1fr) auto; padding: 11px; }
+  .gameQuestTopMeter { display: none; }
+  .gameQuestTopTimer { grid-column: 1; min-width: 0; }
+  .gameQuestTodayQuick { grid-column: 2; }
+  .gameQuestModeBtn span { white-space: nowrap; }
+  .gameQuestDailyPane, .gameQuestWeeklyPane { padding: 7px; }
+  .gameQuestMetricSet { width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+  .gameQuestMetric { min-width: 0; padding: 6px 4px; }
+  .gameQuestMetric strong { font-size: 17px; }
+  .gameQuestMetric span { font-size: 10px; }
+  .gameQuestCard { padding: 9px; }
+  .gameQuestCardTop { grid-template-columns: var(--tap-size) 38px minmax(0,1fr) auto; }
+  .gameQuestMiniCheckBtn { grid-template-columns: 26px 20px minmax(0,1fr); }
+  .gameQuestMiniCheckBtn .gameQuestTaskBadge { grid-column: 3; justify-self: start; }
+  .activeTimerCard { grid-template-columns: minmax(0,1fr); }
+  .activeTimerClock { text-align: left; }
+  .activeTimerActions { justify-content: flex-start; }
+  .timeBudgetRow { grid-template-columns: 100px minmax(60px,1fr) 64px; gap: 7px; padding-inline: 10px; }
+  .timeTaskRow { grid-template-columns: minmax(0,1fr) auto; padding: 10px; }
+  .timeTaskName { grid-column: 1/-1; }
+  .timeTaskMeter { grid-column: 1; }
+  .timeTaskValue { grid-column: 2; }
+  .timeTargetEdit { grid-column: 1/-1; }
+  .timeLogGrid { grid-template-columns: minmax(0,1fr); }
+  .timeRecentLine + .timeRecentLine { border-top: 1px solid var(--color-line); border-left: 0; }
+  .timerFloatDock { right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; grid-template-columns: minmax(0,1fr) auto; width: auto; }
+  .timerFloatActions { grid-column: 1/-1; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .timerFloatActions button { min-width: 0; }
+  .refBox { margin-bottom: 8px; }
+  .refBox > summary { align-items: center; min-height: 54px; padding: 6px 8px; }
+  .refSummaryIcon { width: 38px; height: 38px; }
+  .refExpandAllBtn { display: none; }
+  .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; padding: 0 5px 5px; }
+  .refItem { grid-template-columns: 18px minmax(0,1fr) var(--tap-size); min-height: 54px; padding: 4px; }
+  .refItemNo { font-size: 10px; }
+  .refItemCopy strong { font-size: 12px; }
+  .refItemCopy > span { font-size: 9px; }
+  .libraryToolbar { grid-template-columns: minmax(0,1fr) auto; }
+  .libraryToolbar label { grid-column: 1/-1; }
+  .ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .timeDetailModal, .weeklyTargetModal { place-items: stretch; padding: 0; }
+  .ghModalCard, .taskEditorCard, .refEditorCard, .gameQuestEditorCard, .timeDetailCard, .weeklyTargetCard { width: 100%; max-height: none; height: 100dvh; border: 0; border-radius: 0; }
+  .timeDetailModal { place-items: end stretch; padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom)); }
+  .timeDetailModal .timeDetailCard { width: 100%; height: auto; max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border: 1px solid var(--color-line); border-radius: 18px 18px 10px 10px; }
+  .timeDetailHead { padding: 12px; }
+  .timeDetailHead > div > b { font-size: 17px; }
+  .timeDetailBody { gap: 7px; padding: 8px; }
+  .timeDetailStats { gap: 4px; }
+  .timeDetailStats > div { padding: 7px; }
+  .timeDetailStats b { font-size: 16px; }
+  .timeDetailLogs li { grid-template-columns: minmax(0,1fr) auto auto; gap: 5px; padding: 5px 6px; }
+  .ghModalCard, .weeklyTargetCard { padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
+  .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
+  .ghActions, .taskEditorToolbar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px 14px; }
+  .taskEditorList, .refEditorList, .gameQuestEditorList, .gameQuestEditorDays { padding-inline: 14px; }
+  .taskEditorHint, .ghSecretPanel, .ghHint { margin-inline: 14px; }
+  .taskEditorCommandDeck { top: calc(69px + env(safe-area-inset-top)); }
+  .editorBottomBar { justify-content: stretch; padding-inline: 14px; }
+  .editorBottomBar button { flex: 1 1 0; min-width: 0; }
+  .cfgSummaryV20, .refCfgSummary { grid-template-columns: 40px minmax(0,1fr); }
+  .refCfgSummary { grid-template-columns: minmax(0,1fr); }
+  .refCfgSummary .cfgOps { grid-column: 1; }
+  .cfgSummaryBadges { grid-column: 2; }
+  .cfgOps { grid-column: 1/-1; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .cfgGrid, .refCfgGrid, .cfgAdvancedGrid { grid-template-columns: minmax(0,1fr); }
+  .cfgField.wide { grid-column: auto; }
+  .refItemEdit { grid-template-columns: minmax(0,1fr); }
+  .refMiniOps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .targetPresetGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .gqDailyRow { grid-template-columns: minmax(0,1fr); }
+  .gqDayPicker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); }
+  .gqDayChip { min-width: 0; }
+  .gqDailyRowOps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .gameQuestWeeklyEditRow { grid-template-columns: minmax(0,1fr); }
+  .gqMetaRow { grid-template-columns: minmax(0,1fr); }
+  .gqMetaActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .notice { display: none; }
+  .commandMotto { padding: 11px 12px; }
+  .commandMotto p { font-size: 13px; }
+  .toastBox { right: 10px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 10px; max-width: none; }
+}
+
+@media (max-width: 359px) {
+  .wrap { padding-inline: 8px; }
+  .inertiaToolbar { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .dailyActions, .missionActions, .ghActions, .taskEditorToolbar { grid-template-columns: minmax(0,1fr); }
+  .dailyStatusStrip { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .gameQuestMetricSet { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .gameQuestMetric { display: flex; align-items: baseline; justify-content: space-between; }
+  .gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
+  .gameQuestTopTimer, .gameQuestTodayQuick { grid-column: 1; width: 100%; }
+  .gameQuestCardTop { grid-template-columns: var(--tap-size) minmax(0,1fr) auto; }
+  .gameQuestIcon { display: none; }
+  .refGroupBody { grid-template-columns: minmax(0,1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dailyCard:hover, .refItem:hover { transform: none; }
+  .summaryChevron, .refGroupCaret { transition: none; }
+}

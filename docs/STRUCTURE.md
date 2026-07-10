@@ -1,73 +1,67 @@
-# TASK RING 结构说明（维护指南）
+# TaskRing 结构与依赖
 
-这个项目是**纯静态页面**：无需 Vite / React / npm，打开快、部署稳、GitHub Pages 直接能跑。
-拆分的重点是把「页面骨架 / 样式 / 数据 / 逻辑 / 图片资源」分开，别再退回单文件 `index.html`。
+## 运行入口
 
-## 顶层目录
+`index.html` 是唯一 HTML 入口，按以下顺序加载：
 
-```text
-task-ring/
-├─ index.html                 # 页面骨架：DOM、meta、图标、CSS/JS 引用（不写大段 style/script）
-├─ assets/
-│  ├─ css/                     # 分层样式，见下「CSS 分层」
-│  ├─ js/
-│  │  ├─ data/default-data.js  # 默认数据层
-│  │  ├─ app.js                # 运行逻辑层（渲染 / 状态 / 同步 / 编辑器 / 动画）
-│  │  └─ views/                # v20/v21 拆出的分区渲染 + 启动覆盖，见下
-│  ├─ images/{css,cutins}/     # 真实图片资源（不要再塞 base64），清单见 docs/ASSET_MANIFEST.json
-│  └─ icons/favicon.{svg,png}  # 站点图标
-├─ docs/                       # 文档：本文件、CHANGELOG、各版本笔记、配置样例、资产清单
-├─ .gitignore
-└─ .nojekyll                   # 让 GitHub Pages 原样发布静态资源
-```
+1. `assets/css/main.css`
+2. `assets/js/data/default-data.js`
+3. `assets/js/app.js`
+4. `assets/js/views/time-ledger-view.js`
+5. `assets/js/views/editor-ux.js`
+6. `assets/js/views/product-ui.js`
 
-## CSS 分层（`assets/css/main.css` 按顺序 @import）
+`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`。旧版 v20/v21 boot 链已移除。
 
-后加载的层覆盖先加载的层。历史上每次大改都是「新加一层覆盖」而不是回头改旧层，
-所以后面的层 `!important` 较多。改样式时**先确认目标选择器最终由哪一层决定**再动手。
+## CSS 分层
+
+`main.css` 只负责导入，不写业务规则：
 
 | 顺序 | 文件 | 职责 |
 | --- | --- | --- |
-| 1 | `00-foundation.css` | 设计变量（:root）、全局 reset、基础布局 |
-| 2 | `10-task-ui.css` | 任务表格 / 卡片 / 链接 / 步骤 chip / 完成提示 |
-| 3 | `20-cutin-avatars.css` | 角色头像、完成 cut-in 演出 |
-| 4 | `30-world-visuals.css` | 大背景、世界观视觉系统 |
-| 5 | `90-overrides.css` | INERTIA 版综合覆盖层（体量最大） |
-| 6 | `95-v20-polish.css` | v20 微调，并 @import `views/*.css` |
-| 7 | `96-v21-clarity.css` | v21 收敛：高对比、白底卡片、周计划池分任务 |
-| 8 | `97-royal-anime.css` | v22 皇家二次元最终皮肤 |
-| 9 | `98-atelier-gate.css` | 收尾层：锁屏背景/门卫头像、`prefers-reduced-motion` |
+| 1 | `tokens.css` | 颜色、间距、字号、圆角、阴影、动效 Token |
+| 2 | `base.css` | reset、文档基线、软锁、辅助类 |
+| 3 | `layout.css` | Header、主导航、页面容器 |
+| 4 | `components.css` | 按钮、状态、标签、空态、控制菜单 |
+| 5 | `daily.css` | 今日分类、任务卡、子任务正常流 |
+| 6 | `weekly.css` | 周计划筛选、分组和任务卡 |
+| 7 | `game.css` | 游戏模式、指标、游戏选择和任务详情 |
+| 8 | `time.css` | 时间账本、计时状态和浮动操作 |
+| 9 | `library.css` | 资料分组、搜索和资料卡 |
+| 10 | `editors.css` | Dialog、编辑器、固定保存操作 |
+| 11 | `responsive.css` | 1024/700/359px 响应式策略 |
 
-> 想整体换皮肤或回退：优先动最后几层（97/98）和 `main.css` 末尾的 import，尽量别拆旧层。
+正式样式层不使用 `!important`。
 
-## JS 分层
+## JavaScript 职责
 
-### `assets/js/data/default-data.js`（默认数据层）
-先改这里：`days`、`defaultBlocks`、`defaultStepTasks`、`defaultRefGroups`、
-`defaultGameQuestConfig`、`RANDOM_CUTIN_CHARACTERS`。
+- `default-data.js`：内置任务、资料库和游戏配置。
+- `app.js`：配置标准化、本地状态、软锁、Gist、时间日志、业务操作和编辑器数据收集。
+- `product-ui.js`：今日、周计划、游戏、资料库渲染；展开状态；筛选恢复；Dialog 和表单可访问性。
+- `time-ledger-view.js`：时间账本正式渲染。
+- `editor-ux.js`：任务编辑器筛选、折叠任务配置和周目标编辑。
 
-### `assets/js/app.js`（运行逻辑层）
-渲染、任务状态、日期/周期、软锁、GitHub/Gist 同步、加密配置、时间账本、三个编辑器、完成动画。
-配置 schema 由 `buildDefaultConfig()` / `normalizeTaskConfig()` 定义（当前 `version: 4`），
-样例见 `docs/taskring-config.example.json`。
+## 数据边界
 
-### `assets/js/views/`（分区覆盖，加载在 `app.js` 之后）
-- `weekly-view.js` / `time-ledger-view.js` / `game-view.js` / `editor-ux.js`：分区渲染与交互。
-- `v20-boot.js`：视图覆盖脚本加载完后重渲染一次。
-- `v21-boot.js`：安装 v21 版 `renderWeeklyPlanPanel`（周计划池分任务），再重渲染。
-- 这些 boot 脚本**不再覆盖页面标题/版本号**——标题由 `index.html` 统一管理。
+- Token：`taskring_gist_token_v1`，仅本机。
+- 完成/游戏状态：`taskring_github_v2_*`，可同步。
+- 任务配置：`taskring_local_config_v1`，本机缓存；有 Token 时同步加密配置。
+- 时间日志：`taskring_time_logs_v1`；活动计时器保持本机。
+- 展开状态：`taskring_ui_disclosure_v1`，仅本机 UI 偏好。
+- 页面与滚动：`taskring_github_v2_active_view_v1`、`taskring_ui_scroll_state_v1`。
 
-## 数据与同步要点
+## 资源依赖图
 
-- **软锁进门**：SHA-256 哈希软锁（`SOFT_LOCK_HASH`），只防路人误入，不是服务器级鉴权。改密码见根目录 README。
-- **Gist 同步**：`taskring-state.json` 存勾选/时间日志；`taskring-config.json` 存加密后的任务/资料库/游戏配置。
-  Token 只保存在本机 `localStorage`，没有 Token 也能本机离线使用。
-- **游戏作战区**：状态复用 `taskring-state.json` 的 key 前缀；一周配置合并进 `taskring-config.json` 的 `gameQuest`。
+```text
+index.html
+├─ assets/icons/favicon.svg
+├─ assets/icons/favicon.png
+├─ assets/css/main.css
+│  └─ 11 个职责 CSS（无图片 url()）
+└─ 5 个 JavaScript 文件
+   ├─ 内置数据
+   ├─ 核心业务
+   └─ 3 个视图模块
+```
 
-## 推荐开发节奏
-
-1. 先改数据，不动逻辑。
-2. 再改样式，尽量在最后几层做小修，别回头拆旧层。
-3. 逻辑继续膨胀时，再考虑把 `app.js` 拆成 `render.js` / `storage.js` / `sync-github.js` / `editor.js`。
-
-传统静态页能解决的事，就先别召唤 npm 魔王。🛠️
+当前运行时不动态加载本地图片、字体、JSON、CSS 或额外 JavaScript。

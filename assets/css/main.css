@@ -1,14 +1,11 @@
-@import url("./00-foundation.css");
-@import url("./10-task-ui.css");
-@import url("./20-cutin-avatars.css");
-@import url("./30-world-visuals.css");
-@import url("./90-overrides.css");
-@import url("./95-v20-polish.css");
-@import url("./96-v21-clarity.css");
-@import url("./97-royal-anime.css");
-@import url("./98-atelier-gate.css");
-@import url("./99-neon-rarity.css");
-@import url("./100-game-quest-v3.css");
-@import url("./101-urban-neon-hybrid.css");
-
-/* Entry stylesheet. Edit the imported files above instead of turning index.html back into 火锅全家桶。 */
+@import url("./tokens.css?v=20260710.2");
+@import url("./base.css?v=20260710.3");
+@import url("./layout.css?v=20260710.2");
+@import url("./components.css?v=20260710.3");
+@import url("./daily.css?v=20260710.7");
+@import url("./weekly.css?v=20260710.3");
+@import url("./game.css?v=20260710.3");
+@import url("./time.css?v=20260710.3");
+@import url("./library.css?v=20260710.3");
+@import url("./editors.css?v=20260710.5");
+@import url("./responsive.css?v=20260710.10");
