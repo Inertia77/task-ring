@@ -22,9 +22,9 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .58; }
 .toastBox.show { opacity: 1; transform: translateY(0); }
 .toastBox.warn { border-left-color: var(--color-warning); }
 .toastBox.err { border-left-color: var(--color-danger); }
-.controlCenterMenu { position: absolute; z-index: 300; top: calc(100% - 10px); right: 20px; display: grid; width: min(320px, calc(100vw - 40px)); padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-float); }
+.controlCenterMenu { position: fixed; z-index: 300; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: min(430px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 8px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-float); overflow-y: auto; overscroll-behavior: contain; }
 .controlCenterMenu.hidden, .controlCenterBackdrop.hidden { display: none; }
-.controlCenterMenu button { min-height: var(--tap-size); padding: 9px 12px; border-radius: 7px; background: transparent; text-align: left; }
+.controlCenterMenu button { min-width: 0; min-height: var(--tap-size); padding: 7px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; text-align: left; }
 .controlCenterMenu button:hover { background: var(--color-panel-soft); }
 .controlCenterBackdrop { position: fixed; inset: 0; z-index: 250; background: rgba(23,23,20,.28); }
 .statusBadge, .planModeBadge, .taskFlag, .editorBadge, .missionBadges span, .gameQuestTaskBadge, .mWeekPill, .dailyMetaChip {

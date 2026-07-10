@@ -6,7 +6,9 @@
 .activeTimerSub { color: #d6d2ca; font-size: 12px; }
 .activeTimerClock { color: var(--color-primary); font-size: 26px; font-weight: 850; text-align: right; }
 .activeTimerActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
-.activeTimerActions button { min-height: var(--tap-size); padding: 7px 11px; border-radius: var(--radius-sm); background: white; }
+.activeTimerActions button { min-height: var(--tap-size); padding: 7px 11px; border: 1px solid #d8d3c8; border-radius: var(--radius-sm); background: white; color: var(--color-ink); }
+.activeTimerActions button[data-timer-pause], .activeTimerActions button[data-timer-resume] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-ink); font-weight: 800; }
+.activeTimerActions .timerGhost { border-color: #6d6b64; background: transparent; color: white; }
 .timeLedgerIdle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-md); background: var(--color-panel-soft); }
 .timeLedgerIdle span { font-size: 24px; }
 .timeLedgerIdle em { color: var(--color-muted); font-style: normal; }
@@ -49,4 +51,6 @@
 .timerFloatMain em { color: #d6d2ca; font-size: 11px; font-style: normal; }
 .timerFloatClock { color: var(--color-primary); font-weight: 850; }
 .timerFloatActions { display: flex; gap: 6px; }
-.timerFloatActions button { min-height: var(--tap-size); padding: 6px 10px; border-radius: 7px; background: white; }
+.timerFloatActions button { min-height: var(--tap-size); padding: 6px 10px; border: 1px solid #d8d3c8; border-radius: 7px; background: white; color: var(--color-ink); font-weight: 750; }
+.timerFloatActions button[data-timer-pause], .timerFloatActions button[data-timer-resume] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-ink); }
+.timerFloatActions .timerGhost { border-color: #6d6b64; background: transparent; color: white; }

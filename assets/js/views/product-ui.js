@@ -108,9 +108,33 @@
       ${dailySubtasks(t,dayId,cycle)}
     </article>`;
   }
+  function weekMatrixCell(t,day){
+    if(!t.days.includes(day.id))return `<td class="weekMatrixBlank" aria-label="${escapeHtml(t.title)} · ${escapeHtml(day.name)}无排程"><span>—</span></td>`;
+    const st=occurrenceState(t,day.id,cycleYmd);
+    const locked=st.failed||st.ignored;
+    const state=st.failed?"锁定":st.overdue?"逾期":st.warn?"遗留":st.done?"完成":day.id===today?"今日":"待办";
+    const stateClass=st.failed?"failed":st.overdue||st.warn?"attention":st.done?"done":day.id===today?"today":"pending";
+    return `<td class="weekMatrixDay ${day.id===today?"isToday":""}"><label class="weekMatrixCheck ${stateClass}" aria-label="${escapeHtml(t.title)} · ${escapeHtml(day.name)} · ${state}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${day.id}" data-cycle="${escapeHtml(cycleYmd)}" ${st.done?"checked":""} ${locked?'disabled data-locked="1"':""}><span aria-hidden="true">${st.done?"✓":st.failed?"×":st.overdue||st.warn?"!":""}</span><em>${state}</em></label></td>`;
+  }
+  function renderWeekMatrix(){
+    const tasks=ringBlocks();
+    const occurrences=tasks.flatMap(t=>t.days.map(dayId=>({t,dayId,cycle:cycleYmd})));
+    const done=occurrences.filter(occurrenceDone).length;
+    const attention=occurrences.filter(occurrenceAttention).length;
+    const rows=tasks.map(t=>{
+      const c=cats[t.cat]||cats.life;
+      const progress=hasSteps(t.id)?stepProgress(t,stepContextDay(t),cycleYmd):null;
+      return `<tr style="--matrix-accent:${c.color||"var(--color-line-strong)"}"><th scope="row" class="weekMatrixTask"><span>${escapeHtml(c.name||t.cat)}</span><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><em>预计 ${taskEstimatedMinutes(t)}m${progress?` · 子任务 ${progress.done}/${progress.total}`:""}</em></th>${days.map(day=>weekMatrixCell(t,day)).join("")}</tr>`;
+    }).join("");
+    return `<section class="weekMatrixPanel" aria-label="全周任务矩阵"><header class="weekMatrixHeader"><div><span>WEEK MATRIX</span><b>任务 × 星期面板</b><em>纵向看任务，横向看一周排程；单元格可直接完成或取消完成。</em></div><div class="weekMatrixSummary"><span><b>${tasks.length}</b> 个任务</span><span><b>${done}/${occurrences.length}</b> 已完成</span><span class="${attention?"attention":""}"><b>${attention}</b> 需关注</span></div></header><div class="weekMatrixScroll" tabindex="0" aria-label="可横向滚动查看完整星期"><table class="weekMatrixTable"><thead><tr><th scope="col">任务 / 分类</th>${days.map(day=>`<th scope="col" class="${day.id===today?"isToday":""}"><span>${escapeHtml(day.name)}</span>${day.id===today?"<em>今日</em>":""}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div><div class="weekMatrixLegend"><span>✓ 已完成</span><span>! 逾期 / 遗留</span><span>× 已锁定</span><span>— 当日无排程</span></div></section>`;
+  }
   function renderDailyGroups(){
     const box=document.getElementById("mobileCards");
     if(!box)return;
+    if(viewMode==="all"){
+      box.innerHTML=renderWeekMatrix();
+      return;
+    }
     const occurrences=dailyOccurrencesForView();
     if(!occurrences.length){
       box.innerHTML='<div class="emptyState"><strong>今日执行环已经清空</strong><span>今天的硬任务已完成；可以休息，或切到周计划池推进长期主线。</span><button type="button" data-view-target="weekly">打开周计划池</button></div>';
@@ -141,11 +165,14 @@
     const urgent=all.filter(occurrenceAttention).length;
     const active=readActiveTimer();
     const running=active&&active.kind==="task";
-    host.innerHTML=`<div class="dailyStatusStrip">
-      <div class="dailyStatusItem"><span>今日进度</span><b>${done}/${all.length} 完成</b></div>
-      <div class="dailyStatusItem ${urgent?"attention":""}"><span>优先处理</span><b>${urgent?`${urgent} 项需关注`:"状态正常"}</b></div>
-      <div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时已暂停":"正在计时"):"焦点计时"}</span><b>${running?escapeHtml(active.title):"尚未开始"}</b></div>
-    </div>`;
+    if(viewMode==="all"){
+      const weekTasks=ringBlocks();
+      const weekOccurrences=weekTasks.flatMap(t=>t.days.map(dayId=>({t,dayId,cycle:cycleYmd})));
+      const weekDone=weekOccurrences.filter(occurrenceDone).length;
+      host.innerHTML=`<div class="dailyStatusStrip"><div class="dailyStatusItem"><span>全周排程</span><b>${weekTasks.length} 个任务</b></div><div class="dailyStatusItem"><span>周节点完成</span><b>${weekDone}/${weekOccurrences.length}</b></div><div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时已暂停":"正在计时"):"今日进度"}</span><b>${running?escapeHtml(active.title):`${done}/${all.length} 完成`}</b></div></div>`;
+      return;
+    }
+    host.innerHTML=`<div class="dailyStatusStrip"><div class="dailyStatusItem"><span>今日进度</span><b>${done}/${all.length} 完成</b></div><div class="dailyStatusItem ${urgent?"attention":""}"><span>优先处理</span><b>${urgent?`${urgent} 项需关注`:"状态正常"}</b></div><div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时已暂停":"正在计时"):"焦点计时"}</span><b>${running?escapeHtml(active.title):"尚未开始"}</b></div></div>`;
   }
   window.renderTable=function(){const table=document.getElementById("taskTable");if(table)table.innerHTML=""};
   window.renderMobileTabs=renderDailyStatus;

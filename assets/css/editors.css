@@ -59,7 +59,8 @@
 .cfgSummaryBadges, .cfgOps { display: flex; flex-wrap: wrap; gap: 5px; }
 .cfgOps button, .refMiniOps button { min-width: var(--tap-size); min-height: var(--tap-size); border: 1px solid var(--color-line); border-radius: 7px; background: white; }
 .cfgBodyV20, .refCfgBody { padding: 12px; border-top: 1px solid var(--color-line); background: var(--color-panel); }
-.cfgGrid, .refCfgGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.cfgGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.refCfgGrid { display: grid; grid-template-columns: minmax(180px, .34fr) minmax(0, 1.66fr); gap: 12px; }
 .cfgField, .refCfgField, .refMiniField { min-width: 0; }
 .cfgField.wide { grid-column: 1 / -1; }
 .cfgField label, .refCfgField label, .refMiniField label, .cfgDaysLabel { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 750; }
@@ -74,7 +75,7 @@
 .disabledTaskVault { margin-top: 12px; padding: 10px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-md); }
 .disabledTaskVault > summary { min-height: var(--tap-size); }
 .refItemsBox { display: grid; gap: 8px; }
-.refItemEdit { display: grid; grid-template-columns: minmax(150px,.7fr) minmax(200px,1.3fr) auto; gap: 8px; align-items: end; padding: 9px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
+.refItemEdit { display: grid; grid-template-columns: minmax(150px,.56fr) minmax(220px,1.44fr) auto; gap: 8px; align-items: end; padding: 8px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .addRefItemBtn { min-height: var(--tap-size); margin-top: 8px; padding: 8px 12px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-sm); background: white; }
 .weeklyTargetCard { padding-top: 52px; }
 .weeklyTargetClose { position: absolute; top: 12px; right: 12px; }

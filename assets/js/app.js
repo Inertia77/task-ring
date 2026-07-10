@@ -868,13 +868,38 @@ function controlBackdrop(){
   }
   return b;
 }
+function positionControlCenter(){
+  const m=controlMenu();
+  const trigger=document.getElementById("controlCenterBtn");
+  if(!m||!trigger||m.classList.contains("hidden"))return;
+  const compact=window.matchMedia("(max-width: 700px)").matches;
+  m.classList.toggle("controlCenterSheet",compact);
+  m.style.removeProperty("left");
+  m.style.removeProperty("right");
+  m.style.removeProperty("top");
+  m.style.removeProperty("bottom");
+  m.style.removeProperty("max-height");
+  if(compact)return;
+  const edge=12;
+  const rect=trigger.getBoundingClientRect();
+  const width=m.offsetWidth;
+  const height=m.offsetHeight;
+  const left=Math.min(window.innerWidth-width-edge,Math.max(edge,rect.right-width));
+  const below=rect.bottom+8;
+  const top=below+height<=window.innerHeight-edge?below:Math.max(edge,rect.top-height-8);
+  m.style.left=`${Math.round(left)}px`;
+  m.style.top=`${Math.round(top)}px`;
+  m.style.maxHeight=`${Math.max(220,window.innerHeight-top-edge)}px`;
+}
 function openControlCenter(){
   const m=ensureControlCenterPortal();
   if(!m)return;
   controlBackdrop().classList.remove("hidden");
   m.classList.remove("hidden");
   m.setAttribute("aria-hidden","false");
+  document.getElementById("controlCenterBtn")?.setAttribute("aria-expanded","true");
   document.body.classList.add("controlCenterOpen");
+  positionControlCenter();
 }
 function closeControlCenter(){
   const m=controlMenu();
@@ -882,10 +907,13 @@ function closeControlCenter(){
     m.classList.add("hidden");
     m.setAttribute("aria-hidden","true");
   }
+  document.getElementById("controlCenterBtn")?.setAttribute("aria-expanded","false");
   controlBackdrop()?.classList.add("hidden");
   document.body.classList.remove("controlCenterOpen");
 }
 function toggleControlCenter(){const m=ensureControlCenterPortal();if(!m)return;m.classList.contains("hidden")?openControlCenter():closeControlCenter()}
+window.addEventListener("resize",positionControlCenter,{passive:true});
+window.addEventListener("scroll",positionControlCenter,{passive:true});
 function initGithubSyncUI(){
   document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
   document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});

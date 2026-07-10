@@ -90,8 +90,6 @@ body:not(.locked) .lockScreen { display: none; }
 .lockRemember { display: flex; align-items: center; gap: 10px; min-height: 52px; margin: 12px 0; }
 .lockRemember input { width: 20px; height: 20px; }
 .lockError { min-height: 24px; color: var(--color-danger); font-weight: 700; }
-.lockDefaultHint { margin: 8px 0 18px; color: var(--color-muted); }
-.lockDefaultHint code { padding: 3px 7px; border-radius: 5px; background: var(--color-ink); color: white; }
 .lockFoot { padding-top: 14px; border-top: 1px solid var(--color-line); font-size: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
