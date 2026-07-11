@@ -12,14 +12,14 @@
 .refGroupCount { color: var(--color-muted); font-size: 12px; }
 .refGroupCaret { transition: transform var(--motion-fast); }
 .refGroup[open] .refGroupCaret { transform: rotate(180deg); }
-.refGroupBody { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 5px; padding: 0 6px 6px; }
-.refItem { position: relative; display: grid; grid-template-columns: 22px minmax(0,1fr) var(--tap-size); grid-template-areas: "no copy action"; gap: 6px; align-items: center; min-width: 0; min-height: 56px; padding: 5px 6px; border: 1px solid var(--color-card-line); border-left: 4px solid var(--color-info); border-radius: var(--radius-sm); background: var(--color-card); box-shadow: 0 1px 0 rgba(23,23,20,.05); text-decoration: none; transition: transform var(--motion-fast), border-color var(--motion-fast); }
+.refGroupBody { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 236px), 1fr)); gap: 5px; padding: 0 6px 6px; }
+.refItem { position: relative; display: grid; grid-template-columns: 20px minmax(0,1fr) 38px; grid-template-areas: "no copy action"; gap: 6px; align-items: center; min-width: 0; min-height: 52px; padding: 4px 6px; border: 1px solid var(--color-card-line); border-left: 4px solid var(--color-info); border-radius: var(--radius-sm); background: var(--color-card); box-shadow: 0 1px 0 rgba(23,23,20,.05); text-decoration: none; transition: transform var(--motion-fast), border-color var(--motion-fast); }
 .refItem:hover { border-color: var(--color-line-strong); transform: translateY(-2px); }
 .refItemNo { grid-area: no; color: var(--color-muted); font-size: 12px; }
 .refItemCopy { grid-area: copy; min-width: 0; }
-.refItemCopy strong { display: block; overflow: hidden; overflow-wrap: anywhere; font-size: 13px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
-.refItemCopy > span { display: block; overflow: hidden; color: var(--color-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.refItemAction { grid-area: action; align-self: center; min-width: var(--tap-size); min-height: var(--tap-size); padding: 0; border: 1px solid var(--color-line); border-radius: 8px; text-align: center; font-size: 18px; font-weight: 800; }
+.refItemCopy strong { display: block; overflow: hidden; overflow-wrap: anywhere; font-size: 13px; line-height: 1.24; text-overflow: ellipsis; white-space: nowrap; }
+.refItemCopy > span { display: block; overflow: hidden; color: var(--color-muted); font-size: 10px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.refItemAction { grid-area: action; align-self: center; min-width: 34px; min-height: 34px; padding: 0; border: 1px solid var(--color-line); border-radius: 8px; text-align: center; font-size: 14px; font-weight: 800; line-height: 1; }
 .refItemAction.disabled { color: var(--color-muted); }
 .refItemActions { grid-area: action; align-self: center; display: grid; place-items: center; }
 .refItemActions .refItemAction { display: grid; grid-area: auto; place-items: center; background: var(--color-panel-soft); text-decoration: none; }

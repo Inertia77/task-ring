@@ -3,13 +3,13 @@
   "use strict";
 
   const DISCLOSURE_KEY="taskring_ui_disclosure_v1";
-  const WEEKLY_CATEGORY_KEY=`${GH_PREFIX}weekly_category_tab_v2`;
   const GAME_SELECTED_DAY_KEY=`${GH_PREFIX}gamequest_selected_day_v1`;
   const GAME_SELECTED_GAME_KEY=`${GH_PREFIX}gamequest_selected_game_v1`;
   const LIBRARY_LAST_GROUP_KEY="taskring_library_last_group_v1";
   const LIBRARY_SEARCH_KEY="taskring_library_search_v1";
   let disclosureState=readJson(DISCLOSURE_KEY,{});
   let selectedGameId=localStorage.getItem(GAME_SELECTED_GAME_KEY)||"";
+  let weeklyCategorySelection="all";
   let libraryQuery=localStorage.getItem(LIBRARY_SEARCH_KEY)||"";
   let lastModalTrigger=null;
 
@@ -199,16 +199,9 @@
   }
   function weeklyCategoryRows(){return weeklyCategorySummary().filter(row=>row.count)}
   function selectedWeeklyCategory(rows,tasks){
-    const saved=localStorage.getItem(WEEKLY_CATEGORY_KEY);
-    if(saved==="all"||rows.some(r=>r.cat===saved))return saved;
-    const active=readActiveTimer();
-    if(active?.kind==="task"){
-      const task=tasks.find(t=>String(t.id)===String(active.task_id));
-      if(task)return taskTimeCategory(task);
-    }
-    const near=tasks.find(t=>{const st=weeklyTaskStatus(t);return st.target>0&&st.used<st.target&&st.used/st.target>=.7});
-    if(near)return taskTimeCategory(near);
-    return rows[0]?.cat||"all";
+    if(weeklyCategorySelection==="all")return "all";
+    if(rows.some(r=>r.cat===weeklyCategorySelection))return weeklyCategorySelection;
+    return "all";
   }
   function weeklyCategoryTabs(rows,active,tasks){
     const totalDone=tasks.filter(t=>weeklyTaskStatus(t).state==="done").length;
@@ -285,9 +278,7 @@
     requestAnimationFrame(()=>GAME_STRIP_SELECTORS.forEach(selector=>{
       const strip=panel.querySelector(selector);if(!strip)return;
       const saved=state[selector];
-      if(Number.isFinite(saved)){strip.scrollLeft=Math.min(saved,Math.max(0,strip.scrollWidth-strip.clientWidth));return}
-      const active=strip.querySelector(".active");if(!active||strip.scrollWidth<=strip.clientWidth+2)return;
-      strip.scrollLeft=Math.max(0,active.offsetLeft-(strip.clientWidth-active.offsetWidth)/2);
+      if(Number.isFinite(saved))strip.scrollLeft=Math.min(saved,Math.max(0,strip.scrollWidth-strip.clientWidth));
     }));
   }
   window.renderGameQuestPanel=function(){
@@ -381,7 +372,7 @@
   },true);
   document.body.addEventListener("click",event=>{
     const weeklyTab=event.target.closest("[data-weekly-category-tab]");
-    if(weeklyTab){event.preventDefault();event.stopPropagation();localStorage.setItem(WEEKLY_CATEGORY_KEY,weeklyTab.dataset.weeklyCategoryTab||"all");renderAll();return}
+    if(weeklyTab){event.preventDefault();event.stopPropagation();weeklyCategorySelection=weeklyTab.dataset.weeklyCategoryTab||"all";renderAll();return}
     const game=event.target.closest("[data-gq-game-select]");
     if(game){event.preventDefault();event.stopPropagation();selectedGameId=game.dataset.gqGameSelect||"";localStorage.setItem(GAME_SELECTED_GAME_KEY,selectedGameId);renderAll();return}
     const day=event.target.closest("[data-gamequest-day-select]");

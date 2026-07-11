@@ -679,8 +679,9 @@ function showToast(msg,type="ok",ms=2200){
     el.className="toastBox";
     document.body.appendChild(el);
   }
+  const dockAware=!!readActiveTimer();
   el.textContent=msg;
-  el.className=`toastBox ${type} show`;
+  el.className=`toastBox ${type} ${dockAware?"dockAware":""} show`;
   clearTimeout(el._timer);
   el._timer=setTimeout(()=>el.classList.remove("show"),ms);
 }

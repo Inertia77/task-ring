@@ -91,6 +91,8 @@
   .weeklyOverviewTitle { flex-basis: 190px; }
   .weeklyOverviewTitle b { font-size: 13px; }
   .weeklyOverviewTitle span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .weeklyCategoryTab { grid-template-columns: minmax(0,1fr); gap: 2px; min-width: 112px; padding: 7px 10px; }
+  .weeklyCategoryTab b, .weeklyCategoryTab em { font-size: 11px; white-space: nowrap; }
   .weeklyOverviewToggle { gap: 3px; }
   .weeklyOverviewBody { padding: 6px; }
   .allocationRibbon { display: flex; min-width: 0; overflow-x: auto; }
@@ -121,6 +123,11 @@
   .timeTaskMeter { grid-column: 1; }
   .timeTaskValue { grid-column: 2; }
   .timeTargetEdit { grid-column: 1/-1; }
+  .timeTaskSearchWrap { gap: 5px; padding: 8px 10px; }
+  .timeTaskSearchWrap label { font-size: 11px; }
+  .timeTaskSearchRow { grid-template-columns: minmax(0,1fr) 54px; gap: 6px; }
+  .timeTaskSearchRow input { min-height: 40px; padding: 7px 9px; }
+  .timeTaskSearchMeta { min-width: 0; padding: 7px 8px; font-size: 11px; }
   .timeLogGrid { grid-template-columns: minmax(0,1fr); }
   .timeRecentLine + .timeRecentLine { border-top: 1px solid var(--color-line); border-left: 0; }
   .timerFloatDock { right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; grid-template-columns: minmax(0,1fr) auto; width: auto; }
@@ -130,19 +137,19 @@
   .refBox > summary { align-items: center; min-height: 54px; padding: 6px 8px; }
   .refSummaryIcon { width: 38px; height: 38px; }
   .refExpandAllBtn { display: none; }
-  .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; padding: 0 5px 5px; }
-  .refItem { grid-template-columns: 18px minmax(0,1fr) var(--tap-size); gap: 4px; min-height: 54px; padding: 4px; }
-  .refItemNo { font-size: 10px; }
+  .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; padding: 0 4px 4px; }
+  .refItem { grid-template-columns: 16px minmax(0,1fr) 34px; gap: 4px; min-height: 48px; padding: 4px 5px; }
+  .refItemNo { font-size: 9.5px; }
   .refItemCopy strong {
     overflow: visible;
     overflow-wrap: anywhere;
-    font-size: 12px;
-    line-height: 1.3;
+    font-size: 11.5px;
+    line-height: 1.22;
     text-overflow: clip;
     white-space: normal;
     word-break: break-word;
   }
-  .refItemCopy > span { font-size: 9px; }
+  .refItemCopy > span { overflow: visible; font-size: 8.6px; line-height: 1.15; text-overflow: clip; white-space: normal; word-break: break-word; }
   .libraryToolbar { grid-template-columns: minmax(0,1fr) auto; }
   .libraryToolbar label { grid-column: 1/-1; }
   .ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .timeDetailModal, .weeklyTargetModal { place-items: stretch; padding: 0; }
@@ -158,11 +165,11 @@
   .timeDetailLogs li { grid-template-columns: minmax(0,1fr) auto auto; gap: 5px; padding: 5px 6px; }
   .ghModalCard, .weeklyTargetCard { padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
   .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
-  .ghActions, .taskEditorToolbar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px 14px; }
-  .taskEditorList, .refEditorList, .gameQuestEditorList, .gameQuestEditorDays { padding-inline: 14px; }
-  .taskEditorHint, .ghSecretPanel, .ghHint { margin-inline: 14px; }
+  .ghActions, .taskEditorToolbar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; padding: 10px 10px 8px; }
+  .taskEditorList, .refEditorList, .gameQuestEditorList, .gameQuestEditorDays { padding-inline: 10px; }
+  .taskEditorHint, .ghSecretPanel, .ghHint { margin-inline: 10px; }
   .taskEditorCommandDeck { top: calc(69px + env(safe-area-inset-top)); }
-  .editorBottomBar { justify-content: stretch; padding-inline: 14px; }
+  .editorBottomBar { justify-content: stretch; gap: 8px; padding-inline: 10px; }
   .editorBottomBar button { flex: 1 1 0; min-width: 0; }
   .cfgSummaryV20, .refCfgSummary { grid-template-columns: 40px minmax(0,1fr); }
   .refCfgSummary { grid-template-columns: minmax(0,1fr); }
@@ -171,20 +178,47 @@
   .cfgOps { grid-column: 1/-1; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
   .cfgGrid, .refCfgGrid, .cfgAdvancedGrid { grid-template-columns: minmax(0,1fr); }
   .cfgField.wide { grid-column: auto; }
-  .refItemEdit { grid-template-columns: minmax(0,1fr); }
-  .refMiniOps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .refItemEdit { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 6px; }
+  .refMiniOps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
   .targetPresetGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .gqDailyRow { grid-template-columns: minmax(0,1fr); }
-  .gqDayPicker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); }
+  .gqDailyRow { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 7px; }
+  .gqDayPicker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; }
   .gqDayChip { min-width: 0; }
-  .gqDailyRowOps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
-  .gameQuestWeeklyEditRow { grid-template-columns: minmax(0,1fr); }
-  .gqMetaRow { grid-template-columns: minmax(0,1fr); }
+  .gqDailyRowOps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+  .gameQuestWeeklyEditRow { grid-template-columns: minmax(0,1fr); padding: 8px; gap: 8px; }
+  .gqMetaRow { grid-template-columns: minmax(0,1fr); padding: 8px; gap: 6px; }
   .gqMetaActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .ghActions button, .taskEditorToolbar button { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 42px; padding: 6px 8px; font-size: 12px; line-height: 1.2; text-wrap: balance; }
+  .taskEditorHead { gap: 10px; }
+  .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(11px + env(safe-area-inset-top)) 10px 10px; }
+  .ghLog { min-height: 60px; margin: 8px 10px 10px; padding: 8px; font-size: 11px; line-height: 1.45; }
+  .cfgTask, .refCfgGroup, .gameQuestEditorCardItem, .gameQuestEditGroup, .gameQuestMetaDetails { border-radius: 14px; }
+  .cfgBodyV20, .refCfgBody { padding: 8px; }
+  .cfgAdvanced { margin-top: 8px; }
+  .cfgAdvanced > summary { padding: 8px 0; }
+  .cfgDays label, .cfgFlags label, .refCfgFlags label { min-height: 36px; padding: 5px 8px; font-size: 12px; }
+  .cfgDays input, .cfgFlags input, .refCfgFlags input { width: 16px; height: 16px; }
+  .cfgOps button, .refMiniOps button { min-height: 38px; min-width: 0; }
+  .gameQuestEditHead { min-height: 52px; padding: 9px 10px; }
+  .gqDayLegend { gap: 4px; padding: 0 10px 8px; font-size: 11px; }
+  .gqDailyDeck, .gameQuestWeeklyBody, .gqMetaGrid { gap: 6px; padding: 0 6px 6px; }
+  .gqDailyCardHead { min-height: 52px; padding: 7px 8px; gap: 7px; }
+  .gqDailyIcon, .gqIconPreview { width: 34px; height: 34px; border-radius: 8px; }
+  .gqDailyAddBtn, .gameQuestPrimaryBtn { min-height: 38px; padding: 6px 9px; }
+  .gqDailyRows { gap: 6px; padding: 0 6px 6px; }
+  .gqDailyTaskTitle, .gameQuestWeeklyEditRow textarea, .gqMetaRow input, .gqMetaRow select { min-height: 38px; padding: 6px 8px; }
+  .gqDayChip { min-height: 36px; }
+  .gqDayChip span { min-height: 36px; font-size: 12px; }
+  .gqDailyMiniBtn, .gqMetaBtn { min-width: 36px; min-height: 36px; padding: 5px; }
+  .gameQuestWeeklyEditRow textarea { min-height: 92px; }
+  .gameQuestMetaDetails > summary { min-height: 52px; padding: 9px 10px; }
+  .gameQuestMetaBody { padding: 0 6px 6px; }
+  .refItemActions .refItemAction { min-width: 32px; min-height: 32px; font-size: 12px; }
   .notice { display: none; }
   .commandMotto { padding: 11px 12px; }
   .commandMotto p { font-size: 13px; }
   .toastBox { right: 10px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 10px; max-width: none; }
+  .toastBox.dockAware { bottom: calc(var(--nav-mobile-height) + 108px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 359px) {
