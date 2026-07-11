@@ -19,6 +19,8 @@ const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
 const TASK_CONFIG_BACKUP_KEY="taskring_local_config_backups_v1";
 const TASK_CONFIG_BACKUP_LIMIT=10;
+const DEMO_CORE_CLEANUP_KEY="taskring_cleanup_accidental_demo_core_v1";
+const ACCIDENTAL_DEMO_CORE_IDS=new Set(["demo-morning-start","demo-game-daily"]);
 
 function deepClone(obj){return JSON.parse(JSON.stringify(obj))}
 function normalizeBool(v){return v===true||v===1||v==="1"||v==="true"}
@@ -335,15 +337,11 @@ function buildDefaultConfig(){
 function normalizeTaskConfig(config){
   const fallback=buildDefaultConfig();
   const src=config&&Array.isArray(config.tasks)?config:fallback;
-  const srcTasks=Array.isArray(src.tasks)?src.tasks.slice():fallback.tasks.slice();
-  const existingTaskIds=new Set(srcTasks.map(t=>String(t.id||"")));
-  fallback.tasks
-    .filter(t=>t.core||["base-body","game-daily"].includes(t.id))
-    .forEach(t=>{
-      if(existingTaskIds.has(t.id))return;
-      srcTasks.push(deepClone(t));
-      existingTaskIds.add(t.id);
-    });
+  // 已有配置必须按原样规范化，不能把默认 Demo 任务重新塞回用户配置。
+  // 默认数据只在没有任何本机/云端配置时由 buildDefaultConfig() 使用。
+  const rawTasks=Array.isArray(src.tasks)?src.tasks.slice():fallback.tasks.slice();
+  const hasPersonalTasks=rawTasks.some(t=>!String(t?.id||"").startsWith("demo-"));
+  const srcTasks=hasPersonalTasks?rawTasks.filter(t=>!ACCIDENTAL_DEMO_CORE_IDS.has(String(t?.id||""))):rawTasks;
   const usedIds=new Set();
   const usedCodes=new Set();
   const validCats=new Set(["life","gamecreate","language"]);
@@ -418,11 +416,25 @@ function stepById(taskId,stepId){return (taskConfig?.tasks?.find(t=>t.id===taskI
 function stepCode(taskId,stepId){return stepById(taskId,stepId)?.code||String(stepId)}
 function stepIdFromCode(taskId,code){return (taskConfig?.tasks?.find(t=>t.id===taskId)?.steps||[]).find(s=>s.code===code)?.id||null}
 
+function cleanupAccidentallyInjectedDemoTasks(rawConfig){
+  if(!rawConfig||!Array.isArray(rawConfig.tasks))return rawConfig;
+  if(localStorage.getItem(DEMO_CORE_CLEANUP_KEY)==="1")return rawConfig;
+  const hasPersonalTasks=rawConfig.tasks.some(t=>!String(t?.id||"").startsWith("demo-"));
+  if(!hasPersonalTasks)return rawConfig;
+  const cleanedTasks=rawConfig.tasks.filter(t=>!ACCIDENTAL_DEMO_CORE_IDS.has(String(t?.id||"")));
+  const cleaned={...rawConfig,tasks:cleanedTasks};
+  if(cleanedTasks.length!==rawConfig.tasks.length){
+    try{localStorage.setItem(TASK_CONFIG_LOCAL_KEY,JSON.stringify(cleaned))}catch(e){console.warn("demo task cleanup save failed",e)}
+  }
+  try{localStorage.setItem(DEMO_CORE_CLEANUP_KEY,"1")}catch(_){ }
+  return cleaned;
+}
+
 function loadLocalTaskConfig(){
   try{
     const raw=localStorage.getItem(TASK_CONFIG_LOCAL_KEY);
     if(!raw)return null;
-    return normalizeTaskConfig(JSON.parse(raw));
+    return normalizeTaskConfig(cleanupAccidentallyInjectedDemoTasks(JSON.parse(raw)));
   }catch(e){
     console.warn("local task config load failed",e);
     return null;
