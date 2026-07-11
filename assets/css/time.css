@@ -17,7 +17,8 @@
 .timeBudgetList, .timeTaskList, .timeLogList, .timeLogGrid { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); overflow: visible; }
 .timeBudgetRow { display: grid; grid-template-columns: 130px minmax(80px, 1fr) 80px; gap: 12px; align-items: center; min-height: 52px; padding: 8px 14px; border-bottom: 1px solid var(--color-line); }
 .timeBudgetRow:last-child { border-bottom: 0; }
-.timeBudgetLabel { display: flex; gap: 8px; align-items: center; }
+.timeBudgetLabel { display: flex; min-width: 0; align-items: center; }
+.timeBudgetLabel b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .timeBudgetBar, .timeTaskMeter { height: 7px; border-radius: 999px; background: #e9e5dc; overflow: hidden; }
 .timeBudgetBar span, .timeTaskMeter i { display: block; width: var(--w,0%); height: 100%; background: var(--color-info); }
 .timeBudgetRow.over .timeBudgetBar span, .timeTaskRow.over .timeTaskMeter i { background: var(--color-warning); }

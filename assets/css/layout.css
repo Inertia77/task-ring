@@ -1,28 +1,40 @@
 .inertiaHeader {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, auto);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
   min-width: 0;
-  margin-bottom: 10px;
-  padding: 12px 14px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-panel);
   box-shadow: var(--shadow-panel);
 }
 .inertiaHeroBrand, .inertiaHeroCopy, .inertiaBrandRow, .inertiaToolbar, .globalToolbar { min-width: 0; }
-.inertiaHeroBrand { display: flex; align-items: center; gap: 11px; }
-.inertiaHeroMark { flex: 0 0 48px; width: 48px; padding: 7px; border-radius: 11px 3px 11px 3px; background: var(--color-ink); transform: rotate(-1deg); }
-.inertiaBrandRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.inertiaHeroBrand { display: flex; align-items: center; gap: 9px; }
+.inertiaHeroMark { flex: 0 0 42px; width: 42px; padding: 6px; border-radius: 11px 3px 11px 3px; background: var(--color-ink); transform: rotate(-1deg); }
+.inertiaBrandRow { display: flex; flex-wrap: wrap; gap: 5px; }
+.inertiaOwnerBadge, .inertiaVersionBadge { min-height: 22px; padding: 2px 8px; font-size: 10px; }
 .inertiaOwnerBadge { background: var(--color-primary); border-color: var(--color-ink); }
-.inertiaHeroTitle { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 1px; font-size: clamp(21px, 2.3vw, 28px); line-height: 1.08; }
+.inertiaHeroTitle { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; font-size: clamp(20px, 2.1vw, 26px); line-height: 1.06; }
 .inertiaTitleSlash { color: var(--color-primary-hover); }
 .inertiaTitleEn { color: var(--color-muted); }
-.inertiaSubtitle { margin: 0; overflow: hidden; color: var(--color-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.inertiaToolbar { display: grid; grid-template-columns: repeat(4, minmax(82px, auto)); gap: 5px; justify-content: end; }
-.inertiaToolbar > * { min-height: var(--tap-size); }
+.inertiaSubtitle { margin: 0; overflow: hidden; color: var(--color-muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.inertiaToolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+.inertiaToolbar::-webkit-scrollbar { display: none; }
+.headerLabelMobile { display: none; }
+.inertiaToolbar > * { flex: 0 0 auto; min-height: 36px; padding: 5px 9px; white-space: nowrap; }
 .viewDock {
   position: sticky;
   top: 8px;

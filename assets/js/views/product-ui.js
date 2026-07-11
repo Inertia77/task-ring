@@ -105,10 +105,10 @@
         </div>
       </div>
       <div class="dailyActions">
-        ${running?`<button type="button" class="timerNowChip" data-view-target="time">${active?.paused?"已暂停":"计时中"} <span data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</span></button>`:`<button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}">◷ 开始计时</button>`}
-        <button type="button" data-time-task-detail="${escapeHtml(t.id)}">时间账本</button>
-        ${url?`<a href="${url}" target="_blank" rel="noopener noreferrer">快速打开 ↗</a>`:`<button type="button" data-open-task-editor="${escapeHtml(t.id)}">更多操作</button>`}
-        <button type="button" data-edit-weekly-target="${escapeHtml(t.id)}">周目标 ${fmtMinutes(taskWeeklyMinutes(t))}</button>
+        ${running?`<button type="button" class="timerNowChip" data-view-target="time" title="打开正在计时的任务">${active?.paused?"已暂停":"计时中"} <span data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</span></button>`:`<button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}" title="开始计时：${title}">开始计时</button>`}
+        <button type="button" data-time-task-detail="${escapeHtml(t.id)}" title="查看时间账本">账本</button>
+        ${url?`<a href="${url}" target="_blank" rel="noopener noreferrer" title="快速打开：${title}">打开 ↗</a>`:`<button type="button" data-open-task-editor="${escapeHtml(t.id)}" title="打开更多操作">更多</button>`}
+        <button type="button" data-edit-weekly-target="${escapeHtml(t.id)}" title="编辑每周目标">目标 ${fmtMinutes(taskWeeklyMinutes(t))}</button>
       </div>
       ${dailySubtasks(t,dayId,cycle)}
     </article>`;
@@ -244,7 +244,7 @@
     const doneCount=tasks.filter(t=>weeklyTaskStatus(t).state==="done").length;
     const active=readActiveTimer();
     const activeHint=active?.kind==="task"?`<div class="weeklyActiveHint"><span>${active.paused?"PAUSED":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</em></div>`:"";
-    const summaries=rows.map(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;return `<div class="allocationChip" style="--w:${pct}%"><div><span>${escapeHtml(def.icon)}</span><b>${escapeHtml(def.short)}</b></div><em>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""} · 完成 ${row.done}/${row.count}</em><i></i></div>`}).join("");
+    const summaries=rows.map(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;return `<div class="allocationChip" style="--w:${pct}%"><div><b>${escapeHtml(def.short)}</b></div><em>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""} · 完成 ${row.done}/${row.count}</em><i></i></div>`}).join("");
     const overviewKey=detailKey("weekly-overview",cycleYmd);
     const overview=summaries?`<details class="weeklyOverview" data-ui-details-key="${escapeHtml(overviewKey)}"${openAttr(overviewKey,false)}><summary><div class="sectionSummary"><div class="sectionSummaryMain weeklyOverviewTitle"><b>每周池总统计</b><span>${rows.length} 个分类 · 投入 ${fmtMinutes(totalUsed)}${totalTarget?` / ${fmtMinutes(totalTarget)}`:""} · 完成 ${doneCount}/${tasks.length}</span></div><div class="weeklyOverviewToggle" aria-hidden="true"><span class="weeklyOverviewClosedLabel">展开</span><span class="weeklyOverviewOpenLabel">收起</span><span class="summaryChevron">⌄</span></div></div></summary><div class="weeklyOverviewBody"><div class="allocationRibbon">${summaries}</div></div></details>`:"";
     const groupCats=activeCategory==="all"?timeCategoryOrder:[activeCategory];

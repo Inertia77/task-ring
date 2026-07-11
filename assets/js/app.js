@@ -48,14 +48,14 @@ function slugifyId(s, fallback="custom"){
 
 /* === v11.0 Time Budget / Focus Timer helpers === */
 const timeCategoryDefs={
-  game:{name:"游戏",short:"游戏",icon:"GM",budget:720},
-  language:{name:"语言",short:"语言",icon:"LG",budget:360},
-  it_ai:{name:"IT / AI",short:"IT",icon:"AI",budget:360},
-  science:{name:"自然科学",short:"科学",icon:"SC",budget:180},
-  creator:{name:"创作 / 数据库",short:"创作",icon:"CR",budget:240},
-  body:{name:"身体 / 生活维护",short:"身体",icon:"BD",budget:180},
-  economy:{name:"经济 / 资产",short:"经济",icon:"FN",budget:240},
-  life:{name:"生活杂务",short:"生活",icon:"LF",budget:180}
+  game:{name:"游戏",short:"游戏",icon:"游",budget:720},
+  language:{name:"语言",short:"语言",icon:"语",budget:360},
+  it_ai:{name:"IT / AI",short:"IT",icon:"IT",budget:360},
+  science:{name:"自然科学",short:"科学",icon:"科",budget:180},
+  creator:{name:"创作 / 数据库",short:"创作",icon:"创",budget:240},
+  body:{name:"身体 / 生活维护",short:"身体",icon:"身",budget:180},
+  economy:{name:"经济 / 资产",short:"经济",icon:"经",budget:240},
+  life:{name:"生活杂务",short:"生活",icon:"生",budget:180}
 };
 const timeCategoryOrder=["game","language","it_ai","science","creator","body","economy","life"];
 function normalizeTimeCategory(v,fallback="life"){
@@ -1726,7 +1726,7 @@ function secondsSince(iso){if(!iso)return 0;const d=new Date(iso);if(Number.isNa
 function activeTimerElapsedSeconds(timer=readActiveTimer()){if(!timer)return 0;return Math.max(0,Math.floor(Number(timer.accumulated_seconds||0)+(timer.paused?0:secondsSince(timer.started_at))))}
 function fmtTimer(seconds){seconds=Math.max(0,Math.floor(seconds||0));const h=Math.floor(seconds/3600);const m=Math.floor((seconds%3600)/60);const s=seconds%60;return h?`${h}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`}
 function fmtMinutes(mins){mins=Math.round(Number(mins)||0);const h=Math.floor(mins/60);const m=mins%60;return h&&m?`${h}h ${m}m`:h?`${h}h`:`${m}m`}
-function timeCategoryLabel(cat){const c=timeCategoryDefs[normalizeTimeCategory(cat)]||timeCategoryDefs.life;return `${c.icon} ${c.short}`}
+function timeCategoryLabel(cat){const c=timeCategoryDefs[normalizeTimeCategory(cat)]||timeCategoryDefs.life;return c.short}
 function timeLogOperationalDate(log){const d=new Date(log.ended_at||log.created_at||Date.now());return getOperationalDate(d)}
 function isLogInCurrentCycle(log){const end=new Date(log.ended_at||log.created_at||0);return end>=cycleStart&&end<cycleEnd}
 function isLogToday(log){return ymd(timeLogOperationalDate(log))===ymd(operationalNow)}
@@ -2065,9 +2065,9 @@ function renderTimePanel(){
   const overviewRows=timeCategoryOrder.map(k=>{
     const def=timeCategoryDefs[k];
     const used=week[k]||0;
-    const pct=Math.min(160,Math.round(used/def.budget*100));
+    const sharePct=totalWeek?used/totalWeek*100:0;
     const over=used>def.budget;
-    return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} / ${fmtMinutes(def.budget)}"><div class="timeBudgetLabel"><span>${def.icon}</span><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${Math.min(100,pct)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
+    return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel"><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
   }).join("");
   const taskRows=(taskConfig?.tasks||[]).filter(t=>t.enabled!==false).slice().sort((a,b)=>{
     const au=taskWeekMinutesUsed(a.id),bu=taskWeekMinutesUsed(b.id);
@@ -2081,7 +2081,7 @@ function renderTimePanel(){
     return `<div class="timeTaskRow ${over?"over":""}"><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div><label class="timeTargetEdit"><span>周目标</span><input type="number" min="0" max="10080" step="5" value="${target}" data-time-target-task="${escapeHtml(t.id)}"></label></div>`;
   }).join("");
   const logRows=readTimeLogs().slice().sort(timeLogSortDesc).slice(0,60).map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>暂无时间记录</b><span>点任务或游戏作战区开始计时</span></div><strong>0m</strong></li>`;
-  const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].icon} ${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
+  const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
   const taskRanks=weekTaskTotals().slice(0,6).map(row=>{
     const task=taskById(row.task_id);
     const target=task?taskWeeklyMinutes(task):0;
@@ -2411,7 +2411,7 @@ function gameQuestCardHtml(entry,dayId){
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 今日清理完成" data-gq-card-btn="1" data-gamequest-game="${escapeHtml(g.id)}" data-gamequest-day="${dayId}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
-      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
+      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,1))}</span>
       <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${next?`下一步：${escapeHtml(next.title)}`:"✓ 今日项目已完成"}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
@@ -2430,7 +2430,7 @@ function gameQuestWeeklyCardHtml(entry){
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 本周任务完成" data-gq-weekly-card-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
-      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
+      <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,1))}</span>
       <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${next?`下一步：${escapeHtml(next.title)}`:"✓ 本周项目已完成"}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
@@ -2951,9 +2951,16 @@ document.body.addEventListener("click",e=>{const viewBtn=e.target.closest("[data
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!document.getElementById("gameQuestEditorModal")?.classList.contains("hidden"))closeGameQuestEditor();else if(!document.getElementById("taskEditorModal")?.classList.contains("hidden"))closeTaskEditor();else if(!document.getElementById("refEditorModal")?.classList.contains("hidden"))closeRefEditor();else if(!document.getElementById("ghModal")?.classList.contains("hidden"))closeGhModal();else if(!document.getElementById("timeDetailModal")?.classList.contains("hidden"))closeTimeDetailModal();else closeSubtaskPopover();});
 function resetCurrentWeek(){if(!confirm("确认重置本周全部勾选？"))return;syncRemoveCycle(cycleYmd);renderAll()}
 const todayLabel=document.getElementById("todayLabel");
-if(todayLabel)todayLabel.textContent=urlDateOverride?`查看：${ymd(operationalNow)} ${dayName(today)}`:`今天：${dayName(today)}`;
+if(todayLabel){
+  const fullToday=urlDateOverride?`查看：${ymd(operationalNow)} ${dayName(today)}`:`今天：${dayName(today)}`;
+  const compactToday=urlDateOverride?`${operationalNow.getMonth()+1}/${operationalNow.getDate()}·${dayName(today)}`:`今·${dayName(today)}`;
+  todayLabel.innerHTML=`<span class="headerLabelDesktop">${fullToday}</span><span class="headerLabelMobile">${compactToday}</span>`;
+}
 const cycleLabel=document.getElementById("cycleLabel");
-if(cycleLabel)cycleLabel.textContent=`周期：${ymd(cycleStart)} ～ ${ymd(cycleEnd)}`;
+if(cycleLabel){
+  const compactCycle=`${cycleStart.getMonth()+1}/${cycleStart.getDate()}–${cycleEnd.getMonth()+1}/${cycleEnd.getDate()}`;
+  cycleLabel.innerHTML=`<span class="headerLabelDesktop">周期：${ymd(cycleStart)} ～ ${ymd(cycleEnd)}</span><span class="headerLabelMobile">${compactCycle}</span>`;
+}
 const returnTodayBtn=document.getElementById("returnTodayBtn");
 if(returnTodayBtn){
   returnTodayBtn.hidden=!urlDateOverride;

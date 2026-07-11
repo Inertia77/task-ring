@@ -15,7 +15,7 @@
   function rowStatus(t){
     const mode=taskPlanningMode(t);
     const cat=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
-    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge">${cat.icon} ${escapeHtml(cat.short)}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
+    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge">${escapeHtml(cat.short)}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
   }
   window.taskEditorRowHtml=function(t){
     const stepCodes=(t.steps||[]).map(s=>s.code||"");
@@ -35,7 +35,7 @@
           <div class="cfgField wide"><label>任务名</label><input class="cfgTitle" value="${cfgEsc(t.title)}"></div>
           <div class="cfgField"><label>分类</label><select class="cfgCat"><option value="life" ${t.cat==="life"?"selected":""}>生活&经济</option><option value="gamecreate" ${t.cat==="gamecreate"?"selected":""}>游戏&创作</option><option value="language" ${t.cat==="language"?"selected":""}>语言&学习</option></select></div>
           <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务是否进入今日执行环，还是只在周计划池按时间推进">${taskPlanModeOrder.map(k=>`<option value="${k}" ${taskPlanningMode(t)===k?"selected":""}>${taskPlanModeDefs[k].name}</option>`).join("")}</select></div>
-          <div class="cfgField"><label>时间分类</label><select class="cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].icon} ${timeCategoryDefs[k].name}</option>`).join("")}</select></div>
+          <div class="cfgField"><label>时间分类</label><select class="cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].name}</option>`).join("")}</select></div>
           <div class="cfgField"><label>预计分钟/次</label><input class="cfgEstimatedMinutes" type="number" min="1" max="480" step="5" value="${taskEstimatedMinutes(t)}"></div>
           <div class="cfgField"><label>每周目标分钟</label><input class="cfgWeeklyMinutes" type="number" min="0" max="10080" step="5" value="${taskWeeklyMinutes(t)}" title="用于任务行显示 本周已用 / 每周目标；填 0 表示不设目标"></div>
           <div class="cfgField wide"><label>链接 URL</label><input class="cfgUrl" value="${cfgEsc(t.url||"")}" placeholder="https://..."></div>

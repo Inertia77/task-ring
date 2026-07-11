@@ -22,9 +22,9 @@
     const overviewRows=timeCategoryOrder.map(k=>{
       const def=timeCategoryDefs[k];
       const used=week[k]||0;
-      const pct=Math.min(160,Math.round(used/def.budget*100));
+      const sharePct=totalWeek?used/totalWeek*100:0;
       const over=used>def.budget;
-      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} / ${fmtMinutes(def.budget)}"><div class="timeBudgetLabel"><span>${def.icon}</span><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${Math.min(100,pct)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
+      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel"><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
     }).join("");
     const activeGameMinutes=active&&active.kind==="gamequest"?Math.max(1,Math.round(activeTimerElapsedSeconds(active)/60)):0;
     const gameWeek=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")&&isLogInCurrentCycle(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeGameMinutes;
@@ -42,7 +42,7 @@
       return `<div class="timeTaskRow ${over?"over":""}"><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div>${targetButton(t.id,target)}</div>`;
     }).join("");
     const logRows=readTimeLogs().slice().sort(timeLogSortDesc).slice(0,60).map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>暂无时间记录</b><span>点任务或游戏作战区开始计时</span></div><strong>0m</strong></li>`;
-    const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].icon} ${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
+    const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
     const taskRanks=weekTaskTotals().slice(0,6).map(row=>{
       const task=taskById(row.task_id);
       const target=task?taskWeeklyMinutes(task):0;
