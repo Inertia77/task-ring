@@ -131,9 +131,17 @@
   .refSummaryIcon { width: 38px; height: 38px; }
   .refExpandAllBtn { display: none; }
   .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; padding: 0 5px 5px; }
-  .refItem { grid-template-columns: 18px minmax(0,1fr) var(--tap-size); min-height: 54px; padding: 4px; }
+  .refItem { grid-template-columns: 18px minmax(0,1fr) var(--tap-size); gap: 4px; min-height: 54px; padding: 4px; }
   .refItemNo { font-size: 10px; }
-  .refItemCopy strong { font-size: 12px; }
+  .refItemCopy strong {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.3;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
   .refItemCopy > span { font-size: 9px; }
   .libraryToolbar { grid-template-columns: minmax(0,1fr) auto; }
   .libraryToolbar label { grid-column: 1/-1; }
