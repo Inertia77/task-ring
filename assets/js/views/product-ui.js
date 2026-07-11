@@ -330,11 +330,13 @@
     }).join("");
     grid.innerHTML=toolbar+(html||'<div class="refEmpty"><strong>资料库暂无启用分组</strong><span>打开资料库编辑器新增第一个分组。</span><button type="button" data-open-ref-editor="1">新增资料</button></div>');
     filterLibrary(libraryQuery);
+    window.syncRefGroupToggleButton?.();
   };
   function filterLibrary(query){
     const q=String(query||"").trim().toLowerCase();
     document.querySelectorAll("[data-library-card]").forEach(card=>{card.hidden=!!q&&!String(card.dataset.libraryText||"").includes(q)});
     document.querySelectorAll("[data-library-group]").forEach(group=>{const visible=[...group.querySelectorAll("[data-library-card]")].some(card=>!card.hidden);group.hidden=!!q&&!visible;if(q&&visible)group.open=true});
+    window.syncRefGroupToggleButton?.();
   }
 
   function enhanceDetails(root=document){
@@ -368,7 +370,10 @@
     const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open));
     const key=details.dataset.uiDetailsKey;
     if(key){disclosureState[key]=details.open;saveDisclosure()}
-    if(details.matches("[data-library-group]")&&details.open)localStorage.setItem(LIBRARY_LAST_GROUP_KEY,details.dataset.libraryGroup||"");
+    if(details.matches("[data-library-group]")){
+      if(details.open)localStorage.setItem(LIBRARY_LAST_GROUP_KEY,details.dataset.libraryGroup||"");
+      requestAnimationFrame(()=>window.syncRefGroupToggleButton?.());
+    }
   },true);
   document.body.addEventListener("click",event=>{
     const weeklyTab=event.target.closest("[data-weekly-category-tab]");

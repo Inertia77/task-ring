@@ -103,7 +103,7 @@
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
-<details class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library" open><summary><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。现在独立成页，不再挤主任务区。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" title="打开资料库并展开所有分组">全部展开</button></summary><div class="refGrid" id="refGrid"></div></details>
+<section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
 <div class="notice versionNote viewPanel active" data-view-panel="tasks"><strong>界面说明：</strong>冷灰白背景、石墨结构色与单一黄色焦点。重要状态同时使用文字、边框和图形表达。</div>
 <div class="commandMotto viewPanel" data-view-panel="library"><span>TR / NOTE</span><p>Avance avec intention — chaque petite victoire construit la suivante.</p></div>
@@ -231,6 +231,6 @@
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20260711.5"></script>
 <script src="assets/js/views/editor-ux.js?v=20260711.5"></script>
-<script src="assets/js/views/product-ui.js?v=20260711.5"></script>
+<script src="assets/js/views/product-ui.js?v=20260711.6"></script>
 </body>
 </html>

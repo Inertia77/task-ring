@@ -1,5 +1,5 @@
 .refBox { border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: visible; }
-.refBox > summary { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 8px 12px; }
+.refBoxHeader { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 8px 12px; }
 .refSummaryIcon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: var(--color-primary); font-weight: 850; }
 .refSummaryText { flex: 1 1 auto; min-width: 0; }
 .refSummaryTitle { display: block; font-size: var(--section-title); font-weight: 800; }
@@ -28,6 +28,7 @@
 .libraryToolbar label { font-weight: 750; }
 .libraryToolbar input { min-height: var(--tap-size); padding: 8px 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: white; }
 .libraryToolbar button { min-height: var(--tap-size); padding: 8px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); font-weight: 750; }
+.refExpandAllBtn { flex: 0 0 auto; min-width: 92px; white-space: nowrap; }
 .dailyReminder { padding: 16px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
 .dailyReminderTop { display: flex; align-items: center; gap: 10px; }
 .dailyIcon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; background: var(--color-panel-soft); font-size: 22px; }

@@ -134,9 +134,9 @@
   .timerFloatActions { grid-column: 1/-1; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
   .timerFloatActions button { min-width: 0; }
   .refBox { margin-bottom: 8px; }
-  .refBox > summary { align-items: center; min-height: 54px; padding: 6px 8px; }
+  .refBoxHeader { align-items: center; min-height: 54px; padding: 6px 8px; }
   .refSummaryIcon { width: 38px; height: 38px; }
-  .refExpandAllBtn { display: none; }
+  .refExpandAllBtn { display: inline-flex; align-items: center; justify-content: center; min-width: 78px; min-height: 36px; padding: 5px 8px; font-size: 11px; }
   .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; padding: 0 4px 4px; }
   .refItem { grid-template-columns: 16px minmax(0,1fr) 34px; gap: 4px; min-height: 48px; padding: 4px 5px; }
   .refItemNo { font-size: 9.5px; }
