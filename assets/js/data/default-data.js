@@ -1,78 +1,230 @@
-// Static default data extracted from the old single-file index.html.
-// 任务、参考链接、随机完成演出角色，都从这里维护。
+// Privacy-safe public demo data.
+// 这里只维护用于展示 TaskRing 功能的通用示例，不得放入真实个人任务、私人链接或账号资料。
 
-const days=[{id:1,name:"月"},{id:2,name:"火"},{id:3,name:"水"},{id:4,name:"木"},{id:5,name:"金"},{id:6,name:"土"},{id:0,name:"日"}];
+const days=[
+  {id:1,name:"月"},{id:2,name:"火"},{id:3,name:"水"},
+  {id:4,name:"木"},{id:5,name:"金"},{id:6,name:"土"},{id:0,name:"日"}
+];
 
 const defaultBlocks=[
-{id:"base-body",cat:"life",title:"*体食顔姿*",days:[1,2,3,4,5,6,0],url:"https://app.notion.com/p/3335adb3775e802eb9d3d0e08e888bfe",core:1},
-{id:"life-chores",cat:"life",title:"*生活雑務*（可选）",days:[1,2,3],url:"https://www.notion.so/3335adb3775e80829167d154910e2ba5",optional:1},
-{id:"plan-trip",cat:"life",title:"Plan 出かけ/旅（可选）",days:[4,5],url:"https://www.notion.so/3335adb3775e809e8a08d9ed44a712ce",optional:1},
-{id:"econ-strategy",cat:"life",title:"経済の$戦略$管理$執行",days:[6,0],url:"https://docs.google.com/spreadsheets/d/1yKZ5a1cRNF8L4VvcX2Rlu18TTxh5GaM_0MhSzKyO9yw/edit?gid=654071664#gid=654071664",important:1},
-{id:"creator-work",cat:"gamecreate",title:"クリエイターワーク",days:[1,2,3,4,5,6,0],url:"https://app.notion.com/p/3335adb3775e8043970fe14aa8fc2d77",important:1},
-{id:"ww-weekly",cat:"gamecreate",title:"鸣潮 周常",days:[1]},
-{id:"zzz-weekly",cat:"gamecreate",title:"绝区零 周常",days:[2]},
-{id:"hsr-weekly",cat:"gamecreate",title:"崩铁 周常",days:[3]},
-{id:"exilium-weekly",cat:"gamecreate",title:"异环 周常",days:[4]},
-{id:"endfield-weekly",cat:"gamecreate",title:"终末地 周常",days:[5]},
-{id:"zzz-endgame",cat:"gamecreate",title:"绝 式舆/危局 ➡️ 鏖战/临界",days:[6],url:"https://act.hoyolab.com/app/zzz-game-record/index.html?hyl_presentation_style=fullscreen&utm_campaign=battlechronicle&utm_id=8&utm_medium=tools&utm_source=hoyolab&lang=ja-jp&bbs_theme=light&bbs_theme_device=1#/zzz",important:1},
-{id:"ww-endgame",cat:"gamecreate",title:"鸣 深塔/海墟 ➡️ 全息/矩阵",days:[0],important:1},
-{id:"game-daily",cat:"gamecreate",title:"游戏日常",days:[1,2,3,4,5,6,0],core:1},
-{id:"task-gu",cat:"gamecreate",title:"Task(G/U)（可选）",days:[1,2,3,4],url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=568018786#gid=568018786",optional:1},
-{id:"game-info",cat:"gamecreate",title:"游戏资讯整理",days:[5],url:"https://www.notion.so/Info-AI-3335adb3775e8099be17f0234cc01153"},
-{id:"analyze-character",cat:"gamecreate",title:"Analyze_Character",days:[6,0],url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1803995989#gid=1803995989"},
-{id:"french",cat:"language",title:"La Langue Française",days:[1,2,3,4,5,6,0],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1220912483#gid=1220912483",important:1},
-{id:"english",cat:"language",title:"English",days:[1],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1220912483#gid=1220912483"},
-{id:"japanese",cat:"language",title:"日本語",days:[2],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1220912483#gid=1220912483"},
-{id:"it-tech",cat:"language",title:"IT&技术（可选）",days:[3],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1501399326#gid=1501399326",optional:1},
-{id:"math-science",cat:"language",title:"数学&自然科学（可选）",days:[4],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1796228574#gid=1796228574",optional:1},
-{id:"spanish",cat:"language",title:"El Español",days:[5,6,0],url:"https://docs.google.com/spreadsheets/d/1yealrF3KlyS_2OAzYdGAo_O6ifJIK5l0M1K2_BZ9e-8/edit?gid=1220912483#gid=1220912483"}
+  {
+    id:"demo-morning-start",
+    cat:"life",
+    title:"晨间启动（演示）",
+    days:[1,2,3,4,5,6,0],
+    url:"",
+    core:1,
+    plan_mode:"daily",
+    time_category:"life",
+    estimated_minutes:20,
+    weekly_minutes:120
+  },
+  {
+    id:"demo-home-reset",
+    cat:"life",
+    title:"居家整理（演示）",
+    days:[1,3,5],
+    url:"",
+    optional:1,
+    plan_mode:"daily",
+    time_category:"life",
+    estimated_minutes:25,
+    weekly_minutes:60
+  },
+  {
+    id:"demo-weekly-review",
+    cat:"life",
+    title:"每周复盘与下周计划（演示）",
+    days:[0],
+    url:"",
+    important:1,
+    plan_mode:"weekly",
+    time_category:"life",
+    estimated_minutes:45,
+    weekly_minutes:45
+  },
+  {
+    id:"demo-creator-session",
+    cat:"gamecreate",
+    title:"创作推进（演示）",
+    days:[2,4,6],
+    url:"https://example.com/",
+    important:1,
+    plan_mode:"daily",
+    time_category:"create",
+    estimated_minutes:60,
+    weekly_minutes:180
+  },
+  {
+    id:"demo-game-daily",
+    cat:"gamecreate",
+    title:"示例游戏日常（演示）",
+    days:[1,2,3,4,5,6,0],
+    url:"",
+    core:1,
+    plan_mode:"daily",
+    time_category:"game",
+    estimated_minutes:30,
+    weekly_minutes:180
+  },
+  {
+    id:"demo-game-weekly",
+    cat:"gamecreate",
+    title:"示例游戏周目标（演示）",
+    days:[6],
+    url:"",
+    plan_mode:"weekly",
+    time_category:"game",
+    estimated_minutes:90,
+    weekly_minutes:120
+  },
+  {
+    id:"demo-language-practice",
+    cat:"language",
+    title:"语言练习（演示）",
+    days:[1,2,3,4,5],
+    url:"https://www.wikipedia.org/",
+    important:1,
+    plan_mode:"daily",
+    time_category:"language",
+    estimated_minutes:30,
+    weekly_minutes:150
+  },
+  {
+    id:"demo-reading-notes",
+    cat:"language",
+    title:"阅读与笔记（演示）",
+    days:[3,0],
+    url:"",
+    plan_mode:"daily",
+    time_category:"science",
+    estimated_minutes:40,
+    weekly_minutes:80
+  },
+  {
+    id:"demo-tech-learning",
+    cat:"language",
+    title:"Web 技术学习（演示）",
+    days:[6],
+    url:"https://developer.mozilla.org/",
+    optional:1,
+    plan_mode:"weekly",
+    time_category:"it",
+    estimated_minutes:60,
+    weekly_minutes:90
+  }
 ];
 
-const defaultStepTasks={"base-body":[{id:"sport",title:"体育"},{id:"skincare",title:"护肤"},{id:"sleep",title:"睡眠"}],"game-daily":[{id:"app-signin",title:"APP签到"},{id:"ww",title:"鸣潮"},{id:"zzz",title:"绝区零"},{id:"hsr",title:"崩铁"},{id:"endfield",title:"终末地"},{id:"exilium",title:"异环"}]};
+const defaultStepTasks={
+  "demo-morning-start":[
+    {id:"demo-water",title:"补充水分"},
+    {id:"demo-plan",title:"确认今日重点"},
+    {id:"demo-desk",title:"整理工作区"}
+  ],
+  "demo-game-daily":[
+    {id:"demo-signin",title:"每日签到"},
+    {id:"demo-energy",title:"清理体力"},
+    {id:"demo-mission",title:"完成每日任务"}
+  ],
+  "demo-creator-session":[
+    {id:"demo-outline",title:"确认本次目标"},
+    {id:"demo-create",title:"完成一个可交付成果"},
+    {id:"demo-review",title:"记录下一步"}
+  ]
+};
 
 const defaultRefGroups=[
-  {id:"irregular",title:"不定期执行",enabled:true,items:[
-    {id:"onsen",title:"♨ 温泉",url:"",enabled:true},
-    {id:"massage",title:"Massage",url:"",enabled:true},
-    {id:"femme-sex",title:"Femme&Sex",url:"https://www.notion.so/FFEMMES-21a5adb3775e80968b12c8c5d49f099e",enabled:true},
-    {id:"inertia-1",title:"INERTIA【1】整理",url:"https://docs.google.com/spreadsheets/d/18azCCIFNnTxG8WSAqt0_sWBCCRN0MOnl3BLry1Ksk2k/edit?gid=399063841#gid=399063841",enabled:true},
-    {id:"analyze-party",title:"Analyze_Party",url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=1620273436#gid=1620273436",enabled:true},
-    {id:"life-plan-chatgpt",title:"人生规划谈话（ChatGPT）",url:"https://chatgpt.com/c/6a05f229-2a64-83a4-9284-64b95943595d",enabled:true}
-  ]},
-  {id:"monthly",title:"MOIS / 月度",enabled:true,items:[
-    {id:"life-admin",title:"生活雑務管理",url:"https://www.notion.so/3335adb3775e80bf864dc08fe7ec4d90",enabled:true},
-    {id:"econ-admin",title:"経済雑務管理",url:"https://www.notion.so/3335adb3775e80338306dc606f9f2d1f",enabled:true}
-  ]},
-  {id:"yearly",title:"AN / 年度",enabled:true,items:[
-    {id:"yearly-placeholder",title:"年度任务入口：暂未设置链接",url:"",enabled:true}
-  ]},
-  {id:"aux",title:"辅助入口",enabled:true,items:[
-    {id:"taskring-html",title:"任务环HTML（辅助用）",url:"https://drive.google.com/drive/folders/1JU4TttQNilzFJdL3WpCppTscHqqHP-Nx",enabled:true}
-  ]}
+  {
+    id:"demo-getting-started",
+    title:"开始使用",
+    enabled:true,
+    items:[
+      {id:"demo-help",title:"TaskRing 功能演示说明",url:"",enabled:true},
+      {id:"demo-example-link",title:"示例公开链接",url:"https://example.com/",enabled:true},
+      {id:"demo-note",title:"无链接资料也可以作为普通备注",url:"",enabled:true}
+    ]
+  },
+  {
+    id:"demo-learning",
+    title:"公开学习资料",
+    enabled:true,
+    items:[
+      {id:"demo-mdn",title:"MDN Web Docs",url:"https://developer.mozilla.org/",enabled:true},
+      {id:"demo-wikipedia",title:"Wikipedia",url:"https://www.wikipedia.org/",enabled:true}
+    ]
+  },
+  {
+    id:"demo-tools",
+    title:"公开工具入口",
+    enabled:true,
+    items:[
+      {id:"demo-calendar",title:"Google Calendar",url:"https://calendar.google.com/",enabled:true},
+      {id:"demo-todo",title:"Microsoft To Do",url:"https://to-do.office.com/tasks/",enabled:true}
+    ]
+  },
+  {
+    id:"demo-archive",
+    title:"归档示例",
+    enabled:true,
+    items:[
+      {id:"demo-archive-note",title:"这里可以放不常用但需要保留的入口",url:"",enabled:true}
+    ]
+  }
 ];
-
 
 const defaultGameQuestConfig={
   version:1,
   updatedAt:"",
   games:[
-    {id:"ww",name:"鸣潮",short:"鸣潮",icon:"WW",accent:"cyan",enabled:true},
-    {id:"zzz",name:"绝区零",short:"绝区零",icon:"ZZ",accent:"amber",enabled:true},
-    {id:"hsr",name:"崩坏：星穹铁道",short:"崩铁",icon:"SR",accent:"violet",enabled:true},
-    {id:"endfield",name:"终末地",short:"终末地",icon:"EF",accent:"blue",enabled:true},
-    {id:"exilium",name:"异环",short:"异环",icon:"EX",accent:"rose",enabled:true}
+    {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true},
+    {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true},
+    {id:"demo-game-c",name:"示例游戏 C",short:"游戏 C",icon:"C",accent:"violet",enabled:true}
   ],
   schedule:{
-    "1":{ww:["日常体力","周常清理"],zzz:["日常 / 咖啡 / 刮刮乐"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
-    "2":{ww:["日常体力"],zzz:["日常","绝区零周常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
-    "3":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托","崩铁周常"],endfield:["资料关注"],exilium:["资讯关注"]},
-    "4":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["资料关注"],exilium:["异环周常 / 资讯"]},
-    "5":{ww:["日常体力"],zzz:["日常"],hsr:["日常委托"],endfield:["终末地周常 / 资讯"],exilium:["资讯关注"]},
-    "6":{ww:["日常体力"],zzz:["日常","式舆/危局/鏖战"],hsr:["日常委托"],endfield:["资料关注"],exilium:["资讯关注"]},
-    "0":{ww:["日常体力","深塔/海墟/全息"],zzz:["日常"],hsr:["日常委托","模拟宇宙/末日/虚构检查"],endfield:["资料关注"],exilium:["资讯关注"]}
+    "1":{
+      "demo-game-a":["每日签到","体力清理"],
+      "demo-game-b":["每日任务"],
+      "demo-game-c":["资源收集"]
+    },
+    "2":{
+      "demo-game-a":["每日签到"],
+      "demo-game-b":["每日任务","活动检查"],
+      "demo-game-c":["资源收集"]
+    },
+    "3":{
+      "demo-game-a":["体力清理"],
+      "demo-game-b":["每日任务"],
+      "demo-game-c":["资源收集","周中检查"]
+    },
+    "4":{
+      "demo-game-a":["每日签到"],
+      "demo-game-b":["每日任务"],
+      "demo-game-c":["资源收集"]
+    },
+    "5":{
+      "demo-game-a":["体力清理"],
+      "demo-game-b":["每日任务","活动检查"],
+      "demo-game-c":["资源收集"]
+    },
+    "6":{
+      "demo-game-a":["每日签到","周任务整理"],
+      "demo-game-b":["每日任务"],
+      "demo-game-c":["资源收集"]
+    },
+    "0":{
+      "demo-game-a":["体力清理"],
+      "demo-game-b":["每日任务","周任务整理"],
+      "demo-game-c":["资源收集","下周准备"]
+    }
+  },
+  weekly:{
+    "demo-game-a":["完成一个周挑战","检查活动期限"],
+    "demo-game-b":["完成周任务"],
+    "demo-game-c":["整理本周资源"]
   }
 };
 
+// 完成演出使用的本地静态资源，不含用户配置或私人信息。
 const RANDOM_CUTIN_CHARACTERS = [
   {key:"richie",name:"Richie",title:"RICHIE POP",sub:"行动节点已确认",img:"assets/images/cutins/cutin-richie.png",accent:"#ff8ec9"},
   {key:"nanally",name:"Nanally",title:"NANALLY SNAP",sub:"任务清单已推进",img:"assets/images/cutins/cutin-nanally.png",accent:"#cf4035"},
