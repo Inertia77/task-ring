@@ -73,4 +73,21 @@ const defaultGameQuestConfig={
   }
 };
 
-const RANDOM_CUTIN_CHARACTERS = [];
+const RANDOM_CUTIN_CHARACTERS = [
+  {key:"richie",name:"Richie",title:"RICHIE POP",sub:"行动节点已确认",img:"assets/images/cutins/cutin-richie.png",accent:"#ff8ec9"},
+  {key:"nanally",name:"Nanally",title:"NANALLY SNAP",sub:"任务清单已推进",img:"assets/images/cutins/cutin-nanally.png",accent:"#cf4035"},
+  {key:"chiz",name:"Chiz",title:"CHIZ CHECK",sub:"执行结果已入账",img:"assets/images/cutins/cutin-chiz.png",accent:"#d7ad16"},
+  {key:"cyrene",name:"Cyrene",title:"CYRENE BLOOM",sub:"完成信号已同步",img:"assets/images/cutins/cutin-cyrene.png",accent:"#c65aa6"},
+  {key:"castorice",name:"Castorice",title:"CASTORICE WING",sub:"阶段目标已完成",img:"assets/images/cutins/cutin-castorice.png",accent:"#7655a5"},
+  {key:"cantarella",name:"Cantarella",title:"CANTARELLA DREAM",sub:"任务状态已更新",img:"assets/images/cutins/cutin-cantarella.png",accent:"#7c62a8"},
+  {key:"changli",name:"Changli",title:"CHANGLI FLAME",sub:"策略节点已落子",img:"assets/images/cutins/cutin-changli.png",accent:"#c74b32"},
+  {key:"phoebe",name:"Phoebe",title:"PHOEBE LUX",sub:"目标进度已确认",img:"assets/images/cutins/cutin-phoebe.png",accent:"#c49b25"},
+  {key:"ellen",name:"Ellen Joe",title:"ELLEN SLASH",sub:"清理动作已完成",img:"assets/images/cutins/cutin-ellen.png",accent:"#36435e"},
+  {key:"arlecchino",name:"Arlecchino",title:"FATHER DECREE",sub:"指令执行完毕",img:"assets/images/cutins/cutin-arlecchino.png",accent:"#a72732"},
+  {key:"camellya",name:"Camellya",title:"CAMELLYA BLOOM",sub:"推进节点已完成",img:"assets/images/cutins/cutin-camellya.png",accent:"#b9324e"},
+  {key:"burnice",name:"Burnice",title:"BURNICE NITRO",sub:"行动热量已结算",img:"assets/images/cutins/cutin-burnice.png",accent:"#d16b22"},
+  {key:"roccia",name:"Roccia",title:"ROCCIA STAGE",sub:"本轮演出已收束",img:"assets/images/cutins/cutin-roccia.png",accent:"#3e3a51"},
+  {key:"cartethyia",name:"Cartethyia",title:"CARTETHYIA GALE",sub:"作战目标已清除",img:"assets/images/cutins/cutin-cartethyia.png",accent:"#b3333c"},
+  {key:"yixuan",name:"Yixuan",title:"YIXUAN INK",sub:"执行回路已闭合",img:"assets/images/cutins/cutin-yixuan.png",accent:"#263743"},
+  {key:"astra",name:"Astra Yao",title:"ASTRA SPOTLIGHT",sub:"完成信号已点亮",img:"assets/images/cutins/cutin-astra.png",accent:"#9a5d98"}
+];

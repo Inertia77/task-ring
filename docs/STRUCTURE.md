@@ -7,9 +7,10 @@
 1. `assets/css/main.css`
 2. `assets/js/data/default-data.js`
 3. `assets/js/app.js`
-4. `assets/js/views/time-ledger-view.js`
-5. `assets/js/views/editor-ux.js`
-6. `assets/js/views/product-ui.js`
+4. `assets/js/views/completion-effects.js`
+5. `assets/js/views/time-ledger-view.js`
+6. `assets/js/views/editor-ux.js`
+7. `assets/js/views/product-ui.js`
 
 `product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`。旧版 v20/v21 boot 链已移除。
 
@@ -29,7 +30,8 @@
 | 8 | `time.css` | 时间账本、计时状态和浮动操作 |
 | 9 | `library.css` | 资料分组、搜索和资料卡 |
 | 10 | `editors.css` | Dialog、编辑器、固定保存操作 |
-| 11 | `responsive.css` | 1024/700/359px 响应式策略 |
+| 11 | `effects.css` | 完成反馈、Cut-in、粒子、队列视觉与 reduced-motion 降级 |
+| 12 | `responsive.css` | 1024/700/359px 响应式策略 |
 
 正式样式层不使用 `!important`。
 
@@ -37,6 +39,7 @@
 
 - `default-data.js`：内置任务、资料库和游戏配置。
 - `app.js`：配置标准化、本地状态、软锁、Gist、时间日志、业务操作和编辑器数据收集。
+- `completion-effects.js`：分级完成演出、角色预加载、随机去重、队列节流与 DOM 清理。
 - `product-ui.js`：今日、周计划、游戏、资料库渲染；展开状态；筛选恢复；Dialog 和表单可访问性。
 - `time-ledger-view.js`：时间账本正式渲染。
 - `editor-ux.js`：任务编辑器筛选、折叠任务配置和周目标编辑。
@@ -57,11 +60,12 @@ index.html
 ├─ assets/icons/favicon.svg
 ├─ assets/icons/favicon.png
 ├─ assets/css/main.css
-│  └─ 11 个职责 CSS（无图片 url()）
-└─ 5 个 JavaScript 文件
+│  └─ 12 个职责 CSS（无图片 url()）
+├─ assets/images/cutins/（16 张本地角色图）
+└─ 6 个 JavaScript 文件
    ├─ 内置数据
    ├─ 核心业务
-   └─ 3 个视图模块
+   └─ 4 个视图模块
 ```
 
-当前运行时不动态加载本地图片、字体、JSON、CSS 或额外 JavaScript。
+运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。

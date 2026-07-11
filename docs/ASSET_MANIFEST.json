@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "updatedAt": "2026-07-10",
+  "version": 4,
+  "updatedAt": "2026-07-11",
   "runtimeAssets": [
     {
       "file": "assets/icons/favicon.svg",
@@ -14,11 +14,18 @@
     }
   ],
   "cssUrlAssets": [],
-  "javascriptDynamicAssets": [],
+  "javascriptDynamicAssets": [
+    {
+      "path": "assets/images/cutins/",
+      "files": 16,
+      "source": "assets/js/data/default-data.js + assets/js/views/completion-effects.js",
+      "usage": "任务、父任务、游戏大卡与每日全清的随机角色 Cut-in；使用相对路径并提供文字降级"
+    }
+  ],
   "unusedRetained": [
     {
-      "path": "assets/images/",
-      "reason": "运行时已无引用；本轮删除操作被环境安全审查额度限制拦截，未通过替代手段绕过。"
+      "path": "assets/images/css/",
+      "reason": "历史主题图片不在当前正式 CSS 链中；为避免误删已有素材而保留。"
     }
   ],
   "localOnlyData": [

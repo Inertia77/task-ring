@@ -1,25 +1,28 @@
-.taskRingControlPanel { position: relative; padding: 18px; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); }
-.taskRingControlHead { display: flex; flex-wrap: wrap; align-items: start; gap: 12px; }
+.taskRingControlPanel { position: relative; grid-template-columns: minmax(180px,.72fr) minmax(320px,1fr) minmax(360px,1.5fr); grid-template-areas: "head actions status" "progress progress progress"; gap: 7px 10px; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.taskRingControlPanel.active { display: grid; }
+.taskRingControlHead { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .taskRingControlHead > div:first-child { flex: 1 1 280px; }
-.taskRingControlHead span, .taskFirstKicker { color: var(--color-warning); font-size: 12px; font-weight: 800; letter-spacing: .12em; }
-.taskRingControlHead strong { display: block; font-size: var(--section-title); }
-.taskRingModeText { padding: 6px 10px; border-radius: 999px; background: var(--color-panel-soft); color: var(--color-muted); font-size: 12px; font-weight: 700; }
-.taskRingActionRow { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.progress-wrap { padding: 10px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
+.taskRingControlHead span, .taskFirstKicker { color: var(--color-warning); font-size: 10px; font-weight: 850; letter-spacing: .14em; }
+.taskRingControlHead strong { display: block; font-size: 18px; line-height: 1.1; }
+.taskRingModeText { padding: 3px 6px; border: 1px solid var(--color-line); border-radius: 4px; background: var(--color-panel-soft); color: var(--color-muted); font-size: 10px; font-weight: 700; }
+.taskRingActionRow { grid-area: actions; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; margin: 0; }
+.taskRingActionRow button { min-width: 0; min-height: var(--tap-size); padding-inline: 5px; font-size: 11px; }
+.dailyStatusHost { grid-area: status; min-width: 0; }
+.progress-wrap { grid-area: progress; padding: 5px 8px; border: 0; border-radius: 5px; background: var(--color-panel-soft); }
 .progress-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 14px; font-size: 12px; }
 .progress-meta span:first-child { color: var(--color-ink); font-weight: 800; }
 .progress-meta span:last-child { color: var(--color-muted); }
-.progress { height: 7px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #e8e4da; }
-.progress > div { height: 100%; border-radius: inherit; background: var(--color-success); transition: width var(--motion-fast); }
+.progress { height: 4px; margin-top: 4px; overflow: hidden; border-radius: 999px; background: #e8e4da; }
+.progress > div { height: 100%; border-radius: inherit; background: var(--color-success); transition: width var(--motion-ui); }
 .taskFirstBanner { display: none; padding: 12px 18px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); }
 .taskFirstBanner.active { display: flex; }
 .mainRingCopy { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px 12px; }
 .taskFirstTitle { font-size: 16px; font-weight: 800; }
 .taskFirstText { color: var(--color-muted); }
 .orbitPanel { border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); overflow: clip; }
-.orbitDrawer > summary { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 58px; padding: 8px 14px; }
-.orbitDrawerMini { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid var(--color-line); border-radius: 50%; background: conic-gradient(var(--color-success) var(--pct,0%),var(--color-panel-soft) 0); }
-.orbitDrawerMini b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--color-panel); font-size: 11px; }
+.orbitDrawer > summary { display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 48px; padding: 5px 10px; }
+.orbitDrawerMini { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid var(--color-line); border-radius: 50%; background: conic-gradient(var(--color-success) var(--pct,0%),var(--color-panel-soft) 0); }
+.orbitDrawerMini b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--color-panel); font-size: 10px; }
 .orbitDrawerText { flex: 1 1 auto; min-width: 0; }
 .orbitDrawerText strong, .orbitDrawerText em { display: block; min-width: 0; }
 .orbitDrawerText em { overflow: hidden; color: var(--color-muted); font-size: 12px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
@@ -57,10 +60,11 @@
 .mainTaskPanelMobile.active { display: block; }
 .mobileBox { min-width: 0; }
 .dayTabs { min-width: 0; margin-bottom: 10px; }
-.dailyStatusStrip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.dailyStatusItem { min-width: 0; padding: 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); }
-.dailyStatusItem span { display: block; color: var(--color-muted); font-size: 12px; }
-.dailyStatusItem b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+.dailyStatusStrip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; height: 100%; }
+.dailyStatusItem { min-width: 0; padding: 5px 7px; border: 1px solid var(--color-line); border-radius: 5px; background: var(--color-panel-soft); }
+.dailyStatusItem span { display: block; color: var(--color-muted); font-size: 9px; letter-spacing: .04em; }
+.dailyStatusItem b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.dailyStatusItem.attention { border-color: color-mix(in srgb,var(--color-danger) 45%,var(--color-line)); background: var(--color-danger-soft); color: var(--color-danger); }
 .dailyStatusItem.running { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .dailyStatusItem.running span { color: var(--color-primary); }
 .weekMatrixPanel { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
@@ -102,11 +106,15 @@
 .weekMatrixCheck.today:not(.done):not(.attention) { border-color: var(--color-ink); box-shadow: inset 0 -3px var(--color-primary); }
 .weekMatrixCheck:has(input:focus-visible) { outline: 3px solid var(--color-info); outline-offset: 2px; }
 .weekMatrixLegend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 14px; color: var(--color-muted); font-size: 11px; }
-.dailyGroups { display: grid; gap: 10px; }
+.dailyGroups { display: grid; gap: 8px; }
 .dailyGroup { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: visible; }
-.dailyGroup > summary { padding: 14px 16px; border-radius: inherit; }
+.dailyGroup > summary { padding: 9px 12px; border-radius: inherit; }
 .dailyGroup[open] > summary { border-bottom: 1px solid var(--color-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 7px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.dailyGroup.hasAttention { border-color: color-mix(in srgb,var(--color-danger) 42%,var(--color-line)); }
+.dailyGroup.hasAttention > summary { box-shadow: inset 4px 0 var(--color-danger); }
+.dailyGroup.completed { border-style: dashed; box-shadow: none; }
+.dailyGroup.completed > summary { color: var(--color-muted); }
 .dailyCard, .mTask {
   position: relative;
   display: grid;
@@ -114,38 +122,48 @@
   min-width: 0;
   height: auto;
   min-height: 0;
-  padding: 14px;
+  padding: 10px;
   border: 1px solid var(--color-card-line);
   border-left: 4px solid var(--daily-accent, var(--color-line-strong));
   border-radius: var(--radius-md);
   background: var(--color-card);
-  box-shadow: 0 2px 0 rgba(23,23,20,.05);
+  box-shadow: var(--shadow-card);
   overflow: visible;
+  transition: transform var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast);
 }
-.dailyCard:hover { border-color: var(--color-line-strong); transform: translateY(-1px); }
-.dailyCard.done { opacity: .68; }
-.dailyCard.running { border-color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-ink); }
+.dailyCard:hover { border-color: var(--color-line-strong); box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
+.dailyCard.done { background: color-mix(in srgb,var(--color-card) 92%,var(--color-success-soft)); opacity: .76; }
+.dailyCard.done .dailyTitle { color: var(--color-muted); }
+.dailyCard.running { border-color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-ink),var(--shadow-card); animation: task-running-breathe 2.8s ease-in-out infinite; }
 .dailyCard.overdue { border-left-color: var(--color-danger); }
-.dailyMain { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; min-width: 0; }
+.dailyMain { display: grid; grid-template-columns: var(--tap-size) minmax(0, 1fr); gap: 8px; align-items: start; min-width: 0; }
 .dailyCopy, .dailyTitle, .dailyMain > *, .dailyTitle > * { min-width: 0; }
-.dailyTitle { margin: 4px 0 8px; font-size: var(--task-title); font-weight: 750; line-height: 1.35; overflow-wrap: anywhere; }
+.dailyTitle { margin: 0 0 5px; font-size: var(--task-title); font-weight: 800; line-height: 1.32; overflow-wrap: anywhere; }
 .dailyTitle .taskLink { display: inline-flex; align-items: start; gap: 6px; max-width: 100%; text-decoration: none; }
 .dailyTitle .taskText { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
-.dailyMeta { display: flex; flex-wrap: wrap; gap: 5px; }
-.dailyActions { display: grid; grid-template-columns: repeat(2, minmax(92px, 1fr)); gap: 8px; margin-top: 12px; }
-.dailyActions button, .dailyActions a { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap-size); padding: 8px 11px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); text-decoration: none; font-weight: 700; }
+.dailyMeta { display: flex; flex-wrap: wrap; gap: 3px 7px; }
+.dailyCard .dailyMetaChip { min-height: 18px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--color-muted); font-size: 11px; font-weight: 600; }
+.dailyCard .dailyMetaChip + .dailyMetaChip::before { content: "/"; margin-right: 7px; color: var(--color-line-strong); }
+.dailyCard .dailyMetaChip.importantFlag { color: var(--color-danger); font-weight: 850; }
+.dailyActions { display: grid; grid-template-columns: minmax(120px,1.2fr) repeat(3,minmax(82px,1fr)); gap: 4px; margin-top: 7px; padding-left: calc(var(--tap-size) + 8px); }
+.dailyActions button, .dailyActions a { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap-size); padding: 6px 8px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); text-decoration: none; font-size: 11px; font-weight: 700; }
 .dailyActions .timerStartTiny { background: var(--color-primary); border-color: var(--color-ink); color: var(--color-ink); }
 .dailyActions .timerNowChip { background: var(--color-ink); color: var(--color-primary); }
-.dailyComplete { display: grid; place-items: center; width: var(--tap-size); height: var(--tap-size); border: 1px solid var(--color-line-strong); border-radius: 50%; background: white; }
+.dailyComplete { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: var(--tap-size); height: var(--tap-size); border: 1px solid var(--color-line-strong); border-radius: 10px 3px 10px 3px; background: white; }
+.dailyCopy { grid-column: 2; }
 .dailyComplete input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.dailyComplete span { display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid var(--color-line-strong); border-radius: 50%; }
+.dailyComplete span { display: grid; place-items: center; width: 25px; height: 25px; border: 2px solid var(--color-line-strong); border-radius: 7px 2px 7px 2px; transition: transform var(--motion-fast),background var(--motion-fast),border-color var(--motion-fast); }
+.dailyComplete:active span { transform: scale(.82); }
 .dailyComplete input:checked + span { border-color: var(--color-success); background: var(--color-success); color: white; }
 .dailyComplete input:checked + span::after { content: "✓"; font-weight: 900; }
-.subtaskInline { min-width: 0; max-height: none; margin-top: 12px; border-top: 1px solid var(--color-line); overflow: visible; }
+.subtaskInline { min-width: 0; max-height: none; margin-top: 7px; margin-left: calc(var(--tap-size) + 8px); border-top: 1px solid var(--color-line); overflow: visible; }
 .subtaskInline > summary { display: flex; align-items: center; gap: 8px; min-height: var(--tap-size); color: var(--color-muted); }
 .subtaskInline > summary strong { margin-left: auto; color: var(--color-ink); }
 .subtaskInlineList, .weeklyStepList { display: grid; gap: 6px; padding: 0 0 4px; max-height: none; overflow: visible; }
-.stepRow, .stepChip, .weeklyStepItem { display: grid; grid-template-columns: var(--tap-size) minmax(0, 1fr); align-items: center; min-width: 0; min-height: var(--tap-size); padding: 2px 8px 2px 0; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); overflow: visible; }
+.stepRow, .stepChip, .weeklyStepItem { display: grid; grid-template-columns: var(--tap-size) minmax(0, 1fr); align-items: center; min-width: 0; min-height: var(--tap-size); padding: 2px 8px 2px 0; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); overflow: visible; transition: background var(--motion-fast),border-color var(--motion-fast); }
+.stepRow.done, .stepChip.done, .weeklyStepItem.done { border-color: color-mix(in srgb,var(--color-success) 35%,var(--color-line)); background: var(--color-success-soft); }
+.stepRow.done span, .stepChip.done span, .weeklyStepItem.done span { color: var(--color-muted); text-decoration: line-through; }
+@keyframes task-running-breathe { 0%,100% { box-shadow: inset 0 0 0 1px var(--color-ink),var(--shadow-card); } 50% { box-shadow: inset 0 0 0 1px var(--color-ink),0 0 0 3px color-mix(in srgb,var(--color-primary) 22%,transparent),var(--shadow-card); } }
 .stepRow input, .stepChip input, .weeklyStepItem input { width: 18px; height: 18px; margin: auto; }
 .stepRow span, .stepChip span, .weeklyStepItem span { min-width: 0; overflow-wrap: anywhere; }
 .legendBox { padding: 12px 16px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }

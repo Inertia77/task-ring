@@ -1933,10 +1933,11 @@ function completeActiveTimer(markDone=true){
   const logs=readTimeLogs();
   logs.push(log);
   writeTimeLogs(logs);
+  const completionAnchor=document.querySelector("[data-timer-complete]");
   clearActiveTimer();
   if(markDone&&timer.kind==="task"){
     const task=blocks.find(t=>t.id===timer.task_id)||taskById(timer.task_id);
-    if(task&&!isWeeklyPoolTask(task)&&!isDone(task.id,Number(timer.day_id),timer.cycle||cycleYmd))setDone(task.id,Number(timer.day_id),true,null,true,timer.cycle||cycleYmd);
+    if(task&&!isWeeklyPoolTask(task)&&!isDone(task.id,Number(timer.day_id),timer.cycle||cycleYmd))setDone(task.id,Number(timer.day_id),true,completionAnchor,true,timer.cycle||cycleYmd);
   }
   showToast(`已记录 ${fmtMinutes(durationMinutes)}：${timer.title}`,"ok",1800);
   renderAll();
@@ -1969,9 +1970,15 @@ function weeklyTaskStatus(task){
 }
 function weeklyPlanSort(a,b){
   const sa=weeklyTaskStatus(a), sb=weeklyTaskStatus(b);
+  const active=readActiveTimer();
+  const ar=active?.kind==="task"&&String(active.task_id)===String(a.id);
+  const br=active?.kind==="task"&&String(active.task_id)===String(b.id);
   const pa=sa.target?sa.used/sa.target:(sa.used?1:0);
   const pb=sb.target?sb.used/sb.target:(sb.used?1:0);
+  if(ar!==br)return ar?-1:1;
   if((sa.state==="done")!==(sb.state==="done"))return sa.state==="done"?1:-1;
+  const an=sa.target&&pa>=.7&&pa<1,bn=sb.target&&pb>=.7&&pb<1;
+  if(an!==bn)return an?-1:1;
   if(a.important!==b.important)return a.important?-1:1;
   return pa-pb || String(a.title).localeCompare(String(b.title),'zh-Hans-CN');
 }
@@ -2112,9 +2119,50 @@ function collectCarryoverToCheckOccurrences(){return carryoverOccurrences().filt
 function mobileGroupSummary(list,dayId){const stats={total:list.length,done:0,failed:0,overdue:0,warn:0,ignored:0,pending:0};for(const o of list){const st=occurrenceState(o.t,o.dayId,o.cycle||cycleYmd);if(st.done)stats.done++;if(st.failed)stats.failed++;if(st.overdue)stats.overdue++;if(st.warn)stats.warn++;if(st.ignored)stats.ignored++;if(dayId===today&&!st.done&&!st.failed&&!st.ignored)stats.pending++;}return stats}
 function mobileSummaryBadges(stats){const parts=[];if(stats.failed)parts.push(`<span class="mWeekPill fail">× ${stats.failed}</span>`);if(stats.overdue+stats.warn)parts.push(`<span class="mWeekPill warn">! ${stats.overdue+stats.warn}</span>`);if(stats.pending)parts.push(`<span class="mWeekPill pending">• ${stats.pending}</span>`);return parts.join("")}
 
-function completeCarryoverTasks(){const targets=collectCarryoverToCheckOccurrences();if(!targets.length){alert("现在没有跑到今天的过期遗留任务。");return}const names=targets.slice(0,8).map(o=>`・${o.t.title}（原定：${o.prev?"上周":""}${dayName(o.dayId)}）`).join("\n");const more=targets.length>8?`\n……等 ${targets.length} 项`:"";const msg=`危险动作：将一键勾掉 ${targets.length} 个「延后到今天的过期任务」。\n\n这只会处理：单次任务 / 多次任务的最后一次 / 上周日遗留。\n不会处理「未完成×锁定」的无法补签任务。\n\n${names}${more}\n\n确认执行？`;if(!confirm(msg))return;targets.forEach(o=>{syncSetItem(storageKey(o.t.id,o.dayId,o.cycle),true);if(hasSteps(o.t.id)){stepTasks[o.t.id].forEach(s=>setStepDoneRaw(o.t.id,s.id,o.dayId,true,o.cycle))}});renderAll()}
-function setDone(taskId,dayId,val,sourceEl=null,syncSteps=true,cycle=cycleYmd){const task=blocks.find(t=>t.id===taskId);if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();return}const k=storageKey(taskId,dayId,cycle);syncSetItem(k,val);if(syncSteps&&hasSteps(taskId)){stepTasks[taskId].forEach(s=>setStepDoneRaw(taskId,s.id,dayId,val,cycle))}if(val&&sourceEl){playBurst(sourceEl,task?task.cat:"");playGlobalEffect(task?task.cat:"")}renderAll()}
-function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){const task=blocks.find(t=>t.id===taskId);if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();refreshSubtaskPopover(taskId,dayId,cycle);return}setStepDoneRaw(taskId,stepId,dayId,val,cycle);const allDone=areAllStepsDone(taskId,dayId,cycle);const parentWasDone=isDone(taskId,dayId,cycle);const k=storageKey(taskId,dayId,cycle);syncSetItem(k,allDone);if(allDone&&!parentWasDone&&sourceEl){playBurst(sourceEl,task?task.cat:"");playGlobalEffect(task?task.cat:"")}else if(val&&sourceEl){playBurst(sourceEl,task?task.cat:"")}renderAll();refreshSubtaskPopover(taskId,dayId,cycle)}
+function completeCarryoverTasks(){
+  const targets=collectCarryoverToCheckOccurrences();
+  if(!targets.length){alert("现在没有跑到今天的过期遗留任务。");return}
+  const names=targets.slice(0,8).map(o=>`・${o.t.title}（原定：${o.prev?"上周":""}${dayName(o.dayId)}）`).join("\n");
+  const more=targets.length>8?`\n……等 ${targets.length} 项`:"";
+  const msg=`危险动作：将一键勾掉 ${targets.length} 个「延后到今天的过期任务」。\n\n这只会处理：单次任务 / 多次任务的最后一次 / 上周日遗留。\n不会处理「未完成×锁定」的无法补签任务。\n\n${names}${more}\n\n确认执行？`;
+  if(!confirm(msg))return;
+  const anchor=document.getElementById("controlClearExpiredBtn");
+  targets.forEach(o=>{syncSetItem(storageKey(o.t.id,o.dayId,o.cycle),true);if(hasSteps(o.t.id)){stepTasks[o.t.id].forEach(s=>setStepDoneRaw(o.t.id,s.id,o.dayId,true,o.cycle))}});
+  playCompletionEffect({level:dailyRingComplete()?"daily":"summary",category:"life",anchor,title:`遗留任务已汇总完成（${targets.length} 项）`,eventId:`carryover:${cycleYmd}:${Date.now()}`,date:ymd(operationalNow)});
+  renderAll();
+}
+function dailyRingComplete(){
+  const occurrences=todayOccurrences(true);
+  return occurrences.length>0&&occurrences.every(o=>isDone(o.t.id,o.dayId,o.cycle));
+}
+function setDone(taskId,dayId,val,sourceEl=null,syncSteps=true,cycle=cycleYmd){
+  const task=blocks.find(t=>t.id===taskId);
+  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();return}
+  const wasDone=isDone(taskId,dayId,cycle);
+  const wasDailyClear=dailyRingComplete();
+  syncSetItem(storageKey(taskId,dayId,cycle),val);
+  if(syncSteps&&hasSteps(taskId))stepTasks[taskId].forEach(s=>setStepDoneRaw(taskId,s.id,dayId,val,cycle));
+  if(val&&!wasDone&&sourceEl){
+    const dailyClear=!wasDailyClear&&dailyRingComplete();
+    playCompletionEffect({level:dailyClear?"daily":"task",category:task?.cat||"",anchor:sourceEl,title:dailyClear?"DAILY RING CLEAR":task?.title||"任务完成",eventId:`task:${cycle}:${taskId}:d${dayId}`,date:ymd(operationalNow)});
+  }
+  renderAll();
+}
+function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){
+  const task=blocks.find(t=>t.id===taskId);
+  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();refreshSubtaskPopover(taskId,dayId,cycle);return}
+  const wasDailyClear=dailyRingComplete();
+  const parentWasDone=isDone(taskId,dayId,cycle);
+  setStepDoneRaw(taskId,stepId,dayId,val,cycle);
+  const allDone=areAllStepsDone(taskId,dayId,cycle);
+  syncSetItem(storageKey(taskId,dayId,cycle),allDone);
+  if(val&&sourceEl){
+    const parentCompleted=allDone&&!parentWasDone;
+    const dailyClear=parentCompleted&&!wasDailyClear&&dailyRingComplete();
+    playCompletionEffect({level:dailyClear?"daily":parentCompleted?"parent":"micro",category:task?.cat||"",anchor:sourceEl,title:dailyClear?"DAILY RING CLEAR":parentCompleted?task?.title:"子任务完成",eventId:`step:${cycle}:${taskId}:${stepId}:d${dayId}`,date:ymd(operationalNow)});
+  }
+  renderAll();refreshSubtaskPopover(taskId,dayId,cycle);
+}
 function carryoverOccurrences(){const out=[];const todayP=weekPos(today);for(const t of ringBlocks()){if(t.days.length===1){const d=t.days[0];if(weekPos(d)<todayP&&!isDone(t.id,d,cycleYmd))out.push({t,dayId:d,cycle:cycleYmd,carry:true})}else{const last=lastScheduledDay(t);if(weekPos(last)<todayP&&!isDone(t.id,last,cycleYmd))out.push({t,dayId:last,cycle:cycleYmd,carry:true})}if(t.days.includes(0)&&isLastScheduled(t,0)&&!isDone(t.id,0,prevCycleYmd)){out.push({t,dayId:0,cycle:prevCycleYmd,carry:true,prev:true})}}return out}
 function todayOccurrences(includeDone=true){const carry=carryoverOccurrences();const carryMap=new Map(carry.map(o=>[o.t.id,o]));let arr=[];for(const t of ringBlocks()){if(t.days.includes(today))arr.push({t,dayId:today,cycle:cycleYmd,current:true});const c=carryMap.get(t.id);if(c)arr.push(c)}const seen=new Set();arr=arr.filter(o=>{const k=`${o.cycle}_${o.t.id}_${o.dayId}`;if(seen.has(k))return false;seen.add(k);return true});if(!includeDone)arr=arr.filter(o=>!isDone(o.t.id,o.dayId,o.cycle));return arr}
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function safeUrl(url){if(!url)return "";try{const u=new URL(url,window.location.href);if(u.protocol==="http:"||u.protocol==="https:")return u.href}catch(e){}return ""}
@@ -2281,33 +2329,37 @@ function gameQuestWeeklyEntryState(gameId,cfg=gameQuestConfig,cycle=cycleYmd){
 }
 function isGameQuestDone(gameId,dayId,cycle=cycleYmd){return gameQuestEntryState(gameId,dayId,gameQuestConfig,cycle).cardDone}
 function setGameQuestItemDone(gameId,dayId,itemId,val,sourceEl=null,cycle=cycleYmd){
+  const cardWasDone=isGameQuestDone(gameId,dayId,cycle);
   syncSetItem(gameQuestItemKey(gameId,dayId,itemId,cycle),val);
   const tasks=gameQuestTaskObjectsFor(gameId,dayId,gameQuestConfig);
   const allDone=tasks.length?tasks.every(t=>t.id===itemId?val:isGameQuestItemDone(gameId,dayId,t.id,cycle)):false;
   syncSetItem(gameQuestDoneKey(gameId,dayId,cycle),allDone);
-  if(val&&sourceEl){playBurst(sourceEl,"gamecreate");playGlobalEffect("gamecreate")}
+  if(val&&sourceEl){const game=gameQuestConfig.games.find(g=>String(g.id)===String(gameId));playCompletionEffect({level:allDone&&!cardWasDone?"parent":"micro",category:"gamecreate",anchor:sourceEl,title:allDone?`${game?.name||"游戏"} 今日清理完成`:"游戏项目完成",eventId:`gq:${cycle}:${gameId}:d${dayId}:${itemId}`})}
   renderAll();
 }
 function setGameQuestWeeklyItemDone(gameId,itemId,val,sourceEl=null,cycle=cycleYmd){
+  const cardWasDone=gameQuestWeeklyEntryState(gameId,gameQuestConfig,cycle).cardDone;
   syncSetItem(gameQuestWeeklyItemKey(gameId,itemId,cycle),val);
   const tasks=gameQuestWeeklyTasksFor(gameId,gameQuestConfig);
   const allDone=tasks.length?tasks.every(t=>t.id===itemId?val:isGameQuestWeeklyItemDone(gameId,t.id,cycle)):false;
   syncSetItem(gameQuestWeeklyDoneKey(gameId,cycle),allDone);
-  if(val&&sourceEl){playBurst(sourceEl,"gamecreate");playGlobalEffect("gamecreate")}
+  if(val&&sourceEl){const game=gameQuestConfig.games.find(g=>String(g.id)===String(gameId));playCompletionEffect({level:allDone&&!cardWasDone?"parent":"micro",category:"gamecreate",anchor:sourceEl,title:allDone?`${game?.name||"游戏"} 本周任务完成`:"游戏周项目完成",eventId:`gqw:${cycle}:${gameId}:${itemId}`})}
   renderAll();
 }
 function setGameQuestDone(gameId,dayId,val,sourceEl=null,cycle=cycleYmd){
+  const wasDone=isGameQuestDone(gameId,dayId,cycle);
   const tasks=gameQuestTaskObjectsFor(gameId,dayId,gameQuestConfig);
   tasks.forEach(t=>syncSetItem(gameQuestItemKey(gameId,dayId,t.id,cycle),val));
   syncSetItem(gameQuestDoneKey(gameId,dayId,cycle),val&&tasks.length>0);
-  if(val&&sourceEl){playBurst(sourceEl,"gamecreate");playGlobalEffect("gamecreate")}
+  if(val&&!wasDone&&sourceEl){const game=gameQuestConfig.games.find(g=>String(g.id)===String(gameId));playCompletionEffect({level:"parent",category:"gamecreate",anchor:sourceEl,title:`${game?.name||"游戏"} 今日清理完成`,eventId:`gq-card:${cycle}:${gameId}:d${dayId}`})}
   renderAll();
 }
 function setGameQuestWeeklyDone(gameId,val,sourceEl=null,cycle=cycleYmd){
+  const wasDone=gameQuestWeeklyEntryState(gameId,gameQuestConfig,cycle).cardDone;
   const tasks=gameQuestWeeklyTasksFor(gameId,gameQuestConfig);
   tasks.forEach(t=>syncSetItem(gameQuestWeeklyItemKey(gameId,t.id,cycle),val));
   syncSetItem(gameQuestWeeklyDoneKey(gameId,cycle),val&&tasks.length>0);
-  if(val&&sourceEl){playBurst(sourceEl,"gamecreate");playGlobalEffect("gamecreate")}
+  if(val&&!wasDone&&sourceEl){const game=gameQuestConfig.games.find(g=>String(g.id)===String(gameId));playCompletionEffect({level:"parent",category:"gamecreate",anchor:sourceEl,title:`${game?.name||"游戏"} 本周作战完成`,eventId:`gqw-card:${cycle}:${gameId}`})}
   renderAll();
 }
 function gameQuestEntriesForDay(dayId,cfg=gameQuestConfig){
@@ -2354,12 +2406,13 @@ function gameQuestCardHtml(entry,dayId){
   const g=entry.game;
   const done=entry.cardDone;
   const pct=entry.total?Math.round(entry.done/entry.total*100):0;
+  const next=entry.tasks.find(t=>!isGameQuestItemDone(g.id,dayId,t.id,cycleYmd));
   return `<article class="gameQuestCard gameQuestCardV2 accent-${escapeHtml(g.accent)} ${done?"done":""}" style="--gq-p:${pct}%">
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 今日清理完成" data-gq-card-btn="1" data-gamequest-game="${escapeHtml(g.id)}" data-gamequest-day="${dayId}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
       <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
-      <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${escapeHtml(g.short||g.name)}</span></div>
+      <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${next?`下一步：${escapeHtml(next.title)}`:"✓ 今日项目已完成"}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
     <div class="gameQuestProgressRail"><span></span></div>
@@ -2372,12 +2425,13 @@ function gameQuestWeeklyCardHtml(entry){
   const g=entry.game;
   const done=entry.cardDone;
   const pct=entry.total?Math.round(entry.done/entry.total*100):0;
+  const next=entry.tasks.find(t=>!isGameQuestWeeklyItemDone(g.id,t.id,cycleYmd));
   return `<article class="gameQuestCard gameQuestCardV2 gameQuestWeeklyCard accent-${escapeHtml(g.accent)} ${done?"done":""}" style="--gq-p:${pct}%">
     <div class="gameQuestCardAura" aria-hidden="true"></div>
     <div class="gameQuestCardTop">
       <button type="button" class="gameQuestCheck ${done?"done":""}" title="${escapeHtml(g.name)} 本周任务完成" data-gq-weekly-card-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>
       <span class="gameQuestIcon gameQuestIconOrb" aria-hidden="true">${escapeHtml(String(g.short||g.name).slice(0,2))}</span>
-      <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">本周池 · ${escapeHtml(g.short||g.name)}</span></div>
+      <div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)}</span><span class="gameQuestShort">${next?`下一步：${escapeHtml(next.title)}`:"✓ 本周项目已完成"}</span></div>
       <span class="gameQuestCount">${entry.done}/${entry.total}</span>
     </div>
     <div class="gameQuestProgressRail"><span></span></div>
@@ -2792,95 +2846,8 @@ function initGameQuestUI(){
 
 /* RANDOM_CUTIN_CHARACTERS moved to assets/js/data/default-data.js */
 
-const CLASSIC_CUTINS = [
-  {kind:"classic",key:"life",cls:"life",title:"LUCY ORDER",sub:"大小姐式推进完成",tail:"beauty / money / life +1",particles:["✦","♥","◆","$","✧"]},
-  {kind:"classic",key:"gamecreate",cls:"gamecreate",title:"VIVIAN CHEERS",sub:"甜辣应援发动",tail:"creative firepower ♡",particles:["✦","♥","◆","V","✧"]},
-  {kind:"classic",key:"language",cls:"language",title:"REQUIEM INSIGHT",sub:"冷感知性同步",tail:"language circuit / focus +1",particles:["✦","◎","◇","§","✧"]}
-];
-const RANDOM_CUTIN_POOL = [...CLASSIC_CUTINS];
-const RANDOM_GLOBAL_FX_POOL = ["life","gamecreate","language","stellar","crimson","tide","rose","neon","butterfly","ink"];
-function pickRandomItem(arr){return arr[Math.floor(Math.random()*arr.length)]}
-function playGlobalEffect(cat){
-  if(!document.body)return;
-  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(reduce)return;
-  const mobile=window.innerWidth<=900;
-  const fx=pickRandomItem(RANDOM_GLOBAL_FX_POOL);
-  const wrap=document.createElement("div");
-  wrap.className=`globalFX randomGlobalFX ${fx}`;
-  document.body.appendChild(wrap);
-  const spawn=(className,count,items,setup)=>{
-    for(let i=0;i<count;i++){
-      const el=document.createElement("span");
-      el.className=className;
-      if(items&&items.length)el.textContent=items[i%items.length];
-      el.style.left=`${Math.random()*100}vw`;
-      el.style.setProperty("--dx",`${-90+Math.random()*180}px`);
-      el.style.setProperty("--spin",`${-260+Math.random()*520}deg`);
-      el.style.setProperty("--angle",`${-24+Math.random()*48}deg`);
-      el.style.setProperty("--c1",["#34d8ff","#7b61ff","#ff5f97","#ffe76b","#ff7b4e"][i%5]);
-      el.style.setProperty("--c2",["#ff5f97","#34d8ff","#ffe76b","#7b61ff","#ffffff"][i%5]);
-      el.style.animationDelay=`${Math.random()*420}ms`;
-      if(setup)setup(el,i);
-      wrap.appendChild(el);
-    }
-  };
-  const n=mobile?18:34;
-  if(fx==="life"){
-    spawn("fxFlame",n,null,(el,i)=>{el.style.left=`${Math.round((i+0.5)*100/n)}vw`;el.style.setProperty("--rot",`${-10+Math.random()*20}deg`)});
-    spawn("fxCoin",mobile?10:18,["¥","$","◆","✦"],el=>el.style.setProperty("--spin",`${-180+Math.random()*360}deg`));
-  }else if(fx==="gamecreate"){
-    spawn("fxPetal",mobile?18:32,["✿","❀","✦","✧","✺"],(el,i)=>{el.style.color=["#ff4dd2","#45dfff","#9b6dff","#ffdb4d"][i%4]});
-    spawn("fxLightning",mobile?8:14,["✦","+"]);
-  }else if(fx==="language"){
-    spawn("fxDrop",n,null,el=>{el.style.opacity=`${0.34+Math.random()*0.20}`});
-    spawn("fxMath",mobile?8:14,["∫","Σ","π","√x","E=mc²","lim","φ","dx","∞"]);
-  }else if(fx==="stellar"){
-    spawn("fxStarlet",mobile?24:46,["✦","✧","★","✶","✷"]);
-    spawn("fxRibbon",mobile?10:18,null);
-  }else if(fx==="crimson"){
-    spawn("fxSlash",mobile?9:16,null,(el,i)=>{el.style.top=`${-40+Math.random()*28}px`;el.style.setProperty("--c1",i%2?"#ffffff":"#ff2848");el.style.setProperty("--c2",i%2?"#ff2848":"#111729")});
-    spawn("fxRose",mobile?12:22,["◆","✦","✕","♢"]);
-  }else if(fx==="tide"){
-    spawn("fxBubble",mobile?16:30,null,(el)=>{const s=10+Math.random()*18;el.style.width=s+"px";el.style.height=s+"px"});
-    spawn("fxRune",mobile?8:14,["∿","≈","◇","✦"]);
-  }else if(fx==="rose"){
-    spawn("fxRose",mobile?22:40,["✿","❀","✦","♡","✧"]);
-  }else if(fx==="neon"){
-    spawn("fxRibbon",mobile?18:34,null);
-    spawn("fxStarlet",mobile?14:26,["✦","+","★","✧"]);
-  }else if(fx==="butterfly"){
-    spawn("fxButterfly",mobile?16:30,["🦋","✦","◇","✧"],(el,i)=>{el.style.setProperty("--c1",["#9d7cff","#6bdcff","#ff8edb"][i%3])});
-  }else if(fx==="ink"){
-    spawn("fxRune",mobile?18:32,["墨","◇","◎","✦","§"],(el,i)=>{el.style.setProperty("--c1",i%3?"#1b2436":"#35d8ff")});
-    spawn("fxSlash",mobile?6:10,null,(el)=>{el.style.opacity=.36;el.style.setProperty("--c1","#111729");el.style.setProperty("--c2","#35d8ff")});
-  }
-  setTimeout(()=>wrap.remove(),5400);
-}
-function playBurst(anchor,cat){
-  if(!anchor||!document.body)return;
-  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(reduce)return;
-  const rect=anchor.getBoundingClientRect();
-  let x=rect.left+rect.width/2;
-  let y=rect.top+rect.height/2;
-  const mobile=window.innerWidth<=900;
-  const marginX=mobile?98:210;
-  const marginY=mobile?138:190;
-  x=Math.max(marginX,Math.min(window.innerWidth-marginX,x));
-  y=Math.max(marginY,Math.min(window.innerHeight-marginY,y));
-  const makeClassicCard=(key,title,sub,tail)=>`<div class="systemCutin ${key}"><span class="systemCutinCode">CLEAR +01</span><strong>${title}</strong><span>${sub}</span><em>${tail}</em></div>`;
-  const cfg=pickRandomItem(RANDOM_CUTIN_POOL);
-  const burst=document.createElement("div");
-  burst.className=`burstFX randomCutin ${cfg.cls||cfg.key}`;
-  burst.style.left=x+"px";
-  burst.style.top=y+"px";
-  const particles=(cfg.particles&&cfg.particles.length?cfg.particles:["✦","✧","◆","♡","★","◇"]);
-  const particleHtml=particles.slice(0,7).map((p,i)=>`<span class="particle p${i+1}">${p}</span>`).join("");
-  const card=makeClassicCard(cfg.key,cfg.title,cfg.sub,cfg.tail);
-  burst.innerHTML=`<div class="burstInner">${card}<div class="burstTitle">${cfg.title}</div><div class="burstSub">${cfg.sub}</div>${particleHtml}</div>`;
-  document.body.appendChild(burst);
-  setTimeout(()=>burst.remove(),580);
+function playCompletionEffect({level="task",category="",anchor=null,title="",eventId="",date=""}={}){
+  return window.TaskRingEffects?.play({level,category,anchor,title,eventId,date})||false;
 }
 
 function orbitDayStats(dayId){
@@ -2893,7 +2860,7 @@ function isOrbitDrawerOpen(){
   const saved=localStorage.getItem(ORBIT_DRAWER_OPEN_KEY);
   if(saved==="1")return true;
   if(saved==="0")return false;
-  return window.innerWidth>760;
+  return false;
 }
 function renderOrbitPanel(){
   const el=document.getElementById("orbitPanel");

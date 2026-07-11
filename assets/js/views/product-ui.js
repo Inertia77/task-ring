@@ -32,9 +32,14 @@
   }
   function occurrenceAttention(o){
     const st=occurrenceState(o.t,o.dayId,o.cycle||cycleYmd);
+    if(st.done)return false;
     return st.overdue||st.warn||st.failed||o.t.important||isActiveTaskOccurrence(o.t,o.dayId,o.cycle||cycleYmd);
   }
   function occurrenceDone(o){return isDone(o.t.id,o.dayId,o.cycle||cycleYmd)}
+  function dailyPriority(a,b){
+    const score=o=>{const st=occurrenceState(o.t,o.dayId,o.cycle||cycleYmd);return (isActiveTaskOccurrence(o.t,o.dayId,o.cycle||cycleYmd)?100:0)+(st.failed||st.overdue?80:0)+(st.warn||st.prev?65:0)+(o.t.important?50:0)+(o.t.core?30:0)+(st.done?-100:0)};
+    return score(b)-score(a)||String(a.t.title).localeCompare(String(b.t.title),"zh-Hans-CN");
+  }
 
   function dailyOccurrencesForView(){
     if(viewMode!=="all")return todayOccurrences(viewMode==="today");
@@ -90,14 +95,14 @@
     const url=safeUrl(t.url);
     const status=st.failed?"已过期":st.overdue?"已逾期":st.done?"已完成":dayId===today?"今日":"计划日";
     const completeDisabled=(st.failed||st.ignored)?" disabled data-locked=\"1\"":"";
-    return `<article class="dailyCard ${st.done?"done completed":""} ${st.overdue||st.failed?"overdue":""} ${running?"running":""}" style="--daily-accent:${c.color||"var(--color-line-strong)"}" data-daily-task="${escapeHtml(t.id)}">
+    return `<article class="dailyCard ${st.done?"done completed":""} ${st.overdue||st.failed?"overdue":""} ${st.warn?"carryover":""} ${t.important?"highPriority":""} ${running?"running":""}" style="--daily-accent:${c.color||"var(--color-line-strong)"}" data-daily-task="${escapeHtml(t.id)}">
       <div class="dailyMain">
+        <label class="dailyComplete" title="${title}：${st.done?"取消完成":"标记完成"}" aria-label="${title}：${st.done?"取消完成":"标记完成"}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${escapeHtml(cycle)}" ${st.done?"checked":""}${completeDisabled}><span></span></label>
         <div class="dailyCopy">
-          <div class="dailyMeta">${dailyStatusBadges(t,st,running,active?.paused)}</div>
           <h3 class="dailyTitle" title="${title}">${url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer"><span class="taskText">${title}</span><span aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}</h3>
+          <div class="dailyMeta">${dailyStatusBadges(t,st,running,active?.paused)}</div>
           <div class="dailyMeta"><span class="dailyMetaChip">${escapeHtml(dayName(dayId))}${dayId===today?" · 今日":""}</span><span class="dailyMetaChip">${escapeHtml(status)}</span><span class="dailyMetaChip">本周 ${fmtMinutes(taskWeekMinutesUsed(t.id))}</span></div>
         </div>
-        <label class="dailyComplete" title="${title}：${st.done?"取消完成":"标记完成"}" aria-label="${title}：${st.done?"取消完成":"标记完成"}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${escapeHtml(cycle)}" ${st.done?"checked":""}${completeDisabled}><span></span></label>
       </div>
       <div class="dailyActions">
         ${running?`<button type="button" class="timerNowChip" data-view-target="time">${active?.paused?"已暂停":"计时中"} <span data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</span></button>`:`<button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}">◷ 开始计时</button>`}
@@ -143,7 +148,7 @@
     const grouped=groupBy(occurrences,o=>o.t.cat||"life");
     const order=["life","gamecreate","language",...grouped.keys()].filter((v,i,a)=>a.indexOf(v)===i&&grouped.has(v));
     const html=order.map((cat,index)=>{
-      const list=grouped.get(cat)||[];
+      const list=(grouped.get(cat)||[]).slice().sort(dailyPriority);
       const def=cats[cat]||{name:cat,icon:"•"};
       const stats=dailyGroupStats(list);
       const allDone=stats.total>0&&stats.done===stats.total;
@@ -172,7 +177,7 @@
       host.innerHTML=`<div class="dailyStatusStrip"><div class="dailyStatusItem"><span>全周排程</span><b>${weekTasks.length} 个任务</b></div><div class="dailyStatusItem"><span>周节点完成</span><b>${weekDone}/${weekOccurrences.length}</b></div><div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时已暂停":"正在计时"):"今日进度"}</span><b>${running?escapeHtml(active.title):`${done}/${all.length} 完成`}</b></div></div>`;
       return;
     }
-    host.innerHTML=`<div class="dailyStatusStrip"><div class="dailyStatusItem"><span>今日进度</span><b>${done}/${all.length} 完成</b></div><div class="dailyStatusItem ${urgent?"attention":""}"><span>优先处理</span><b>${urgent?`${urgent} 项需关注`:"状态正常"}</b></div><div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时已暂停":"正在计时"):"焦点计时"}</span><b>${running?escapeHtml(active.title):"尚未开始"}</b></div></div>`;
+    host.innerHTML=`<div class="dailyStatusStrip"><div class="dailyStatusItem"><span>今日完成</span><b>${done}/${all.length}</b></div><div class="dailyStatusItem"><span>尚待执行</span><b>${Math.max(0,all.length-done)} 项</b></div><div class="dailyStatusItem ${urgent?"attention":""}"><span>重点关注</span><b>${urgent?`${urgent} 项`:"状态正常"}</b></div><div class="dailyStatusItem ${running?"running":""}"><span>${running?(active.paused?"计时暂停":"正在计时"):"焦点计时"}</span><b>${running?escapeHtml(active.title):"未开始"}</b></div></div>`;
   }
   window.renderTable=function(){const table=document.getElementById("taskTable");if(table)table.innerHTML=""};
   window.renderMobileTabs=renderDailyStatus;
@@ -217,14 +222,16 @@
     const def=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
     const active=readActiveTimer();
     const running=active&&active.kind==="task"&&String(active.task_id)===String(t.id);
+    const pace=running?"running":st.state==="done"?"achieved":st.target&&st.used/st.target>=.7?"near":st.target&&st.used/st.target<.35&&weekPos(today)>=3?"behind":st.used?"active":"idle";
+    const paceLabel={running:"◷ 正在计时",achieved:"✓ 已达成",near:"↗ 接近目标",behind:"! 明显落后",active:"推进中",idle:"尚未开始"}[pace];
     const remaining=st.target?Math.max(0,st.target-st.used):0;
     const url=safeUrl(t.url);
-    return `<article class="weeklyMissionCard ${st.state} ${st.over?"over overdue":""} ${running?"running":""}" style="--w:${pct}%">
+    return `<article class="weeklyMissionCard ${st.state} ${st.over?"over overdue":""} ${pace}" style="--w:${pct}%">
       <header class="missionHead"><div class="missionIcon" aria-hidden="true">${escapeHtml(def.icon)}</div><div class="missionTitleBlock"><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><span>${escapeHtml(taskDayHint(t))} · 预计 ${taskEstimatedMinutes(t)}m</span></div><div class="missionScore"><strong>${fmtMinutes(st.used)}${st.target?` / ${fmtMinutes(st.target)}`:""}</strong><em>${st.target?(st.state==="done"?"本周已达成":`剩余 ${fmtMinutes(remaining)}`):"未设周目标"}</em></div></header>
       <div class="missionMeter" aria-label="周目标进度 ${pct}%"><i></i></div>
       <footer class="missionActions"><button type="button" class="missionPrimary ${running?"active":""}" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${today}" data-timer-cycle="${escapeHtml(cycleYmd)}">${running?`${active.paused?"继续计时":"计时中"} ${fmtTimer(activeTimerElapsedSeconds(active))}`:"开始计时"}</button><button type="button" class="missionGhost" data-time-task-detail="${escapeHtml(t.id)}">查看账本</button><button type="button" class="missionGhost safeTargetEdit" data-edit-weekly-target="${escapeHtml(t.id)}"><span>周目标</span><b>${st.target?fmtMinutes(st.target):"未设"}</b></button>${url?`<a class="missionLink" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</footer>
       ${weeklySubtasks(t)}
-      <div class="missionBadges">${planModeBadgeHtml(t)}<span>${escapeHtml(def.short)}</span>${t.important?'<span class="hot">! 高优先级</span>':""}${running?`<span class="statusBadge ${active.paused?"paused":"running"}">${active.paused?"已暂停":"计时中"}</span>`:""}</div>
+      <div class="missionBadges"><span class="statusBadge weeklyPace ${pace}">${paceLabel}</span>${planModeBadgeHtml(t)}<span>${escapeHtml(def.short)}</span>${t.important?'<span class="hot">! 高优先级</span>':""}${running?`<span class="statusBadge ${active.paused?"paused":"running"}">${active.paused?"已暂停":"计时中"}</span>`:""}</div>
     </article>`;
   }
   window.renderWeeklyPlanPanel=function(){
@@ -403,6 +410,7 @@
     const box=event.target.closest?.("[data-weekly-step]");if(!box)return;
     event.preventDefault();event.stopPropagation();
     syncSetItem(weeklyStepKey(box.dataset.weeklyStepTask,box.dataset.weeklyStepId),box.checked);
+    if(box.checked)window.TaskRingEffects?.play({level:"micro",category:"",anchor:box,title:"子任务完成",eventId:`weekly-step:${cycleYmd}:${box.dataset.weeklyStepTask}:${box.dataset.weeklyStepId}`});
     showToast(box.checked?"子任务已完成":"已取消子任务","ok",1100);renderAll();
   },true);
 

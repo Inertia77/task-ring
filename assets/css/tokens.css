@@ -29,6 +29,8 @@
   --radius-md: 12px;
   --radius-lg: 18px;
   --shadow-panel: 0 8px 24px rgba(23, 23, 20, 0.06);
+  --shadow-card: 0 2px 0 rgba(23, 23, 20, 0.06), 0 8px 18px rgba(23, 23, 20, 0.035);
+  --shadow-card-hover: 0 3px 0 rgba(23, 23, 20, 0.08), 0 12px 24px rgba(23, 23, 20, 0.07);
   --shadow-float: 0 16px 44px rgba(23, 23, 20, 0.16);
   --space-1: 4px;
   --space-2: 8px;
@@ -47,4 +49,6 @@
   --body-size: 14px;
   --metric-size: 13px;
   --motion-fast: 140ms;
+  --motion-ui: 220ms;
+  --motion-slow: 720ms;
 }

@@ -1,0 +1,52 @@
+.trCheckPulse, .trCardSweep, .trFxParticles, .trFxAmbient, .trCutin, .trReducedCue {
+  position: fixed;
+  z-index: 720;
+  pointer-events: none;
+}
+.trCheckPulse { width: 44px; height: 44px; transform: translate(-50%,-50%); border: 2px solid var(--color-success); border-radius: 50%; animation: tr-check-ring 560ms ease-out both; }
+.trCheckPulse i { position: absolute; left: 12px; top: 10px; width: 17px; height: 10px; border-bottom: 3px solid var(--color-success); border-left: 3px solid var(--color-success); transform: rotate(-45deg); animation: tr-check-draw 420ms ease-out both; }
+.trCardSweep { overflow: hidden; border: 1px solid var(--tr-accent); border-radius: var(--radius-md); box-shadow: 0 0 0 1px color-mix(in srgb,var(--tr-accent) 34%,transparent); animation: tr-sweep-frame 720ms ease-out both; }
+.trCardSweep::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg,transparent 10%,color-mix(in srgb,var(--tr-accent) 28%,transparent) 46%,transparent 72%); transform: translateX(-110%); animation: tr-sweep-line 620ms ease-out both; }
+.trFxParticles, .trFxAmbient { inset: 0; overflow: clip; }
+.trFxParticles i, .trFxAmbient i { position: absolute; width: 4px; height: 12px; border-radius: 999px; background: var(--tr-accent); opacity: 0; transform: translate(-50%,-50%) rotate(var(--rot)); animation: tr-particle 560ms var(--delay) cubic-bezier(.2,.75,.2,1) both; }
+.trFxAmbient { z-index: 690; }
+.trFxAmbient i { width: 3px; height: 10px; animation-name: tr-ambient; animation-duration: 3400ms; }
+.trCutin { right: clamp(12px,4vw,58px); bottom: clamp(18px,7vh,72px); display: grid; grid-template-columns: 10px 132px minmax(190px,330px); width: min(540px,calc(100vw - 24px)); min-height: 142px; overflow: hidden; border: 1px solid var(--color-ink); border-left: 5px solid var(--tr-accent); border-radius: 4px 16px 4px 16px; background: var(--color-panel); color: var(--color-ink); box-shadow: 10px 14px 0 rgba(23,23,20,.13),var(--shadow-float); transform-origin: right bottom; animation: tr-cutin-in 1.25s cubic-bezier(.18,.78,.16,1) both; }
+.trCutin--parent { min-height: 158px; animation-duration: 1.6s; }
+.trCutin--daily { grid-template-columns: 12px 160px minmax(210px,350px); min-height: 174px; border-left-width: 7px; animation-duration: 1.9s; }
+.trCutin::before { content: ""; position: absolute; right: -42px; top: -62px; width: 190px; height: 120px; border: 1px solid color-mix(in srgb,var(--tr-accent) 70%,white); transform: rotate(-12deg); opacity: .48; }
+.trCutinRail { display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 8px 0; background: var(--color-ink); color: white; writing-mode: vertical-rl; font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.trCutinRail b { color: var(--color-primary); font-size: 9px; }
+.trCutinPortrait { position: relative; min-width: 0; overflow: hidden; background: var(--color-panel-soft); clip-path: polygon(0 0,100% 0,86% 100%,0 100%); }
+.trCutinPortrait img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; filter: saturate(.92) contrast(1.03); }
+.trCutinFallback { display: grid; place-items: center; width: 100%; height: 100%; background: var(--color-ink); color: var(--color-primary); font-size: 34px; font-weight: 900; }
+.trCutinCopy { position: relative; z-index: 1; display: grid; align-content: center; gap: 5px; min-width: 0; padding: 18px 20px 18px 12px; }
+.trCutinCopy > span { color: var(--tr-accent); font-size: 11px; font-weight: 900; letter-spacing: .16em; }
+.trCutinCopy strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: clamp(18px,2.3vw,27px); line-height: 1.12; overflow-wrap: anywhere; }
+.trCutinCopy em { overflow: hidden; color: var(--color-muted); font-size: 11px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.trReducedCue { right: 18px; bottom: 18px; display: grid; gap: 2px; width: min(340px,calc(100vw - 36px)); padding: 10px 13px; border: 1px solid var(--color-success); border-left: 5px solid var(--color-success); border-radius: var(--radius-sm); background: var(--color-panel); box-shadow: var(--shadow-float); animation: tr-reduced-cue 1s ease both; }
+.trReducedCue span { overflow: hidden; color: var(--color-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+
+@keyframes tr-check-ring { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.55); } 38% { opacity: 1; transform: translate(-50%,-50%) scale(1.12); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.35); } }
+@keyframes tr-check-draw { 0% { opacity: 0; clip-path: inset(0 100% 100% 0); } 45%,100% { opacity: 1; clip-path: inset(0); } }
+@keyframes tr-sweep-frame { 0%,100% { opacity: 0; } 16%,68% { opacity: 1; } }
+@keyframes tr-sweep-line { to { transform: translateX(115%); } }
+@keyframes tr-particle { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.3) rotate(var(--rot)); } 18% { opacity: .9; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.8) rotate(calc(var(--rot) + 110deg)); } }
+@keyframes tr-ambient { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.4) rotate(var(--rot)); } 12% { opacity: .55; } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 40px)) scale(.8) rotate(calc(var(--rot) + 150deg)); } }
+@keyframes tr-cutin-in { 0% { opacity: 0; transform: translateX(60px) skewX(-5deg) scale(.94); } 15% { opacity: 1; transform: translateX(-8px) skewX(1deg) scale(1.01); } 28%,78% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(34px) scale(.98); } }
+@keyframes tr-reduced-cue { 0%,100% { opacity: 0; } 12%,82% { opacity: 1; } }
+
+@media (max-width: 700px) {
+  .trCutin { right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; grid-template-columns: 7px 92px minmax(0,1fr); width: auto; min-height: 112px; }
+  .trCutin--parent, .trCutin--daily { grid-template-columns: 8px 106px minmax(0,1fr); min-height: 126px; }
+  .trCutinCopy { gap: 3px; padding: 12px 10px 12px 7px; }
+  .trCutinCopy > span { font-size: 9px; }
+  .trCutinCopy strong { font-size: 17px; }
+  .trCutinCopy em { font-size: 9px; }
+  .trFxAmbient i:nth-child(n+9) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trCheckPulse, .trCardSweep, .trFxParticles, .trFxAmbient, .trCutin { display: none; }
+  .trReducedCue { animation: tr-reduced-cue 1s ease both; }
+}

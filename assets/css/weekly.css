@@ -1,13 +1,13 @@
-.weeklyShell { display: grid; gap: 12px; min-width: 0; }
-.weeklyCommandHero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; padding: 20px; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.weeklyShell { display: grid; gap: 8px; min-width: 0; }
+.weeklyCommandHero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 12px 14px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
 .weeklyCommandHero > div:first-child > span, .timePanelHeader > div:first-child > span, .gameQuestTopTitle > span { display: block; color: var(--color-warning); font-size: 12px; font-weight: 800; letter-spacing: .12em; }
-.weeklyCommandHero > div:first-child > b, .timePanelHeader > div:first-child > b, .gameQuestTopTitle > strong { display: block; font-size: var(--page-title); }
+.weeklyCommandHero > div:first-child > b, .timePanelHeader > div:first-child > b, .gameQuestTopTitle > strong { display: block; font-size: 20px; }
 .weeklyCommandHero em, .timePanelHeader em, .gameQuestTopTitle em { color: var(--color-muted); font-style: normal; }
 .weeklyHeroStats, .timeStatCards { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.weeklyHeroStats > div, .timeStatCards > div { min-width: 100px; padding: 10px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
+.weeklyHeroStats > div, .timeStatCards > div { min-width: 92px; padding: 6px 9px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); }
 .weeklyHeroStats span, .timeStatCards span { display: block; color: var(--color-muted); font-size: 12px; }
-.weeklyHeroStats b, .timeStatCards b { display: block; font-size: 18px; }
-.weeklyActiveHint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 14px; border: 1px solid var(--color-ink); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-ink); color: white; }
+.weeklyHeroStats b, .timeStatCards b { display: block; font-size: 16px; }
+.weeklyActiveHint { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 11px; padding: 8px 11px; border: 1px solid var(--color-ink); border-left: 5px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-ink); color: white; }
 .weeklyActiveHint span { color: var(--color-primary); font-weight: 800; }
 .weeklyActiveHint em { margin-left: auto; color: var(--color-primary); font-style: normal; font-weight: 800; }
 .weeklyCategoryTabs { display: flex; gap: 8px; min-width: 0; padding: 3px 1px 8px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
@@ -17,20 +17,23 @@
 .weeklyCategoryTab.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .weeklyCategoryTab.active b, .weeklyCategoryTab.active em { color: #ddd8cd; }
 .allocationRibbon { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.allocationChip { padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); }
+.allocationChip { padding: 7px 8px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); }
 .allocationChip > div { display: flex; gap: 8px; align-items: center; }
 .allocationChip em { display: block; color: var(--color-muted); font-style: normal; font-size: 12px; }
 .allocationChip > i, .groupMeter, .missionMeter { display: block; height: 5px; margin-top: 8px; border-radius: 999px; background: #e9e5dc; overflow: hidden; }
 .allocationChip > i::after, .groupMeter i, .missionMeter i { content: ""; display: block; width: var(--w, 0%); height: 100%; background: var(--color-success); }
 .weeklyTaskGroups { display: grid; gap: 10px; }
 .weeklyMissionGroup { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: visible; }
-.weeklyMissionGroup > summary { padding: 14px 16px; }
+.weeklyMissionGroup > summary { padding: 9px 12px; }
 .weeklyMissionGroup[open] > summary { border-bottom: 1px solid var(--color-line); }
 .weeklyMissionGroup > .groupMeter { margin: 0 16px; }
-.weeklyMissionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
-.weeklyMissionCard { position: relative; min-width: 0; padding: 14px; border: 1px solid var(--color-card-line); border-left: 4px solid var(--color-info); border-radius: var(--radius-md); background: var(--color-card); box-shadow: 0 2px 0 rgba(23,23,20,.05); overflow: visible; }
+.weeklyMissionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 7px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.weeklyMissionCard { position: relative; min-width: 0; padding: 10px; border: 1px solid var(--color-card-line); border-left: 4px solid var(--color-info); border-radius: var(--radius-md); background: var(--color-card); box-shadow: var(--shadow-card); overflow: visible; transition: transform var(--motion-fast),box-shadow var(--motion-fast),border-color var(--motion-fast); }
+.weeklyMissionCard:hover { border-color: var(--color-line-strong); box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
 .weeklyMissionCard.done { opacity: .7; border-left-color: var(--color-success); }
 .weeklyMissionCard.running { border-color: var(--color-ink); border-left-color: var(--color-primary); }
+.weeklyMissionCard.near { border-left-color: var(--color-warning); }
+.weeklyMissionCard.behind { border-left-color: var(--color-danger); }
 .missionHead { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: start; min-width: 0; }
 .missionIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9px; background: var(--color-panel-soft); font-size: 12px; font-weight: 800; }
 .missionTitleBlock { min-width: 0; }
@@ -38,13 +41,18 @@
 .missionTitleBlock span, .missionScore em { display: block; color: var(--color-muted); font-size: 12px; font-style: normal; }
 .missionScore { text-align: right; white-space: nowrap; }
 .missionScore strong { display: block; }
-.missionActions { display: grid; grid-template-columns: minmax(124px, 1.2fr) repeat(2, minmax(96px, 1fr)) auto; gap: 7px; margin-top: 12px; }
+.missionActions { display: grid; grid-template-columns: minmax(120px, 1.2fr) repeat(2, minmax(88px, 1fr)) auto; gap: 4px; margin-top: 8px; }
 .missionActions button, .missionActions a { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: var(--tap-size); padding: 7px 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); text-decoration: none; font-weight: 700; }
 .missionPrimary { background: var(--color-primary); border-color: var(--color-ink); color: var(--color-ink); }
 .missionPrimary.active { background: var(--color-ink); color: var(--color-primary); }
 .safeTargetEdit { flex-direction: column; }
 .safeTargetEdit span { font-size: 11px; color: var(--color-muted); }
-.missionBadges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.missionBadges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.weeklyPace.running { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-primary); }
+.weeklyPace.achieved { border-color: color-mix(in srgb,var(--color-success) 45%,var(--color-line)); background: var(--color-success-soft); color: var(--color-success); }
+.weeklyPace.near { border-color: color-mix(in srgb,var(--color-warning) 45%,var(--color-line)); background: var(--color-warning-soft); color: var(--color-warning); }
+.weeklyPace.behind { border-color: color-mix(in srgb,var(--color-danger) 45%,var(--color-line)); background: var(--color-danger-soft); color: var(--color-danger); }
+.weeklyPace.idle { border-style: dashed; }
 .weeklySubtasks { margin-top: 10px; border-top: 1px solid var(--color-line); }
 .weeklySubtasks > summary { display: flex; align-items: center; min-height: var(--tap-size); }
 .weeklySubtasks > summary span { margin-left: auto; }

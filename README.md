@@ -104,11 +104,13 @@ task-ring/
 │  │  ├─ time.css            # 时间账本与浮动计时器
 │  │  ├─ library.css         # 资料库
 │  │  ├─ editors.css         # 弹窗与编辑器
+│  │  ├─ effects.css         # 分级完成演出与微交互
 │  │  └─ responsive.css      # 手机、平板响应式
 │  └─ js/
 │     ├─ data/default-data.js
 │     ├─ app.js              # 核心数据、软锁、同步、计时与编辑器业务
 │     └─ views/
+│        ├─ completion-effects.js # Cut-in、粒子、队列与 reduced-motion
 │        ├─ product-ui.js    # 收纳、持久化与主要页面渲染
 │        ├─ time-ledger-view.js
 │        └─ editor-ux.js

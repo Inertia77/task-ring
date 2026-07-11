@@ -1,27 +1,27 @@
 .inertiaHeader {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, auto);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, auto);
+  gap: 18px;
   align-items: center;
   min-width: 0;
-  margin-bottom: 14px;
-  padding: 20px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-panel);
   box-shadow: var(--shadow-panel);
 }
 .inertiaHeroBrand, .inertiaHeroCopy, .inertiaBrandRow, .inertiaToolbar, .globalToolbar { min-width: 0; }
-.inertiaHeroBrand { display: flex; align-items: center; gap: 14px; }
-.inertiaHeroMark { flex: 0 0 62px; width: 62px; padding: 9px; border-radius: 14px; background: var(--color-ink); transform: rotate(-2deg); }
+.inertiaHeroBrand { display: flex; align-items: center; gap: 11px; }
+.inertiaHeroMark { flex: 0 0 48px; width: 48px; padding: 7px; border-radius: 11px 3px 11px 3px; background: var(--color-ink); transform: rotate(-1deg); }
 .inertiaBrandRow { display: flex; flex-wrap: wrap; gap: 6px; }
 .inertiaOwnerBadge { background: var(--color-primary); border-color: var(--color-ink); }
-.inertiaHeroTitle { display: flex; flex-wrap: wrap; gap: 8px; margin: 7px 0 2px; font-size: clamp(24px, 3vw, 34px); line-height: 1.1; }
+.inertiaHeroTitle { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 1px; font-size: clamp(21px, 2.3vw, 28px); line-height: 1.08; }
 .inertiaTitleSlash { color: var(--color-primary-hover); }
 .inertiaTitleEn { color: var(--color-muted); }
-.inertiaSubtitle { margin: 0; color: var(--color-muted); }
-.inertiaToolbar { display: grid; grid-template-columns: repeat(3, minmax(100px, auto)); gap: 8px; justify-content: end; }
+.inertiaSubtitle { margin: 0; overflow: hidden; color: var(--color-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.inertiaToolbar { display: grid; grid-template-columns: repeat(4, minmax(82px, auto)); gap: 5px; justify-content: end; }
 .inertiaToolbar > * { min-height: var(--tap-size); }
 .viewDock {
   position: sticky;
@@ -29,26 +29,27 @@
   z-index: 80;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 14px;
-  padding: 8px;
+  gap: 5px;
+  margin-bottom: 10px;
+  padding: 5px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--color-panel) 94%, transparent);
   box-shadow: var(--shadow-panel);
   backdrop-filter: blur(12px);
 }
-.viewDockBtn { display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-rows: 16px 22px; align-items: center; column-gap: 8px; min-height: 58px; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--color-muted); text-align: left; }
-.viewDockBtn .dockGlyph { grid-row: 1 / 3; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--color-panel-soft); font-style: normal; }
+.viewDockBtn { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); grid-template-rows: 14px 20px; align-items: center; column-gap: 7px; min-height: 48px; padding: 5px 9px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--color-muted); text-align: left; transition: color var(--motion-fast),background var(--motion-fast),border-color var(--motion-fast),transform var(--motion-fast); }
+.viewDockBtn .dockGlyph { grid-row: 1 / 3; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px 2px 8px 2px; background: var(--color-panel-soft); font-style: normal; }
 .viewDockBtn > span { font-size: 11px; font-weight: 750; letter-spacing: 0.12em; }
 .viewDockBtn b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .viewDockBtn:hover { border-color: var(--color-line-strong); background: var(--color-panel-soft); }
 .viewDockBtn.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
+.viewDockBtn.active::after { content: ""; position: absolute; right: 8px; bottom: -1px; left: 46px; height: 3px; background: var(--color-primary); }
 .dockMobileLabel { display: none; }
 .viewIntro, .taskRingControlPanel, .taskFirstBanner, .orbitPanel, .weeklyPlanPanel, .gameQuestPanel, .timePanel, .refBox, .dailyReminder, .notice, .commandMotto {
   min-width: 0;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .viewIntro {
   display: none;

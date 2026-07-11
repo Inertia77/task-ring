@@ -2,6 +2,7 @@
   .wrap { padding: 14px; }
   .inertiaHeader { grid-template-columns: minmax(0,1fr); }
   .inertiaToolbar { grid-template-columns: repeat(3,minmax(0,1fr)); justify-content: stretch; }
+  .taskRingControlPanel { grid-template-columns: minmax(170px,.7fr) minmax(310px,1.3fr); grid-template-areas: "head actions" "status status" "progress progress"; }
   .weeklyMissionGrid, .dailyGroupBody, .gameQuestGrid { grid-template-columns: minmax(0,1fr); }
   .allocationRibbon { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .missionActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -45,10 +46,10 @@
   .viewIntro strong { font-size: 16px; }
   .viewIntro p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; line-height: 1.4; }
   .taskFirstBanner, .taskFirstBanner.active { display: none; }
-  .taskRingControlPanel { margin-bottom: 8px; padding: 10px; }
+  .taskRingControlPanel { grid-template-columns: minmax(0,1fr); grid-template-areas: "head" "actions" "status" "progress"; gap: 5px; margin-bottom: 7px; padding: 8px; }
   .taskRingControlHead { gap: 6px; }
-  .taskRingControlHead > div:first-child { flex-basis: 180px; }
-  .taskRingControlHead strong { font-size: 17px; }
+  .taskRingControlHead > div:first-child { flex-basis: auto; }
+  .taskRingControlHead strong { font-size: 16px; }
   .taskRingModeText { padding: 4px 7px; }
   .taskRingActionRow { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; margin: 7px 0; }
   .taskRingActionRow button { min-width: 0; padding: 4px 2px; font-size: 11px; line-height: 1.15; }
@@ -68,7 +69,7 @@
   .orbitDays { display: flex; overflow-x: auto; }
   .orbitDay { flex: 0 0 100px; }
   .dayTabs { margin-bottom: 6px; }
-  .dailyStatusStrip { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+  .dailyStatusStrip { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
   .dailyStatusItem { padding: 7px 6px; }
   .dailyStatusItem span { font-size: 10px; }
   .dailyStatusItem b { font-size: 13px; }
@@ -76,10 +77,10 @@
   .dailyGroup > summary { padding: 9px 10px; }
   .dailyGroupBody { gap: 6px; padding: 6px; }
   .dailyCard { padding: 10px; }
-  .dailyMain { grid-template-columns: minmax(0,1fr) var(--tap-size); }
-  .dailyActions { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; margin-top: 8px; }
+  .dailyMain { grid-template-columns: var(--tap-size) minmax(0,1fr); }
+  .dailyActions { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; margin-top: 6px; padding-left: 0; }
   .dailyActions button, .dailyActions a { min-width: 0; }
-  .subtaskInline { margin-top: 8px; }
+  .subtaskInline { margin-top: 7px; margin-left: 0; }
   .weekMatrixHeader { grid-template-columns: minmax(0,1fr); gap: 8px; padding: 10px; }
   .weekMatrixHeader > div:first-child > em { line-height: 1.35; }
   .weekMatrixSummary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); justify-content: stretch; }
@@ -182,7 +183,7 @@
   .wrap { padding-inline: 8px; }
   .inertiaToolbar { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .dailyActions, .missionActions, .ghActions, .taskEditorToolbar { grid-template-columns: minmax(0,1fr); }
-  .dailyStatusStrip { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .dailyStatusStrip { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .gameQuestMetricSet { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .gameQuestMetric { display: flex; align-items: baseline; justify-content: space-between; }
   .gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
@@ -195,4 +196,5 @@
 @media (prefers-reduced-motion: reduce) {
   .dailyCard:hover, .refItem:hover { transform: none; }
   .summaryChevron, .refGroupCaret { transition: none; }
+  .dailyCard.running { animation: none; }
 }

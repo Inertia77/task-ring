@@ -1,15 +1,15 @@
-.timePanelShell { display: grid; gap: 12px; min-width: 0; }
-.timePanelHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 20px; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); }
-.activeTimerCard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px; border: 1px solid var(--color-ink); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-ink); color: white; }
+.timePanelShell { display: grid; gap: 8px; min-width: 0; }
+.timePanelHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.activeTimerCard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 14px; border: 1px solid var(--color-ink); border-left: 7px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-ink); color: white; box-shadow: var(--shadow-float); }
 .activeTimerKicker { color: var(--color-primary); font-size: 12px; font-weight: 800; }
 .activeTimerTitle { font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
 .activeTimerSub { color: #d6d2ca; font-size: 12px; }
-.activeTimerClock { color: var(--color-primary); font-size: 26px; font-weight: 850; text-align: right; }
+.activeTimerClock { color: var(--color-primary); font-size: 30px; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
 .activeTimerActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .activeTimerActions button { min-height: var(--tap-size); padding: 7px 11px; border: 1px solid #d8d3c8; border-radius: var(--radius-sm); background: white; color: var(--color-ink); }
 .activeTimerActions button[data-timer-pause], .activeTimerActions button[data-timer-resume] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-ink); font-weight: 800; }
 .activeTimerActions .timerGhost { border-color: #6d6b64; background: transparent; color: white; }
-.timeLedgerIdle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 16px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-md); background: var(--color-panel-soft); }
+.timeLedgerIdle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 11px 13px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .timeLedgerIdle span { font-size: 24px; }
 .timeLedgerIdle em { color: var(--color-muted); font-style: normal; }
 .timeSubTabs { display: flex; gap: 7px; padding: 7px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); overflow-x: auto; }

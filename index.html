@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260710.14"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260711.1"/>
 </head>
 <body class="nx locked">
 
@@ -79,15 +79,11 @@
   <button type="button" class="viewDockBtn" data-view-target="time" aria-current="false"><i class="dockGlyph" aria-hidden="true">◷</i><span>TIME</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">时间</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="library" aria-current="false"><i class="dockGlyph" aria-hidden="true">▤</i><span>LIB</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
 </nav>
-<section class="viewIntro viewPanel active" data-view-panel="tasks">
-  <div><span>MAIN RING</span><strong>今日执行环</strong></div>
-  <p>这里只放真正需要今天出现的任务：每日保底、指定日任务、遗留事项。普通兴趣与长期主线转入「周计划池」，按时间目标推进。</p>
-</section>
 <section class="taskRingControlPanel viewPanel active" data-view-panel="tasks" aria-label="今日执行环筛选与进度">
   <div class="taskRingControlHead">
     <div>
-      <span>DAILY RING CONTROL</span>
-      <strong>今日执行环控制台</strong>
+      <span>TR / DAILY COMMAND</span>
+      <strong>今日执行</strong>
     </div>
     <div class="taskRingModeText" id="modeText">只看今日未完成模式</div>
   </div>
@@ -97,19 +93,13 @@
     <button id="showAll" type="button">全周</button>
     <button id="resetCurrentWeek" type="button" class="softDangerBtn">重置</button>
   </div>
+  <div class="dailyStatusHost" id="dayTabs"></div>
   <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计今日执行环，不影响周计划池 / 游戏作战区</span></div><div class="progress"><div id="bar"></div></div></div>
-</section>
-<section class="taskFirstBanner mainRingBanner viewPanel active" data-view-panel="tasks">
-  <div class="mainRingCopy">
-    <div class="taskFirstKicker">DAILY COMMAND</div>
-    <div class="taskFirstTitle">今日任务面板</div>
-    <div class="taskFirstText">今日核心任务集中在这里；长期主线仍进周计划池，不抢主环注意力。</div>
-  </div>
 </section>
 <section class="orbitPanel viewPanel active" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
 <section class="weeklyPlanPanel viewPanel" id="weeklyPlanPanel" data-view-panel="weekly" aria-label="周计划池"></section>
 <section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
-<section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="dayTabs" id="dayTabs"></div><div class="mobileCards" id="mobileCards"></div></section>
+<section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
@@ -234,10 +224,11 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260710.1"></script>
-<script src="assets/js/app.js?v=20260710.5"></script>
-<script src="assets/js/views/time-ledger-view.js?v=20260710.1"></script>
+<script src="assets/js/data/default-data.js?v=20260711.1"></script>
+<script src="assets/js/app.js?v=20260711.1"></script>
+<script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
+<script src="assets/js/views/time-ledger-view.js?v=20260711.1"></script>
 <script src="assets/js/views/editor-ux.js?v=20260710.1"></script>
-<script src="assets/js/views/product-ui.js?v=20260710.6"></script>
+<script src="assets/js/views/product-ui.js?v=20260711.1"></script>
 </body>
 </html>
