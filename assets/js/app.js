@@ -1298,6 +1298,35 @@ function collectOneEditorRow(row){
 
 
 /* === v9.0 Reference Library Editor === */
+const EDITOR_SECTION_MAP={
+  ref:{buttonId:"refEditorSectionToggleBtn",selector:"#refEditorList > .refCfgGroup",openText:"全部收起",closedText:"全部展开",label:"资料分组"},
+  game:{buttonId:"gameQuestEditorSectionToggleBtn",selector:"#gameQuestEditorList details.gqDailyCard, #gameQuestEditorList details.gameQuestWeeklyGroup, #gameQuestEditorList details.gameQuestMetaDetails",openText:"全部收起",closedText:"全部展开",label:"游戏编辑区"}
+};
+function editorSectionState(kind){
+  const cfg=EDITOR_SECTION_MAP[kind];
+  if(!cfg)return {cfg:null,button:null,details:[]};
+  return {cfg,button:document.getElementById(cfg.buttonId),details:[...document.querySelectorAll(cfg.selector)]};
+}
+function syncEditorSectionToggle(kind){
+  const {cfg,button,details}=editorSectionState(kind);
+  if(!cfg||!button)return;
+  const anyOpen=details.some(detail=>detail.open);
+  button.textContent=anyOpen?cfg.openText:cfg.closedText;
+  button.setAttribute("aria-expanded",String(anyOpen));
+  button.disabled=!details.length;
+}
+function toggleEditorSections(kind){
+  const {cfg,details}=editorSectionState(kind);
+  if(!cfg||!details.length)return;
+  const shouldOpen=!details.some(detail=>detail.open);
+  details.forEach(detail=>{
+    detail.open=shouldOpen;
+    detail.querySelector(":scope > summary")?.setAttribute("aria-expanded",String(shouldOpen));
+  });
+  syncEditorSectionToggle(kind);
+  showToast(shouldOpen?`已展开全部${cfg.label}`:`已收起全部${cfg.label}`,"ok",1100);
+}
+
 let refEditorCounter=0;
 function refEditorLog(msg){const el=document.getElementById("refEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function makeRefGroupId(){refEditorCounter++;return `ref-group-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(refEditorCounter).padStart(3,"0")}`}
@@ -1363,6 +1392,7 @@ function renderRefEditor(){
   if(!list)return;
   const groups=normalizeRefGroups(refGroups&&refGroups.length?refGroups:defaultRefGroups);
   list.innerHTML=groups.map(refEditorGroupHtml).join("");
+  syncEditorSectionToggle("ref");
   refEditorLog(`已加载 ${groups.length} 个资料分组。`);
 }
 function collectRefEditorConfig(){
@@ -1450,6 +1480,8 @@ function initRefEditorUI(){
   document.getElementById("exportRefConfigBtn")?.addEventListener("click",exportRefConfig);
   document.getElementById("importRefConfigBtn")?.addEventListener("click",importRefConfig);
   document.getElementById("reloadRefConfigBtn")?.addEventListener("click",reloadRefConfig);
+  document.getElementById("refEditorSectionToggleBtn")?.addEventListener("click",()=>toggleEditorSections("ref"));
+  document.getElementById("refEditorList")?.addEventListener("toggle",()=>syncEditorSectionToggle("ref"),true);
   document.getElementById("refEditorList")?.addEventListener("click",e=>{
     const itemBtn=e.target.closest("button[data-refitemop]");
     if(itemBtn){
@@ -2751,6 +2783,7 @@ function renderGameQuestEditor(){
   const weeklyKey="game-editor-weekly";
   const weeklyOpen=window.TaskRingProductUi?.openAttribute?.(weeklyKey,false)||"";
   list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup gameQuestDailyGroupV3"><div class="gameQuestEditHead"><div><b>每天 / 指定日清单</b><span>每个游戏一张卡：先写任务名，再勾它要出现的星期。勾满一整周＝每日任务，只勾几天＝指定日任务；周常/深渊类请放到下面的本周池。</span></div></div>${enabledGames.length?dayLegend:""}<div class="gqDailyDeck">${dailyCards}</div></section><details class="gameQuestEditGroup gameQuestWeeklyGroup" data-ui-details-key="${weeklyKey}"${weeklyOpen}><summary class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>${enabledGames.length} 个游戏 · 周常、深境与一次性目标</span></div><span>展开</span></summary><div class="gameQuestWeeklyBody">${weeklyRows}</div></details><details class="gameQuestMetaDetails" data-ui-details-key="game-editor-meta"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
+  syncEditorSectionToggle("game");
   gameQuestEditorLog("按游戏排任务：写任务名 + 勾星期即可，不用再一天天复制。本周池维持一行一条。");
 }
 
@@ -2817,6 +2850,8 @@ function initGameQuestUI(){
   document.getElementById("resetGameQuestBtn")?.addEventListener("click",resetGameQuestDraft);
   document.getElementById("exportGameQuestBtn")?.addEventListener("click",exportGameQuestConfig);
   document.getElementById("importGameQuestBtn")?.addEventListener("click",importGameQuestConfig);
+  document.getElementById("gameQuestEditorSectionToggleBtn")?.addEventListener("click",()=>toggleEditorSections("game"));
+  document.getElementById("gameQuestEditorList")?.addEventListener("toggle",()=>syncEditorSectionToggle("game"),true);
   document.getElementById("gameQuestEditorList")?.addEventListener("click",e=>{
     const addBtn=e.target.closest("#addGameQuestCardBtn");
     if(addBtn){e.preventDefault();addGameQuestGame();return}

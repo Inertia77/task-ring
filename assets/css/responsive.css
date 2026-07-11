@@ -190,6 +190,7 @@
   .gqMetaActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
   .ghActions button, .taskEditorToolbar button { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 42px; padding: 6px 8px; font-size: 12px; line-height: 1.2; text-wrap: balance; }
   .taskEditorHead { gap: 10px; }
+  .taskEditorToolbar .editorSectionToggleBtn { order: -1; grid-column: 1 / -1; margin-left: 0; min-height: 36px; padding: 5px 8px; font-size: 11px; }
   .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(11px + env(safe-area-inset-top)) 10px 10px; }
   .ghLog { min-height: 60px; margin: 8px 10px 10px; padding: 8px; font-size: 11px; line-height: 1.45; }
   .cfgTask, .refCfgGroup, .gameQuestEditorCardItem, .gameQuestEditGroup, .gameQuestMetaDetails { border-radius: 14px; }
