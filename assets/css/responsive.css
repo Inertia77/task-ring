@@ -92,6 +92,12 @@
   .weeklyCommandHero, .timePanelHeader { grid-template-columns: minmax(0,1fr); padding: 12px; }
   .weeklyHeroStats, .timeStatCards { justify-content: stretch; }
   .weeklyHeroStats > div, .timeStatCards > div { flex: 1 1 90px; min-width: 0; }
+  .weeklyOverview > summary { padding: 5px 7px 5px 9px; }
+  .weeklyOverviewTitle { flex-basis: 190px; }
+  .weeklyOverviewTitle b { font-size: 13px; }
+  .weeklyOverviewTitle span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .weeklyOverviewToggle { gap: 3px; }
+  .weeklyOverviewBody { padding: 6px; }
   .allocationRibbon { display: flex; min-width: 0; overflow-x: auto; }
   .allocationChip { flex: 0 0 145px; }
   .missionHead { grid-template-columns: 40px minmax(0,1fr); }

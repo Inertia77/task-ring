@@ -16,6 +16,15 @@
 .weeklyCategoryTab b, .weeklyCategoryTab em { color: var(--color-muted); font-size: 12px; font-style: normal; }
 .weeklyCategoryTab.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .weeklyCategoryTab.active b, .weeklyCategoryTab.active em { color: #ddd8cd; }
+.weeklyOverview { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
+.weeklyOverview > summary { min-height: var(--tap-size); padding: 6px 9px 6px 11px; }
+.weeklyOverview[open] > summary { border-bottom: 1px solid var(--color-line); }
+.weeklyOverviewTitle b { font-size: 14px; }
+.weeklyOverviewToggle { display: flex; align-items: center; gap: 6px; color: var(--color-muted); font-size: 12px; font-weight: 750; }
+.weeklyOverviewOpenLabel { display: none; }
+.weeklyOverview[open] .weeklyOverviewClosedLabel { display: none; }
+.weeklyOverview[open] .weeklyOverviewOpenLabel { display: inline; }
+.weeklyOverviewBody { padding: 8px; background: var(--color-panel-soft); }
 .allocationRibbon { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .allocationChip { padding: 7px 8px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); }
 .allocationChip > div { display: flex; gap: 8px; align-items: center; }
