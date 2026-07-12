@@ -968,8 +968,31 @@ function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if
 function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor();document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
 function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
 function cfgEsc(v){return escapeHtml(String(v??""))}
-function makeTaskId(){editorCounter++;return `custom-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(editorCounter).padStart(3,"0")}`}
-function currentEditorCodes(){return [...document.querySelectorAll(".cfgTask")].map(row=>row.dataset.code).filter(Boolean)}
+function currentEditorIds(){
+  const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+  const used=new Set((base.tasks||[]).map(t=>String(t.id||"").trim()).filter(Boolean));
+  document.querySelectorAll("#taskEditorList .cfgTask").forEach(row=>{
+    const id=String(row.querySelector(".cfgId")?.value||row.dataset.id||"").trim();
+    if(id)used.add(id);
+  });
+  return used;
+}
+function makeTaskId(){
+  const used=currentEditorIds();
+  const prefix=`custom-${new Date().toISOString().slice(0,10).replaceAll("-","")}-`;
+  do{editorCounter++}while(used.has(prefix+String(editorCounter).padStart(3,"0")));
+  return prefix+String(editorCounter).padStart(3,"0");
+}
+function currentEditorCodes(){
+  // 编辑器可能只渲染「今日环」等筛选结果；编号仍必须覆盖完整配置，避免撞上被隐藏的任务。
+  const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+  const used=new Set((base.tasks||[]).map(t=>String(t.code||"").trim()).filter(Boolean));
+  document.querySelectorAll("#taskEditorList .cfgTask").forEach(row=>{
+    const code=String(row.querySelector(".cfgCode")?.value||row.dataset.code||"").trim();
+    if(code)used.add(code);
+  });
+  return [...used];
+}
 function makeTaskCode(){return nextCode("t",new Set(currentEditorCodes()))}
 function makeStepCode(existing){return nextCode("s",new Set(existing||[]))}
 function taskEditorRowHtml(t){
@@ -1054,16 +1077,26 @@ function editorRowToTask(row,idx){
   };
 }
 function collectEditorConfig(){
-  const rows=[...document.querySelectorAll(".cfgTask")];
+  const rows=[...document.querySelectorAll("#taskEditorList .cfgTask")];
   const list=document.getElementById("taskEditorList");
   const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
-  const edited=rows.map(editorRowToTask);
+  const entries=rows.map((row,idx)=>({
+    task:editorRowToTask(row,idx),
+    originId:String(row.dataset.id||"").trim(),
+    originCode:String(row.dataset.code||"").trim(),
+    isNew:row.dataset.editorNew==="1"
+  }));
+  const edited=entries.map(entry=>entry.task);
   const fullRender=list?.dataset.fullRender==="1"||(!list?.dataset.fullRender&&rows.length>=base.tasks.length);
+  // 用行最初绑定的 ID 合并，绝不能用新任务的 code 去替换筛选外的旧任务。
+  const entryForBaseTask=t=>entries.find(entry=>!entry.isNew&&entry.originId&&entry.originId===t.id)
+    ||entries.find(entry=>!entry.isNew&&!entry.originId&&entry.originCode&&entry.originCode===t.code);
+  const isExistingEntry=entry=>!entry.isNew&&base.tasks.some(t=>(entry.originId&&entry.originId===t.id)||(!entry.originId&&entry.originCode&&entry.originCode===t.code));
   const tasks=fullRender
     ? edited
-    : base.tasks.map(t=>edited.find(x=>x.id===t.id||x.code===t.code)||t).concat(edited.filter(t=>!base.tasks.some(x=>x.id===t.id||x.code===t.code)));
+    : base.tasks.map(t=>entryForBaseTask(t)?.task||t).concat(entries.filter(entry=>!isExistingEntry(entry)).map(entry=>entry.task));
   if(!fullRender&&edited.length<base.tasks.length){
-    taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${base.tasks.length-edited.filter(t=>base.tasks.some(x=>x.id===t.id||x.code===t.code)).length} 个已保留。`);
+    taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${base.tasks.length-entries.filter(isExistingEntry).length} 个已保留。`);
   }
   return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups,gameQuest:gameQuestConfig});
 }
@@ -1109,6 +1142,7 @@ function addEditorTask(){
   const t={id:makeTaskId(),code:makeTaskCode(),cat:"life",title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:"weekly",enabled:true,core:false,optional:false,important:false,steps:[]};
   list.insertAdjacentHTML("afterbegin",taskEditorRowHtml(t));
   const row=list.firstElementChild;
+  if(row)row.dataset.editorNew="1";
   row?.classList.add("newFocus");
   row?.scrollIntoView({behavior:"smooth",block:"center"});
   setTimeout(()=>row?.querySelector(".cfgTitle")?.focus(),260);
@@ -1278,7 +1312,7 @@ function initTaskEditorUI(){
     if(op==="copy"){
       const cfg=collectOneEditorRow(row);
       cfg.id=makeTaskId();cfg.code=makeTaskCode();cfg.title=cfg.title+" copy";
-      row.insertAdjacentHTML("afterend",taskEditorRowHtml(cfg));const nr=row.nextElementSibling;nr?.classList.add("newFocus");nr?.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>nr?.querySelector(".cfgTitle")?.focus(),260);showToast("已复制任务，直接编辑副本","ok");
+      row.insertAdjacentHTML("afterend",taskEditorRowHtml(cfg));const nr=row.nextElementSibling;if(nr)nr.dataset.editorNew="1";nr?.classList.add("newFocus");nr?.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>nr?.querySelector(".cfgTitle")?.focus(),260);showToast("已复制任务，直接编辑副本","ok");
     }
   });
 }

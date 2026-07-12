@@ -77,10 +77,11 @@
   };
   window.addEditorTask=function(){
     const host=document.querySelector("#taskEditorList .taskEditorActiveList")||document.getElementById("taskEditorList");
-    const t={id:makeTaskId(),code:makeTaskCode(),cat:"life",title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:"weekly",enabled:true,core:false,optional:false,important:false,steps:[]};
+    const planMode=editorUiState.scope==="daily"?"daily":"weekly";
+    const t={id:makeTaskId(),code:makeTaskCode(),cat:"life",title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:planMode,enabled:true,core:false,optional:false,important:false,steps:[]};
     host.insertAdjacentHTML("afterbegin",taskEditorRowHtml(t));
     const row=host.querySelector(".cfgTask");
-    if(row){row.open=true;row.classList.add("newFocus");row.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>row.querySelector(".cfgTitle")?.focus(),260)}
+    if(row){row.dataset.editorNew="1";row.open=true;row.classList.add("newFocus");row.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>row.querySelector(".cfgTitle")?.focus(),260)}
     taskEditorLog("已新增任务，并跳转到编辑位置。");
     showToast("已新增任务，直接编辑即可","ok");
   };
