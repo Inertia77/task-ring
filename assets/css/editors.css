@@ -57,6 +57,22 @@
 .timeDetailLogs li > b { white-space: nowrap; }
 .timeDetailLogs button { min-width: var(--tap-size); min-height: var(--tap-size); border-radius: 7px; background: var(--color-danger-soft); color: var(--color-danger); }
 .timeDetailLogs .empty { grid-template-columns: minmax(0,1fr) auto; min-height: 64px; border-left: 4px solid var(--color-primary); }
+.timeDetailAddButton { min-height: var(--tap-size); padding: 9px 12px; border: 1px dashed var(--color-ink); border-radius: var(--radius-sm); background: var(--color-primary); color: var(--color-ink); font-weight: 850; }
+.manualTimeForm { display: grid; gap: 12px; padding: 4px; }
+.manualTimeIntro { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--color-card-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-card); }
+.manualTimeIntro > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--color-ink); color: var(--color-primary); font-size: 18px; font-weight: 900; }
+.manualTimeIntro b, .manualTimeIntro em { display: block; }
+.manualTimeIntro em { margin-top: 3px; color: var(--color-muted); font-size: 12px; font-style: normal; }
+.manualTimeField { display: grid; gap: 5px; padding: 11px 12px; border: 1px solid var(--color-card-line); border-radius: var(--radius-sm); background: var(--color-card); }
+.manualTimeField > span { font-size: 12px; font-weight: 800; }
+.manualTimeField input { width: 100%; min-height: var(--tap-size); padding: 8px 10px; border: 1px solid var(--color-line-strong); border-radius: var(--radius-sm); background: white; font: inherit; }
+.manualTimeField > em { color: var(--color-muted); font-size: 11px; font-style: normal; }
+.manualTimePresets { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+.manualTimePresets button { min-height: var(--tap-size); border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); font-weight: 800; }
+.manualTimePresets button:hover, .manualTimePresets button:focus-visible { border-color: var(--color-ink); background: var(--color-primary); }
+.manualTimeActions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 2px; }
+.manualTimeActions button { min-width: 112px; min-height: var(--tap-size); padding: 8px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); font-weight: 800; }
+.manualTimeActions .manualTimeSubmit { border-color: var(--color-ink); background: var(--color-primary); }
 .ghCloseBtn, .weeklyTargetClose { flex: 0 0 var(--tap-size); width: var(--tap-size); height: var(--tap-size); border: 1px solid var(--color-line); border-radius: 50%; background: var(--color-panel-soft); font-size: 22px; }
 .ghSecretPanel, .ghHint, .taskEditorHint { margin: 14px 20px 0; padding: 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); color: var(--color-muted); }
 .ghModalCard .ghSecretPanel, .ghModalCard .ghHint { margin-left: 0; margin-right: 0; }
