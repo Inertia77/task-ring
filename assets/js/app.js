@@ -19,6 +19,7 @@ const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
 const TASK_CONFIG_BACKUP_KEY="taskring_local_config_backups_v1";
 const TASK_CONFIG_BACKUP_LIMIT=10;
+const TASK_CODE_REPAIR_LOG_KEY="taskring_task_code_repairs_v1";
 const DEMO_CORE_CLEANUP_KEY="taskring_cleanup_accidental_demo_core_v1";
 const ACCIDENTAL_DEMO_CORE_IDS=new Set(["demo-morning-start","demo-game-daily"]);
 
@@ -344,6 +345,7 @@ function normalizeTaskConfig(config){
   const srcTasks=hasPersonalTasks?rawTasks.filter(t=>!ACCIDENTAL_DEMO_CORE_IDS.has(String(t?.id||""))):rawTasks;
   const usedIds=new Set();
   const usedCodes=new Set();
+  const retiredTaskCodes=[...new Set((Array.isArray(src.retired_task_codes)?src.retired_task_codes:[]).map(v=>String(v||"").trim()).filter(v=>/^t\d{3,}$/.test(v)))];
   const validCats=new Set(["life","gamecreate","language"]);
   const tasks=srcTasks.map((raw,idx)=>{
     const title=String(raw.title||`任务 ${idx+1}`).trim()||`任务 ${idx+1}`;
@@ -391,10 +393,20 @@ function normalizeTaskConfig(config){
       steps
     };
   });
-  return {version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest)};
+  return {version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, retired_task_codes:retiredTaskCodes, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest)};
 }
 function applyTaskConfig(config, shouldRender=false){
-  taskConfig=normalizeTaskConfig(config);
+  const repaired=repairReusedTaskCodes(normalizeTaskConfig(config));
+  taskConfig=repaired.config;
+  if(repaired.changes.length){
+    try{
+      const repairMap=readTaskCodeRepairMap();
+      repaired.changes.forEach(change=>{repairMap[change.task_id]={from:change.from,to:change.to}});
+      localStorage.setItem(TASK_CONFIG_LOCAL_KEY,JSON.stringify(taskConfig));
+      localStorage.setItem(TASK_CODE_REPAIR_LOG_KEY,JSON.stringify({updatedAt:new Date().toISOString(),repairs:repairMap}));
+    }catch(e){console.warn("task code repair persistence failed",e)}
+    console.warn("repaired reused task codes",repaired.changes);
+  }
   refGroups=taskConfig.refs||normalizeRefGroups(defaultRefGroups);
   gameQuestConfig=taskConfig.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
@@ -499,6 +511,89 @@ function saveLocalTaskConfig(config,reason="覆盖本机配置前自动备份"){
 }
 function clearLocalTaskConfig(){
   localStorage.removeItem(TASK_CONFIG_LOCAL_KEY);
+}
+function readTaskCodeRepairMap(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(TASK_CODE_REPAIR_LOG_KEY)||"{}");
+    if(raw?.repairs&&typeof raw.repairs==="object")return raw.repairs;
+    const map={};
+    (Array.isArray(raw?.changes)?raw.changes:[]).forEach(change=>{if(change?.task_id)map[change.task_id]={from:change.from,to:change.to}});
+    return map;
+  }catch(_){return {}}
+}
+function taskCodeHistory(){
+  const history=[];
+  readLocalConfigBackups().forEach(entry=>{
+    (entry?.config?.tasks||[]).forEach(task=>{
+      const code=String(task?.code||"").trim();
+      if(/^t\d{3,}$/.test(code))history.push({id:String(task?.id||""),title:String(task?.title||""),code});
+    });
+  });
+  return history;
+}
+function stateReferencedTaskCodes(){
+  const used=new Set();
+  Object.keys(localStorage).forEach(key=>{
+    const match=String(key).match(/^taskring_github_v2_\d{4}-\d{2}-\d{2}_(t\d{3,})(?:_|$)/);
+    if(match)used.add(match[1]);
+  });
+  try{
+    const logs=JSON.parse(localStorage.getItem("taskring_time_logs_v1")||"[]");
+    (Array.isArray(logs)?logs:[]).forEach(log=>{const code=String(log?.task_code||"").trim();if(/^t\d{3,}$/.test(code))used.add(code)});
+  }catch(_){ }
+  Object.values(readTaskCodeRepairMap()).forEach(pair=>{if(/^t\d{3,}$/.test(String(pair?.from||"")))used.add(pair.from);if(/^t\d{3,}$/.test(String(pair?.to||"")))used.add(pair.to)});
+  return used;
+}
+function hasStateBeforeTaskCreation(task){
+  const idMatch=String(task?.id||"").match(/^custom-(\d{4})(\d{2})(\d{2})-/);
+  if(!idMatch)return false;
+  const createdYmd=`${idMatch[1]}-${idMatch[2]}-${idMatch[3]}`;
+  return Object.keys(localStorage).some(key=>{
+    const match=String(key).match(/^taskring_github_v2_(\d{4}-\d{2}-\d{2})_(t\d{3,})(?:_[^_]+)?_d([0-6])$/);
+    if(!match||match[2]!==task.code)return false;
+    const occurrence=new Date(`${match[1]}T00:00:00Z`);
+    const dayId=Number(match[3]);
+    occurrence.setUTCDate(occurrence.getUTCDate()+(dayId===0?6:dayId-1));
+    return occurrence.toISOString().slice(0,10)<createdYmd;
+  });
+}
+function reservedTaskCodes(config){
+  const cfg=normalizeTaskConfig(config||buildDefaultConfig());
+  const used=stateReferencedTaskCodes();
+  (cfg.tasks||[]).forEach(task=>used.add(task.code));
+  (cfg.retired_task_codes||[]).forEach(code=>used.add(code));
+  taskCodeHistory().forEach(task=>used.add(task.code));
+  return used;
+}
+function repairReusedTaskCodes(config){
+  const cfg=normalizeTaskConfig(config);
+  const history=taskCodeHistory();
+  const repairMap=readTaskCodeRepairMap();
+  const used=reservedTaskCodes(cfg);
+  const retired=new Set(cfg.retired_task_codes||[]);
+  const changes=[];
+  const normalizeTitle=value=>String(value||"").trim().toLowerCase();
+  const currentCodeUsedByOther=(code,taskId)=>cfg.tasks.some(task=>task.id!==taskId&&task.code===code);
+  cfg.tasks=cfg.tasks.map(task=>{
+    if(!String(task.id||"").startsWith("custom-"))return task;
+    const remembered=repairMap[task.id];
+    const sameHistoricalOwner=history.some(old=>old.code===task.code&&old.id===task.id&&normalizeTitle(old.title)===normalizeTitle(task.title));
+    const codeIsRetired=retired.has(task.code)&&!sameHistoricalOwner;
+    const hasHistoricalConflict=history.some(old=>old.code===task.code&&old.id!==task.id);
+    const hasOlderState=hasStateBeforeTaskCreation(task);
+    if(!codeIsRetired&&!hasHistoricalConflict&&!hasOlderState&&!(remembered&&remembered.from===task.code))return task;
+    const sameTaskPrior=history.find(old=>old.id===task.id&&old.code!==task.code&&!currentCodeUsedByOther(old.code,task.id)
+      &&!history.some(owner=>owner.code===old.code&&owner.id!==task.id));
+    let next=remembered&&remembered.from===task.code&&!currentCodeUsedByOther(remembered.to,task.id)?remembered.to:"";
+    if(!/^t\d{3,}$/.test(next)&&sameTaskPrior)next=sameTaskPrior.code;
+    if(!/^t\d{3,}$/.test(next))next=nextCode("t",used);
+    used.add(next);
+    retired.add(task.code);
+    changes.push({task_id:task.id,from:task.code,to:next});
+    return {...task,code:next};
+  });
+  cfg.retired_task_codes=[...retired].sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+  return {config:cfg,changes};
 }
 applyTaskConfig(loadLocalTaskConfig()||buildDefaultConfig(),false);
 const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
@@ -826,8 +921,8 @@ async function ghPull(){
     const cfgResult=await ghParseConfig(gist);
     const localCfg=loadLocalTaskConfig();
     const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
-    applyTaskConfig(cfgToUse,false);
     if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
+    applyTaskConfig(cfgToUse,false);
     if(cfgResult.mode==="plaintext"){
       ghLog("检测到旧版明文配置，正在自动转为加密配置…");
       try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
@@ -839,6 +934,8 @@ async function ghPull(){
     const localStates=collectGhLocalStates();
     const localCount=Object.keys(localStates).length;
     const result=applyGhStates(state.states||{});
+    // 完成状态到齐后再检查一次，换设备时也能识别新任务继承的历史打钩。
+    applyTaskConfig(taskConfig,false);
     const deletedResult=mergeGhTimeLogDeletes(state.time_logs_deleted||state.deleted_time_logs||{});
     const timeResult=mergeGhTimeLogs(state.time_logs||[]);
     if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
@@ -998,9 +1095,9 @@ function makeTaskId(){
   return prefix+String(editorCounter).padStart(3,"0");
 }
 function currentEditorCodes(){
-  // 编辑器可能只渲染「今日环」等筛选结果；编号仍必须覆盖完整配置，避免撞上被隐藏的任务。
+  // 编号覆盖当前、已删除、备份、完成状态与时间日志，绝不回收历史 Code。
   const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
-  const used=new Set((base.tasks||[]).map(t=>String(t.code||"").trim()).filter(Boolean));
+  const used=reservedTaskCodes(base);
   document.querySelectorAll("#taskEditorList .cfgTask").forEach(row=>{
     const code=String(row.querySelector(".cfgCode")?.value||row.dataset.code||"").trim();
     if(code)used.add(code);
@@ -1104,6 +1201,8 @@ function collectEditorConfig(){
   const edited=entries.map(entry=>entry.task);
   const deletedIds=editorDeletedTaskIds(list);
   const remainingBaseTasks=base.tasks.filter(t=>!deletedIds.has(t.id));
+  const retiredTaskCodes=new Set(base.retired_task_codes||[]);
+  base.tasks.filter(t=>deletedIds.has(t.id)).forEach(t=>retiredTaskCodes.add(t.code));
   const fullRender=list?.dataset.fullRender==="1"||(!list?.dataset.fullRender&&rows.length>=base.tasks.length);
   // 用行最初绑定的 ID 合并，绝不能用新任务的 code 去替换筛选外的旧任务。
   const entryForBaseTask=t=>entries.find(entry=>!entry.isNew&&entry.originId&&entry.originId===t.id)
@@ -1115,7 +1214,7 @@ function collectEditorConfig(){
   if(!fullRender&&edited.length<base.tasks.length){
     taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${remainingBaseTasks.length-entries.filter(isExistingEntry).length} 个已保留，明确删除 ${deletedIds.size} 个。`);
   }
-  return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups,gameQuest:gameQuestConfig});
+  return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,retired_task_codes:[...retiredTaskCodes],refs:refGroups,gameQuest:gameQuestConfig});
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
@@ -2338,7 +2437,26 @@ function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){
   }
   renderAll();refreshSubtaskPopover(taskId,dayId,cycle);
 }
-function carryoverOccurrences(){const out=[];const todayP=weekPos(today);for(const t of ringBlocks()){if(t.days.length===1){const d=t.days[0];if(weekPos(d)<todayP&&!isDone(t.id,d,cycleYmd))out.push({t,dayId:d,cycle:cycleYmd,carry:true})}else{const last=lastScheduledDay(t);if(weekPos(last)<todayP&&!isDone(t.id,last,cycleYmd))out.push({t,dayId:last,cycle:cycleYmd,carry:true})}if(t.days.includes(0)&&isLastScheduled(t,0)&&!isDone(t.id,0,prevCycleYmd)){out.push({t,dayId:0,cycle:prevCycleYmd,carry:true,prev:true})}}return out}
+function carryoverOccurrences(){
+  const out=[];
+  const todayP=weekPos(today);
+  for(const t of ringBlocks()){
+    if(t.days.length===1){
+      const d=t.days[0];
+      if(weekPos(d)<todayP&&!isDone(t.id,d,cycleYmd))out.push({t,dayId:d,cycle:cycleYmd,carry:true});
+    }else{
+      const last=lastScheduledDay(t);
+      if(weekPos(last)<todayP&&!isDone(t.id,last,cycleYmd))out.push({t,dayId:last,cycle:cycleYmd,carry:true});
+    }
+    // 上周最后一次只延续到本周下一次排程之前；新排程到来后由新实例接棒，避免同名双卡。
+    const firstThisWeek=sortWeekDays(t.days)[0];
+    const beforeNextScheduled=firstThisWeek!=null&&todayP<weekPos(firstThisWeek);
+    if(beforeNextScheduled&&t.days.includes(0)&&isLastScheduled(t,0)&&!isDone(t.id,0,prevCycleYmd)){
+      out.push({t,dayId:0,cycle:prevCycleYmd,carry:true,prev:true});
+    }
+  }
+  return out;
+}
 function todayOccurrences(includeDone=true){const carry=carryoverOccurrences();const carryMap=new Map(carry.map(o=>[o.t.id,o]));let arr=[];for(const t of ringBlocks()){if(t.days.includes(today))arr.push({t,dayId:today,cycle:cycleYmd,current:true});const c=carryMap.get(t.id);if(c)arr.push(c)}const seen=new Set();arr=arr.filter(o=>{const k=`${o.cycle}_${o.t.id}_${o.dayId}`;if(seen.has(k))return false;seen.add(k);return true});if(!includeDone)arr=arr.filter(o=>!isDone(o.t.id,o.dayId,o.cycle));return arr}
 function escapeHtml(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function safeUrl(url){if(!url)return "";try{const u=new URL(url,window.location.href);if(u.protocol==="http:"||u.protocol==="https:")return u.href}catch(e){}return ""}
 function refItemHtml(item,index=0,groupTitle="资料"){
