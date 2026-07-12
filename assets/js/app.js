@@ -965,9 +965,23 @@ function initGithubSyncUI(){
 let editorCounter=0;
 function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 
-function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor();document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
+function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor(true);document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
 function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
 function cfgEsc(v){return escapeHtml(String(v??""))}
+function editorDeletedTaskIds(list=document.getElementById("taskEditorList")){
+  try{return new Set(JSON.parse(list?.dataset.deletedTaskIds||"[]").map(v=>String(v||"").trim()).filter(Boolean))}
+  catch(e){return new Set()}
+}
+function resetEditorDeletedTasks(){const list=document.getElementById("taskEditorList");if(list)list.dataset.deletedTaskIds="[]"}
+function markEditorTaskDeleted(row){
+  if(!row||row.dataset.editorNew==="1")return;
+  const id=String(row.dataset.id||"").trim();
+  if(!id)return;
+  const deleted=editorDeletedTaskIds();
+  deleted.add(id);
+  const list=document.getElementById("taskEditorList");
+  if(list)list.dataset.deletedTaskIds=JSON.stringify([...deleted]);
+}
 function currentEditorIds(){
   const base=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
   const used=new Set((base.tasks||[]).map(t=>String(t.id||"").trim()).filter(Boolean));
@@ -1039,9 +1053,10 @@ function taskEditorRowHtml(t){
     </details>
   </div>`
 }
-function renderTaskEditor(){
+function renderTaskEditor(resetDeleted=false){
   const list=document.getElementById("taskEditorList");
   if(!list)return;
+  if(resetDeleted)resetEditorDeletedTasks();
   const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
   list.innerHTML=cfg.tasks.map(taskEditorRowHtml).join("");
   list.dataset.fullRender="1";
@@ -1087,16 +1102,18 @@ function collectEditorConfig(){
     isNew:row.dataset.editorNew==="1"
   }));
   const edited=entries.map(entry=>entry.task);
+  const deletedIds=editorDeletedTaskIds(list);
+  const remainingBaseTasks=base.tasks.filter(t=>!deletedIds.has(t.id));
   const fullRender=list?.dataset.fullRender==="1"||(!list?.dataset.fullRender&&rows.length>=base.tasks.length);
   // 用行最初绑定的 ID 合并，绝不能用新任务的 code 去替换筛选外的旧任务。
   const entryForBaseTask=t=>entries.find(entry=>!entry.isNew&&entry.originId&&entry.originId===t.id)
     ||entries.find(entry=>!entry.isNew&&!entry.originId&&entry.originCode&&entry.originCode===t.code);
-  const isExistingEntry=entry=>!entry.isNew&&base.tasks.some(t=>(entry.originId&&entry.originId===t.id)||(!entry.originId&&entry.originCode&&entry.originCode===t.code));
+  const isExistingEntry=entry=>!entry.isNew&&remainingBaseTasks.some(t=>(entry.originId&&entry.originId===t.id)||(!entry.originId&&entry.originCode&&entry.originCode===t.code));
   const tasks=fullRender
     ? edited
-    : base.tasks.map(t=>entryForBaseTask(t)?.task||t).concat(entries.filter(entry=>!isExistingEntry(entry)).map(entry=>entry.task));
+    : remainingBaseTasks.map(t=>entryForBaseTask(t)?.task||t).concat(entries.filter(entry=>!isExistingEntry(entry)).map(entry=>entry.task));
   if(!fullRender&&edited.length<base.tasks.length){
-    taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${base.tasks.length-entries.filter(isExistingEntry).length} 个已保留。`);
+    taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${remainingBaseTasks.length-entries.filter(isExistingEntry).length} 个已保留，明确删除 ${deletedIds.size} 个。`);
   }
   return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,refs:refGroups,gameQuest:gameQuestConfig});
 }
@@ -1110,12 +1127,17 @@ async function saveEditorConfig(){
     const cfg=collectEditorConfig();
     const beforeCounts=configCounts(before);
     const nextCounts=configCounts(cfg);
-    if(nextCounts.total<beforeCounts.total||nextCounts.enabled<beforeCounts.enabled-1){
+    const deletedIds=editorDeletedTaskIds();
+    const deletedEnabled=before.tasks.filter(t=>deletedIds.has(t.id)&&t.enabled!==false).length;
+    const unexpectedTotalLoss=nextCounts.total<beforeCounts.total-deletedIds.size;
+    const unexpectedEnabledLoss=nextCounts.enabled<beforeCounts.enabled-deletedEnabled-1;
+    if(unexpectedTotalLoss||unexpectedEnabledLoss){
       const ok=confirm(`这次保存会明显减少配置：\n\n当前：${configCountsText(before)}\n将保存：${configCountsText(cfg)}\n\n如果你不是故意清理任务，请取消。`);
       if(!ok){taskEditorLog("已取消可疑保存，配置没有覆盖。");showToast("已取消保存，配置未覆盖","warn",2200);return}
     }
     saveLocalTaskConfig(cfg,"任务编辑器保存前");
     applyTaskConfig(cfg,true);
+    resetEditorDeletedTasks();
     if(shouldSync){
       setGhStatus("GitHub：保存配置中","sync");
       await ghPatchConfig(cfg);
@@ -1159,7 +1181,7 @@ function importEditorConfig(){
   try{
     const cfg=normalizeTaskConfig(JSON.parse(raw));
     taskConfig=cfg;
-    renderTaskEditor();
+    renderTaskEditor(true);
     taskEditorLog("导入成功。确认无误后请点「保存配置并同步」。");showToast("导入成功，记得保存配置","ok");
   }catch(err){taskEditorLog("导入失败："+String(err.message||err));showToast("导入失败，请看日志","err")}
 }
@@ -1176,7 +1198,7 @@ async function reloadSavedEditorConfig(){
       if(cfgResult.config){
         saveLocalTaskConfig(cfgResult.config);
         applyTaskConfig(cfgResult.config,true);
-        renderTaskEditor();
+        renderTaskEditor(true);
         setGhStatus("GitHub：已同步","on");
         taskEditorLog("已从云端重载已保存配置。");
         showToast("已重载云端配置","ok");
@@ -1187,14 +1209,14 @@ async function reloadSavedEditorConfig(){
     const localCfg=loadLocalTaskConfig();
     if(localCfg){
       applyTaskConfig(localCfg,true);
-      renderTaskEditor();
+      renderTaskEditor(true);
       taskEditorLog("已从本机缓存重载配置。");
       showToast("已重载本机配置","ok");
       return;
     }
     const cfg=buildDefaultConfig();
     applyTaskConfig(cfg,true);
-    renderTaskEditor();
+    renderTaskEditor(true);
     taskEditorLog("没有云端/本机配置，已回到 HTML 内置初始配置。");
     showToast("已载入内置初始配置","warn");
   }catch(err){
@@ -1223,7 +1245,7 @@ async function restoreLocalBackupConfig(){
     setBtnBusy(btn,true,"恢复中…");
     const cfg=saveLocalTaskConfig(picked.config,"恢复本机备份前");
     applyTaskConfig(cfg,true);
-    renderTaskEditor();
+    renderTaskEditor(true);
     taskEditorLog(`已恢复本机备份：${configCountsText(cfg)}。检查无误后可保存同步。`);
     showToast("已恢复本机备份，检查后再同步","ok",2600);
   }finally{
@@ -1274,7 +1296,7 @@ async function restorePreviousCloudConfig(){
     setBtnBusy(btn,true,"恢复中…");
     const cfg=saveLocalTaskConfig(picked.config,"恢复云端上一版前");
     applyTaskConfig(cfg,true);
-    renderTaskEditor();
+    renderTaskEditor(true);
     await ghPatchConfig(cfg);
     setGhStatus("GitHub：已同步","on");
     ghLog(`已从 Gist 历史版本恢复配置：${picked.version}`);
@@ -1308,7 +1330,7 @@ function initTaskEditorUI(){
     const op=btn.dataset.op;
     if(op==="up"){if(row.previousElementSibling){row.parentNode.insertBefore(row,row.previousElementSibling);showToast("已上移","ok",1200)}else{row.parentNode.appendChild(row);showToast("已移动到最下面","ok",1200)}}
     if(op==="down"){if(row.nextElementSibling){row.parentNode.insertBefore(row.nextElementSibling,row);showToast("已下移","ok",1200)}else{row.parentNode.insertBefore(row,row.parentNode.firstElementChild);showToast("已移动到最上面","ok",1200)}}
-    if(op==="remove"){if(confirm("确认从配置中删除这个任务？更推荐只是取消「启用」。")){row.remove();taskEditorLog("任务已从编辑器移除，保存后生效。");showToast("已移除，保存后生效","warn")}}
+    if(op==="remove"){if(confirm("确认从配置中删除这个任务？更推荐只是取消「启用」。")){markEditorTaskDeleted(row);row.remove();taskEditorLog("任务已标记删除，保存配置后永久生效。");showToast("已标记删除，请保存配置","warn")}}
     if(op==="copy"){
       const cfg=collectOneEditorRow(row);
       cfg.id=makeTaskId();cfg.code=makeTaskCode();cfg.title=cfg.title+" copy";
