@@ -67,6 +67,9 @@
 .manualTimeField > span { font-size: 12px; font-weight: 800; }
 .manualTimeField input { width: 100%; min-height: var(--tap-size); padding: 8px 10px; border: 1px solid var(--color-line-strong); border-radius: var(--radius-sm); background: white; font: inherit; }
 .manualTimeField > em { color: var(--color-muted); font-size: 11px; font-style: normal; }
+.manualTimeDateTime { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; min-width: 0; }
+.manualTimeDateTime input { display: block; min-width: 0; max-width: 100%; }
+.manualTimeHint { margin: -5px 2px 0; color: var(--color-muted); font-size: 11px; }
 .manualTimePresets { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
 .manualTimePresets button { min-height: var(--tap-size); border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); font-weight: 800; }
 .manualTimePresets button:hover, .manualTimePresets button:focus-visible { border-color: var(--color-ink); background: var(--color-primary); }

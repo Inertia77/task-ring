@@ -1827,6 +1827,7 @@ function openManualTimeEntry(kind,taskId=""){
   const target=manualTimeEntryTarget(kind,taskId);
   if(!target){showToast("找不到要补记的任务","err");return}
   const nowValue=localDateTimeInputValue();
+  const [defaultEndedDate,defaultEndedTime]=nowValue.split("T");
   const defaultMinutes=Math.max(1,Math.round(Number(target.estimated_minutes)||30));
   const body=`<form class="manualTimeForm" data-manual-time-form>
     <input type="hidden" name="kind" value="${escapeHtml(target.kind)}">
@@ -1834,7 +1835,11 @@ function openManualTimeEntry(kind,taskId=""){
     <div class="manualTimeIntro"><span aria-hidden="true">+◷</span><div><b>补上忘记开始的时间</b><em>会与正常计时一样进入今日、本周和同步统计。</em></div></div>
     <label class="manualTimeField"><span>投入时长（分钟）</span><input name="minutes" type="number" min="1" max="10080" step="1" value="${defaultMinutes}" inputmode="numeric" required></label>
     <div class="manualTimePresets" aria-label="快速选择时长">${[15,30,60,90].map(minutes=>`<button type="button" data-manual-minutes-preset="${minutes}">${minutes}m</button>`).join("")}</div>
-    <label class="manualTimeField"><span>完成时间</span><input name="endedAt" type="datetime-local" value="${nowValue}" max="${nowValue}" required><em>深夜 04:00 前按前一天计入，与现有计时规则一致。</em></label>
+    <div class="manualTimeDateTime" role="group" aria-label="完成时间">
+      <label class="manualTimeField"><span>完成日期</span><input name="endedDate" type="date" value="${defaultEndedDate}" max="${defaultEndedDate}" required></label>
+      <label class="manualTimeField"><span>完成时刻</span><input name="endedTime" type="time" value="${defaultEndedTime}" step="60" required></label>
+    </div>
+    <p class="manualTimeHint">深夜 04:00 前按前一天计入，与现有计时规则一致。</p>
     <div class="manualTimeActions"><button type="button" data-time-modal-close>取消</button><button type="submit" class="manualTimeSubmit">保存补记</button></div>
   </form>`;
   openTimeDetailModal(`手动补记 · ${target.title}`,body);
@@ -1846,7 +1851,8 @@ function saveManualTimeEntry(form){
   if(!target){showToast("找不到要补记的任务","err");return}
   const minutes=Math.round(Number(data.get("minutes")));
   if(!Number.isFinite(minutes)||minutes<1||minutes>10080){showToast("请输入 1–10080 分钟","err");return}
-  const endedAt=new Date(String(data.get("endedAt")||""));
+  const endedAtValue=String(data.get("endedAt")||`${data.get("endedDate")||""}T${data.get("endedTime")||""}`);
+  const endedAt=new Date(endedAtValue);
   if(Number.isNaN(endedAt.getTime())){showToast("请选择正确的完成时间","err");return}
   if(endedAt.getTime()>Date.now()+60000){showToast("完成时间不能在未来","err");return}
   const operationalEnded=getOperationalDate(endedAt);
@@ -1893,7 +1899,13 @@ function openTimeDetailModal(title,bodyHtml){
   m.classList.remove("hidden");
   m.setAttribute("aria-hidden","false");
 }
-function closeTimeDetailModal(){const m=document.getElementById("timeDetailModal");if(!m)return;m.classList.add("hidden");m.setAttribute("aria-hidden","true")}
+function closeTimeDetailModal(){
+  const m=document.getElementById("timeDetailModal");
+  if(!m)return;
+  m.classList.add("hidden");
+  m.setAttribute("aria-hidden","true");
+  window.dispatchEvent(new CustomEvent("taskring:modal-closed",{detail:{id:m.id}}));
+}
 function deleteTimeLog(logId){
   const logs=readTimeLogs();
   const target=logs.find(log=>log.id===logId);

@@ -161,6 +161,11 @@
   .timeDetailHead { padding: 12px; }
   .timeDetailHead > div > b { font-size: 17px; }
   .timeDetailBody { gap: 7px; padding: 8px; }
+  .manualTimeDateTime { grid-template-columns: minmax(0,1fr); }
+  .manualTimeField { min-width: 0; padding: 9px 10px; }
+  .manualTimeField input[type="date"], .manualTimeField input[type="time"] { width: 100%; min-width: 0; max-width: 100%; }
+  .manualTimeActions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .manualTimeActions button { min-width: 0; }
   .timeDetailStats { gap: 4px; }
   .timeDetailStats > div { padding: 7px; }
   .timeDetailStats b { font-size: 16px; }

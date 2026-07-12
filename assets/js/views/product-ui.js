@@ -363,6 +363,7 @@
     requestAnimationFrame(()=>{const close=modal.querySelector('.ghCloseBtn,[data-time-modal-close],.weeklyTargetClose');(close||focusableIn(modal)[0])?.focus()});
   }
   function closeModalFocus(){document.body.classList.remove("modalOpen");requestAnimationFrame(()=>{if(lastModalTrigger?.isConnected)lastModalTrigger.focus();lastModalTrigger=null})}
+  window.addEventListener("taskring:modal-closed",()=>{if(!visibleModal())closeModalFocus()});
   function enhanceUi(){enhanceDetails();enhanceFormLabels();document.querySelectorAll(".viewDockBtn").forEach(btn=>btn.setAttribute("aria-current",btn.classList.contains("active")?"page":"false"))}
 
   document.addEventListener("toggle",event=>{
