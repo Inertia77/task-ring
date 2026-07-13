@@ -150,12 +150,12 @@
     <div class="taskEditorToolbar gameQuestEditorToolbar">
       <button id="saveGameQuestBtn">保存游戏任务</button>
       <button id="resetGameQuestBtn">重载已保存配置</button>
-      <button id="exportGameQuestBtn">导出 JSON</button>
-      <button id="importGameQuestBtn">导入 JSON</button>
+      <button id="exportGameQuestBtn">导出游戏 JSON</button>
+      <button id="importGameQuestBtn">导入游戏 JSON</button>
       <button id="gameQuestEditorSectionToggleBtn" class="editorSectionToggleBtn" type="button" aria-expanded="true">全部收起</button>
     </div>
     <div class="taskEditorHint">
-      每天/指定日：每个游戏一张卡，写任务名 + 勾选它要出现的星期（勾满一整周＝每日，勾几天＝指定日）。本周池仍是一行一条。改完记得保存。
+      导入/导出只处理游戏分区，不包含也不会覆盖任务和资料库。每天/指定日：每个游戏一张卡，写任务名 + 勾选它要出现的星期（勾满一整周＝每日，勾几天＝指定日）。本周池仍是一行一条。改完记得保存。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
@@ -179,14 +179,14 @@
     <div class="taskEditorToolbar">
       <button id="addTaskBtn">新增任务</button>
       <button id="saveConfigBtn">保存配置（有 Token 时同步）</button>
-      <button id="exportConfigBtn">导出 JSON</button>
-      <button id="importConfigBtn">导入 JSON</button>
+      <button id="exportConfigBtn">导出任务 JSON</button>
+      <button id="importConfigBtn">导入任务 JSON</button>
       <button id="reloadSavedConfigBtn">重载已保存配置</button>
       <button id="restoreLocalBackupBtn">恢复本机备份</button>
       <button id="restoreCloudPreviousBtn">恢复云端上一版</button>
     </div>
     <div class="taskEditorHint">
-      改任务名、星期、链接、分类不会影响旧勾选；不要随意改高级 ID。删除建议改成「停用」，更安全。
+      导入/导出只处理任务分区，不包含也不会覆盖游戏和资料库。改任务名、星期、链接、分类不会影响旧勾选；不要随意改高级 ID。删除建议改成「停用」，更安全。
     </div>
     <div id="taskEditorList" class="taskEditorList"></div>
     <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>

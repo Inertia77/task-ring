@@ -1278,18 +1278,46 @@ function addEditorTask(){
   taskEditorLog("已新增任务，并跳转到编辑位置。");
   showToast("已新增任务，直接编辑即可","ok");
 }
+function taskEditorExportPayload(config){
+  const cfg=normalizeTaskConfig(config);
+  return {
+    version:1,
+    section:"tasks",
+    updatedAt:new Date().toISOString(),
+    tasks:deepClone(cfg.tasks||[]),
+    retired_task_codes:[...(cfg.retired_task_codes||[])]
+  };
+}
+function taskEditorImportConfig(value,baseConfig=taskConfig||loadLocalTaskConfig()||buildDefaultConfig()){
+  const imported=Array.isArray(value)?{tasks:value}:value;
+  if(!imported||typeof imported!=="object"||!Array.isArray(imported.tasks)){
+    throw new Error("任务 JSON 必须包含 tasks 数组，也可以直接粘贴任务数组");
+  }
+  const base=normalizeTaskConfig(baseConfig);
+  const retiredTaskCodes=Array.isArray(imported.retired_task_codes)?imported.retired_task_codes:base.retired_task_codes;
+  // 只替换任务分区。即使导入的是旧版完整配置，也保留当前资料库和游戏配置。
+  return normalizeTaskConfig({
+    ...base,
+    updatedAt:new Date().toISOString(),
+    tasks:imported.tasks,
+    retired_task_codes:retiredTaskCodes,
+    refs:base.refs,
+    gameQuest:base.gameQuest
+  });
+}
 function exportEditorConfig(){
   const cfg=collectEditorConfig();
-  navigator.clipboard?.writeText(JSON.stringify(cfg,null,2)).then(()=>{taskEditorLog("配置 JSON 已复制到剪贴板。");showToast("配置 JSON 已复制","ok")}).catch(()=>{taskEditorLog(JSON.stringify(cfg,null,2));showToast("复制失败，已输出到日志","warn")});
+  const payload=taskEditorExportPayload(cfg);
+  navigator.clipboard?.writeText(JSON.stringify(payload,null,2)).then(()=>{taskEditorLog("任务分区 JSON 已复制到剪贴板（不包含游戏和资料库）。");showToast("任务 JSON 已复制","ok")}).catch(()=>{taskEditorLog(JSON.stringify(payload,null,2));showToast("复制失败，已输出到日志","warn")});
 }
 function importEditorConfig(){
-  const raw=prompt("粘贴 taskring-config.json 内容：");
+  const raw=prompt("粘贴任务 JSON：支持 {tasks:[...]}、直接任务数组，或旧版完整 taskring-config.json；只会导入任务，不会覆盖游戏和资料库。");
   if(!raw)return;
   try{
-    const cfg=normalizeTaskConfig(JSON.parse(raw));
+    const cfg=taskEditorImportConfig(JSON.parse(raw));
     taskConfig=cfg;
     renderTaskEditor(true);
-    taskEditorLog("导入成功。确认无误后请点「保存配置并同步」。");showToast("导入成功，记得保存配置","ok");
+    taskEditorLog("任务导入成功；现有游戏和资料库已保留。确认无误后请点「保存配置并同步」。");showToast("任务已导入，游戏和资料库未改动","ok");
   }catch(err){taskEditorLog("导入失败："+String(err.message||err));showToast("导入失败，请看日志","err")}
 }
 async function reloadSavedEditorConfig(){
@@ -1565,8 +1593,9 @@ function refEditorGroupHtml(g){
 function renderRefEditor(){
   const list=document.getElementById("refEditorList");
   if(!list)return;
-  const groups=normalizeRefGroups(refGroups&&refGroups.length?refGroups:defaultRefGroups);
-  list.innerHTML=groups.map(refEditorGroupHtml).join("");
+  // [] 是用户明确清空后的有效配置；只有非数组值才回退到默认资料。
+  const groups=normalizeRefGroups(Array.isArray(refGroups)?refGroups:defaultRefGroups);
+  list.innerHTML=groups.length?groups.map(refEditorGroupHtml).join(""):`<div class="refItemsEmpty">资料库为空，可点击上方「新增分组」开始添加。</div>`;
   syncEditorSectionToggle("ref");
   refEditorLog(`已加载 ${groups.length} 个资料分组。`);
 }
@@ -1626,12 +1655,16 @@ function exportRefConfig(){
   const refs=collectRefEditorConfig();
   navigator.clipboard?.writeText(JSON.stringify({version:1,refs},null,2)).then(()=>{refEditorLog("资料库 JSON 已复制到剪贴板。");showToast("资料库 JSON 已复制","ok")}).catch(()=>{refEditorLog(JSON.stringify({version:1,refs},null,2));showToast("复制失败，已输出到日志","warn")});
 }
+function refEditorImportGroups(value){
+  const refs=Array.isArray(value)?value:value?.refs;
+  if(!Array.isArray(refs))throw new Error("资料库 JSON 必须包含 refs 数组，也可以直接粘贴资料分组数组");
+  return normalizeRefGroups(refs);
+}
 function importRefConfig(){
   const raw=prompt("粘贴资料库 JSON 内容：可为 {refs:[...]} 或直接数组：");
   if(!raw)return;
   try{
-    const obj=JSON.parse(raw);
-    refGroups=normalizeRefGroups(Array.isArray(obj)?obj:obj.refs);
+    refGroups=refEditorImportGroups(JSON.parse(raw));
     renderRefEditor();
     refEditorLog("资料库导入成功。确认无误后请点「保存资料库并同步」。");
     showToast("资料库导入成功，记得保存","ok");
@@ -3097,11 +3130,20 @@ function exportGameQuestConfig(){
   const cfg=normalizeGameQuestConfig(gameQuestDraftConfig||gameQuestConfig||defaultGameQuestConfig);
   navigator.clipboard?.writeText(JSON.stringify(cfg,null,2)).then(()=>{gameQuestEditorLog("游戏配置 JSON 已复制到剪贴板。")}).catch(()=>{gameQuestEditorLog(JSON.stringify(cfg,null,2))});
 }
+function gameQuestEditorImportConfig(value){
+  const imported=value&&typeof value==="object"&&!Array.isArray(value)&&Object.prototype.hasOwnProperty.call(value,"gameQuest")?value.gameQuest:value;
+  const isRecord=v=>!!v&&typeof v==="object"&&!Array.isArray(v);
+  if(!isRecord(imported)||!Array.isArray(imported.games)||!isRecord(imported.schedule)||!isRecord(imported.weekly)){
+    throw new Error("游戏 JSON 必须包含 games 数组以及 schedule、weekly 对象");
+  }
+  // 兼容旧版完整 taskring-config.json，但只读取其中的 gameQuest 分区。
+  return normalizeGameQuestConfig(imported);
+}
 function importGameQuestConfig(){
-  const raw=prompt("粘贴 gameQuest JSON 内容：");
+  const raw=prompt("粘贴游戏 JSON：支持独立 gameQuest JSON 或旧版完整 taskring-config.json；只会导入游戏配置。");
   if(!raw)return;
   try{
-    gameQuestDraftConfig=normalizeGameQuestConfig(JSON.parse(raw));
+    gameQuestDraftConfig=gameQuestEditorImportConfig(JSON.parse(raw));
     gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
     renderGameQuestEditor();
     gameQuestEditorLog("已导入游戏配置，保存后生效。");
