@@ -1100,6 +1100,36 @@ function returnToControlCenter(source){
 }
 window.addEventListener("resize",positionControlCenter,{passive:true});
 window.addEventListener("scroll",positionControlCenter,{passive:true});
+function downloadJsonBackupFile(filename,payload){
+  const blob=new Blob([JSON.stringify(payload,null,2)+"\n"],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download=filename;
+  link.hidden=true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportAllJsonSections(){
+  try{
+    const cfg=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
+    const date=ymd(new Date());
+    const files=[
+      {name:`taskring-tasks-${date}.json`,payload:taskEditorExportPayload(cfg)},
+      {name:`taskring-game-quest-${date}.json`,payload:deepClone(gameQuestConfig||cfg.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig))},
+      {name:`taskring-fitness-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness"}},
+      {name:`taskring-library-${date}.json`,payload:{version:1,refs:deepClone(refGroups||cfg.refs||normalizeRefGroups(defaultRefGroups))}}
+    ];
+    files.forEach(file=>downloadJsonBackupFile(file.name,file.payload));
+    closeControlCenter();
+    showToast("已导出任务、游戏、训练饮食、资料库 4 个 JSON 文件","ok",3200);
+  }catch(error){
+    console.error("export all JSON sections failed",error);
+    showToast("JSON 导出失败，请重试","err",3000);
+  }
+}
 function initGithubSyncUI(){
   document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
   document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});
@@ -1108,6 +1138,7 @@ function initGithubSyncUI(){
   document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});
   document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});
   document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
+  document.getElementById("controlExportJsonBtn")?.addEventListener("click",exportAllJsonSections);
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
   document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
   document.getElementById("controlCenterCloseBtn")?.addEventListener("click",closeControlCenter);

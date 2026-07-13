@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260713.10"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260713.11"/>
 </head>
 <body class="nx locked">
 
@@ -159,6 +159,18 @@
             <span><b>上传本机状态</b><em>保存至云端</em></span>
           </button>
         </div>
+      </section>
+
+      <section class="controlCenterSection controlExportSection" aria-labelledby="controlExportTitle">
+        <div class="controlSectionTitle">
+          <strong id="controlExportTitle">数据备份</strong>
+          <span>JSON EXPORT</span>
+        </div>
+        <button type="button" id="controlExportJsonBtn" class="controlExportBtn">
+          <span class="controlUtilityIcon" aria-hidden="true">↓</span>
+          <span class="controlExportCopy"><b>一键导出全部 JSON</b><em>任务 · 游戏 · 训练饮食 · 资料库</em></span>
+          <span class="controlExportCount">4 FILES</span>
+        </button>
       </section>
 
       <section class="controlCenterSection controlSafetySection" aria-labelledby="controlSafetyTitle">
@@ -377,7 +389,7 @@
 </div>
 
 <script src="assets/js/data/default-data.js?v=20260713.1"></script>
-<script src="assets/js/app.js?v=20260713.13"></script>
+<script src="assets/js/app.js?v=20260713.14"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20260713.2"></script>
 <script src="assets/js/views/editor-ux.js?v=20260713.3"></script>
