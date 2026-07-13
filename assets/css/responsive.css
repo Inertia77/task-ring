@@ -3,6 +3,10 @@
   .inertiaHeader { grid-template-columns: minmax(0,1fr); }
   .inertiaToolbar { justify-content: flex-start; }
   .taskRingControlPanel { grid-template-columns: minmax(170px,.7fr) minmax(310px,1.3fr); grid-template-areas: "head actions" "status status" "progress progress"; }
+  .taskRingActionRow { grid-template-columns: repeat(4,minmax(0,1fr)); justify-content: stretch; }
+  .dailyStatusStrip { grid-template-columns: repeat(4,minmax(0,1fr)); justify-content: stretch; }
+  .gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
+  .gameQuestHeroSide { grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); }
   .weeklyMissionGrid, .dailyGroupBody, .gameQuestGrid { grid-template-columns: minmax(0,1fr); }
   .allocationRibbon { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .timeTaskRow { grid-template-columns: minmax(200px,1fr) minmax(80px,1fr) 100px; }
@@ -115,11 +119,14 @@
   .missionHead { grid-template-columns: 40px minmax(0,1fr); }
   .missionScore { grid-column: 2; display: flex; flex-wrap: wrap; gap: 5px 10px; text-align: left; }
   .missionActions button, .missionActions a { min-height: 34px; padding-inline: 3px; font-size: 10px; }
-  .gameQuestTopBar { grid-template-columns: minmax(0,1fr) auto; padding: 11px; }
-  .gameQuestTopMeter { display: none; }
-  .gameQuestTopTimer { grid-column: 1/-1; min-width: 0; }
-  .gameQuestTopManual { grid-column: 1; }
-  .gameQuestTodayQuick { grid-column: 2; }
+  .gameQuestTopBar { grid-template-columns: minmax(0,1fr); gap: 10px; padding: 11px; }
+  .gameQuestHeroSide { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-padding-inline: 4px; scrollbar-width: none; }
+  .gameQuestHeroSide::-webkit-scrollbar { display: none; }
+  .gameQuestTopMeter { order: 1; flex: 0 0 112px; }
+  .gameQuestTodayQuick { order: 2; flex: 0 0 112px; }
+  .gameQuestTopTimer { order: 3; flex: 0 0 142px; }
+  .gameQuestTopManual { order: 4; flex: 0 0 112px; }
+  .gameQuestEditQuick { order: 5; flex: 0 0 112px; }
   .gameQuestModeBtn span { white-space: nowrap; }
   .gameQuestDailyPane, .gameQuestWeeklyPane { padding: 7px; }
   .gameQuestMetricSet { width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
@@ -184,6 +191,11 @@
   .timeDetailStats > div { padding: 7px; }
   .timeDetailStats b { font-size: 16px; }
   .timeDetailLogs li { grid-template-columns: minmax(0,1fr) auto auto; gap: 5px; padding: 5px 6px; }
+  .timeHistoryToolbar { grid-template-columns: minmax(0,1fr) auto; gap: 7px; padding: 8px; }
+  .timeHistorySummary { grid-column: 1/-1; }
+  .timeHistoryWeekPicker { min-width: 0; }
+  .timeHistoryWeekPicker select { width: 100%; }
+  .timeHistoryExportBtn { align-self: end; }
   .ghModalCard, .weeklyTargetCard { padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
   .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
   .ghActions, .taskEditorToolbar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; padding: 10px 10px 8px; }
@@ -211,6 +223,8 @@
   .gqMetaActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
   .ghActions button, .taskEditorToolbar button { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 42px; padding: 6px 8px; font-size: 12px; line-height: 1.2; text-wrap: balance; }
   .taskEditorHead { gap: 10px; }
+  .editorHeadActions { gap: 5px; }
+  .returnControlBtn { min-height: 38px; padding: 6px 8px; font-size: 11px; }
   .taskEditorToolbar .editorSectionToggleBtn { order: -1; grid-column: 1 / -1; margin-left: 0; min-height: 36px; padding: 5px 8px; font-size: 11px; }
   .ghModalHead, .taskEditorHead, .timeDetailHead { padding: calc(11px + env(safe-area-inset-top)) 10px 10px; }
   .ghLog { min-height: 60px; margin: 8px 10px 10px; padding: 8px; font-size: 11px; line-height: 1.45; }
@@ -251,7 +265,6 @@
   .gameQuestMetricSet { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .gameQuestMetric { display: flex; align-items: baseline; justify-content: space-between; }
   .gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
-  .gameQuestTopTimer, .gameQuestTopManual, .gameQuestTodayQuick { grid-column: 1; width: 100%; }
   .gameQuestCardTop { grid-template-columns: var(--tap-size) minmax(0,1fr) auto; }
   .gameQuestIcon { display: none; }
   .refGroupBody { grid-template-columns: minmax(0,1fr); }

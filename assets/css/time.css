@@ -1,5 +1,5 @@
 .timePanelShell { display: grid; gap: 8px; min-width: 0; }
-.timePanelHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.timePanelHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
 .activeTimerCard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 14px; border: 1px solid var(--color-ink); border-left: 7px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-ink); color: white; box-shadow: var(--shadow-float); }
 .activeTimerKicker { color: var(--color-primary); font-size: 12px; font-weight: 800; }
 .activeTimerTitle { font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
@@ -12,8 +12,8 @@
 .timeLedgerIdle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 11px 13px; border: 1px dashed var(--color-line-strong); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .timeLedgerIdle span { font-size: 24px; }
 .timeLedgerIdle em { color: var(--color-muted); font-style: normal; }
-.timeSubTabs { display: flex; gap: 7px; padding: 7px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); overflow-x: auto; }
-.timeSubTabs button { flex: 1 0 100px; min-height: var(--tap-size); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--color-panel-soft); font-weight: 700; }
+.timeSubTabs { display: flex; gap: 5px; padding: 5px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); overflow-x: auto; }
+.timeSubTabs button { flex: 1 0 100px; min-height: 40px; padding: 7px 10px; border-radius: var(--radius-sm); background: var(--color-panel-soft); font-weight: 700; }
 .timeTaskSearchWrap { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
 .timeTaskSearchWrap label { font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--color-muted); text-transform: uppercase; }
 .timeTaskSearchRow { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
@@ -46,6 +46,17 @@
 .timeTaskActions .timeTargetReadOnly { border-style: dashed; }
 .timeTargetEdit { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 6px; align-items: center; font-size: 12px; }
 .timeTargetEdit input { min-height: var(--tap-size); padding: 7px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); }
+.timeHistoryToolbar { display: grid; grid-template-columns: minmax(0,1fr) 194px 114px; gap: 8px; align-items: end; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-info); border-radius: var(--radius-md); background: var(--color-panel); }
+.timeHistorySummary { display: grid; align-self: center; min-width: 0; }
+.timeHistorySummary > span { color: var(--color-info); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.timeHistorySummary > b { font-size: 14px; }
+.timeHistorySummary > em { color: var(--color-muted); font-size: 10px; font-style: normal; }
+.timeHistoryWeekPicker { display: grid; gap: 3px; min-width: 160px; }
+.timeHistoryWeekPicker > span { color: var(--color-muted); font-size: 9px; font-weight: 800; }
+.timeHistoryWeekPicker select { width: 100%; height: 40px; min-height: 40px; box-sizing: border-box; padding: 6px 30px 6px 9px; border: 1px solid var(--color-line-strong); border-radius: var(--radius-sm); background: white; color: var(--color-ink); font: inherit; font-weight: 750; }
+.timeHistoryExportBtn { display: grid; grid-template-columns: 26px auto; gap: 6px; align-items: center; align-self: end; width: 114px; height: 40px; min-height: 40px; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--color-ink); border-radius: var(--radius-sm); background: var(--color-ink); color: white; }
+.timeHistoryExportBtn > span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--color-primary); color: var(--color-ink); font-weight: 900; }
+.timeHistoryExportBtn > b { white-space: nowrap; }
 .timeLogList { margin: 0; padding: 0; list-style: none; }
 .timeLogItem { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; min-height: 62px; padding: 10px 14px; border-bottom: 1px solid var(--color-line); }
 .timeLogItem:last-child { border-bottom: 0; }
@@ -53,6 +64,7 @@
 .timeLogItem b, .timeLogItem span { display: block; overflow-wrap: anywhere; }
 .timeLogItem span { color: var(--color-muted); font-size: 12px; }
 .timeLogItem button { min-width: var(--tap-size); min-height: var(--tap-size); border-radius: var(--radius-sm); background: var(--color-danger-soft); color: var(--color-danger); }
+.timeHistoryFoot { padding: 7px 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); color: var(--color-muted); font-size: 10px; text-align: center; }
 .timeLogGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
 .timeRecentLine { min-width: 0; padding: 16px; }
 .timeRecentLine + .timeRecentLine { border-left: 1px solid var(--color-line); }

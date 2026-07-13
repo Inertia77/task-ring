@@ -1,22 +1,31 @@
 .fitnessPanel { display: none; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
 .fitnessPanel.active { display: block; }
-.fitnessHero { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--color-line); background: linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 11%,var(--color-panel)),var(--color-panel) 54%); }
+.fitnessHero { display: grid; grid-template-columns: minmax(230px,.7fr) minmax(600px,1.3fr); gap: 14px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--color-line); background: linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 11%,var(--color-panel)),var(--color-panel) 54%); }
+.fitnessHeroCopy { min-width: 0; }
 .fitnessEyebrow { display: block; margin-bottom: 4px; color: var(--color-muted); font-size: 11px; font-weight: 800; letter-spacing: .14em; }
-.fitnessHero h2 { margin: 0; color: var(--color-ink); font-size: clamp(22px,3vw,34px); line-height: 1.05; }
+.fitnessHero h2 { margin: 0; color: var(--color-ink); font-size: clamp(20px,2.4vw,27px); line-height: 1.05; }
 .fitnessHero p { margin: 7px 0 0; color: var(--color-muted); font-size: 13px; }
-.fitnessHeroSide { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-.fitnessProgressRing { display: grid; place-items: center; width: 70px; height: 70px; border-radius: 50%; background: conic-gradient(var(--color-primary) var(--fitness-progress,0%),var(--color-panel-soft) 0); box-shadow: inset 0 0 0 1px var(--color-line); }
-.fitnessProgressRing::before { content:""; grid-area:1/1; width: 52px; height: 52px; border-radius: 50%; background: var(--color-panel); }
-.fitnessProgressRing b { z-index: 1; grid-area:1/1; font-size: 16px; }
-.fitnessEditBtn { min-height: 38px; padding: 8px 12px; border: 1px solid var(--color-line-strong); border-radius: var(--radius-sm); background: var(--color-panel); color: var(--color-ink); font-weight: 750; }
-.fitnessTimerBtn { display: grid; grid-template-columns: 24px auto; grid-template-rows: auto auto; align-items: center; column-gap: 7px; min-height: 48px; padding: 6px 10px; border: 1px solid var(--color-line-strong); border-radius: 10px; background: var(--color-panel); color: var(--color-ink); text-align: left; }
-.fitnessTimerBtn > span { grid-row: 1/3; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-panel-soft); font-weight: 900; }
-.fitnessTimerBtn b { font-size: 13px; line-height: 1.2; }
-.fitnessTimerBtn em { color: var(--color-muted); font-style: normal; font-size: 10px; line-height: 1.2; }
-.fitnessTimerBtn.active { border-color: var(--color-primary); background: color-mix(in srgb,var(--color-primary) 12%,var(--color-panel)); }
-.fitnessTimerBtn.active > span { background: var(--color-primary); }
-.fitnessManualBtn, .fitnessTodayBtn { min-height: 38px; padding: 8px 11px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); color: var(--color-ink); font-weight: 750; }
-.fitnessTodayBtn.active { border-color: var(--color-primary); box-shadow: inset 0 -2px 0 var(--color-primary); }
+.fitnessHeroSide { display: grid; grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); gap: 7px; align-items: stretch; min-width: 0; }
+.fitnessProgressCard, .fitnessCommandBtn, .fitnessTimerBtn { min-width: 0; min-height: 58px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel); }
+.fitnessProgressCard { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 7px; align-items: center; padding: 6px 8px; }
+.fitnessProgressRing { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: conic-gradient(var(--color-primary) var(--fitness-progress,0%),var(--color-panel-soft) 0); box-shadow: inset 0 0 0 1px var(--color-line); }
+.fitnessProgressRing::before { content:""; grid-area:1/1; width: 33px; height: 33px; border-radius: 50%; background: var(--color-panel); }
+.fitnessProgressRing b { z-index: 1; grid-area:1/1; font-size: 12px; }
+.fitnessProgressCard > span, .fitnessCommandCopy { display: grid; align-content: center; min-width: 0; }
+.fitnessProgressCard small, .fitnessCommandCopy small { color: var(--color-muted); font-size: 8px; font-weight: 900; letter-spacing: .1em; }
+.fitnessProgressCard > span > b, .fitnessCommandCopy b { overflow: hidden; font-size: 12px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.fitnessProgressCard em, .fitnessCommandCopy em { overflow: hidden; color: var(--color-muted); font-size: 9px; font-style: normal; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.fitnessCommandBtn, .fitnessTimerBtn { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 7px; align-items: center; padding: 6px 8px; color: var(--color-ink); text-align: left; }
+.fitnessCommandIcon, .fitnessTimerBtn > span:first-child { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--color-panel-soft); font-size: 14px; font-weight: 900; }
+.fitnessTimerBtn.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
+.fitnessTimerBtn.active .fitnessCommandCopy small, .fitnessTimerBtn.active .fitnessCommandCopy em { color: var(--color-primary); }
+.fitnessTimerBtn.active > span:first-child { background: var(--color-primary); color: var(--color-ink); }
+.fitnessManualBtn { background: var(--color-panel-soft); }
+.fitnessTodayBtn { border-color: var(--color-ink); background: var(--color-primary); box-shadow: 0 3px 0 var(--color-ink); }
+.fitnessTodayBtn .fitnessCommandIcon { background: var(--color-ink); color: var(--color-primary); }
+.fitnessTodayBtn .fitnessCommandCopy small, .fitnessTodayBtn .fitnessCommandCopy em { color: color-mix(in srgb,var(--color-ink) 68%,transparent); }
+.fitnessTodayBtn.active { box-shadow: inset 0 0 0 2px var(--color-ink),0 3px 0 var(--color-ink); }
+.fitnessEditBtn { border-color: var(--color-line-strong); background: white; }
 .fitnessDayTabs { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--color-line); background: var(--color-panel-soft); }
 .fitnessDayTab { min-height: 40px; padding: 6px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--color-muted); font-weight: 750; }
 .fitnessDayTab span { display: block; font-size: 10px; font-weight: 650; }
@@ -48,13 +57,21 @@
 .fitnessEditorFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; padding: 10px; }
 .fitnessEditorField label { display: block; margin-bottom: 5px; color: var(--color-muted); font-size: 11px; font-weight: 750; }
 .fitnessEditorField textarea { width: 100%; min-height: 112px; resize: vertical; padding: 9px; border: 1px solid var(--color-line); border-radius: 9px; background: var(--color-panel); color: var(--color-ink); font: inherit; line-height: 1.5; }
+@media (max-width:1100px){
+  .fitnessHero { grid-template-columns: minmax(0,1fr); }
+  .fitnessHeroSide { grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); }
+}
 @media (max-width:700px){
   .fitnessHero { grid-template-columns: minmax(0,1fr); gap: 12px; padding: 14px; }
-  .fitnessHeroSide { justify-content: space-between; }
-  .fitnessTimerBtn { flex: 1 1 150px; }
-  .fitnessProgressRing { width: 58px; height: 58px; }
-  .fitnessProgressRing::before { width: 43px; height: 43px; }
-  .fitnessDayTabs { display: flex; overflow-x: auto; }
+  .fitnessHeroSide { display: flex; justify-content: flex-start; gap: 6px; overflow-x: auto; padding: 0 0 4px; scroll-padding-inline: 4px; }
+  .fitnessProgressCard { order: 1; flex: 0 0 112px; }
+  .fitnessTodayBtn { order: 2; }
+  .fitnessTimerBtn { order: 3; flex: 0 0 142px; }
+  .fitnessManualBtn { order: 4; }
+  .fitnessEditBtn { order: 5; }
+  .fitnessCommandBtn { flex: 0 0 112px; }
+  .fitnessDayTabs { display: flex; overflow-x: auto; overscroll-behavior-inline: contain; scroll-behavior: smooth; scrollbar-width: none; }
+  .fitnessDayTabs::-webkit-scrollbar { display: none; }
   .fitnessDayTab { flex: 0 0 58px; }
   .fitnessBoard, .fitnessEditorGrid, .fitnessEditorFields { grid-template-columns: 1fr; }
   .fitnessBoard { padding: 9px; }

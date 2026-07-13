@@ -1,17 +1,17 @@
 .weeklyShell { display: grid; gap: 8px; min-width: 0; }
-.weeklyCommandHero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 12px 14px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.weeklyCommandHero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
 .weeklyCommandHero > div:first-child > span, .timePanelHeader > div:first-child > span, .gameQuestTopTitle > span { display: block; color: var(--color-warning); font-size: 12px; font-weight: 800; letter-spacing: .12em; }
 .weeklyCommandHero > div:first-child > b, .timePanelHeader > div:first-child > b, .gameQuestTopTitle > strong { display: block; font-size: 20px; }
 .weeklyCommandHero em, .timePanelHeader em, .gameQuestTopTitle em { color: var(--color-muted); font-style: normal; }
-.weeklyHeroStats, .timeStatCards { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.weeklyHeroStats > div, .timeStatCards > div { min-width: 92px; padding: 6px 9px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); }
-.weeklyHeroStats span, .timeStatCards span { display: block; color: var(--color-muted); font-size: 12px; }
-.weeklyHeroStats b, .timeStatCards b { display: block; font-size: 16px; }
+.weeklyHeroStats, .timeStatCards { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.weeklyHeroStats > div, .timeStatCards > div { min-width: 78px; padding: 5px 8px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); }
+.weeklyHeroStats span, .timeStatCards span { display: block; color: var(--color-muted); font-size: 10px; }
+.weeklyHeroStats b, .timeStatCards b { display: block; font-size: 14px; }
 .weeklyActiveHint { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 11px; padding: 8px 11px; border: 1px solid var(--color-ink); border-left: 5px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-ink); color: white; }
 .weeklyActiveHint span { color: var(--color-primary); font-weight: 800; }
 .weeklyActiveHint em { margin-left: auto; color: var(--color-primary); font-style: normal; font-weight: 800; }
-.weeklyCategoryTabs { display: flex; gap: 8px; min-width: 0; padding: 3px 1px 8px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
-.weeklyCategoryTab { flex: 0 0 auto; display: grid; grid-template-columns: auto auto; gap: 1px 8px; min-height: var(--tap-size); padding: 8px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); text-align: left; }
+.weeklyCategoryTabs { display: flex; gap: 6px; min-width: 0; padding: 3px 1px 7px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+.weeklyCategoryTab { flex: 0 0 auto; display: grid; grid-template-columns: auto auto; gap: 1px 7px; min-height: 40px; padding: 6px 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel); text-align: left; }
 .weeklyCategoryTab span { font-weight: 750; }
 .weeklyCategoryTab b, .weeklyCategoryTab em { color: var(--color-muted); font-size: 12px; font-style: normal; }
 .weeklyCategoryTab.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }

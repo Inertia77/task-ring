@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260713.3"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260713.7"/>
 </head>
 <body class="nx locked">
 
@@ -200,7 +200,7 @@
     <button id="showUndone" type="button">今日未完成</button>
     <button id="showToday" type="button">今天</button>
     <button id="showAll" type="button">全周</button>
-    <button id="resetCurrentWeek" type="button" class="softDangerBtn">重置</button>
+    <button id="resetCurrentWeek" type="button" class="softDangerBtn" title="清空本周全部勾选状态，需要再次确认">重置本周</button>
   </div>
   <div class="dailyStatusHost" id="dayTabs"></div>
   <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计今日执行环，不影响周计划池 / 游戏作战区</span></div><div class="progress"><div id="bar"></div></div></div>
@@ -228,7 +228,10 @@
         <div class="ghModalTitle" id="ghModalTitle">GitHub Gist 同步设置</div>
         <div class="ghModalSub">软锁只负责进门；Token 只负责 Gist 云同步，并且只保存在当前设备浏览器里。</div>
       </div>
-      <button id="ghCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      <div class="editorHeadActions">
+        <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
+        <button id="ghCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      </div>
     </div>
     <div id="ghGistPanel" class="ghSecretPanel">
       <div class="ghSecretTitle">Gist ID</div>
@@ -255,7 +258,10 @@
         <div class="taskEditorTitle" id="gameQuestEditorTitle">游戏作战区编辑器</div>
         <div class="taskEditorSub">整理游戏卡、每天清单和图标。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
       </div>
-      <button id="gameQuestEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      <div class="editorHeadActions">
+        <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
+        <button id="gameQuestEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      </div>
     </div>
     <div class="taskEditorToolbar gameQuestEditorToolbar">
       <button id="saveGameQuestBtn">保存游戏任务</button>
@@ -271,7 +277,7 @@
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
     <pre id="gameQuestEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
-      <button id="gameQuestEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="gameQuestEditorBottomCloseBtn" type="button" class="returnControlBottomBtn" data-return-control>← 返回总控</button>
       <button id="gameQuestEditorBottomSaveBtn" type="button">保存游戏任务</button>
     </div>
   </div>
@@ -284,7 +290,10 @@
         <div class="taskEditorTitle" id="fitnessEditorTitle">训练饮食编辑器</div>
         <div class="taskEditorSub">按星期安排固定训练和饮食项目。保存后只更新 fitness 分区，并随加密配置同步。</div>
       </div>
-      <button id="fitnessEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      <div class="editorHeadActions">
+        <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
+        <button id="fitnessEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      </div>
     </div>
     <div class="taskEditorToolbar fitnessEditorToolbar">
       <button id="saveFitnessBtn">保存训练饮食</button>
@@ -296,7 +305,7 @@
     <div id="fitnessEditorList" class="fitnessEditorList"></div>
     <pre id="fitnessEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
-      <button id="fitnessEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="fitnessEditorBottomCloseBtn" type="button" class="returnControlBottomBtn" data-return-control>← 返回总控</button>
       <button id="fitnessEditorBottomSaveBtn" type="button">保存训练饮食</button>
     </div>
   </div>
@@ -309,7 +318,10 @@
         <div class="taskEditorTitle" id="taskEditorTitle">任务编辑器</div>
         <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。不同设备可用不同 Token，仍能读取同一套任务配置。</div>
       </div>
-      <button id="taskEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      <div class="editorHeadActions">
+        <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
+        <button id="taskEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      </div>
     </div>
     <div class="taskEditorToolbar">
       <button id="addTaskBtn">新增任务</button>
@@ -326,7 +338,7 @@
     <div id="taskEditorList" class="taskEditorList"></div>
     <pre id="taskEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
-      <button id="taskEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="taskEditorBottomCloseBtn" type="button" class="returnControlBottomBtn" data-return-control>← 返回总控</button>
       <button id="taskEditorBottomSaveBtn" type="button">保存配置</button>
     </div>
   </div>
@@ -339,7 +351,10 @@
         <div class="taskEditorTitle" id="refEditorTitle">资料库编辑器</div>
         <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起加密写入 Gist 并跨设备同步。</div>
       </div>
-      <button id="refEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      <div class="editorHeadActions">
+        <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
+        <button id="refEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+      </div>
     </div>
     <div class="taskEditorToolbar">
       <button id="addRefGroupBtn">新增分组</button>
@@ -355,18 +370,18 @@
     <div id="refEditorList" class="refEditorList"></div>
     <pre id="refEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
-      <button id="refEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="refEditorBottomCloseBtn" type="button" class="returnControlBottomBtn" data-return-control>← 返回总控</button>
       <button id="refEditorBottomSaveBtn" type="button">保存资料库</button>
     </div>
   </div>
 </div>
 
 <script src="assets/js/data/default-data.js?v=20260713.1"></script>
-<script src="assets/js/app.js?v=20260713.7"></script>
+<script src="assets/js/app.js?v=20260713.10"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
-<script src="assets/js/views/time-ledger-view.js?v=20260713.1"></script>
+<script src="assets/js/views/time-ledger-view.js?v=20260713.2"></script>
 <script src="assets/js/views/editor-ux.js?v=20260713.3"></script>
-<script src="assets/js/views/fitness-view.js?v=20260713.2"></script>
-<script src="assets/js/views/product-ui.js?v=20260713.2"></script>
+<script src="assets/js/views/fitness-view.js?v=20260713.5"></script>
+<script src="assets/js/views/product-ui.js?v=20260713.3"></script>
 </body>
 </html>

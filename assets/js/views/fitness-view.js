@@ -85,9 +85,27 @@
     const done=items.filter(item=>isItemDone(dayId,kind,item.id)).length;
     return `<section class="fitnessLane fitnessLane-${kind}"><header class="fitnessLaneHead"><div><span>${kind==="training"?"TRAINING":"NUTRITION"}</span><b>${title}</b></div><em>${done}/${items.length}</em></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml({...item,kind},dayId)).join(""):`<div class="fitnessEmpty">${kind==="training"?"当天没有安排训练项目":"当天没有安排饮食项目"}</div>`}</div></section>`;
   }
-  function renderFitnessPanel(){
+  function revealSelectedDay(tabsEl,smooth=false){
+    const activeTab=tabsEl?.querySelector(".fitnessDayTab.active");
+    if(!tabsEl||!activeTab)return;
+    const padding=8;
+    const left=activeTab.offsetLeft;
+    const right=left+activeTab.offsetWidth;
+    const visibleLeft=tabsEl.scrollLeft;
+    const visibleRight=visibleLeft+tabsEl.clientWidth;
+    let target=visibleLeft;
+    if(left<visibleLeft+padding)target=Math.max(0,left-padding);
+    else if(right>visibleRight-padding)target=Math.max(0,right-tabsEl.clientWidth+padding);
+    if(Math.abs(target-visibleLeft)>1){
+      if(typeof tabsEl.scrollTo==="function")tabsEl.scrollTo({left:target,behavior:smooth?"smooth":"auto"});
+      else tabsEl.scrollLeft=target;
+    }
+  }
+  function renderFitnessPanel(options={}){
     const panel=document.getElementById("fitnessPanel");
     if(!panel)return;
+    const previousTabs=panel.querySelector(".fitnessDayTabs");
+    const previousScrollLeft=Number.isFinite(options.scrollLeft)?options.scrollLeft:(previousTabs?.scrollLeft||0);
     const data=dayConfig(selectedDay);
     const stats=dayStats(selectedDay);
     const active=readActiveTimer();
@@ -98,7 +116,24 @@
       const s=dayStats(day);
       return `<button type="button" class="fitnessDayTab ${day===selectedDay?"active":""} ${day===today?"today":""}" data-fitness-day="${day}" aria-pressed="${day===selectedDay?"true":"false"}">${escapeHtml(dayName(day))}<span>${s.done}/${s.total}</span></button>`;
     }).join("");
-    panel.innerHTML=`<header class="fitnessHero"><div><span class="fitnessEyebrow">BODY / DAILY PLAN</span><h2>训练与饮食</h2><p>${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜按既定计划执行，训练和饮食分别确认。</p></div><div class="fitnessHeroSide"><div class="fitnessProgressRing" style="--fitness-progress:${stats.pct}%"><b>${stats.pct}%</b></div><button type="button" class="fitnessTimerBtn ${fitnessActive?"active":""}" data-fitness-timer title="把训练区作为一个整体记录时间"><span>${fitnessActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><b ${fitnessActive?"data-live-timer":""}>${timerLabel}</b><em>${timerSub}</em></button><button type="button" class="fitnessManualBtn" data-manual-time-entry="fitness" title="补记忘记开始的训练时间">+补记</button><button type="button" class="fitnessTodayBtn ${selectedDay===today?"active":""}" data-fitness-today>今日</button><button type="button" class="fitnessEditBtn" data-open-fitness-editor>编辑计划</button></div></header><nav class="fitnessDayTabs" aria-label="训练饮食星期切换">${tabs}</nav><div class="fitnessBoard">${laneHtml("training","训练计划",data.training,selectedDay)}${laneHtml("nutrition","饮食计划",data.nutrition,selectedDay)}</div>`;
+    panel.innerHTML=`<header class="fitnessHero">
+      <div class="fitnessHeroCopy"><span class="fitnessEyebrow">BODY / DAILY PLAN</span><h2>训练与饮食</h2><p>${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜按既定计划执行，训练和饮食分别确认。</p></div>
+      <div class="fitnessHeroSide">
+        <div class="fitnessProgressCard"><div class="fitnessProgressRing" style="--fitness-progress:${stats.pct}%"><b>${stats.pct}%</b></div><span><small>PROGRESS</small><b>${stats.done}/${stats.total}</b><em>所选日期</em></span></div>
+        <button type="button" class="fitnessCommandBtn fitnessTodayBtn ${selectedDay===today?"active":""}" data-fitness-today><span class="fitnessCommandIcon">◎</span><span class="fitnessCommandCopy"><small>TODAY</small><b>今日</b><em>${selectedDay===today?"当前日期":"回到今天"}</em></span></button>
+        <button type="button" class="fitnessTimerBtn ${fitnessActive?"active":""}" data-fitness-timer title="把训练区作为一个整体记录时间"><span>${fitnessActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><span class="fitnessCommandCopy"><small>TIMER</small><b ${fitnessActive?"data-live-timer":""}>${timerLabel}</b><em>${timerSub}</em></span></button>
+        <button type="button" class="fitnessCommandBtn fitnessManualBtn" data-manual-time-entry="fitness" title="补记忘记开始的训练时间"><span class="fitnessCommandIcon">＋</span><span class="fitnessCommandCopy"><small>MANUAL</small><b>补记</b><em>训练时间</em></span></button>
+        <button type="button" class="fitnessCommandBtn fitnessEditBtn" data-open-fitness-editor><span class="fitnessCommandIcon">✎</span><span class="fitnessCommandCopy"><small>PLAN</small><b>编辑计划</b><em>训练与饮食</em></span></button>
+      </div>
+    </header><nav class="fitnessDayTabs" aria-label="训练饮食星期切换">${tabs}</nav><div class="fitnessBoard">${laneHtml("training","训练计划",data.training,selectedDay)}${laneHtml("nutrition","饮食计划",data.nutrition,selectedDay)}</div>`;
+    const nextTabs=panel.querySelector(".fitnessDayTabs");
+    if(nextTabs){
+      nextTabs.scrollLeft=previousScrollLeft;
+      requestAnimationFrame(()=>{
+        nextTabs.scrollLeft=previousScrollLeft;
+        if(options.revealSelected===true)revealSelectedDay(nextTabs,true);
+      });
+    }
   }
 
   function editorLog(message){
@@ -222,9 +257,9 @@
       const open=event.target.closest("#controlFitnessEditorBtn,[data-open-fitness-editor]");
       if(open){event.preventDefault();event.stopPropagation();openFitnessEditor();return}
       const dayBtn=event.target.closest("[data-fitness-day]");
-      if(dayBtn){event.preventDefault();selectedDay=Number(dayBtn.dataset.fitnessDay);renderFitnessPanel();return}
+      if(dayBtn){event.preventDefault();const tabs=dayBtn.closest(".fitnessDayTabs");selectedDay=Number(dayBtn.dataset.fitnessDay);renderFitnessPanel({scrollLeft:tabs?.scrollLeft||0,revealSelected:false});return}
       const todayBtn=event.target.closest("[data-fitness-today]");
-      if(todayBtn){event.preventDefault();selectedDay=today;renderFitnessPanel();return}
+      if(todayBtn){event.preventDefault();const tabs=document.querySelector("#fitnessPanel .fitnessDayTabs");selectedDay=today;renderFitnessPanel({scrollLeft:tabs?.scrollLeft||0,revealSelected:true});return}
       const timerBtn=event.target.closest("[data-fitness-timer]");
       if(timerBtn){event.preventDefault();const active=readActiveTimer();if(active?.kind==="fitness"&&active.paused)resumeActiveTimer();else if(active?.kind==="fitness")showToast("训练区正在计时","warn");else startFitnessTimer(selectedDay);return}
       const detailBtn=event.target.closest("[data-time-fitness-detail]");

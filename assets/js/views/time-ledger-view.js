@@ -2,7 +2,37 @@
 // 独立管理时间账本：任务目标不再内联输入，改为显式按钮 + 确认弹窗。
 (function(){
   const TIME_TASK_SEARCH_KEY=`${GH_PREFIX}time_task_search_v1`;
+  const TIME_LOG_WEEK_KEY="taskring_time_log_week_v1";
   let timeTaskSearch=localStorage.getItem(TIME_TASK_SEARCH_KEY)||"";
+  let timeLogWeek=localStorage.getItem(TIME_LOG_WEEK_KEY)||"all";
+
+  function timeLogWeekKey(log){
+    const date=timeLogOperationalDate(log);
+    const start=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    start.setDate(start.getDate()-((start.getDay()+6)%7));
+    return ymd(start);
+  }
+  function timeLogWeekLabel(key){
+    const start=new Date(`${key}T12:00:00`);
+    if(Number.isNaN(start.getTime()))return key;
+    const end=new Date(start);
+    end.setDate(end.getDate()+6);
+    const range=`${start.getMonth()+1}/${start.getDate()}—${end.getMonth()+1}/${end.getDate()}`;
+    return key===ymd(cycleStart)?`本周 · ${range}`:range;
+  }
+  function exportTimeHistory(){
+    const payload={version:1,section:"time_logs",exportedAt:new Date().toISOString(),count:readTimeLogs().length,time_logs:readTimeLogs()};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;
+    link.download=`taskring-time-history-${ymd(new Date())}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+    showToast(`已导出 ${payload.count} 条时间记录`,"ok",1800);
+  }
 
   function targetButton(taskId,target){
     return `<div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="task" data-manual-task-id="${escapeHtml(taskId)}"><span>+补记</span><b>实际时间</b></button><button type="button" class="timeTargetSafeBtn" data-edit-weekly-target="${escapeHtml(taskId)}"><span>周目标</span><b>${target?fmtMinutes(target):"未设"}</b></button></div>`;
@@ -32,6 +62,19 @@
     timeTaskSearch=event.target.value||"";
     localStorage.setItem(TIME_TASK_SEARCH_KEY,timeTaskSearch);
     if(timeLedgerView==="tasks")renderTimePanel();
+  });
+  document.addEventListener("change",event=>{
+    if(event.target?.id!=="timeLogWeekSelect")return;
+    timeLogWeek=event.target.value||"all";
+    localStorage.setItem(TIME_LOG_WEEK_KEY,timeLogWeek);
+    if(timeLedgerView==="logs")renderTimePanel();
+  });
+  document.addEventListener("click",event=>{
+    const exportBtn=event.target.closest?.("[data-export-time-history]");
+    if(!exportBtn)return;
+    event.preventDefault();
+    event.stopPropagation();
+    exportTimeHistory();
   });
 
   window.renderTimePanel=function(){
@@ -84,7 +127,16 @@
     const specialRows=(showFitnessRow?1:0)+(showGameRow?1:0);
     const taskBody=`${taskSearchBox(allTasks.length+2,specialRows+visibleTasks.length)}<div class="timeTaskList">${showFitnessRow?fitnessRow:""}${showGameRow?gameRow:""}${taskRows||(!specialRows?taskEmptyHtml(timeTaskSearch):"")}</div>`;
 
-    const logRows=readTimeLogs().slice().sort(timeLogSortDesc).slice(0,60).map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}${timeLogSourceLabel(log)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>暂无时间记录</b><span>可以开始计时，或手动补记忘记开始的时间</span></div><strong>0m</strong></li>`;
+    const allLogs=readTimeLogs().slice().sort(timeLogSortDesc);
+    const availableWeeks=[...new Set(allLogs.map(timeLogWeekKey))].sort((a,b)=>b.localeCompare(a));
+    if(timeLogWeek!=="all"&&!availableWeeks.includes(timeLogWeek))timeLogWeek="all";
+    const scopedLogs=timeLogWeek==="all"?allLogs:allLogs.filter(log=>timeLogWeekKey(log)===timeLogWeek);
+    const visibleLogs=scopedLogs.slice(0,120);
+    const logRows=visibleLogs.map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}${timeLogSourceLabel(log)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>这个周次暂无时间记录</b><span>可以切换到其他周次，或手动补记时间</span></div><strong>0m</strong></li>`;
+    const historyOptions=`<option value="all"${timeLogWeek==="all"?" selected":""}>全部历史</option>${availableWeeks.map(key=>`<option value="${key}"${timeLogWeek===key?" selected":""}>${timeLogWeekLabel(key)}</option>`).join("")}`;
+    const historyToolbar=`<div class="timeHistoryToolbar"><div class="timeHistorySummary"><span>HISTORY / ARCHIVE</span><b>${allLogs.length} 条 · ${availableWeeks.length} 周</b><em>本机最多保留 ${TIME_LOG_LIMIT} 条；云端同步最近 ${TIME_GH_LOG_LIMIT} 条。</em></div><label class="timeHistoryWeekPicker"><span>查看周次</span><select id="timeLogWeekSelect">${historyOptions}</select></label><button type="button" class="timeHistoryExportBtn" data-export-time-history><span>↓</span><b>导出备份</b></button></div>`;
+    const historyFoot=scopedLogs.length>visibleLogs.length?`<div class="timeHistoryFoot">当前周次共 ${scopedLogs.length} 条，这里显示最近 ${visibleLogs.length} 条；完整内容可导出备份。</div>`:`<div class="timeHistoryFoot">当前显示 ${visibleLogs.length} 条记录。删除操作会同步到其他设备。</div>`;
+    const historyBody=`${historyToolbar}<ul class="timeLogList">${logRows}</ul>${historyFoot}`;
     const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
     const taskRanks=weekTaskTotals().slice(0,6).map(row=>{
       const task=taskById(row.task_id);
@@ -93,7 +145,7 @@
       const value=target?`${fmtMinutes(row.minutes)} / ${fmtMinutes(target)}`:fmtMinutes(row.minutes);
       return `<li class="${over?"over":""}"><b>${escapeHtml(row.title)}</b><span>${timeCategoryLabel(row.category)} · ${value}</span></li>`;
     }).join("")||`<li><b>暂无本周任务记录</b><span>完成一次计时后出现</span></li>`;
-    const body=timeLedgerView==="tasks"?taskBody:timeLedgerView==="logs"?`<ul class="timeLogList">${logRows}</ul>`:`<div class="timeBudgetList">${overviewRows}</div><div class="timeLogGrid"><div class="timeRecentLine"><span>今日分布</span><div class="timeTodayChips">${todayChips}</div></div><div class="timeRecentLine timeTaskRank"><span>本周任务排行</span><ol>${taskRanks}</ol></div></div>`;
+    const body=timeLedgerView==="tasks"?taskBody:timeLedgerView==="logs"?historyBody:`<div class="timeBudgetList">${overviewRows}</div><div class="timeLogGrid"><div class="timeRecentLine"><span>今日分布</span><div class="timeTodayChips">${todayChips}</div></div><div class="timeRecentLine timeTaskRank"><span>本周任务排行</span><ol>${taskRanks}</ol></div></div>`;
     el.innerHTML=`<div class="timePanelShell v20"><div class="timePanelTop">${activeHtml}</div><div class="timePanelHeader"><div><span>TIME LEDGER</span><b>时间账本</b><em>总览看方向，任务账可随时补记，明细页删错账。</em></div><div class="timeStatCards"><div><span>今日</span><b>${fmtMinutes(totalToday)}</b></div><div><span>本周</span><b>${fmtMinutes(totalWeek)}</b></div></div></div><nav class="timeSubTabs" aria-label="时间账本切换"><button type="button" class="${timeLedgerView==="overview"?"active":""}" data-time-tab="overview">总览</button><button type="button" class="${timeLedgerView==="tasks"?"active":""}" data-time-tab="tasks">任务账</button><button type="button" class="${timeLedgerView==="logs"?"active":""}" data-time-tab="logs">明细</button></nav>${body}</div>`;
   };
 })();

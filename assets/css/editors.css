@@ -25,7 +25,11 @@
 .timeDetailCard { width: min(100%, 760px); max-height: min(780px, calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); overflow: hidden; }
 .ghModalHead, .taskEditorHead, .timeDetailHead { position: sticky; top: 0; z-index: 4; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--color-line); background: color-mix(in srgb, var(--color-panel) 96%, transparent); backdrop-filter: blur(10px); }
 .ghModalHead > div, .taskEditorHead > div, .timeDetailHead > div { flex: 1 1 auto; min-width: 0; }
-.taskEditorToolbar .editorSectionToggleBtn { margin-left: auto; border-style: dashed; border-color: var(--color-line-strong); background: var(--color-panel-soft); white-space: nowrap; }
+.editorHeadActions { display: flex; align-items: center; gap: 7px; flex: 0 0 auto !important; }
+.returnControlBtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 7px 11px; border: 1px solid var(--color-ink); border-radius: var(--radius-sm); background: var(--color-ink); color: white; font-weight: 800; white-space: nowrap; }
+.returnControlBtn span { color: var(--color-primary); font-size: 16px; }
+.returnControlBtn:hover { border-color: var(--color-primary); }
+.taskEditorToolbar .editorSectionToggleBtn { margin-left: 0; border-style: dashed; border-color: var(--color-line-strong); background: var(--color-panel-soft); white-space: nowrap; }
 .taskEditorToolbar .editorSectionToggleBtn::before { content: "▦"; margin-right: 6px; color: var(--color-warning); font-size: 13px; }
 .taskEditorToolbar .editorSectionToggleBtn:hover { border-style: solid; border-color: var(--color-ink); background: white; }
 .taskEditorToolbar .editorSectionToggleBtn:disabled { opacity: .55; }
@@ -80,13 +84,16 @@
 .ghSecretPanel, .ghHint, .taskEditorHint { margin: 14px 20px 0; padding: 12px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); color: var(--color-muted); }
 .ghModalCard .ghSecretPanel, .ghModalCard .ghHint { margin-left: 0; margin-right: 0; }
 .ghLabel { display: block; margin: 14px 0 6px; font-weight: 750; }
-.ghActions, .taskEditorToolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 20px; }
+.ghActions { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 20px; }
+.taskEditorToolbar { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 7px; padding: 12px 20px; }
+.taskEditorToolbar button, .ghActions button { min-height: 40px; padding: 7px 10px; font-size: 12px; line-height: 1.25; }
 .ghModalCard .ghActions { padding-left: 0; padding-right: 0; }
 .ghLog { min-height: 70px; max-height: 160px; margin: 12px 20px; padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: #22221f; color: #f4f1e9; font: 12px/1.55 ui-monospace, monospace; white-space: pre-wrap; overflow: auto; }
 .ghModalCard .ghLog { margin-left: 0; margin-right: 0; }
 .taskEditorList, .refEditorList, .gameQuestEditorList, .gameQuestEditorDays { min-width: 0; padding: 0 20px 14px; }
 .editorBottomBar { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--color-line); background: color-mix(in srgb, var(--color-panel) 96%, transparent); backdrop-filter: blur(10px); }
 .editorBottomBar button { min-width: 130px; min-height: 48px; padding: 8px 14px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); font-weight: 750; }
+.editorBottomBar .returnControlBottomBtn { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .taskEditorCommandDeck { position: sticky; top: 81px; z-index: 3; display: grid; gap: 8px; padding: 12px 0; background: var(--color-panel); }
 .editorSearchBox { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: white; }
 .editorSearchBox span { text-align: center; }

@@ -1062,6 +1062,19 @@ function closeControlCenter(){
   document.body.classList.remove("controlCenterOpen");
 }
 function toggleControlCenter(){const m=ensureControlCenterPortal();if(!m)return;m.classList.contains("hidden")?openControlCenter():closeControlCenter()}
+function returnToControlCenter(source){
+  const modal=source?.closest?.(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal");
+  if(modal){
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden","true");
+  }
+  document.body.classList.remove("modalOpen");
+  window.dispatchEvent(new CustomEvent("taskring:modal-closed"));
+  setTimeout(()=>{
+    openControlCenter();
+    document.querySelector("#controlCenterMenu .controlAreaCard")?.focus();
+  },0);
+}
 window.addEventListener("resize",positionControlCenter,{passive:true});
 window.addEventListener("scroll",positionControlCenter,{passive:true});
 function initGithubSyncUI(){
@@ -1075,6 +1088,7 @@ function initGithubSyncUI(){
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
   document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
   document.getElementById("controlCenterCloseBtn")?.addEventListener("click",closeControlCenter);
+  document.querySelectorAll("[data-return-control]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();returnToControlCenter(btn)}));
   document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
   document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
   document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});
@@ -1911,10 +1925,10 @@ function setDailyViewMode(mode){
 
 const TIME_ACTIVE_KEY="taskring_time_active_v1";
 const TIME_LOGS_KEY="taskring_time_logs_v1";
-const TIME_LOG_LIMIT=800;
-const TIME_GH_LOG_LIMIT=600;
+const TIME_LOG_LIMIT=2500;
+const TIME_GH_LOG_LIMIT=2000;
 const TIME_LOG_DELETED_KEY="taskring_time_log_deleted_v1";
-const TIME_GH_DELETED_LIMIT=1200;
+const TIME_GH_DELETED_LIMIT=4000;
 const TIME_LEDGER_VIEW_KEY="taskring_time_ledger_view_v1";
 const TIME_LEDGER_VIEWS=new Set(["overview","tasks","logs"]);
 let timeLedgerView=TIME_LEDGER_VIEWS.has(localStorage.getItem(TIME_LEDGER_VIEW_KEY))?localStorage.getItem(TIME_LEDGER_VIEW_KEY):"overview";
@@ -2826,12 +2840,13 @@ function renderGameQuestPanel(){
   </div>`;
   const topBar=`<div class="gameQuestTopBar gameQuestTopBarStandalone">
     <div class="gameQuestTopTitle"><span>GAME QUEST</span><strong>游戏作战区</strong><em>游戏内部也分「今日清理」和「本周池」，但仍然只留在游戏作战区里。</em></div>
-    <div class="gameQuestTopMeter" title="今日/指定日清理：${week.done}/${week.total}；本周池：${weekly.done}/${weekly.total}">
-      <span class="gameQuestMiniRing" style="--p:${gameQuestBoardMode==="week"?weekly.pct:week.pct}%"><i>${gameQuestBoardMode==="week"?weekly.pct:week.pct}%</i></span>
-      <b class="gameQuestTopProgress">${gameQuestBoardMode==="week"?`${weekly.done}/${weekly.total}`:`${week.done}/${week.total}`}</b>
+    <div class="gameQuestHeroSide">
+      <div class="gameQuestTopMeter" title="今日/指定日清理：${week.done}/${week.total}；本周池：${weekly.done}/${weekly.total}"><span class="gameQuestMiniRing" style="--p:${gameQuestBoardMode==="week"?weekly.pct:week.pct}%"><i>${gameQuestBoardMode==="week"?weekly.pct:week.pct}%</i></span><span class="gameCommandCopy"><small>PROGRESS</small><b>${gameQuestBoardMode==="week"?`${weekly.done}/${weekly.total}`:`${week.done}/${week.total}`}</b><em>${gameQuestBoardMode==="week"?"本周作战池":"所选日期"}</em></span></div>
+      <button type="button" class="gameCommandBtn gameQuestTodayQuick" id="gameQuestTodayBtn"><span class="gameCommandIcon">◎</span><span class="gameCommandCopy"><small>TODAY</small><b>今日</b><em>${gameQuestSelectedDay===today?"当前日期":"回到今天"}</em></span></button>
+      <button type="button" class="gameQuestTopTimer ${gqActive?"active":""}" data-timer-start-gamequest="1" data-gamequest-day="${gameQuestSelectedDay}" data-cycle="${escapeHtml(cycleYmd)}" title="把整个游戏作战区作为一个整体记录时间"><span class="gameCommandIcon">${gqActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><span class="gameCommandCopy"><small>TIMER</small><b ${gqActive?"data-live-timer":""}>${gqTimerLabel}</b><em>${gqTimerSub}</em></span></button>
+      <button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button>
+      <button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常与周常</em></span></button>
     </div>
-    <button type="button" class="gameQuestTopTimer ${gqActive?"active":""}" data-timer-start-gamequest="1" data-gamequest-day="${gameQuestSelectedDay}" data-cycle="${escapeHtml(cycleYmd)}" title="把整个游戏作战区作为一个整体记录时间"><span>${gqActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><b ${gqActive?"data-live-timer":""}>${gqTimerLabel}</b><em>${gqTimerSub}</em></button>
-    <button type="button" class="gameQuestTodayQuick" id="gameQuestTodayBtn">今日</button>
   </div>`;
   let body="";
   if(gameQuestBoardMode==="week"){
