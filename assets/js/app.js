@@ -313,6 +313,27 @@ function normalizeGameQuestConfig(config){
   return {version:2,updatedAt:String(src.updatedAt||""),games,schedule,weekly};
 }
 
+function normalizeFitnessUrl(value,note=""){
+  const raw=String(value||"").trim();
+  if(!raw)return "";
+  let url="";
+  if(/^https?:\/\//i.test(raw))url=safeUrl(raw);
+  else if(/^\/\//.test(raw))url=safeUrl(`https:${raw}`);
+  else if(/^(?:www\.)?[a-z\d.-]+\.[a-z]{2,}(?:[/?#].*)?$/i.test(raw))url=safeUrl(`https://${raw}`);
+  else return "";
+  if(!url)return "";
+  const noteText=String(note||"").trim();
+  if(noteText){
+    try{
+      const parsed=new URL(url);
+      const decoded=decodeURIComponent(`${parsed.pathname.replace(/^\/+/,"")}${parsed.search}${parsed.hash}`);
+      const loopback=["localhost","127.0.0.1","::1"].includes(parsed.hostname);
+      const sameOrigin=typeof location!=="undefined"&&parsed.origin===location.origin;
+      if(decoded===noteText&&(loopback||sameOrigin))return "";
+    }catch(error){}
+  }
+  return url;
+}
 function normalizeFitnessItemList(value,kind="training"){
   const rawList=Array.isArray(value)?value:(typeof value==="string"?value.split(/\n+/):[]);
   const used=new Set();
@@ -323,7 +344,9 @@ function normalizeFitnessItemList(value,kind="training"){
     let id=String(obj?.id||slugifyId(`${kind}-${title}`,`${kind}-${idx+1}`)).trim();
     if(used.has(id)){let base=id,n=2;while(used.has(`${base}-${n}`))n++;id=`${base}-${n}`}
     used.add(id);
-    return {id,title,note:String(obj?.note||obj?.detail||"").trim(),enabled:obj?.enabled!==false};
+    const note=String(obj?.note||obj?.detail||"").trim();
+    const url=normalizeFitnessUrl(obj?.url||obj?.link||"",note);
+    return {id,title,note,url,enabled:obj?.enabled!==false};
   }).filter(item=>item&&item.enabled!==false).slice(0,30);
 }
 function normalizeFitnessConfig(config){

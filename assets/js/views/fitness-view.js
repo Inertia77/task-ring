@@ -4,6 +4,7 @@
   let selectedDay=today;
   let draftConfig=null;
   let initialized=false;
+  let editorItemCounter=0;
 
   function dayConfig(dayId,cfg=fitnessConfig){
     const normalized=normalizeFitnessConfig(cfg||defaultFitnessConfig);
@@ -30,6 +31,26 @@
       playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"micro",category:"life",anchor:sourceEl,title:stats.total&&stats.done===stats.total?"训练饮食计划完成":"健康项目完成",eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
     }
     renderAll();
+  }
+  function setLaneDone(dayId,kind,value,sourceEl){
+    const items=dayConfig(dayId)?.[kind]||[];
+    items.forEach(item=>syncSetItem(doneKey(dayId,kind,item.id),value));
+    if(value&&sourceEl&&items.length&&typeof playCompletionEffect==="function"){
+      const stats=dayStats(dayId);
+      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"task",category:"life",anchor:sourceEl,title:kind==="training"?"训练计划全部完成":"饮食计划全部完成",eventId:`fitness-lane:${cycleYmd}:${dayId}:${kind}`});
+    }
+    showToast(value?(kind==="training"?"训练项目已全部完成":"饮食项目已全部完成"):(kind==="training"?"已取消全部训练完成状态":"已取消全部饮食完成状态"),value?"ok":"warn",1300);
+    renderAll();
+  }
+  function openFitnessItemUrl(value){
+    const url=normalizeFitnessUrl(value);
+    if(!url){showToast("链接格式不正确，请检查网址","err");return}
+    try{
+      const opened=window.open("about:blank","_blank");
+      if(opened){opened.opener=null;opened.location.replace(url);return}
+    }catch(error){console.warn("训练饮食链接新窗口打开失败",error)}
+    showToast("新窗口被拦截，已在当前页面打开","warn",1800);
+    window.location.assign(url);
   }
   function fitnessTimerKey(dayId,cycle=cycleYmd){return `fitness:fitness-training:${cycle}:d${Number(dayId)}`}
   function fitnessLogs(){return readTimeLogs().filter(log=>log.kind==="fitness"||log.task_id==="fitness-training")}
@@ -79,11 +100,16 @@
   function itemHtml(item,dayId){
     const done=isItemDone(dayId,item.kind,item.id);
     const kindName=item.kind==="training"?"训练":"饮食";
-    return `<button type="button" class="fitnessItem ${done?"done":""}" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${item.kind}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span><strong>${escapeHtml(item.title)}</strong>${item.note?`<small>${escapeHtml(item.note)}</small>`:""}</span><em>${kindName}</em></button>`;
+    const note=String(item.note||"").trim();
+    const url=normalizeFitnessUrl(item.url,item.note);
+    const actions=note||url?`<div class="fitnessItemActions">${note?`<button type="button" class="fitnessItemMetaBtn" data-fitness-toggle-note aria-expanded="false" aria-label="查看备注：${escapeHtml(item.title)}"><span>备注</span><b>i</b></button>`:""}${url?`<button type="button" class="fitnessItemLink" data-fitness-open-url="${escapeHtml(url)}" aria-label="打开链接：${escapeHtml(item.title)}" title="打开链接：${escapeHtml(item.title)}"><span>打开</span> ↗</button>`:""}</div>`:"";
+    const notePanel=note?`<div class="fitnessItemNote" data-fitness-note-panel hidden><span>NOTE / 备注</span><p>${escapeHtml(note)}</p></div>`:"";
+    return `<article class="fitnessItem ${done?"done":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${item.kind}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span><em>${kindName}</em></button>${actions}${notePanel}</article>`;
   }
   function laneHtml(kind,title,items,dayId){
     const done=items.filter(item=>isItemDone(dayId,kind,item.id)).length;
-    return `<section class="fitnessLane fitnessLane-${kind}"><header class="fitnessLaneHead"><div><span>${kind==="training"?"TRAINING":"NUTRITION"}</span><b>${title}</b></div><em>${done}/${items.length}</em></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml({...item,kind},dayId)).join(""):`<div class="fitnessEmpty">${kind==="training"?"当天没有安排训练项目":"当天没有安排饮食项目"}</div>`}</div></section>`;
+    const allDone=items.length>0&&done===items.length;
+    return `<section class="fitnessLane fitnessLane-${kind}"><header class="fitnessLaneHead"><div><span>${kind==="training"?"TRAINING":"NUTRITION"}</span><b>${title}</b></div><div class="fitnessLaneActions"><em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${kind}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button></div></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml({...item,kind},dayId)).join(""):`<div class="fitnessEmpty">${kind==="training"?"当天没有安排训练项目":"当天没有安排饮食项目"}</div>`}</div></section>`;
   }
   function revealSelectedDay(tabsEl,smooth=false){
     const activeTab=tabsEl?.querySelector(".fitnessDayTab.active");
@@ -140,12 +166,30 @@
     const el=document.getElementById("fitnessEditorLog");
     if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${message}\n`+el.textContent.slice(0,2500);
   }
-  function itemsToText(items){return (items||[]).map(item=>`${item.title}${item.note?` | ${item.note}`:""}`).join("\n")}
-  function parseEditorText(value,kind){
-    const entries=String(value||"").split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
-      const split=line.split(/\s*\|\s*/,2);
-      return {title:split[0]||"",note:split[1]||""};
-    });
+  function fitnessEditorItemRowHtml(item={},kind="training"){
+    const id=String(item.id||`fitness-${kind}-${Date.now().toString(36)}-${++editorItemCounter}`);
+    const kindName=kind==="training"?"训练":"饮食";
+    return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${kind}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${kindName}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${kindName}项目">删除</button><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="动作要求、份量、阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
+  }
+  function fitnessEditorGroupHtml(kind,title,items){
+    const kindName=kind==="training"?"TRAINING":"NUTRITION";
+    return `<section class="fitnessEditorGroup" data-fitness-editor-group="${kind}"><header><div><span>${kindName}</span><b>${title}</b></div><button type="button" data-fitness-add-item="${kind}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${kind}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,kind)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
+  }
+  function updateFitnessEditorDayCount(card){
+    if(!card)return;
+    const training=card.querySelectorAll('[data-fitness-editor-item="training"]').length;
+    const nutrition=card.querySelectorAll('[data-fitness-editor-item="nutrition"]').length;
+    const count=card.querySelector("[data-fitness-editor-day-count]");
+    if(count)count.textContent=`${training} 训练 · ${nutrition} 饮食`;
+  }
+  function collectFitnessEditorItems(card,kind){
+    const entries=[...card.querySelectorAll(`[data-fitness-editor-item="${kind}"]`)].map(row=>({
+      id:row.dataset.fitnessItemId||"",
+      title:row.querySelector("[data-fitness-item-title]")?.value||"",
+      note:row.querySelector("[data-fitness-item-note]")?.value||"",
+      url:row.querySelector("[data-fitness-item-url]")?.value||"",
+      enabled:true
+    }));
     return normalizeFitnessItemList(entries,kind);
   }
   function renderFitnessEditor(){
@@ -154,9 +198,9 @@
     const cfg=normalizeFitnessConfig(draftConfig||fitnessConfig||defaultFitnessConfig);
     list.innerHTML=`<div class="fitnessEditorGrid">${[1,2,3,4,5,6,0].map(day=>{
       const data=cfg.days[String(day)]||{training:[],nutrition:[]};
-      return `<section class="fitnessDayEditor ${day===today?"today":""}" data-fitness-editor-day="${day}"><header class="fitnessDayEditorHead"><b>${escapeHtml(dayName(day))}</b><span>${data.training.length} 训练 · ${data.nutrition.length} 饮食</span></header><div class="fitnessEditorFields"><div class="fitnessEditorField"><label>训练项目（一行一个）</label><textarea data-fitness-training placeholder="示例：全身基础训练 30 分钟\n项目 | 可选备注">${escapeHtml(itemsToText(data.training))}</textarea></div><div class="fitnessEditorField"><label>饮食项目（一行一个）</label><textarea data-fitness-nutrition placeholder="示例：准备均衡三餐\n项目 | 可选备注">${escapeHtml(itemsToText(data.nutrition))}</textarea></div></div></section>`;
+      return `<details class="fitnessDayEditor ${day===today?"today":""}" data-fitness-editor-day="${day}" ${day===today?"open":""}><summary class="fitnessDayEditorHead"><b>${escapeHtml(dayName(day))}</b><span data-fitness-editor-day-count>${data.training.length} 训练 · ${data.nutrition.length} 饮食</span></summary><div class="fitnessEditorFields">${fitnessEditorGroupHtml("training","训练项目",data.training)}${fitnessEditorGroupHtml("nutrition","饮食项目",data.nutrition)}</div></details>`;
     }).join("")}</div>`;
-    editorLog("已加载训练饮食计划。每行一个项目，可用“项目 | 备注”。");
+    editorLog("已加载结构化训练饮食计划。名称、备注和链接可分别维护；只有真实链接才会显示打开按钮。");
   }
   function collectFitnessEditor(){
     if(!draftConfig)draftConfig=normalizeFitnessConfig(fitnessConfig||defaultFitnessConfig);
@@ -164,8 +208,8 @@
     document.querySelectorAll("[data-fitness-editor-day]").forEach(card=>{
       const day=String(Number(card.dataset.fitnessEditorDay));
       days[day]={
-        training:parseEditorText(card.querySelector("[data-fitness-training]")?.value,"training"),
-        nutrition:parseEditorText(card.querySelector("[data-fitness-nutrition]")?.value,"nutrition")
+        training:collectFitnessEditorItems(card,"training"),
+        nutrition:collectFitnessEditorItems(card,"nutrition")
       };
     });
     draftConfig=normalizeFitnessConfig({...draftConfig,days,updatedAt:new Date().toISOString()});
@@ -254,6 +298,28 @@
     document.getElementById("exportFitnessBtn")?.addEventListener("click",exportFitnessConfig);
     document.getElementById("importFitnessBtn")?.addEventListener("click",importFitnessConfig);
     document.body.addEventListener("click",event=>{
+      const editorAdd=event.target.closest("[data-fitness-add-item]");
+      if(editorAdd){
+        event.preventDefault();event.stopPropagation();
+        const group=editorAdd.closest("[data-fitness-editor-group]");
+        const kind=editorAdd.dataset.fitnessAddItem;
+        const itemList=group?.querySelector(`[data-fitness-editor-list="${kind}"]`);
+        itemList?.querySelector("[data-fitness-editor-empty]")?.remove();
+        itemList?.insertAdjacentHTML("beforeend",fitnessEditorItemRowHtml({},kind));
+        updateFitnessEditorDayCount(editorAdd.closest("[data-fitness-editor-day]"));
+        itemList?.lastElementChild?.querySelector("[data-fitness-item-title]")?.focus();
+        return;
+      }
+      const editorRemove=event.target.closest("[data-fitness-remove-item]");
+      if(editorRemove){
+        event.preventDefault();event.stopPropagation();
+        const group=editorRemove.closest("[data-fitness-editor-group]");
+        const list=editorRemove.closest("[data-fitness-editor-list]");
+        editorRemove.closest("[data-fitness-editor-item]")?.remove();
+        if(list&&!list.querySelector("[data-fitness-editor-item]"))list.insertAdjacentHTML("beforeend",`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`);
+        updateFitnessEditorDayCount(group?.closest("[data-fitness-editor-day]"));
+        return;
+      }
       const open=event.target.closest("#controlFitnessEditorBtn,[data-open-fitness-editor]");
       if(open){event.preventDefault();event.stopPropagation();openFitnessEditor();return}
       const dayBtn=event.target.closest("[data-fitness-day]");
@@ -264,9 +330,19 @@
       if(timerBtn){event.preventDefault();const active=readActiveTimer();if(active?.kind==="fitness"&&active.paused)resumeActiveTimer();else if(active?.kind==="fitness")showToast("训练区正在计时","warn");else startFitnessTimer(selectedDay);return}
       const detailBtn=event.target.closest("[data-time-fitness-detail]");
       if(detailBtn){event.preventDefault();event.stopPropagation();openFitnessTimeDetail();return}
+      const noteBtn=event.target.closest("[data-fitness-toggle-note]");
+      if(noteBtn){event.preventDefault();event.stopPropagation();const panel=noteBtn.closest(".fitnessItem")?.querySelector("[data-fitness-note-panel]");const expanded=noteBtn.getAttribute("aria-expanded")==="true";noteBtn.setAttribute("aria-expanded",expanded?"false":"true");noteBtn.classList.toggle("active",!expanded);if(panel)panel.hidden=expanded;return}
+      const linkBtn=event.target.closest("[data-fitness-open-url]");
+      if(linkBtn){event.preventDefault();event.stopPropagation();openFitnessItemUrl(linkBtn.dataset.fitnessOpenUrl);return}
+      const laneBtn=event.target.closest("[data-fitness-lane-all]");
+      if(laneBtn){event.preventDefault();event.stopPropagation();const next=laneBtn.getAttribute("aria-pressed")!=="true";setLaneDone(Number(laneBtn.dataset.fitnessLaneDay),laneBtn.dataset.fitnessLaneAll,next,laneBtn);return}
       const itemBtn=event.target.closest("[data-fitness-item]");
       if(itemBtn){event.preventDefault();const next=itemBtn.getAttribute("aria-pressed")!=="true";setItemDone(Number(itemBtn.dataset.fitnessItemDay),itemBtn.dataset.fitnessKind,itemBtn.dataset.fitnessItem,next,itemBtn);return}
       if(event.target.id==="fitnessEditorModal")closeFitnessEditor();
+    });
+    document.body.addEventListener("input",event=>{
+      if(!event.target.closest("[data-fitness-editor-item]"))return;
+      updateFitnessEditorDayCount(event.target.closest("[data-fitness-editor-day]"));
     });
     document.addEventListener("keydown",event=>{
       if(event.key!=="Escape"||document.getElementById("fitnessEditorModal")?.classList.contains("hidden"))return;

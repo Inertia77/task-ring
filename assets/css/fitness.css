@@ -37,26 +37,66 @@
 .fitnessLaneHead span { display: block; color: var(--color-muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .fitnessLaneHead b { font-size: 17px; }
 .fitnessLaneHead em { color: var(--color-muted); font-style: normal; font-size: 12px; }
+.fitnessLaneActions { display: flex; align-items: center; gap: 9px; }
+.fitnessLaneAllBtn { display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 5px 9px; border: 1px solid var(--color-line-strong); border-radius: 8px; background: var(--color-panel); color: var(--color-ink); }
+.fitnessLaneAllBtn > span { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid var(--color-line-strong); border-radius: 50%; font-size: 11px; font-weight: 900; }
+.fitnessLaneAllBtn > b { font-size: 11px; white-space: nowrap; }
+.fitnessLaneAllBtn:hover:not(:disabled) { border-color: var(--color-ink); }
+.fitnessLaneAllBtn.done { border-color: var(--color-primary); background: color-mix(in srgb,var(--color-primary) 14%,var(--color-panel)); }
+.fitnessLaneAllBtn.done > span { border-color: var(--color-primary); background: var(--color-primary); }
+.fitnessLaneAllBtn:disabled { opacity: .45; cursor: not-allowed; }
 .fitnessItems { display: grid; gap: 8px; padding: 10px; }
-.fitnessItem { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 58px; padding: 9px 10px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel); color: var(--color-ink); text-align: left; }
+.fitnessItem { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: stretch; width: 100%; min-height: 58px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel); color: var(--color-ink); overflow: hidden; }
 .fitnessItem:hover { border-color: var(--color-line-strong); transform: translateY(-1px); }
+.fitnessItemToggle { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 9px 10px; border: 0; border-radius: 0; background: transparent; color: inherit; text-align: left; }
+.fitnessItemToggle:hover { background: color-mix(in srgb,var(--color-ink) 3%,transparent); }
+.fitnessItemCopy { min-width: 0; }
 .fitnessCheck { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--color-line-strong); border-radius: 50%; font-weight: 900; }
 .fitnessItem strong { display: block; font-size: 14px; line-height: 1.35; }
-.fitnessItem small { display: block; margin-top: 3px; color: var(--color-muted); font-size: 11px; }
 .fitnessItem em { color: var(--color-muted); font-style: normal; font-size: 10px; letter-spacing: .08em; }
+.fitnessItemActions { display: flex; align-items: stretch; border-left: 1px solid var(--color-line); }
+.fitnessItemMetaBtn, .fitnessItemLink { display: grid; place-items: center; align-content: center; min-width: 62px; padding: 8px 10px; border: 0; border-radius: 0; color: var(--color-ink); font: inherit; font-size: 12px; font-weight: 850; white-space: nowrap; }
+.fitnessItemMetaBtn { grid-template-columns: auto 18px; gap: 5px; background: var(--color-panel-soft); }
+.fitnessItemMetaBtn b { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid var(--color-line-strong); border-radius: 50%; font-size: 10px; }
+.fitnessItemMetaBtn:hover, .fitnessItemMetaBtn.active { background: color-mix(in srgb,var(--color-info) 14%,var(--color-panel)); }
+.fitnessItemMetaBtn.active b { border-color: var(--color-ink); background: var(--color-ink); color: white; }
+.fitnessItemLink { border-left: 1px solid var(--color-line); background: color-mix(in srgb,var(--color-primary) 11%,var(--color-panel)); text-decoration: none; }
+.fitnessItemLink:hover { background: var(--color-primary); }
+.fitnessItemNote { grid-column: 1 / -1; padding: 10px 12px 11px 54px; border-top: 1px solid var(--color-line); background: color-mix(in srgb,var(--color-info) 7%,var(--color-panel)); }
+.fitnessItemNote[hidden] { display: none; }
+.fitnessItemNote > span { display: block; color: var(--color-info); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.fitnessItemNote p { margin: 4px 0 0; color: var(--color-muted); font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
 .fitnessItem.done { border-color: color-mix(in srgb,var(--color-primary) 65%,var(--color-line)); background: color-mix(in srgb,var(--color-primary) 12%,var(--color-panel)); }
 .fitnessItem.done .fitnessCheck { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-ink); }
 .fitnessItem.done strong { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--color-muted); }
 .fitnessEmpty { padding: 22px 14px; color: var(--color-muted); text-align: center; font-size: 12px; }
 .fitnessEditorList { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 12px; }
-.fitnessEditorGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.fitnessEditorGrid { display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; }
 .fitnessDayEditor { border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel-soft); overflow: hidden; }
 .fitnessDayEditor.today { border-color: var(--color-primary); box-shadow: inset 3px 0 0 var(--color-primary); }
-.fitnessDayEditorHead { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--color-line); }
+.fitnessDayEditorHead { display: flex; justify-content: space-between; align-items: center; min-height: 48px; padding: 10px 38px 10px 12px; background: var(--color-panel); cursor: pointer; list-style: none; position: relative; }
+.fitnessDayEditorHead::-webkit-details-marker { display: none; }
+.fitnessDayEditorHead::after { content: "＋"; position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 17px; font-weight: 700; }
+.fitnessDayEditor[open] > .fitnessDayEditorHead { border-bottom: 1px solid var(--color-line); }
+.fitnessDayEditor[open] > .fitnessDayEditorHead::after { content: "−"; }
 .fitnessDayEditorHead span { color: var(--color-muted); font-size: 11px; }
 .fitnessEditorFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; padding: 10px; }
-.fitnessEditorField label { display: block; margin-bottom: 5px; color: var(--color-muted); font-size: 11px; font-weight: 750; }
-.fitnessEditorField textarea { width: 100%; min-height: 112px; resize: vertical; padding: 9px; border: 1px solid var(--color-line); border-radius: 9px; background: var(--color-panel); color: var(--color-ink); font: inherit; line-height: 1.5; }
+.fitnessEditorGroup { min-width: 0; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel); overflow: hidden; }
+.fitnessEditorGroup > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 8px 10px; border-bottom: 1px solid var(--color-line); }
+.fitnessEditorGroup > header span, .fitnessEditorGroup > header b { display: block; }
+.fitnessEditorGroup > header span { color: var(--color-muted); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.fitnessEditorGroup > header b { font-size: 14px; }
+.fitnessEditorGroup > header button { min-height: 36px; padding: 6px 9px; border: 1px dashed var(--color-line-strong); border-radius: 8px; background: var(--color-primary); font-size: 11px; font-weight: 850; }
+.fitnessEditorItemList { display: grid; gap: 8px; padding: 9px; }
+.fitnessEditorItemRow { display: grid; grid-template-columns: minmax(140px,.8fr) minmax(180px,1.2fr) auto; gap: 7px; align-items: end; min-width: 0; padding: 9px; border: 1px solid var(--color-line); border-radius: 9px; background: var(--color-panel-soft); }
+.fitnessEditorItemRow label { min-width: 0; }
+.fitnessEditorItemRow label > span { display: block; margin-bottom: 4px; color: var(--color-muted); font-size: 10px; font-weight: 750; }
+.fitnessEditorItemRow input, .fitnessEditorItemRow textarea { width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid var(--color-line); border-radius: 7px; background: white; color: var(--color-ink); font: inherit; font-size: 12px; line-height: 1.4; }
+.fitnessEditorItemRow input { min-height: 38px; }
+.fitnessEditorItemRow textarea { min-height: 58px; resize: vertical; }
+.fitnessEditorItemNote { grid-column: 1 / -1; }
+.fitnessEditorItemDelete { min-height: 38px; padding: 6px 9px; border: 1px solid color-mix(in srgb,var(--color-danger) 35%,var(--color-line)); border-radius: 7px; background: var(--color-danger-soft); color: var(--color-danger); font-size: 11px; font-weight: 800; }
+.fitnessEditorGroupEmpty { padding: 22px 10px; color: var(--color-muted); text-align: center; font-size: 11px; }
 @media (max-width:1100px){
   .fitnessHero { grid-template-columns: minmax(0,1fr); }
   .fitnessHeroSide { grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); }
@@ -76,4 +116,11 @@
   .fitnessBoard, .fitnessEditorGrid, .fitnessEditorFields { grid-template-columns: 1fr; }
   .fitnessBoard { padding: 9px; }
   .fitnessEditorList { padding: 8px; }
+  .fitnessItemMetaBtn, .fitnessItemLink { min-width: 52px; padding-inline: 7px; }
+  .fitnessItemMetaBtn { grid-template-columns: 18px; }
+  .fitnessItemMetaBtn span, .fitnessItemLink span { display: none; }
+  .fitnessItemNote { padding-left: 12px; }
+  .fitnessEditorItemRow { grid-template-columns: minmax(0,1fr) auto; }
+  .fitnessEditorItemTitle, .fitnessEditorItemUrl, .fitnessEditorItemNote { grid-column: 1; }
+  .fitnessEditorItemDelete { grid-column: 2; grid-row: 1; }
 }
