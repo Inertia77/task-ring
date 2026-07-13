@@ -15,6 +15,7 @@ let blocks=[];
 let stepTasks={};
 let refGroups=[];
 let gameQuestConfig=null;
+let fitnessConfig=null;
 const CONFIG_FILE="taskring-config.json"; // v8.5 encrypted cloud config
 const TASK_CONFIG_LOCAL_KEY="taskring_local_config_v1";
 const TASK_CONFIG_BACKUP_KEY="taskring_local_config_backups_v1";
@@ -312,6 +313,35 @@ function normalizeGameQuestConfig(config){
   return {version:2,updatedAt:String(src.updatedAt||""),games,schedule,weekly};
 }
 
+function normalizeFitnessItemList(value,kind="training"){
+  const rawList=Array.isArray(value)?value:(typeof value==="string"?value.split(/\n+/):[]);
+  const used=new Set();
+  return rawList.map((item,idx)=>{
+    const obj=item&&typeof item==="object"?item:null;
+    const title=String(obj?(obj.title||obj.name||""):item||"").trim();
+    if(!title)return null;
+    let id=String(obj?.id||slugifyId(`${kind}-${title}`,`${kind}-${idx+1}`)).trim();
+    if(used.has(id)){let base=id,n=2;while(used.has(`${base}-${n}`))n++;id=`${base}-${n}`}
+    used.add(id);
+    return {id,title,note:String(obj?.note||obj?.detail||"").trim(),enabled:obj?.enabled!==false};
+  }).filter(item=>item&&item.enabled!==false).slice(0,30);
+}
+function normalizeFitnessConfig(config){
+  const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:1,days:{}});
+  const src=config&&typeof config==="object"&&!Array.isArray(config)?config:fallback;
+  const days={};
+  [1,2,3,4,5,6,0].forEach(day=>{
+    const key=String(day);
+    const hasDay=!!src.days&&Object.prototype.hasOwnProperty.call(src.days,key);
+    const raw=hasDay&&src.days[key]&&typeof src.days[key]==="object"?src.days[key]:hasDay?{}:(fallback.days?.[key]||{});
+    days[key]={
+      training:normalizeFitnessItemList(raw.training,"training"),
+      nutrition:normalizeFitnessItemList(raw.nutrition,"nutrition")
+    };
+  });
+  return {version:1,updatedAt:String(src.updatedAt||""),days};
+}
+
 function buildDefaultConfig(){
   const usedTaskCodes=new Set();
   const tasks=defaultBlocks.map((t,idx)=>{
@@ -341,7 +371,7 @@ function buildDefaultConfig(){
       steps
     }
   });
-  return {version:4, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks, refs:deepClone(defaultRefGroups), gameQuest:deepClone(defaultGameQuestConfig)};
+  return {version:4, privacy:"coded-state-keys", updatedAt:new Date().toISOString(), tasks, refs:deepClone(defaultRefGroups), gameQuest:deepClone(defaultGameQuestConfig), fitness:deepClone(defaultFitnessConfig)};
 }
 function normalizeTaskConfig(config){
   const fallback=buildDefaultConfig();
@@ -401,7 +431,8 @@ function normalizeTaskConfig(config){
       steps
     };
   });
-  return {version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, retired_task_codes:retiredTaskCodes, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest)};
+  const hasFitness=Object.prototype.hasOwnProperty.call(src,"fitness");
+  return {version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, retired_task_codes:retiredTaskCodes, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest), fitness:normalizeFitnessConfig(hasFitness?src.fitness:fallback.fitness)};
 }
 function applyTaskConfig(config, shouldRender=false){
   const repaired=repairReusedTaskCodes(normalizeTaskConfig(config));
@@ -417,6 +448,7 @@ function applyTaskConfig(config, shouldRender=false){
   }
   refGroups=taskConfig.refs||normalizeRefGroups(defaultRefGroups);
   gameQuestConfig=taskConfig.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig);
+  fitnessConfig=taskConfig.fitness||normalizeFitnessConfig(defaultFitnessConfig);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
     id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
     core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false,
@@ -645,7 +677,7 @@ const GQ_BOARD_MODE_KEY=`${GH_PREFIX}gamequest_board_mode_v1`;
 const GQ_WEEKLY_FILTER_KEY=`${GH_PREFIX}gamequest_weekly_filter_v1`;
 const UI_SCROLL_STATE_KEY="taskring_ui_scroll_state_v1";
 const ORBIT_DRAWER_OPEN_KEY="taskring_orbit_drawer_open_v1";
-const APP_VIEWS=new Set(["tasks","weekly","game","time","library"]);
+const APP_VIEWS=new Set(["tasks","weekly","fitness","game","time","library"]);
 const LOCAL_PREVIEW_UNLOCK=["localhost","127.0.0.1","::1"].includes(location.hostname)&&new URLSearchParams(location.search).has("preview");
 let activeAppView=APP_VIEWS.has(localStorage.getItem(APP_VIEW_KEY))?localStorage.getItem(APP_VIEW_KEY):"tasks";
 let gameQuestBoardMode="today";
@@ -1042,6 +1074,7 @@ function initGithubSyncUI(){
   document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
   document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
+  document.getElementById("controlCenterCloseBtn")?.addEventListener("click",closeControlCenter);
   document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
   document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
   document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});
@@ -1222,7 +1255,7 @@ function collectEditorConfig(){
   if(!fullRender&&edited.length<base.tasks.length){
     taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${remainingBaseTasks.length-entries.filter(isExistingEntry).length} 个已保留，明确删除 ${deletedIds.size} 个。`);
   }
-  return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,retired_task_codes:[...retiredTaskCodes],refs:refGroups,gameQuest:gameQuestConfig});
+  return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,retired_task_codes:[...retiredTaskCodes],refs:refGroups,gameQuest:gameQuestConfig,fitness:fitnessConfig});
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
@@ -1822,6 +1855,7 @@ function applyActiveAppView(){
 }
 function setActiveAppView(view){
   const next=APP_VIEWS.has(view)?view:"tasks";
+  closeControlCenter();
   activeAppView=next;
   localStorage.setItem(APP_VIEW_KEY,next);
   applyActiveAppView();
@@ -1829,7 +1863,7 @@ function setActiveAppView(view){
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game")renderGameQuestPanel();
 }
-const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList"];
+const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
 let restoreUiScrollFromStorage=true;
 let uiScrollSaveTimer=null;
 function readUiScrollState(){try{return JSON.parse(localStorage.getItem(UI_SCROLL_STATE_KEY)||"{}")||{}}catch(e){return {}}}
@@ -2015,6 +2049,7 @@ function localDateTimeInputValue(date=new Date()){
 }
 function manualTimeEntryTarget(kind,taskId=""){
   if(kind==="gamequest")return {kind:"gamequest",task_id:"gamequest-board",task_code:"gq-board",title:"游戏作战区",category:"game",estimated_minutes:60};
+  if(kind==="fitness")return {kind:"fitness",task_id:"fitness-training",task_code:"fitness-board",title:"训练区",category:"body",estimated_minutes:60};
   const task=taskById(taskId);
   if(!task)return null;
   return {kind:"task",task_id:task.id,task_code:taskCode(task.id),title:task.title,category:taskTimeCategory(task),estimated_minutes:taskEstimatedMinutes(task)};
@@ -2419,9 +2454,10 @@ function renderTimerDock(){
     return;
   }
   const warn=active.estimated_minutes&&activeTimerElapsedSeconds(active)>active.estimated_minutes*120;
-  const targetBtn=active.kind==="gamequest"?"game":"time";
+  const targetBtn=active.kind==="gamequest"?"game":active.kind==="fitness"?"fitness":"time";
+  const targetName=active.kind==="gamequest"?"游戏作战区":active.kind==="fitness"?"训练饮食":"时间账本";
   dock.className=`timerFloatDock timerFloatCompact ${active.paused?"paused":"running"} ${warn?"warn":""}`;
-  dock.innerHTML=`<button type="button" class="timerFloatMain" data-view-target="${targetBtn}" title="打开${active.kind==="gamequest"?"游戏作战区":"时间账本"}"><span class="timerFloatBadge">${active.paused?"PAUSE":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em>${timeCategoryLabel(active.category)}${warn?" · 可能忘关":""}</em></button><div class="timerFloatClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="timerFloatActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div>`;
+  dock.innerHTML=`<button type="button" class="timerFloatMain" data-view-target="${targetBtn}" title="打开${targetName}"><span class="timerFloatBadge">${active.paused?"PAUSE":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em>${timeCategoryLabel(active.category)}${warn?" · 可能忘关":""}</em></button><div class="timerFloatClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="timerFloatActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div>`;
 }
 
 function renderTimerLive(){

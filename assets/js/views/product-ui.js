@@ -343,7 +343,7 @@
   function enhanceDetails(root=document){
     root.querySelectorAll("details").forEach(details=>{const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open))});
   }
-  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.timeDetailModal,.weeklyTargetModal")].find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
+  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal")].find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
   function focusableIn(modal){return [...modal.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null)}
   function enhanceFormLabels(root=document){
     root.querySelectorAll("input,select,textarea").forEach(control=>{
@@ -385,7 +385,7 @@
     const day=event.target.closest("[data-gamequest-day-select]");
     if(day)localStorage.setItem(GAME_SELECTED_DAY_KEY,String(validGameDay(day.dataset.gamequestDaySelect)));
     if(event.target.closest("#gameQuestTodayBtn"))localStorage.setItem(GAME_SELECTED_DAY_KEY,String(today));
-    const modalTrigger=event.target.closest("#githubSetupBtn,#githubStatus,#controlGithubBtn,#controlTaskEditorBtn,#controlRefEditorBtn,#controlGameQuestEditorBtn,[data-open-task-editor],[data-open-ref-editor],[data-open-game-editor],[data-edit-weekly-target],[data-time-task-detail],[data-time-gamequest-detail],[data-manual-time-entry]");
+    const modalTrigger=event.target.closest("#githubSetupBtn,#githubStatus,#controlGithubBtn,#controlTaskEditorBtn,#controlRefEditorBtn,#controlGameQuestEditorBtn,#controlFitnessEditorBtn,[data-open-task-editor],[data-open-ref-editor],[data-open-game-editor],[data-open-fitness-editor],[data-edit-weekly-target],[data-time-task-detail],[data-time-gamequest-detail],[data-time-fitness-detail],[data-manual-time-entry]");
     if(modalTrigger){lastModalTrigger=modalTrigger;setTimeout(()=>openModalFocus(visibleModal()),0)}
     const modalClose=event.target.closest(".ghCloseBtn,.editorBottomBar button:first-child,[data-time-modal-close],[data-target-close]");
     if(modalClose)setTimeout(closeModalFocus,0);

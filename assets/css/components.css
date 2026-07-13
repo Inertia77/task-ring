@@ -24,11 +24,51 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .58; }
 .toastBox.dockAware { bottom: 96px; }
 .toastBox.warn { border-left-color: var(--color-warning); }
 .toastBox.err { border-left-color: var(--color-danger); }
-.controlCenterMenu { position: fixed; z-index: 300; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: min(430px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 8px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-float); overflow-y: auto; overscroll-behavior: contain; }
+.controlCenterMenu { position: fixed; z-index: 300; width: min(780px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); border: 1px solid var(--color-line-strong); border-radius: 18px; background: var(--color-panel); box-shadow: 0 24px 70px rgba(23,23,20,.24); overflow-y: auto; overscroll-behavior: contain; }
 .controlCenterMenu.hidden, .controlCenterBackdrop.hidden { display: none; }
-.controlCenterMenu button { min-width: 0; min-height: var(--tap-size); padding: 7px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; text-align: left; }
-.controlCenterMenu button:hover { background: var(--color-panel-soft); }
-.controlCenterBackdrop { position: fixed; inset: 0; z-index: 250; background: rgba(23,23,20,.28); }
+.controlCenterMenu button { min-width: 0; color: inherit; font: inherit; text-align: left; }
+.controlCenterBackdrop { position: fixed; inset: 0; z-index: 250; background: rgba(23,23,20,.38); backdrop-filter: blur(2px); }
+.controlCenterHead { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 20px 22px 18px; border-bottom: 1px solid rgba(255,255,255,.12); background: linear-gradient(125deg,#171714 0%,#292824 72%,#3a3728 100%); color: white; }
+.controlCenterHeading { display: grid; gap: 3px; min-width: 0; }
+.controlCenterHeading > span { color: var(--color-primary); font-size: 10px; font-weight: 900; letter-spacing: .16em; }
+.controlCenterHeading > strong { font-size: 24px; line-height: 1.15; }
+.controlCenterHeading > p { margin: 3px 0 0; color: rgba(255,255,255,.64); font-size: 12px; line-height: 1.45; }
+.controlCenterMenu .controlCenterCloseBtn { display: grid; place-items: center; flex: 0 0 36px; width: 36px; min-height: 36px; padding: 0; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; background: rgba(255,255,255,.08); color: white; font-size: 24px; line-height: 1; text-align: center; }
+.controlCenterMenu .controlCenterCloseBtn:hover { background: rgba(255,255,255,.16); }
+.controlCenterBody { display: grid; gap: 14px; padding: 16px; }
+.controlCenterSection { display: grid; gap: 8px; }
+.controlSectionTitle { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0 2px; }
+.controlSectionTitle strong { font-size: 13px; }
+.controlSectionTitle span { color: var(--color-muted); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.controlAreaGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.controlCenterMenu .controlAreaCard { --control-accent: var(--color-primary); position: relative; display: grid; grid-template-columns: 40px minmax(0,1fr); grid-template-rows: 1fr auto; gap: 4px 10px; min-height: 126px; padding: 13px; overflow: hidden; border: 1px solid var(--color-line); border-radius: 12px; background: linear-gradient(145deg,color-mix(in srgb,var(--control-accent) 9%,white),white 72%); }
+.controlCenterMenu .controlAreaCard::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--control-accent); }
+.controlCenterMenu .controlAreaCard:hover { border-color: color-mix(in srgb,var(--control-accent) 60%,var(--color-line)); box-shadow: 0 8px 20px color-mix(in srgb,var(--control-accent) 12%,transparent); transform: translateY(-1px); }
+.controlCenterMenu .controlAreaCard:focus-visible { outline: 3px solid color-mix(in srgb,var(--control-accent) 38%,transparent); outline-offset: 2px; }
+.controlAreaIcon { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid color-mix(in srgb,var(--control-accent) 34%,var(--color-line)); border-radius: 11px; background: color-mix(in srgb,var(--control-accent) 14%,white); color: color-mix(in srgb,var(--control-accent) 86%,#171714); font-size: 20px; font-weight: 900; }
+.controlAreaCopy { display: grid; align-content: start; gap: 1px; min-width: 0; }
+.controlAreaCopy small { color: color-mix(in srgb,var(--control-accent) 75%,#4d4a43); font-size: 9px; font-weight: 900; letter-spacing: .1em; }
+.controlAreaCopy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.controlAreaCopy em { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--color-muted); font-size: 11px; font-style: normal; line-height: 1.45; }
+.controlAreaAction { grid-column: 1/-1; align-self: end; display: flex; align-items: center; justify-content: space-between; padding-top: 7px; border-top: 1px solid color-mix(in srgb,var(--control-accent) 22%,var(--color-line)); color: color-mix(in srgb,var(--control-accent) 78%,#171714); font-size: 10px; font-weight: 900; letter-spacing: .04em; }
+.controlAreaAction i { font-size: 15px; font-style: normal; }
+.controlAreaDaily { --control-accent: #d2ae00 !important; }
+.controlAreaWeek { --control-accent: #aa711f !important; }
+.controlAreaFitness { --control-accent: #2f8f62 !important; }
+.controlAreaGame { --control-accent: #6656ad !important; }
+.controlAreaTime { --control-accent: #36749a !important; }
+.controlAreaLibrary { --control-accent: #8d5969 !important; }
+.controlUtilitySection, .controlSafetySection { padding-top: 2px; }
+.controlUtilityGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.controlCenterMenu .controlUtilityBtn, .controlCenterMenu .controlSafetyBtn { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 9px 11px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel-soft); }
+.controlCenterMenu .controlUtilityBtn:hover, .controlCenterMenu .controlSafetyBtn:hover { border-color: var(--color-line-strong); background: white; }
+.controlUtilityIcon, .controlSafetyBtn > span:first-child { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 9px; background: white; box-shadow: inset 0 0 0 1px var(--color-line); font-size: 16px; font-weight: 900; }
+.controlUtilityBtn > span:last-child, .controlSafetyBtn > span:last-child { display: grid; gap: 1px; min-width: 0; }
+.controlUtilityBtn b, .controlSafetyBtn b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.controlUtilityBtn em, .controlSafetyBtn em { overflow: hidden; color: var(--color-muted); font-size: 10px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.controlSafetyGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+.controlCenterMenu .controlDangerBtn { border-color: color-mix(in srgb,var(--color-danger) 32%,var(--color-line)); background: var(--color-danger-soft); color: var(--color-danger); }
+.controlCenterMenu .controlDangerBtn > span:first-child { color: var(--color-danger); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--color-danger) 32%,var(--color-line)); }
 .statusBadge, .planModeBadge, .taskFlag, .editorBadge, .missionBadges span, .gameQuestTaskBadge, .mWeekPill, .dailyMetaChip {
   display: inline-flex;
   align-items: center;

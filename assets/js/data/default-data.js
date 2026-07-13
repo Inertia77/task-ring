@@ -224,6 +224,21 @@ const defaultGameQuestConfig={
   }
 };
 
+// 训练饮食分区的公开演示配置。仅使用通用示例，不包含任何用户真实训练、身体或饮食数据。
+const defaultFitnessConfig={
+  version:1,
+  updatedAt:"",
+  days:{
+    "1":{training:["示例：全身基础训练 30 分钟"],nutrition:["示例：准备均衡三餐","示例：完成饮水检查"]},
+    "2":{training:["示例：轻有氧与活动度 30 分钟"],nutrition:["示例：每餐加入蔬菜"]},
+    "3":{training:["示例：下肢基础训练 30 分钟"],nutrition:["示例：训练后安排常规正餐"]},
+    "4":{training:["示例：恢复拉伸 20 分钟"],nutrition:["示例：按计划准备次日餐食"]},
+    "5":{training:["示例：上肢基础训练 30 分钟"],nutrition:["示例：完成饮水检查"]},
+    "6":{training:["示例：户外步行或轻有氧"],nutrition:["示例：保持正常用餐节奏"]},
+    "0":{training:["示例：休息与恢复检查"],nutrition:["示例：规划下周通用餐食"]}
+  }
+};
+
 // 完成演出使用的本地静态资源，不含用户配置或私人信息。
 const RANDOM_CUTIN_CHARACTERS = [
   {key:"richie",name:"Richie",title:"RICHIE POP",sub:"行动节点已确认",img:"assets/images/cutins/cutin-richie.png",accent:"#ff8ec9"},

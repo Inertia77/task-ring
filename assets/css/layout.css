@@ -40,7 +40,7 @@
   top: 8px;
   z-index: 80;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 5px;
   margin-bottom: 10px;
   padding: 5px;
@@ -59,7 +59,7 @@
 .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
 .viewDockBtn.active::after { content: ""; position: absolute; right: 8px; bottom: -1px; left: 46px; height: 3px; background: var(--color-primary); }
 .dockMobileLabel { display: none; }
-.viewIntro, .taskRingControlPanel, .taskFirstBanner, .orbitPanel, .weeklyPlanPanel, .gameQuestPanel, .timePanel, .refBox, .dailyReminder, .notice, .commandMotto {
+.viewIntro, .taskRingControlPanel, .taskFirstBanner, .orbitPanel, .weeklyPlanPanel, .fitnessPanel, .gameQuestPanel, .timePanel, .refBox, .dailyReminder, .notice, .commandMotto {
   min-width: 0;
   margin-bottom: 10px;
 }

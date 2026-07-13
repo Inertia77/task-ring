@@ -15,6 +15,11 @@
     if(!q)return true;
     return "game quest 游戏 作战区 游戏作战区 整体计时".includes(q);
   }
+  function fitnessSearchMatched(query){
+    const q=String(query||"").trim().toLowerCase();
+    if(!q)return true;
+    return "body fitness 训练 健身 体育 训练区 整体计时".includes(q);
+  }
   function taskSearchBox(total,visible){
     return `<div class="timeTaskSearchWrap"><label for="timeTaskSearchInput">搜索任务账</label><div class="timeTaskSearchRow"><input id="timeTaskSearchInput" type="search" value="${escapeHtml(timeTaskSearch)}" placeholder="搜索任务名、分类或模式"><span class="timeTaskSearchMeta">${visible}/${total}</span></div></div>`;
   }
@@ -43,7 +48,7 @@
     const activeTarget=active?.kind==="task"?taskWeeklyMinutes(taskById(active.task_id)||{}):0;
     const activeUsed=active?.kind==="task"?taskWeekMinutesUsed(active.task_id)+Math.round(activeTimerElapsedSeconds(active)/60):0;
     const activeWeekText=active?.kind==="task"&&activeTarget?` · 本周 ${fmtMinutes(activeUsed)} / ${fmtMinutes(activeTarget)}`:"";
-    const activeHtml=active?`<div class="activeTimerCard ${active.paused?"paused":"running"} ${activeWarn?"warn":""}"><div class="activeTimerMain"><div class="activeTimerKicker">${active.paused?"PAUSED":"FOCUS TIMER"}</div><div class="activeTimerTitle">${escapeHtml(active.title)}</div><div class="activeTimerSub">${timeCategoryLabel(active.category)} · 预计 ${active.estimated_minutes||"?"}m${activeWeekText}${activeWarn?" · 已超过预计 2 倍，确认是否忘关":""}</div></div><div class="activeTimerRight"><div class="activeTimerClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="activeTimerActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成并记录</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div></div></div>`:`<div class="timeLedgerIdle v20"><span>◷</span><b>当前没有计时中</b><em>从任务、周计划池或游戏作战区开始计时。</em></div>`;
+    const activeHtml=active?`<div class="activeTimerCard ${active.paused?"paused":"running"} ${activeWarn?"warn":""}"><div class="activeTimerMain"><div class="activeTimerKicker">${active.paused?"PAUSED":"FOCUS TIMER"}</div><div class="activeTimerTitle">${escapeHtml(active.title)}</div><div class="activeTimerSub">${timeCategoryLabel(active.category)} · 预计 ${active.estimated_minutes||"?"}m${activeWeekText}${activeWarn?" · 已超过预计 2 倍，确认是否忘关":""}</div></div><div class="activeTimerRight"><div class="activeTimerClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="activeTimerActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成并记录</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div></div></div>`:`<div class="timeLedgerIdle v20"><span>◷</span><b>当前没有计时中</b><em>从任务、周计划池、训练区或游戏作战区开始计时。</em></div>`;
     const overviewRows=timeCategoryOrder.map(k=>{
       const def=timeCategoryDefs[k];
       const used=week[k]||0;
@@ -55,6 +60,10 @@
     const gameWeek=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")&&isLogInCurrentCycle(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeGameMinutes;
     const gameToday=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")&&isLogToday(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeGameMinutes;
     const gameRow=`<div class="timeTaskRow timeGameQuestRow"><button type="button" class="timeTaskName" data-time-gamequest-detail="1"><span>GAME QUEST</span><b>游戏作战区</b></button><div class="timeTaskMeter" style="--w:${gameWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(gameWeek)}</b><span>今日 ${fmtMinutes(gameToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="gamequest"><span>+补记</span><b>实际时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
+    const activeFitnessMinutes=active&&active.kind==="fitness"?Math.max(1,Math.round(activeTimerElapsedSeconds(active)/60)):0;
+    const fitnessWeek=readTimeLogs().filter(log=>(log.kind==="fitness"||log.task_id==="fitness-training")&&isLogInCurrentCycle(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeFitnessMinutes;
+    const fitnessToday=readTimeLogs().filter(log=>(log.kind==="fitness"||log.task_id==="fitness-training")&&isLogToday(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeFitnessMinutes;
+    const fitnessRow=`<div class="timeTaskRow timeFitnessRow"><button type="button" class="timeTaskName" data-time-fitness-detail="1"><span>BODY / TRAINING</span><b>训练区</b></button><div class="timeTaskMeter" style="--w:${fitnessWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(fitnessWeek)}</b><span>今日 ${fmtMinutes(fitnessToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="fitness"><span>+补记</span><b>训练时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
 
     const allTasks=(taskConfig?.tasks||[]).filter(t=>t.enabled!==false).slice().sort((a,b)=>{
       const au=taskWeekMinutesUsed(a.id),bu=taskWeekMinutesUsed(b.id);
@@ -71,7 +80,9 @@
       return `<div class="timeTaskRow ${over?"over":""}"><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div>${targetButton(t.id,target)}</div>`;
     }).join("");
     const showGameRow=gameQuestSearchMatched(q);
-    const taskBody=`${taskSearchBox(allTasks.length,(showGameRow?1:0)+visibleTasks.length)}<div class="timeTaskList">${showGameRow?gameRow:""}${taskRows||taskEmptyHtml(timeTaskSearch)}</div>`;
+    const showFitnessRow=fitnessSearchMatched(q);
+    const specialRows=(showFitnessRow?1:0)+(showGameRow?1:0);
+    const taskBody=`${taskSearchBox(allTasks.length+2,specialRows+visibleTasks.length)}<div class="timeTaskList">${showFitnessRow?fitnessRow:""}${showGameRow?gameRow:""}${taskRows||(!specialRows?taskEmptyHtml(timeTaskSearch):"")}</div>`;
 
     const logRows=readTimeLogs().slice().sort(timeLogSortDesc).slice(0,60).map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}${timeLogSourceLabel(log)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>暂无时间记录</b><span>可以开始计时，或手动补记忘记开始的时间</span></div><strong>0m</strong></li>`;
     const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;

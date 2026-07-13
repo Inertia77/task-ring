@@ -30,9 +30,23 @@
   .headerLabelMobile { display: inline; }
   .inertiaToolbar > * { width: auto; min-height: 34px; padding: 4px 7px; overflow: visible; text-overflow: clip; white-space: nowrap; font-size: 10.5px; }
   .inertiaToolbar .cyclePill { font-size: 9.5px; }
-  .controlCenterMenu, .controlCenterMenu.controlCenterSheet { top: auto; right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; grid-template-columns: repeat(2,minmax(0,1fr)); width: auto; max-height: calc(100dvh - var(--nav-mobile-height) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding: 7px; }
-  .controlCenterMenu button { padding: 6px 8px; }
-  .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 500; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 16px; }
+  .controlCenterMenu, .controlCenterMenu.controlCenterSheet { top: max(8px,env(safe-area-inset-top)); right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; width: auto; max-height: none; border-radius: 16px; }
+  .controlCenterHead { padding: 13px 14px 12px; }
+  .controlCenterHeading > strong { font-size: 20px; }
+  .controlCenterHeading > p { display: none; }
+  .controlCenterBody { gap: 12px; padding: 10px; }
+  .controlAreaGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .controlCenterMenu .controlAreaCard { grid-template-columns: 34px minmax(0,1fr); min-height: 108px; padding: 10px; gap: 3px 8px; }
+  .controlAreaIcon { width: 34px; height: 34px; border-radius: 9px; font-size: 17px; }
+  .controlAreaCopy b { font-size: 13px; }
+  .controlAreaCopy em { -webkit-line-clamp: 1; font-size: 9.5px; }
+  .controlAreaAction { padding-top: 5px; font-size: 9px; }
+  .controlUtilityGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .controlCenterMenu .controlUtilityBtn { display: grid; justify-items: center; gap: 5px; min-height: 66px; padding: 7px 5px; text-align: center; }
+  .controlUtilityBtn > span:last-child { justify-items: center; }
+  .controlUtilityBtn em { display: none; }
+  .controlCenterMenu .controlSafetyBtn { min-height: 54px; padding: 7px 9px; }
+  .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 500; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 16px; }
   .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 28px 20px; justify-items: center; min-height: 56px; padding: 4px 2px; text-align: center; }
   .viewDockBtn .dockGlyph { grid-row: auto; width: 28px; height: 28px; }
   .viewDockBtn > span, .dockDesktopLabel { display: none; }
@@ -154,8 +168,8 @@
   .refItemCopy > span { overflow: visible; font-size: 8.6px; line-height: 1.15; text-overflow: clip; white-space: normal; word-break: break-word; }
   .libraryToolbar { grid-template-columns: minmax(0,1fr) auto; }
   .libraryToolbar label { grid-column: 1/-1; }
-  .ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .timeDetailModal, .weeklyTargetModal { place-items: stretch; padding: 0; }
-  .ghModalCard, .taskEditorCard, .refEditorCard, .gameQuestEditorCard, .timeDetailCard, .weeklyTargetCard { width: 100%; max-height: none; height: 100dvh; border: 0; border-radius: 0; }
+  .ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .fitnessEditorModal, .timeDetailModal, .weeklyTargetModal { place-items: stretch; padding: 0; }
+  .ghModalCard, .taskEditorCard, .refEditorCard, .gameQuestEditorCard, .fitnessEditorCard, .timeDetailCard, .weeklyTargetCard { width: 100%; max-height: none; height: 100dvh; border: 0; border-radius: 0; }
   .timeDetailModal { place-items: end stretch; padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom)); }
   .timeDetailModal .timeDetailCard { width: 100%; height: auto; max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border: 1px solid var(--color-line); border-radius: 18px 18px 10px 10px; }
   .timeDetailHead { padding: 12px; }

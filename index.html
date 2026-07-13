@@ -4,18 +4,18 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>TASK RING｜任务指挥中心</title>
-<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
+<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、训练饮食、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
 <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="shortcut icon" type="image/svg+xml" href="assets/icons/favicon.svg?v=20260707"/>
 <link rel="apple-touch-icon" href="assets/icons/favicon.png"/>
 <meta name="theme-color" content="#f4f1e9"/>
 <meta property="og:title" content="TASK RING｜任务指挥中心"/>
-<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
+<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 训练饮食 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260712.2"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260713.3"/>
 </head>
 <body class="nx locked">
 
@@ -61,20 +61,129 @@
     <span class="pill cyclePill" id="cycleLabel">周期：计算中</span>
     <button type="button" id="controlLockQuickBtn" class="headerLockBtn" aria-label="立即锁定 TaskRing">锁定</button>
   </div>
-  <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true" role="menu" aria-label="总控制菜单">
-    <button id="controlGithubBtn" role="menuitem">同步设置</button>
-    <button id="controlPullBtn" role="menuitem">从云端读取</button>
-    <button id="controlPushBtn" role="menuitem">上传本机状态</button>
-    <button id="controlLockBtn" role="menuitem">立即上锁（下次需密码）</button>
-    <button id="controlGameQuestEditorBtn" role="menuitem">游戏任务编辑器</button>
-    <button id="controlTaskEditorBtn" role="menuitem">任务编辑器</button>
-    <button id="controlRefEditorBtn" role="menuitem">资料库编辑器</button>
-    <button id="controlClearExpiredBtn" class="ghostDanger" role="menuitem">处理延后任务</button>
+  <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="controlCenterTitle">
+    <header class="controlCenterHead">
+      <div class="controlCenterHeading">
+        <span>CONTROL / COMMAND MAP</span>
+        <strong id="controlCenterTitle">总控制台</strong>
+        <p>按页面顺序进入六个功能区，或管理同步与设备状态。</p>
+      </div>
+      <button type="button" id="controlCenterCloseBtn" class="controlCenterCloseBtn" aria-label="关闭总控制台">×</button>
+    </header>
+
+    <div class="controlCenterBody">
+      <section class="controlCenterSection" aria-labelledby="controlAreaTitle">
+        <div class="controlSectionTitle">
+          <strong id="controlAreaTitle">功能区</strong>
+          <span>PAGE ORDER · 01—06</span>
+        </div>
+        <div class="controlAreaGrid">
+          <button type="button" id="controlTaskEditorBtn" class="controlAreaCard controlAreaDaily" data-control-area="daily">
+            <span class="controlAreaIcon" aria-hidden="true">✓</span>
+            <span class="controlAreaCopy">
+              <small>01 / DAILY</small>
+              <b>今日执行环</b>
+              <em>编辑每日、指定日与周计划任务</em>
+            </span>
+            <span class="controlAreaAction">编辑任务 <i aria-hidden="true">→</i></span>
+          </button>
+
+          <button type="button" class="controlAreaCard controlAreaWeek" data-control-area="weekly" data-view-target="weekly">
+            <span class="controlAreaIcon" aria-hidden="true">▦</span>
+            <span class="controlAreaCopy">
+              <small>02 / WEEK</small>
+              <b>周计划池</b>
+              <em>查看本周矩阵、目标与完成分布</em>
+            </span>
+            <span class="controlAreaAction">打开分区 <i aria-hidden="true">→</i></span>
+          </button>
+
+          <button type="button" id="controlFitnessEditorBtn" class="controlAreaCard controlAreaFitness" data-control-area="fitness">
+            <span class="controlAreaIcon" aria-hidden="true">↗</span>
+            <span class="controlAreaCopy">
+              <small>03 / BODY</small>
+              <b>训练与饮食</b>
+              <em>编排每日训练及饮食项目</em>
+            </span>
+            <span class="controlAreaAction">编辑计划 <i aria-hidden="true">→</i></span>
+          </button>
+
+          <button type="button" id="controlGameQuestEditorBtn" class="controlAreaCard controlAreaGame" data-control-area="game">
+            <span class="controlAreaIcon" aria-hidden="true">✦</span>
+            <span class="controlAreaCopy">
+              <small>04 / GAME</small>
+              <b>游戏作战区</b>
+              <em>配置游戏、日常与周常作战池</em>
+            </span>
+            <span class="controlAreaAction">编辑任务 <i aria-hidden="true">→</i></span>
+          </button>
+
+          <button type="button" class="controlAreaCard controlAreaTime" data-control-area="time" data-view-target="time">
+            <span class="controlAreaIcon" aria-hidden="true">◷</span>
+            <span class="controlAreaCopy">
+              <small>05 / TIME</small>
+              <b>时间账本</b>
+              <em>查看计时记录与投入分布</em>
+            </span>
+            <span class="controlAreaAction">打开账本 <i aria-hidden="true">→</i></span>
+          </button>
+
+          <button type="button" id="controlRefEditorBtn" class="controlAreaCard controlAreaLibrary" data-control-area="library">
+            <span class="controlAreaIcon" aria-hidden="true">▤</span>
+            <span class="controlAreaCopy">
+              <small>06 / LIB</small>
+              <b>资料库</b>
+              <em>维护长期资料、清单与参考链接</em>
+            </span>
+            <span class="controlAreaAction">编辑资料 <i aria-hidden="true">→</i></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="controlCenterSection controlUtilitySection" aria-labelledby="controlSyncTitle">
+        <div class="controlSectionTitle">
+          <strong id="controlSyncTitle">同步与设备</strong>
+          <span>SYNC / DEVICE</span>
+        </div>
+        <div class="controlUtilityGrid">
+          <button type="button" id="controlGithubBtn" class="controlUtilityBtn">
+            <span class="controlUtilityIcon" aria-hidden="true">⌘</span>
+            <span><b>同步设置</b><em>Token 与 Gist</em></span>
+          </button>
+          <button type="button" id="controlPullBtn" class="controlUtilityBtn">
+            <span class="controlUtilityIcon" aria-hidden="true">↓</span>
+            <span><b>从云端读取</b><em>覆盖本机状态</em></span>
+          </button>
+          <button type="button" id="controlPushBtn" class="controlUtilityBtn">
+            <span class="controlUtilityIcon" aria-hidden="true">↑</span>
+            <span><b>上传本机状态</b><em>保存至云端</em></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="controlCenterSection controlSafetySection" aria-labelledby="controlSafetyTitle">
+        <div class="controlSectionTitle">
+          <strong id="controlSafetyTitle">安全与维护</strong>
+          <span>SECURITY / CLEANUP</span>
+        </div>
+        <div class="controlSafetyGrid">
+          <button type="button" id="controlLockBtn" class="controlSafetyBtn">
+            <span aria-hidden="true">⌁</span>
+            <span><b>立即上锁</b><em>下次进入需要密码</em></span>
+          </button>
+          <button type="button" id="controlClearExpiredBtn" class="controlSafetyBtn controlDangerBtn">
+            <span aria-hidden="true">!</span>
+            <span><b>处理延后任务</b><em>整理跨日未完成项目</em></span>
+          </button>
+        </div>
+      </section>
+    </div>
   </div>
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 页面切换">
   <button type="button" class="viewDockBtn active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">今日执行环</span><span class="dockMobileLabel">今日</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划池</span><span class="dockMobileLabel">周计划</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>BODY</span><b><span class="dockDesktopLabel">训练饮食</span><span class="dockMobileLabel">健身</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏作战区</span><span class="dockMobileLabel">游戏</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="time" aria-current="false"><i class="dockGlyph" aria-hidden="true">◷</i><span>TIME</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">时间</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="library" aria-current="false"><i class="dockGlyph" aria-hidden="true">▤</i><span>LIB</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
@@ -101,6 +210,7 @@
 <section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
 <section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
+<section class="fitnessPanel viewPanel" id="fitnessPanel" data-view-panel="fitness" aria-label="训练与饮食计划"></section>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
@@ -167,6 +277,31 @@
   </div>
 </div>
 
+<div id="fitnessEditorModal" class="fitnessEditorModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="fitnessEditorTitle">
+  <div class="fitnessEditorCard">
+    <div class="taskEditorHead">
+      <div>
+        <div class="taskEditorTitle" id="fitnessEditorTitle">训练饮食编辑器</div>
+        <div class="taskEditorSub">按星期安排固定训练和饮食项目。保存后只更新 fitness 分区，并随加密配置同步。</div>
+      </div>
+      <button id="fitnessEditorCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
+    </div>
+    <div class="taskEditorToolbar fitnessEditorToolbar">
+      <button id="saveFitnessBtn">保存训练饮食</button>
+      <button id="reloadFitnessBtn">重载已保存配置</button>
+      <button id="exportFitnessBtn">导出训练饮食 JSON</button>
+      <button id="importFitnessBtn">导入训练饮食 JSON</button>
+    </div>
+    <div class="taskEditorHint">导入/导出只处理训练饮食分区，不包含也不会覆盖任务、游戏和资料库。每行一个项目，空行会被忽略。</div>
+    <div id="fitnessEditorList" class="fitnessEditorList"></div>
+    <pre id="fitnessEditorLog" class="ghLog">等待编辑。</pre>
+    <div class="editorBottomBar">
+      <button id="fitnessEditorBottomCloseBtn" type="button">关闭编辑器</button>
+      <button id="fitnessEditorBottomSaveBtn" type="button">保存训练饮食</button>
+    </div>
+  </div>
+</div>
+
 <div id="taskEditorModal" class="taskEditorModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="taskEditorTitle">
   <div class="taskEditorCard">
     <div class="taskEditorHead">
@@ -226,11 +361,12 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260711.1"></script>
-<script src="assets/js/app.js?v=20260713.4"></script>
+<script src="assets/js/data/default-data.js?v=20260713.1"></script>
+<script src="assets/js/app.js?v=20260713.7"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
-<script src="assets/js/views/time-ledger-view.js?v=20260712.1"></script>
+<script src="assets/js/views/time-ledger-view.js?v=20260713.1"></script>
 <script src="assets/js/views/editor-ux.js?v=20260713.3"></script>
-<script src="assets/js/views/product-ui.js?v=20260712.2"></script>
+<script src="assets/js/views/fitness-view.js?v=20260713.2"></script>
+<script src="assets/js/views/product-ui.js?v=20260713.2"></script>
 </body>
 </html>

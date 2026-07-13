@@ -1,4 +1,4 @@
-.ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .timeDetailModal, .weeklyTargetModal {
+.ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .fitnessEditorModal, .timeDetailModal, .weeklyTargetModal {
   position: fixed;
   inset: 0;
   z-index: 800;
@@ -7,8 +7,8 @@
   padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
   background: rgba(23,23,20,.66);
 }
-.ghModal.hidden, .taskEditorModal.hidden, .refEditorModal.hidden, .gameQuestEditorModal.hidden, .timeDetailModal.hidden, .weeklyTargetModal.hidden { display: none; }
-.ghModalCard, .taskEditorCard, .refEditorCard, .gameQuestEditorCard, .timeDetailCard, .weeklyTargetCard {
+.ghModal.hidden, .taskEditorModal.hidden, .refEditorModal.hidden, .gameQuestEditorModal.hidden, .fitnessEditorModal.hidden, .timeDetailModal.hidden, .weeklyTargetModal.hidden { display: none; }
+.ghModalCard, .taskEditorCard, .refEditorCard, .gameQuestEditorCard, .fitnessEditorCard, .timeDetailCard, .weeklyTargetCard {
   position: relative;
   display: flex;
   flex-direction: column;
