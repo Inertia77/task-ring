@@ -226,8 +226,12 @@ function normalizeGameQuestTaskList(value,context="scheduled"){
   const used=new Set();
   return rawList.map((item,idx)=>{
     const obj=item&&typeof item==="object"?item:null;
-    const stripped=stripGameQuestModePrefix(obj?(obj.title||obj.name||""):item);
-    const title=String(stripped.title||`游戏任务 ${idx+1}`).trim();
+    const rawTitle=obj?(obj.title||obj.name||""):item;
+    // 空文本框/空行表示删除任务，不能自动补成“游戏任务 1”。
+    // 否则用户清空本周池并保存后，规范化阶段会凭空创建一条任务。
+    if(!String(rawTitle??"").trim())return null;
+    const stripped=stripGameQuestModePrefix(rawTitle);
+    const title=String(stripped.title||"").trim();
     if(!title)return null;
     const mode=normalizeGameQuestPlanMode(obj?.plan_mode||obj?.planMode||obj?.mode||stripped.mode,inferGameQuestPlanMode(title,context));
     let id=String(obj?.id||slugifyId(`${mode}-${title}`,`gq-item-${idx+1}`)).trim();
@@ -283,9 +287,13 @@ function normalizeGameQuestConfig(config){
     weekly[gameId].push({...t,plan_mode:"weekly"});
   };
   games.forEach(g=>{
-    const srcWeekly=src.weekly&&src.weekly[g.id];
+    const hasSrcWeekly=!!src.weekly&&Object.prototype.hasOwnProperty.call(src.weekly,g.id);
+    const srcWeekly=hasSrcWeekly?src.weekly[g.id]:undefined;
     const fallbackWeekly=fallback.weekly&&fallback.weekly[g.id];
-    normalizeGameQuestTaskList(srcWeekly||fallbackWeekly||[],"weekly").forEach(t=>addWeekly(g.id,{...t,plan_mode:"weekly"}));
+    // 明确保存的空值/空数组代表用户已清空；仅字段缺失时才使用默认配置。
+    // 每个游戏都保留数组键，确保再次规范化/重载时仍能区分“已清空”和“从未配置”。
+    weekly[g.id]=[];
+    normalizeGameQuestTaskList(hasSrcWeekly?srcWeekly:(fallbackWeekly||[]),"weekly").forEach(t=>addWeekly(g.id,{...t,plan_mode:"weekly"}));
   });
   [1,2,3,4,5,6,0].forEach(day=>{
     const rawDay=(src.schedule&&src.schedule[String(day)])||(fallback.schedule&&fallback.schedule[String(day)])||{};
