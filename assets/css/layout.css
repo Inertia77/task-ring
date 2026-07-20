@@ -58,6 +58,15 @@
 .viewDockBtn.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
 .viewDockBtn.active::after { content: ""; position: absolute; right: 8px; bottom: -1px; left: 46px; height: 3px; background: var(--color-primary); }
+.viewDockUtility { border-color: color-mix(in srgb, var(--color-line-strong) 72%, transparent); background: linear-gradient(135deg, var(--color-utility-surface), var(--color-panel-soft)); color: var(--color-utility); }
+.viewDockUtilityStart { margin-left: 7px; }
+.viewDockUtilityStart::before { content: ""; position: absolute; top: 5px; bottom: 5px; left: -7px; width: 1px; background: var(--color-line-strong); }
+.viewDockUtility .dockGlyph { border: 1px solid var(--color-utility-line); border-radius: 50%; background: color-mix(in srgb, var(--color-utility-line) 48%, white); color: var(--color-utility); }
+.viewDockUtility > span { color: var(--color-utility-muted); font-size: 9px; letter-spacing: .1em; }
+.viewDockUtility:hover { border-color: var(--color-utility); background: var(--color-utility-soft); color: var(--color-ink); }
+.viewDockUtility.active { border-color: var(--color-utility); background: var(--color-utility-soft); color: var(--color-ink); box-shadow: inset 0 0 0 1px rgba(82,99,95,.12); }
+.viewDockUtility.active .dockGlyph { border-color: var(--color-utility); background: var(--color-utility); color: white; }
+.viewDockUtility.active::after { top: 8px; right: auto; bottom: 8px; left: -1px; width: 3px; height: auto; border-radius: 0 3px 3px 0; background: var(--color-utility); }
 .dockMobileLabel { display: none; }
 .viewIntro, .taskRingControlPanel, .taskFirstBanner, .orbitPanel, .weeklyPlanPanel, .fitnessPanel, .gameQuestPanel, .timePanel, .refBox, .dailyReminder, .notice, .commandMotto {
   min-width: 0;

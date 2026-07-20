@@ -182,7 +182,7 @@ const defaultGameQuestConfig={
   ],
   schedule:{
     "1":{
-      "demo-game-a":["每日签到","体力清理"],
+      "demo-game-a":[{id:"demo-daily-link",title:"每日签到",url:"https://example.com/",plan_mode:"daily"},"体力清理"],
       "demo-game-b":["每日任务"],
       "demo-game-c":["资源收集"]
     },
@@ -218,7 +218,7 @@ const defaultGameQuestConfig={
     }
   },
   weekly:{
-    "demo-game-a":["完成一个周挑战","检查活动期限"],
+    "demo-game-a":[{id:"demo-weekly-link",title:"完成一个周挑战",url:"https://example.com/",plan_mode:"weekly"},"检查活动期限"],
     "demo-game-b":["完成周任务"],
     "demo-game-c":["整理本周资源"]
   }

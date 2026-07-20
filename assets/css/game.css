@@ -58,9 +58,12 @@
 .gameQuestProgressRail { height: 5px; margin: 10px 0; border-radius: 999px; background: #e9e5dc; overflow: hidden; }
 .gameQuestProgressRail span { display: block; width: var(--gq-p,0%); height: 100%; background: var(--color-success); }
 .gameQuestTaskList { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.gameQuestTaskRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: stretch; min-width: 0; }
 .gameQuestMiniCheckBtn { display: grid; grid-template-columns: 26px 20px minmax(0, 1fr) auto; gap: 7px; align-items: center; width: 100%; min-height: var(--tap-size); padding: 4px 7px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); text-align: left; }
 .gameQuestMiniCheckBtn i { min-width: 0; overflow-wrap: anywhere; font-style: normal; }
 .gameQuestMiniCheckBtn.done i { text-decoration: line-through; color: var(--color-muted); }
 .gameQuestMiniBox { width: 18px; height: 18px; border: 2px solid var(--color-line-strong); border-radius: 5px; }
 .gameQuestMiniCheckBtn.done .gameQuestMiniBox { border-color: var(--color-success); background: var(--color-success); }
 .gameQuestTaskNo { color: var(--color-muted); font-size: 11px; }
+.gameQuestTaskOpen { display: inline-flex; align-items: center; justify-content: center; min-width: 74px; min-height: var(--tap-size); padding: 5px 9px; border: 1px solid var(--color-line-strong); border-radius: 6px; background: white; color: var(--color-ink); font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.gameQuestTaskOpen:hover { border-color: var(--color-ink); background: var(--color-primary); }

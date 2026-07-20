@@ -60,13 +60,13 @@
     "schedule": {
       "1": {
         "ww": [
-          { "id": "ww-daily", "title": "日常体力", "plan_mode": "daily" }
+          { "id": "ww-daily", "title": "日常体力", "url": "https://example.com", "plan_mode": "daily" }
         ]
       }
     },
     "weekly": {
       "ww": [
-        { "id": "ww-weekly", "title": "深塔 / 海墟", "plan_mode": "weekly" }
+        { "id": "ww-weekly", "title": "深塔 / 海墟", "url": "https://example.com", "plan_mode": "weekly" }
       ]
     }
   }

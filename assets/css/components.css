@@ -103,3 +103,12 @@ button:disabled, [aria-disabled="true"] { cursor: not-allowed; opacity: .58; }
 details[open] > summary .summaryChevron { transform: rotate(180deg); }
 .loadingSkeleton { min-height: 88px; border-radius: var(--radius-md); background: linear-gradient(90deg, var(--color-panel-soft), white, var(--color-panel-soft)); background-size: 200% 100%; animation: skeleton 1.2s linear infinite; }
 @keyframes skeleton { to { background-position: -200% 0; } }
+.taskAreaHeader.taskRingControlPanel, .taskAreaHeader.weeklyCommandHero, .taskAreaHeader.fitnessHero, .taskAreaHeader.gameQuestTopBar { box-sizing: border-box; min-height: 94px; padding: 10px 12px; border-color: var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.taskAreaHeader.weeklyCommandHero, .taskAreaHeader.fitnessHero, .taskAreaHeader.gameQuestTopBar { grid-template-columns: minmax(260px,.72fr) minmax(600px,1.28fr); gap: 14px; align-items: center; }
+.taskAreaHeader .taskAreaHeaderCopy { min-width: 0; }
+.taskAreaHeader .taskAreaHeaderCopy .taskAreaEyebrow { display: block; margin: 0 0 3px; color: var(--color-warning); font-size: 11px; font-weight: 850; line-height: 1.2; letter-spacing: .14em; }
+.taskAreaHeader .taskAreaHeaderCopy .taskAreaTitle { display: block; margin: 0; color: var(--color-ink); font-size: 20px; font-weight: 850; line-height: 1.1; }
+.taskAreaHeader .taskAreaHeaderCopy .taskAreaDescription { display: block; margin: 4px 0 0; padding: 0; border: 0; background: transparent; color: var(--color-muted); font-size: 12px; font-style: normal; font-weight: 500; line-height: 1.35; }
+.taskAreaHeader .taskAreaHeaderSide { min-width: 0; }
+.taskAreaHeader .taskAreaHeaderSide.weeklyHeroStats { display: grid; grid-template-columns: repeat(3,minmax(90px,1fr)); align-items: stretch; gap: 7px; }
+.taskAreaHeader .taskAreaHeaderSide.weeklyHeroStats > div { display: grid; align-content: center; min-height: 58px; padding: 6px 10px; border-radius: 10px; }

@@ -6,6 +6,7 @@
   .taskRingActionRow { grid-template-columns: repeat(4,minmax(0,1fr)); justify-content: stretch; }
   .dailyStatusStrip { grid-template-columns: repeat(4,minmax(0,1fr)); justify-content: stretch; }
   .gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
+  .taskAreaHeader.weeklyCommandHero, .taskAreaHeader.fitnessHero, .taskAreaHeader.gameQuestTopBar { grid-template-columns: minmax(0,1fr); }
   .gameQuestHeroSide { grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); }
   .weeklyMissionGrid, .dailyGroupBody, .gameQuestGrid { grid-template-columns: minmax(0,1fr); }
   .allocationRibbon { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -53,6 +54,11 @@
   .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 500; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 16px; }
   .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 28px 20px; justify-items: center; min-height: 56px; padding: 4px 2px; text-align: center; }
   .viewDockBtn .dockGlyph { grid-row: auto; width: 28px; height: 28px; }
+  .viewDockUtility { background: var(--color-utility-surface); }
+  .viewDockUtilityStart { margin-left: 3px; }
+  .viewDockUtilityStart::before { top: 4px; bottom: 4px; left: -3px; }
+  .viewDockUtility.active { background: var(--color-utility-soft); }
+  .viewDockUtility.active::after { top: 7px; bottom: 7px; left: -1px; width: 2px; }
   .viewDockBtn > span, .dockDesktopLabel { display: none; }
   .viewDockBtn b { width: 100%; font-size: 12px; }
   .dockMobileLabel { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -60,7 +66,10 @@
   .viewIntro strong { font-size: 16px; }
   .viewIntro p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; line-height: 1.4; }
   .taskFirstBanner, .taskFirstBanner.active { display: none; }
-  .taskRingControlPanel { grid-template-columns: minmax(0,1fr); grid-template-areas: "head" "actions" "status" "progress"; gap: 5px; margin-bottom: 7px; padding: 8px; }
+  .taskRingControlPanel { grid-template-columns: minmax(0,1fr); grid-template-areas: "head" "actions" "status" "progress"; gap: 5px; margin-bottom: 7px; }
+  .taskAreaHeader.taskRingControlPanel, .taskAreaHeader.weeklyCommandHero, .taskAreaHeader.fitnessHero, .taskAreaHeader.gameQuestTopBar { min-height: 0; padding: 11px; }
+  .taskAreaHeader .taskAreaHeaderCopy .taskAreaTitle { font-size: 18px; }
+  .taskAreaHeader .taskAreaHeaderCopy .taskAreaDescription { font-size: 11.5px; }
   .taskRingControlHead { gap: 6px; }
   .taskRingControlHead > div:first-child { flex-basis: auto; }
   .taskRingControlHead strong { font-size: 16px; }
@@ -214,10 +223,12 @@
   .refItemEdit { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 6px; }
   .refMiniOps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
   .targetPresetGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .gqDailyRow { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 7px; }
+  .gqDailyRow, .gqWeeklyRow { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 7px; }
+  .gqTaskFields { grid-template-columns: minmax(0,1fr); gap: 6px; }
   .gqDayPicker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; }
   .gqDayChip { min-width: 0; }
   .gqDailyRowOps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+  .gqWeeklyRow .gqDailyRowOps { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .gameQuestWeeklyEditRow { grid-template-columns: minmax(0,1fr); padding: 8px; gap: 8px; }
   .gqMetaRow { grid-template-columns: minmax(0,1fr); padding: 8px; gap: 6px; }
   .gqMetaActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
@@ -242,11 +253,10 @@
   .gqDailyIcon, .gqIconPreview { width: 34px; height: 34px; border-radius: 8px; }
   .gqDailyAddBtn, .gameQuestPrimaryBtn { min-height: 38px; padding: 6px 9px; }
   .gqDailyRows { gap: 6px; padding: 0 6px 6px; }
-  .gqDailyTaskTitle, .gameQuestWeeklyEditRow textarea, .gqMetaRow input, .gqMetaRow select { min-height: 38px; padding: 6px 8px; }
+  .gqDailyTaskTitle, .gqDailyTaskUrl, .gqWeeklyTaskTitle, .gqWeeklyTaskUrl, .gqMetaRow input, .gqMetaRow select { min-height: 38px; padding: 6px 8px; }
   .gqDayChip { min-height: 36px; }
   .gqDayChip span { min-height: 36px; font-size: 12px; }
   .gqDailyMiniBtn, .gqMetaBtn { min-width: 36px; min-height: 36px; padding: 5px; }
-  .gameQuestWeeklyEditRow textarea { min-height: 92px; }
   .gameQuestMetaDetails > summary { min-height: 52px; padding: 9px 10px; }
   .gameQuestMetaBody { padding: 0 6px 6px; }
   .refItemActions .refItemAction { min-width: 32px; min-height: 32px; font-size: 12px; }

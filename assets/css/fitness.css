@@ -1,5 +1,6 @@
-.fitnessPanel { display: none; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
+.fitnessPanel { display: none; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
 .fitnessPanel.active { display: block; }
+.taskAreaHeader.fitnessHero { border-radius: 0; box-shadow: none; }
 .fitnessHero { display: grid; grid-template-columns: minmax(230px,.7fr) minmax(600px,1.3fr); gap: 14px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--color-line); background: linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 11%,var(--color-panel)),var(--color-panel) 54%); }
 .fitnessHeroCopy { min-width: 0; }
 .fitnessEyebrow { display: block; margin-bottom: 4px; color: var(--color-muted); font-size: 11px; font-weight: 800; letter-spacing: .14em; }

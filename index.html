@@ -15,7 +15,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260713.11"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260720.3"/>
 </head>
 <body class="nx locked">
 
@@ -192,21 +192,21 @@
     </div>
   </div>
 </header>
-<nav class="viewDock" id="viewDock" aria-label="TASK RING 页面切换">
+<nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
   <button type="button" class="viewDockBtn active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">今日执行环</span><span class="dockMobileLabel">今日</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划池</span><span class="dockMobileLabel">周计划</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>BODY</span><b><span class="dockDesktopLabel">训练饮食</span><span class="dockMobileLabel">健身</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏作战区</span><span class="dockMobileLabel">游戏</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="time" aria-current="false"><i class="dockGlyph" aria-hidden="true">◷</i><span>TIME</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">时间</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="library" aria-current="false"><i class="dockGlyph" aria-hidden="true">▤</i><span>LIB</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" aria-hidden="true">◷</i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" aria-hidden="true">▤</i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
 </nav>
-<section class="taskRingControlPanel viewPanel active" data-view-panel="tasks" aria-label="今日执行环筛选与进度">
-  <div class="taskRingControlHead">
+<section class="taskRingControlPanel taskAreaHeader viewPanel active" data-view-panel="tasks" aria-label="今日执行环筛选与进度">
+  <div class="taskRingControlHead taskAreaHeaderCopy">
     <div>
-      <span>TR / DAILY COMMAND</span>
-      <strong>今日执行</strong>
+      <span class="taskAreaEyebrow">TR / DAILY COMMAND</span>
+      <strong class="taskAreaTitle">今日执行</strong>
+      <div class="taskRingModeText taskAreaDescription" id="modeText">只看今日未完成模式</div>
     </div>
-    <div class="taskRingModeText" id="modeText">只看今日未完成模式</div>
   </div>
   <div class="taskRingActionRow">
     <button id="showUndone" type="button">今日未完成</button>
@@ -283,7 +283,7 @@
       <button id="gameQuestEditorSectionToggleBtn" class="editorSectionToggleBtn" type="button" aria-expanded="true">全部收起</button>
     </div>
     <div class="taskEditorHint">
-      导入/导出只处理游戏分区，不包含也不会覆盖任务和资料库。每天/指定日：每个游戏一张卡，写任务名 + 勾选它要出现的星期（勾满一整周＝每日，勾几天＝指定日）。本周池仍是一行一条。改完记得保存。
+      导入/导出只处理游戏分区，不包含也不会覆盖任务和资料库。每日、指定日和本周池都能为每条任务单独填写链接；链接可留空，只有有效网址会在执行页显示“打开”入口。改完记得保存。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
@@ -388,12 +388,12 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260713.1"></script>
-<script src="assets/js/app.js?v=20260713.14"></script>
+<script src="assets/js/data/default-data.js?v=20260720.1"></script>
+<script src="assets/js/app.js?v=20260720.1"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20260713.2"></script>
 <script src="assets/js/views/editor-ux.js?v=20260713.3"></script>
-<script src="assets/js/views/fitness-view.js?v=20260713.9"></script>
-<script src="assets/js/views/product-ui.js?v=20260713.3"></script>
+<script src="assets/js/views/fitness-view.js?v=20260720.1"></script>
+<script src="assets/js/views/product-ui.js?v=20260720.1"></script>
 </body>
 </html>

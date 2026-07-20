@@ -238,7 +238,8 @@ function normalizeGameQuestTaskList(value,context="scheduled"){
     let id=String(obj?.id||slugifyId(`${mode}-${title}`,`gq-item-${idx+1}`)).trim();
     if(used.has(id)){let base=id,n=2;while(used.has(`${base}-${n}`))n++;id=`${base}-${n}`}
     used.add(id);
-    const task={id,title,plan_mode:mode,enabled:obj?.enabled!==false};
+    const url=normalizeFitnessUrl(obj?.url||obj?.link||"");
+    const task={id,title,url,plan_mode:mode,enabled:obj?.enabled!==false};
     const weekly=Number(obj?.weekly_minutes??obj?.weeklyMinutes??obj?.weeklyTargetMinutes);
     if(Number.isFinite(weekly)&&weekly>=0)task.weekly_minutes=Math.min(10080,Math.round(weekly));
     const estimated=Number(obj?.estimated_minutes??obj?.estimatedMinutes);
@@ -249,13 +250,12 @@ function normalizeGameQuestTaskList(value,context="scheduled"){
 function normalizeGameQuestTextList(value){return normalizeGameQuestTaskList(value).map(t=>t.title)}
 function gameQuestTaskStoreList(value,context="scheduled"){
   return normalizeGameQuestTaskList(value,context).map(t=>{
-    const out={id:t.id,title:t.title,plan_mode:t.plan_mode};
+    const out={id:t.id,title:t.title,url:t.url||"",plan_mode:t.plan_mode};
     if(Number.isFinite(Number(t.weekly_minutes)))out.weekly_minutes=Number(t.weekly_minutes);
     if(Number.isFinite(Number(t.estimated_minutes)))out.estimated_minutes=Number(t.estimated_minutes);
     return out;
   });
 }
-function gameQuestTaskLines(value,context="scheduled"){return normalizeGameQuestTaskList(value,context).map(t=>t.title)}
 function normalizeGameQuestConfig(config){
   const fallback=deepClone(typeof defaultGameQuestConfig!=="undefined"?defaultGameQuestConfig:{version:1,games:[],schedule:{},weekly:{}});
   const src=config&&typeof config==="object"?config:fallback;
@@ -2835,10 +2835,10 @@ function gameQuestTaskBadge(t){
   return `<span class="gameQuestTaskBadge ${escapeHtml(t.plan_mode||"scheduled")}" title="${escapeHtml(def.hint)}">${escapeHtml(def.short)}</span>`;
 }
 function gameQuestTaskListHtml(gameId,dayId,tasks){
-  return `<ul class="gameQuestTaskList gameQuestTaskListV2">${tasks.map((t,idx)=>{const done=isGameQuestItemDone(gameId,dayId,t.id,cycleYmd);return `<li class="${done?"done":""}"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""}" data-gq-item-btn="1" data-gamequest-item-game="${escapeHtml(gameId)}" data-gamequest-item-day="${dayId}" data-gamequest-item="${escapeHtml(t.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(idx+1).padStart(2,"0")}</span><span class="gameQuestMiniBox" aria-hidden="true"></span><i>${escapeHtml(t.title)}</i>${gameQuestTaskBadge(t)}</button></li>`}).join("")}</ul>`;
+  return `<ul class="gameQuestTaskList gameQuestTaskListV2">${tasks.map((t,idx)=>{const done=isGameQuestItemDone(gameId,dayId,t.id,cycleYmd),url=safeUrl(t.url);return `<li class="${done?"done":""}"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""}" data-gq-item-btn="1" data-gamequest-item-game="${escapeHtml(gameId)}" data-gamequest-item-day="${dayId}" data-gamequest-item="${escapeHtml(t.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(idx+1).padStart(2,"0")}</span><span class="gameQuestMiniBox" aria-hidden="true"></span><i>${escapeHtml(t.title)}</i>${gameQuestTaskBadge(t)}</button>${url?`<a class="gameQuestTaskOpen" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="打开链接：${escapeHtml(t.title)}" title="打开链接：${escapeHtml(t.title)}">打开 ↗</a>`:""}</div></li>`}).join("")}</ul>`;
 }
 function gameQuestWeeklyTaskListHtml(gameId,tasks){
-  return `<ul class="gameQuestTaskList gameQuestTaskListV2 weekly">${tasks.map((t,idx)=>{const done=isGameQuestWeeklyItemDone(gameId,t.id,cycleYmd);return `<li class="${done?"done":""}"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""}" data-gq-weekly-item-btn="1" data-gamequest-weekly-game="${escapeHtml(gameId)}" data-gamequest-weekly-item="${escapeHtml(t.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(idx+1).padStart(2,"0")}</span><span class="gameQuestMiniBox" aria-hidden="true"></span><i>${escapeHtml(t.title)}</i>${gameQuestTaskBadge(t)}</button></li>`}).join("")}</ul>`;
+  return `<ul class="gameQuestTaskList gameQuestTaskListV2 weekly">${tasks.map((t,idx)=>{const done=isGameQuestWeeklyItemDone(gameId,t.id,cycleYmd),url=safeUrl(t.url);return `<li class="${done?"done":""}"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""}" data-gq-weekly-item-btn="1" data-gamequest-weekly-game="${escapeHtml(gameId)}" data-gamequest-weekly-item="${escapeHtml(t.id)}" data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(idx+1).padStart(2,"0")}</span><span class="gameQuestMiniBox" aria-hidden="true"></span><i>${escapeHtml(t.title)}</i>${gameQuestTaskBadge(t)}</button>${url?`<a class="gameQuestTaskOpen" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="打开链接：${escapeHtml(t.title)}" title="打开链接：${escapeHtml(t.title)}">打开 ↗</a>`:""}</div></li>`}).join("")}</ul>`;
 }
 function gameQuestCardHtml(entry,dayId){
   const g=entry.game;
@@ -3012,6 +3012,7 @@ function removeGameQuestGame(id){
   if(!confirm(`确认删除「${target.name}」？对应每天清单也会一起删掉。`))return;
   gameQuestDraftConfig.games=arr.filter(g=>g.id!==id);
   Object.keys(gameQuestDraftConfig.schedule||{}).forEach(day=>{if(gameQuestDraftConfig.schedule[day])delete gameQuestDraftConfig.schedule[day][id]});
+  if(gameQuestDraftConfig.weekly)delete gameQuestDraftConfig.weekly[id];
   if(gameQuestDraftConfig.dailyByGame)delete gameQuestDraftConfig.dailyByGame[id];
   renderGameQuestEditor();
   gameQuestEditorLog(`已删除：${target.name}`);
@@ -3031,7 +3032,8 @@ function buildGameQuestDailyByGame(cfg){
         if(t.plan_mode==="weekly")return;
         const sig=t.title.trim().toLowerCase();
         let ex=map[g.id].find(x=>x.title.trim().toLowerCase()===sig);
-        if(!ex){ex={title:t.title,days:[]};map[g.id].push(ex)}
+        if(!ex){ex={id:t.id,title:t.title,url:t.url||"",days:[]};map[g.id].push(ex)}
+        else if(!ex.url&&t.url)ex.url=t.url;
         if(!ex.days.includes(day))ex.days.push(day);
       });
     });
@@ -3052,6 +3054,7 @@ function applyDailyByGameToSchedule(cfg){
     const seen=new Set();
     list.forEach(t=>{
       const title=String(t.title||"").trim();
+      const url=normalizeFitnessUrl(t.url||t.link||"");
       const days=Array.isArray(t.days)?[...new Set(t.days.map(Number))].filter(d=>[0,1,2,3,4,5,6].includes(d)):[];
       if(!title||!days.length)return;
       const sig=title.toLowerCase();
@@ -3061,7 +3064,7 @@ function applyDailyByGameToSchedule(cfg){
       days.forEach(day=>{
         const key=String(day);
         if(!schedule[key][g.id])schedule[key][g.id]=[];
-        schedule[key][g.id].push({title,plan_mode});
+        schedule[key][g.id].push({id:t.id,title,url,plan_mode});
       });
     });
   });
@@ -3086,14 +3089,22 @@ function collectGameQuestEditorState(){
     const gid=card.dataset.gqDailyGame;
     const rows=[...card.querySelectorAll("[data-gq-daily-row]")];
     gameQuestDraftConfig.dailyByGame[gid]=rows.map(row=>({
+      id:row.dataset.gqTaskId||"",
       title:row.querySelector(".gqDailyTaskTitle")?.value.trim()||"",
+      url:row.querySelector(".gqDailyTaskUrl")?.value.trim()||"",
       days:[...row.querySelectorAll(".gqDayBox:checked")].map(b=>Number(b.value))
     }));
   });
-  // 3) 本周池：保留原来的一行一条文本框
-  document.querySelectorAll("[data-gq-weekly-edit-game]").forEach(area=>{
-    const id=area.dataset.gqWeeklyEditGame;
-    gameQuestDraftConfig.weekly[id]=gameQuestTaskStoreList(normalizeGameQuestTaskList(area.value,"weekly").map(t=>({...t,plan_mode:"weekly"})),"weekly");
+  // 3) 本周池：每条任务独立收集标题和链接
+  document.querySelectorAll("[data-gq-weekly-edit-game]").forEach(card=>{
+    const id=card.dataset.gqWeeklyEditGame;
+    const rows=[...card.querySelectorAll("[data-gq-weekly-row]")];
+    gameQuestDraftConfig.weekly[id]=gameQuestTaskStoreList(rows.map(row=>({
+      id:row.dataset.gqTaskId||"",
+      title:row.querySelector(".gqWeeklyTaskTitle")?.value.trim()||"",
+      url:row.querySelector(".gqWeeklyTaskUrl")?.value.trim()||"",
+      plan_mode:"weekly"
+    })),"weekly");
   });
   // 4) 把 dailyByGame 展开回 schedule[星期][游戏] 存储格式
   applyDailyByGameToSchedule(gameQuestDraftConfig);
@@ -3102,7 +3113,7 @@ function addGameQuestDailyTask(gameId){
   collectGameQuestEditorState();
   if(!gameQuestDraftConfig.dailyByGame)gameQuestDraftConfig.dailyByGame={};
   if(!Array.isArray(gameQuestDraftConfig.dailyByGame[gameId]))gameQuestDraftConfig.dailyByGame[gameId]=[];
-  gameQuestDraftConfig.dailyByGame[gameId].push({title:"",days:[1,2,3,4,5,6,0]});
+  gameQuestDraftConfig.dailyByGame[gameId].push({id:"",title:"",url:"",days:[1,2,3,4,5,6,0]});
   renderGameQuestEditor();
   const card=document.querySelector(`[data-gq-daily-game="${safeCssEscape(gameId)}"]`);
   const inputs=card?.querySelectorAll(".gqDailyTaskTitle");
@@ -3125,6 +3136,33 @@ function moveGameQuestDailyTask(gameId,index,offset){
   [list[index],list[next]]=[list[next],list[index]];
   renderGameQuestEditor();
 }
+function addGameQuestWeeklyTask(gameId){
+  collectGameQuestEditorState();
+  if(!gameQuestDraftConfig.weekly)gameQuestDraftConfig.weekly={};
+  if(!Array.isArray(gameQuestDraftConfig.weekly[gameId]))gameQuestDraftConfig.weekly[gameId]=[];
+  gameQuestDraftConfig.weekly[gameId].push({id:"",title:"",url:"",plan_mode:"weekly"});
+  renderGameQuestEditor();
+  const card=document.querySelector(`[data-gq-weekly-edit-game="${safeCssEscape(gameId)}"]`);
+  const inputs=card?.querySelectorAll(".gqWeeklyTaskTitle");
+  const last=inputs&&inputs[inputs.length-1];
+  if(last){last.focus();last.scrollIntoView({behavior:"smooth",block:"nearest"})}
+}
+function removeGameQuestWeeklyTask(gameId,index){
+  collectGameQuestEditorState();
+  const list=gameQuestDraftConfig.weekly&&gameQuestDraftConfig.weekly[gameId];
+  if(!Array.isArray(list))return;
+  list.splice(index,1);
+  renderGameQuestEditor();
+}
+function moveGameQuestWeeklyTask(gameId,index,offset){
+  collectGameQuestEditorState();
+  const list=gameQuestDraftConfig.weekly&&gameQuestDraftConfig.weekly[gameId];
+  if(!Array.isArray(list))return;
+  const next=index+offset;
+  if(next<0||next>=list.length)return;
+  [list[index],list[next]]=[list[next],list[index]];
+  renderGameQuestEditor();
+}
 function gameQuestDailyRowHtml(gameId,t,idx,total){
   const dayNums=Array.isArray(t.days)?t.days.map(Number):[];
   const dayChips=[1,2,3,4,5,6,0].map(d=>{
@@ -3132,14 +3170,25 @@ function gameQuestDailyRowHtml(gameId,t,idx,total){
     return `<label class="gqDayChip"><input type="checkbox" class="gqDayBox" value="${d}" ${on?"checked":""}><span>${escapeHtml(dayName(d))}</span></label>`;
   }).join("");
   const last=(Number(total)||1)-1;
-  return `<div class="gqDailyRow" data-gq-daily-row="${idx}">
-    <input class="gqDailyTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="任务名，例如：日常体力 / App签到 / 清体力">
+  return `<div class="gqDailyRow" data-gq-daily-row="${idx}" data-gq-task-id="${escapeHtml(t.id||"")}">
+    <div class="gqTaskFields"><label><span>任务名</span><input class="gqDailyTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="例如：日常体力 / App 签到"></label><label><span>链接（选填）</span><input class="gqDailyTaskUrl" type="url" inputmode="url" value="${escapeHtml(t.url||"")}" placeholder="https://..."></label></div>
     <div class="gqDayPicker" role="group" aria-label="出现的星期">${dayChips}</div>
     <div class="gqDailyRowOps">
       <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="up" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx<=0?"disabled":""} title="上移" aria-label="上移">↑</button>
       <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-daily-move="down" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx>=last?"disabled":""} title="下移" aria-label="下移">↓</button>
       <button type="button" class="gqDailyMiniBtn" data-gq-daily-fill data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="一键设为每天出现">每天</button>
       <button type="button" class="gqDailyMiniBtn danger" data-gq-del-daily data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="删除这条任务" aria-label="删除">✕</button>
+    </div>
+  </div>`;
+}
+function gameQuestWeeklyRowHtml(gameId,t,idx,total){
+  const last=(Number(total)||1)-1;
+  return `<div class="gqWeeklyRow" data-gq-weekly-row="${idx}" data-gq-task-id="${escapeHtml(t.id||"")}">
+    <div class="gqTaskFields"><label><span>任务名</span><input class="gqWeeklyTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="例如：周常清理 / 深境挑战"></label><label><span>链接（选填）</span><input class="gqWeeklyTaskUrl" type="url" inputmode="url" value="${escapeHtml(t.url||"")}" placeholder="https://..."></label></div>
+    <div class="gqDailyRowOps">
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-weekly-move="up" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx<=0?"disabled":""} title="上移" aria-label="上移">↑</button>
+      <button type="button" class="gqDailyMiniBtn gqMoveBtn" data-gq-weekly-move="down" data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" ${idx>=last?"disabled":""} title="下移" aria-label="下移">↓</button>
+      <button type="button" class="gqDailyMiniBtn danger" data-gq-del-weekly data-gq-game="${escapeHtml(gameId)}" data-gq-index="${idx}" title="删除这条任务" aria-label="删除">✕</button>
     </div>
   </div>`;
 }
@@ -3183,14 +3232,15 @@ function renderGameQuestEditor(){
     </details>`;
   }).join("")||`<div class="gameQuestEmpty compact"><b>还没有启用中的游戏卡。</b><span>先在下面「游戏大卡设置」里新增或启用一张卡，再回来排任务。</span></div>`;
   const weeklyRows=enabledGames.map(g=>{
-    const value=gameQuestTaskLines((cfg.weekly||{})[g.id],"weekly").join("\n");
-    return `<div class="gameQuestEditRow gameQuestEditRowV2 gameQuestWeeklyEditRow accent-${escapeHtml(g.accent)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>本周池</em></div><textarea data-gq-weekly-edit-game="${escapeHtml(g.id)}" placeholder="本周做一次即可的任务，一行一条。\n例如：周常清理\n深塔/海墟/全息\n式舆/危局/鏖战\n模拟宇宙/末日/虚构检查">${escapeHtml(value)}</textarea></div>`;
+    const items=gameQuestWeeklyTasksFor(g.id,cfg);
+    const rows=items.length?items.map((t,idx)=>gameQuestWeeklyRowHtml(g.id,t,idx,items.length)).join(""):`<div class="gqDailyEmpty">还没有本周任务。点击「＋ 任务」添加，可为每条任务单独填写链接。</div>`;
+    return `<div class="gameQuestEditRow gameQuestEditRowV2 gameQuestWeeklyEditRow accent-${escapeHtml(g.accent)}" data-gq-weekly-edit-game="${escapeHtml(g.id)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>本周池 · ${items.length} 项</em><button type="button" class="gqDailyAddBtn" data-gq-add-weekly="${escapeHtml(g.id)}">＋ 任务</button></div><div class="gqWeeklyRows">${rows}</div></div>`;
   }).join("");
   const weeklyKey="game-editor-weekly";
   const weeklyOpen=window.TaskRingProductUi?.openAttribute?.(weeklyKey,false)||"";
   list.innerHTML=`<section class="gameQuestEditGroup gameQuestScheduleGroup gameQuestDailyGroupV3"><div class="gameQuestEditHead"><div><b>每天 / 指定日清单</b><span>每个游戏一张卡：先写任务名，再勾它要出现的星期。勾满一整周＝每日任务，只勾几天＝指定日任务；周常/深渊类请放到下面的本周池。</span></div></div>${enabledGames.length?dayLegend:""}<div class="gqDailyDeck">${dailyCards}</div></section><details class="gameQuestEditGroup gameQuestWeeklyGroup" data-ui-details-key="${weeklyKey}"${weeklyOpen}><summary class="gameQuestEditHead"><div><b>本周游戏作战池</b><span>${enabledGames.length} 个游戏 · 周常、深境与一次性目标</span></div><span>展开</span></summary><div class="gameQuestWeeklyBody">${weeklyRows}</div></details><details class="gameQuestMetaDetails" data-ui-details-key="game-editor-meta"><summary><span><b>游戏大卡设置</b><em>${(cfg.games||[]).length} 张卡｜改名、图标、排序时再打开</em></span></summary><div class="gameQuestMetaBody"><button type="button" class="gameQuestPrimaryBtn slim" id="addGameQuestCardBtn">+ 新增游戏卡</button><div class="gqMetaGrid">${metaRows}</div></div></details>`;
   syncEditorSectionToggle("game");
-  gameQuestEditorLog("按游戏排任务：写任务名 + 勾星期即可，不用再一天天复制。本周池维持一行一条。");
+  gameQuestEditorLog("按游戏排任务：每日/指定日和本周池都可分别填写任务名与链接；没有链接时留空即可。");
 }
 
 async function saveGameQuestConfig(){
@@ -3278,6 +3328,12 @@ function initGameQuestUI(){
     if(moveDaily){e.preventDefault();moveGameQuestDailyTask(moveDaily.dataset.gqGame,Number(moveDaily.dataset.gqIndex),moveDaily.dataset.gqDailyMove==="up"?-1:1);return}
     const fillDaily=e.target.closest("[data-gq-daily-fill]");
     if(fillDaily){e.preventDefault();const row=fillDaily.closest("[data-gq-daily-row]");row?.querySelectorAll(".gqDayBox").forEach(b=>{b.checked=true});return}
+    const addWeekly=e.target.closest("[data-gq-add-weekly]");
+    if(addWeekly){e.preventDefault();addGameQuestWeeklyTask(addWeekly.dataset.gqAddWeekly);return}
+    const delWeekly=e.target.closest("[data-gq-del-weekly]");
+    if(delWeekly){e.preventDefault();removeGameQuestWeeklyTask(delWeekly.dataset.gqGame,Number(delWeekly.dataset.gqIndex));return}
+    const moveWeekly=e.target.closest("[data-gq-weekly-move]");
+    if(moveWeekly){e.preventDefault();moveGameQuestWeeklyTask(moveWeekly.dataset.gqGame,Number(moveWeekly.dataset.gqIndex),moveWeekly.dataset.gqWeeklyMove==="up"?-1:1);return}
     const moveBtn=e.target.closest("[data-gq-move][data-gq-row-id]");
     if(moveBtn){e.preventDefault();moveGameQuestGame(moveBtn.dataset.gqRowId,moveBtn.dataset.gqMove==='up'?-1:1);return}
     const iconBtn=e.target.closest("[data-gq-icon]");

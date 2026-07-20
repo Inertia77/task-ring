@@ -20,6 +20,11 @@
   --color-danger-soft: #fff0ee;
   --color-info: #3d63dd;
   --color-info-soft: #edf1ff;
+  --color-utility: #52635f;
+  --color-utility-muted: #68726f;
+  --color-utility-soft: #edf2f0;
+  --color-utility-surface: #f0f3f2;
+  --color-utility-line: #c7cecb;
   --color-running: #22221f;
   --color-focus: #3d63dd;
   --life: #c9b84b;

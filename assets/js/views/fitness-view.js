@@ -142,9 +142,9 @@
       const s=dayStats(day);
       return `<button type="button" class="fitnessDayTab ${day===selectedDay?"active":""} ${day===today?"today":""}" data-fitness-day="${day}" aria-pressed="${day===selectedDay?"true":"false"}">${escapeHtml(dayName(day))}<span>${s.done}/${s.total}</span></button>`;
     }).join("");
-    panel.innerHTML=`<header class="fitnessHero">
-      <div class="fitnessHeroCopy"><span class="fitnessEyebrow">BODY / DAILY PLAN</span><h2>训练与饮食</h2><p>${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜按既定计划执行，训练和饮食分别确认。</p></div>
-      <div class="fitnessHeroSide">
+    panel.innerHTML=`<header class="fitnessHero taskAreaHeader">
+      <div class="fitnessHeroCopy taskAreaHeaderCopy"><span class="fitnessEyebrow taskAreaEyebrow">BODY / DAILY PLAN</span><h2 class="taskAreaTitle">训练与饮食</h2><p class="taskAreaDescription">${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜按既定计划执行，训练和饮食分别确认。</p></div>
+      <div class="fitnessHeroSide taskAreaHeaderSide">
         <div class="fitnessProgressCard"><div class="fitnessProgressRing" style="--fitness-progress:${stats.pct}%"><b>${stats.pct}%</b></div><span><small>PROGRESS</small><b>${stats.done}/${stats.total}</b><em>所选日期</em></span></div>
         <button type="button" class="fitnessCommandBtn fitnessTodayBtn ${selectedDay===today?"active":""}" data-fitness-today><span class="fitnessCommandIcon">◎</span><span class="fitnessCommandCopy"><small>TODAY</small><b>今日</b><em>${selectedDay===today?"当前日期":"回到今天"}</em></span></button>
         <button type="button" class="fitnessTimerBtn ${fitnessActive?"active":""}" data-fitness-timer title="把训练区作为一个整体记录时间"><span>${fitnessActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><span class="fitnessCommandCopy"><small>TIMER</small><b ${fitnessActive?"data-live-timer":""}>${timerLabel}</b><em>${timerSub}</em></span></button>
