@@ -3147,6 +3147,21 @@ function addGameQuestWeeklyTask(gameId){
   const last=inputs&&inputs[inputs.length-1];
   if(last){last.focus();last.scrollIntoView({behavior:"smooth",block:"nearest"})}
 }
+function gameQuestWeeklyEditorTasksFor(gameId,cfg=gameQuestDraftConfig){
+  const raw=cfg?.weekly?.[gameId];
+  if(!Array.isArray(raw))return [];
+  return raw.map(item=>{
+    if(item&&typeof item==="object"){
+      return {
+        id:String(item.id||""),
+        title:String(item.title||item.name||""),
+        url:String(item.url||item.link||""),
+        plan_mode:"weekly"
+      };
+    }
+    return {id:"",title:String(item||""),url:"",plan_mode:"weekly"};
+  }).slice(0,30);
+}
 function removeGameQuestWeeklyTask(gameId,index){
   collectGameQuestEditorState();
   const list=gameQuestDraftConfig.weekly&&gameQuestDraftConfig.weekly[gameId];
@@ -3232,7 +3247,7 @@ function renderGameQuestEditor(){
     </details>`;
   }).join("")||`<div class="gameQuestEmpty compact"><b>还没有启用中的游戏卡。</b><span>先在下面「游戏大卡设置」里新增或启用一张卡，再回来排任务。</span></div>`;
   const weeklyRows=enabledGames.map(g=>{
-    const items=gameQuestWeeklyTasksFor(g.id,cfg);
+    const items=gameQuestWeeklyEditorTasksFor(g.id,cfg);
     const rows=items.length?items.map((t,idx)=>gameQuestWeeklyRowHtml(g.id,t,idx,items.length)).join(""):`<div class="gqDailyEmpty">还没有本周任务。点击「＋ 任务」添加，可为每条任务单独填写链接。</div>`;
     return `<div class="gameQuestEditRow gameQuestEditRowV2 gameQuestWeeklyEditRow accent-${escapeHtml(g.accent)}" data-gq-weekly-edit-game="${escapeHtml(g.id)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>本周池 · ${items.length} 项</em><button type="button" class="gqDailyAddBtn" data-gq-add-weekly="${escapeHtml(g.id)}">＋ 任务</button></div><div class="gqWeeklyRows">${rows}</div></div>`;
   }).join("");
