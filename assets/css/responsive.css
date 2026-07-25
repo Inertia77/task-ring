@@ -46,7 +46,7 @@
   .controlAreaCopy b { font-size: 13px; }
   .controlAreaCopy em { -webkit-line-clamp: 1; font-size: 9.5px; }
   .controlAreaAction { padding-top: 5px; font-size: 9px; }
-  .controlUtilityGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .controlUtilityGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .controlCenterMenu .controlUtilityBtn { display: grid; justify-items: center; gap: 5px; min-height: 66px; padding: 7px 5px; text-align: center; }
   .controlUtilityBtn > span:last-child { justify-items: center; }
   .controlUtilityBtn em { display: none; }

@@ -25,6 +25,17 @@ python -m http.server 8000 --bind 127.0.0.1
 
 访问 `http://127.0.0.1:8000/`。
 
+## 手机安装（PWA）
+
+TaskRing 可以作为独立应用安装到手机桌面，任务数据仍保存在当前设备，并继续使用原有 GitHub Gist 同步。
+
+- Android：用 Chrome 或 Edge 打开 HTTPS 页面，进入“总控”并点击“安装 TaskRing”。
+- iPhone / iPad：用 Safari 打开页面，点击“分享”→“添加到主屏幕”。
+- 安装后可独立全屏启动；已经打开过的页面资源可在离线时继续使用。
+- 首次安装与离线缓存需要通过 HTTPS（GitHub Pages 已满足）或 localhost 访问；直接打开本地 `file://` 页面不能安装。
+
+发布新版本时需要同步更新 `service-worker.js` 中的 `CACHE_NAME`，安装版随后会在“总控”中提示更新。
+
 调试指定日期时使用查询参数：
 
 ```text
