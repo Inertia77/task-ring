@@ -32,6 +32,7 @@
 .timeBudgetRow.over .timeBudgetBar span, .timeTaskRow.over .timeTaskMeter i { background: var(--color-warning); }
 .timeBudgetValue { text-align: right; font-weight: 750; }
 .timeTaskRow { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(90px, 1fr) 104px minmax(210px,auto); gap: 10px; align-items: center; min-height: 64px; padding: 10px 14px; border-bottom: 1px solid var(--color-line); }
+.timeTaskRow[hidden] { display: none; }
 .timeTaskRow:last-child { border-bottom: 0; }
 .timeTaskName { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 7px; align-items: center; min-width: 0; background: transparent; text-align: left; }
 .timeTaskName b { min-width: 0; overflow-wrap: anywhere; }

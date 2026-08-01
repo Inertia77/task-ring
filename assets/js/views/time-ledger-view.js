@@ -57,11 +57,30 @@
     return `<div class="timeTaskEmpty"><b>没有匹配的任务</b><span>${query?`当前搜索：${escapeHtml(query)}`:"可以在上面输入任务名或分类搜索。"}</span></div>`;
   }
 
+  function updateTimeTaskSearch(input){
+    timeTaskSearch=input.value||"";
+    localStorage.setItem(TIME_TASK_SEARCH_KEY,timeTaskSearch);
+  }
+  function refreshTimeTaskSearch(){
+    const q=String(timeTaskSearch||"").trim().toLowerCase();
+    const list=document.querySelector("#timePanel .timeTaskList");
+    if(!list)return;
+    const rows=[...list.querySelectorAll("[data-time-task-search]")];
+    let visible=0;
+    rows.forEach(row=>{
+      row.hidden=!String(row.dataset.timeTaskSearch||"").includes(q);
+      if(!row.hidden)visible+=1;
+    });
+    const meta=document.querySelector("#timePanel .timeTaskSearchMeta");
+    if(meta)meta.textContent=`${visible}/${rows.length}`;
+    list.querySelector(".timeTaskEmpty")?.remove();
+    if(!visible)list.insertAdjacentHTML("beforeend",taskEmptyHtml(timeTaskSearch));
+  }
+
   document.addEventListener("input",event=>{
     if(event.target?.id!=="timeTaskSearchInput")return;
-    timeTaskSearch=event.target.value||"";
-    localStorage.setItem(TIME_TASK_SEARCH_KEY,timeTaskSearch);
-    if(timeLedgerView==="tasks")renderTimePanel();
+    updateTimeTaskSearch(event.target);
+    refreshTimeTaskSearch();
   });
   document.addEventListener("change",event=>{
     if(event.target?.id!=="timeLogWeekSelect")return;
@@ -99,33 +118,34 @@
       const over=used>def.budget;
       return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel"><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
     }).join("");
+    const q=String(timeTaskSearch||"").trim().toLowerCase();
+    const showGameRow=gameQuestSearchMatched(q);
+    const showFitnessRow=fitnessSearchMatched(q);
     const activeGameMinutes=active&&active.kind==="gamequest"?Math.max(1,Math.round(activeTimerElapsedSeconds(active)/60)):0;
     const gameWeek=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")&&isLogInCurrentCycle(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeGameMinutes;
     const gameToday=readTimeLogs().filter(log=>(log.kind==="gamequest"||log.task_id==="gamequest-board")&&isLogToday(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeGameMinutes;
-    const gameRow=`<div class="timeTaskRow timeGameQuestRow"><button type="button" class="timeTaskName" data-time-gamequest-detail="1"><span>GAME QUEST</span><b>游戏作战区</b></button><div class="timeTaskMeter" style="--w:${gameWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(gameWeek)}</b><span>今日 ${fmtMinutes(gameToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="gamequest"><span>+补记</span><b>实际时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
+    const gameRow=`<div class="timeTaskRow timeGameQuestRow" data-time-task-search="game quest 游戏 作战区 游戏作战区 整体计时"${showGameRow?"":" hidden"}><button type="button" class="timeTaskName" data-time-gamequest-detail="1"><span>GAME QUEST</span><b>游戏作战区</b></button><div class="timeTaskMeter" style="--w:${gameWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(gameWeek)}</b><span>今日 ${fmtMinutes(gameToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="gamequest"><span>+补记</span><b>实际时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
     const activeFitnessMinutes=active&&active.kind==="fitness"?Math.max(1,Math.round(activeTimerElapsedSeconds(active)/60)):0;
     const fitnessWeek=readTimeLogs().filter(log=>(log.kind==="fitness"||log.task_id==="fitness-training")&&isLogInCurrentCycle(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeFitnessMinutes;
     const fitnessToday=readTimeLogs().filter(log=>(log.kind==="fitness"||log.task_id==="fitness-training")&&isLogToday(log)).reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeFitnessMinutes;
-    const fitnessRow=`<div class="timeTaskRow timeFitnessRow"><button type="button" class="timeTaskName" data-time-fitness-detail="1"><span>BODY / TRAINING</span><b>训练区</b></button><div class="timeTaskMeter" style="--w:${fitnessWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(fitnessWeek)}</b><span>今日 ${fmtMinutes(fitnessToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="fitness"><span>+补记</span><b>训练时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
+    const fitnessRow=`<div class="timeTaskRow timeFitnessRow" data-time-task-search="body fitness 训练 健身 体育 训练区 整体计时"${showFitnessRow?"":" hidden"}><button type="button" class="timeTaskName" data-time-fitness-detail="1"><span>BODY / TRAINING</span><b>训练区</b></button><div class="timeTaskMeter" style="--w:${fitnessWeek?100:0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(fitnessWeek)}</b><span>今日 ${fmtMinutes(fitnessToday)}</span></div><div class="timeTaskActions"><button type="button" class="timeManualAddBtn" data-manual-time-entry="fitness"><span>+补记</span><b>训练时间</b></button><div class="timeTargetSafeBtn timeTargetReadOnly"><span>统计方式</span><b>整体计时</b></div></div></div>`;
 
     const allTasks=(taskConfig?.tasks||[]).filter(t=>t.enabled!==false).slice().sort((a,b)=>{
       const au=taskWeekMinutesUsed(a.id),bu=taskWeekMinutesUsed(b.id);
       const at=taskWeeklyMinutes(a),bt=taskWeeklyMinutes(b);
       return (bu+bt)-(au+at)||String(a.title).localeCompare(String(b.title),"zh-Hans-CN");
     });
-    const q=String(timeTaskSearch||"").trim().toLowerCase();
     const visibleTasks=q?allTasks.filter(t=>taskSearchText(t).includes(q)):allTasks;
-    const taskRows=visibleTasks.map(t=>{
+    const taskRows=allTasks.map(t=>{
       const used=taskWeekMinutesUsed(t.id);
       const target=taskWeeklyMinutes(t);
       const pct=target?Math.min(160,Math.round(used/target*100)):0;
       const over=target>0&&used>target;
-      return `<div class="timeTaskRow ${over?"over":""}"><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div>${targetButton(t.id,target)}</div>`;
+      const searchText=taskSearchText(t);
+      return `<div class="timeTaskRow ${over?"over":""}" data-time-task-search="${escapeHtml(searchText)}"${searchText.includes(q)?"":" hidden"}><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div>${targetButton(t.id,target)}</div>`;
     }).join("");
-    const showGameRow=gameQuestSearchMatched(q);
-    const showFitnessRow=fitnessSearchMatched(q);
     const specialRows=(showFitnessRow?1:0)+(showGameRow?1:0);
-    const taskBody=`${taskSearchBox(allTasks.length+2,specialRows+visibleTasks.length)}<div class="timeTaskList">${showFitnessRow?fitnessRow:""}${showGameRow?gameRow:""}${taskRows||(!specialRows?taskEmptyHtml(timeTaskSearch):"")}</div>`;
+    const taskBody=`${taskSearchBox(allTasks.length+2,specialRows+visibleTasks.length)}<div class="timeTaskList">${fitnessRow}${gameRow}${taskRows}${specialRows+visibleTasks.length?"":taskEmptyHtml(timeTaskSearch)}</div>`;
 
     const allLogs=readTimeLogs().slice().sort(timeLogSortDesc);
     const availableWeeks=[...new Set(allLogs.map(timeLogWeekKey))].sort((a,b)=>b.localeCompare(a));
