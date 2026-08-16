@@ -138,6 +138,7 @@
   .gameQuestEditQuick { order: 5; flex: 0 0 112px; }
   .gameQuestModeBtn span { white-space: nowrap; }
   .gameQuestDailyPane, .gameQuestWeeklyPane { padding: 7px; }
+  .gameQuestCompleteDayBtn { min-height: 44px; padding: 5px 8px; }
   .gameQuestMetricSet { width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
   .gameQuestMetric { min-width: 0; padding: 6px 4px; }
   .gameQuestMetric strong { font-size: 17px; }
