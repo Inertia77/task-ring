@@ -850,6 +850,9 @@ function showToast(msg,type="ok",ms=2200){
     document.body.appendChild(el);
   }
   const dockAware=!!readActiveTimer();
+  el.setAttribute("role",type==="err"?"alert":"status");
+  el.setAttribute("aria-live",type==="err"?"assertive":"polite");
+  el.setAttribute("aria-atomic","true");
   el.textContent=msg;
   el.className=`toastBox ${type} ${dockAware?"dockAware":""} show`;
   clearTimeout(el._timer);
@@ -859,11 +862,18 @@ function setBtnBusy(btn,busy,label){
   if(!btn)return;
   if(busy){
     btn.dataset.oldText=btn.textContent;
+    btn.dataset.wasDisabled=btn.disabled?"1":"0";
     if(label)btn.textContent=label;
     btn.classList.add("busy");
+    btn.disabled=true;
+    btn.setAttribute("aria-busy","true");
   }else{
     if(btn.dataset.oldText)btn.textContent=btn.dataset.oldText;
     btn.classList.remove("busy");
+    btn.disabled=btn.dataset.wasDisabled==="1";
+    btn.removeAttribute("aria-busy");
+    delete btn.dataset.oldText;
+    delete btn.dataset.wasDisabled;
   }
 }
 function bytesToB64(bytes){let bin="";new Uint8Array(bytes).forEach(b=>bin+=String.fromCharCode(b));return btoa(bin)}
@@ -1156,7 +1166,7 @@ function initGithubSyncUI(){
       enterLocalMode(true,"Token 已清除；当前使用本机/内置数据。需要云同步时请重新填写 Gist Token。");
     }
   });
-  if(isSoftLockTrusted()){
+  if(isSoftLockTrusted()||LOCAL_PREVIEW_UNLOCK){
     unlockApp();
     if(ghToken())ghPull();
     else enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"本机已记住解锁；未设置 Gist Token，当前使用本机/内置数据。");
@@ -2313,7 +2323,7 @@ function startGameQuestTimer(dayId=gameQuestSelectedDay,cycle=cycleYmd){
     task_code:"gq-board",
     day_id:normalizedDay,
     cycle,
-    title:`游戏作战区｜${gameQuestBoardMode==="week"?"本周池":dayName(normalizedDay)}`,
+    title:`游戏作战区｜${dayName(normalizedDay)}`,
     category:"game",
     estimated_minutes:60,
     first_started_at:now,
@@ -3417,7 +3427,7 @@ function renderOrbitPanel(){
   const carry=carryoverOccurrences().length;
   const nodes=days.map(d=>{const s=orbitDayStats(d.id);const p=s.total?Math.round(s.done/s.total*100):100;const cls=[d.id===today?"today":"",s.failed?"failed":"",s.attention&&!s.failed?"attention":""].join(" ");const alert=s.failed?`<span class="orbitAlert orbitFail"><b>×${s.failed}</b><em>锁定</em></span>`:s.attention?`<span class="orbitAlert orbitWarn"><b>!${s.attention}</b><em>关注</em></span>`:"";return `<div class="orbitDay ${cls}" title="${escapeHtml(d.name)}：完成 ${s.done}/${s.total}${s.attention?`，需关注 ${s.attention}`:""}"><div class="orbitDayName">${escapeHtml(d.name)}${d.id===today?"｜今日":""}</div><div class="orbitDayMeta"><span class="orbitDone"><b>${s.done}/${s.total}</b><em>完成</em></span>${alert}</div><div class="orbitMeter" style="--w:${p}%"><span></span></div></div>`}).join("");
   const summary=`完成 ${done}/${total}${carry?` · 遗留 ${carry} 项`:""}`;
-  el.innerHTML=`<details class="orbitDrawer" ${isOrbitDrawerOpen()?"open":""}><summary><span class="orbitDrawerMini" style="--pct:${pct}%"><b>${pct}%</b></span><span class="orbitDrawerText"><strong>今日执行环</strong><em>${summary}</em></span><span class="orbitDrawerToggle">展开</span></summary><div class="orbitDrawerBody"><div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">今日完成率</span><span class="orbitTiny">${summary}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">一周执行分布</div><div class="orbitSub">每格依次显示完成数与需关注数。</div></div></div><div class="orbitDays">${nodes}</div></div></div></div></details>`;
+  el.innerHTML=`<details class="orbitDrawer" ${isOrbitDrawerOpen()?"open":""}><summary><span class="orbitDrawerMini" style="--pct:${pct}%"><b>${pct}%</b></span><span class="orbitDrawerText"><strong>本周节奏概览</strong><em>今日 ${summary}</em></span><span class="orbitDrawerToggle">查看全周</span></summary><div class="orbitDrawerBody"><div class="orbitLayout"><div class="orbitCore" style="--pct:${pct}%"><div class="orbitCenter"><span class="orbitPct">${pct}%</span><span class="orbitLabel">今日完成率</span><span class="orbitTiny">${summary}</span></div></div><div class="orbitSide"><div class="orbitTop"><div><div class="orbitTitle">一周执行分布</div><div class="orbitSub">每格依次显示完成数与需关注数。</div></div></div><div class="orbitDays">${nodes}</div></div></div></div></details>`;
 }
 document.addEventListener("toggle",e=>{if(e.target?.matches?.(".orbitDrawer"))localStorage.setItem(ORBIT_DRAWER_OPEN_KEY,e.target.open?"1":"0")},true);
 

@@ -1,4 +1,4 @@
-.taskRingControlPanel { position: relative; grid-template-columns: minmax(210px,1fr) auto auto; grid-template-areas: "head actions status" "progress progress progress"; gap: 6px 9px; padding: 8px 10px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.taskRingControlPanel { --task-area-bg: color-mix(in srgb, var(--zone-daily) 68%, white); position: relative; grid-template-columns: minmax(210px,1fr) auto auto; grid-template-areas: "head actions status" "progress progress progress"; gap: 6px 9px; padding: 8px 10px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--task-area-bg); box-shadow: var(--shadow-panel); }
 .taskRingControlPanel.active { display: grid; }
 .taskRingControlHead { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .taskRingControlHead > div:first-child { flex: 1 1 180px; }
@@ -7,8 +7,8 @@
 .taskRingModeText { padding: 3px 6px; border: 1px solid var(--color-line); border-radius: 4px; background: var(--color-panel-soft); color: var(--color-muted); font-size: 10px; font-weight: 700; }
 .taskRingActionRow { grid-area: actions; display: grid; grid-template-columns: repeat(4,minmax(76px,92px)); justify-content: end; gap: 5px; margin: 0; }
 .taskRingActionRow button { min-width: 0; min-height: 40px; padding: 6px 8px; font-size: 11px; }
-.taskRingActionRow #resetCurrentWeek { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: color-mix(in srgb,var(--color-danger) 58%,var(--color-line)); background: repeating-linear-gradient(135deg,var(--color-danger-soft),var(--color-danger-soft) 7px,#fff8f7 7px,#fff8f7 14px); color: var(--color-danger); }
-.taskRingActionRow #resetCurrentWeek::before { content: "↺"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--color-danger); color: white; font-size: 12px; }
+.taskRingActionRow #resetCurrentWeek { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border-color: color-mix(in srgb,var(--color-danger) 38%,var(--color-line)); border-style: dashed; background: var(--color-panel); color: var(--color-danger); }
+.taskRingActionRow #resetCurrentWeek::before { content: "↺"; font-size: 13px; }
 .taskRingActionRow #resetCurrentWeek:hover { border-color: var(--color-danger); background: var(--color-danger); color: white; }
 .dailyStatusHost { grid-area: status; min-width: 0; }
 .progress-wrap { grid-area: progress; padding: 5px 8px; border: 0; border-radius: 5px; background: var(--color-panel-soft); }
@@ -22,7 +22,7 @@
 .mainRingCopy { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px 12px; }
 .taskFirstTitle { font-size: 16px; font-weight: 800; }
 .taskFirstText { color: var(--color-muted); }
-.orbitPanel { border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); overflow: clip; }
+.orbitPanel { border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--zone-daily) 46%, white); overflow: clip; }
 .orbitDrawer > summary { display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 48px; padding: 5px 10px; }
 .orbitDrawerMini { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid var(--color-line); border-radius: 50%; background: conic-gradient(var(--color-success) var(--pct,0%),var(--color-panel-soft) 0); }
 .orbitDrawerMini b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--color-panel); font-size: 10px; }
@@ -65,7 +65,7 @@
 .dayTabs { min-width: 0; margin-bottom: 10px; }
 .dailyStatusStrip { display: grid; grid-template-columns: repeat(4,minmax(88px,116px)); justify-content: end; gap: 5px; height: 100%; }
 .dailyStatusItem { min-width: 0; padding: 4px 7px; border: 1px solid var(--color-line); border-radius: 5px; background: var(--color-panel-soft); }
-.dailyStatusItem span { display: block; color: var(--color-muted); font-size: 9px; letter-spacing: .04em; }
+.dailyStatusItem span { display: block; color: var(--color-muted); font-size: 10px; letter-spacing: .02em; }
 .dailyStatusItem b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .dailyStatusItem.attention { border-color: color-mix(in srgb,var(--color-danger) 45%,var(--color-line)); background: var(--color-danger-soft); color: var(--color-danger); }
 .dailyStatusItem.running { border-color: var(--color-ink); background: var(--color-ink); color: white; }
@@ -113,7 +113,8 @@
 .dailyGroup { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); box-shadow: var(--shadow-panel); overflow: visible; }
 .dailyGroup > summary { padding: 9px 12px; border-radius: inherit; }
 .dailyGroup[open] > summary { border-bottom: 1px solid var(--color-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 7px; background: #f3f0e8; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.dailyGroupBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 7px; background: color-mix(in srgb, var(--zone-daily) 62%, var(--color-panel-soft)); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.dailyGroupBody:has(> .dailyCard:only-child) { grid-template-columns: minmax(0,1fr); }
 .dailyGroup.hasAttention { border-color: color-mix(in srgb,var(--color-danger) 42%,var(--color-line)); }
 .dailyGroup.hasAttention > summary { box-shadow: inset 4px 0 var(--color-danger); }
 .dailyGroup.completed { border-style: dashed; box-shadow: none; }
@@ -152,7 +153,7 @@
 .dailyActions button, .dailyActions a { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 4px 5px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); text-decoration: none; font-size: 10.5px; font-weight: 700; line-height: 1.15; white-space: nowrap; }
 .dailyActions .timerStartTiny { background: var(--color-primary); border-color: var(--color-ink); color: var(--color-ink); }
 .dailyActions .timerNowChip { background: var(--color-ink); color: var(--color-primary); }
-.dailyActions .manualTimeTiny { border-color: var(--color-ink); border-style: dashed; background: var(--color-primary); color: var(--color-ink); }
+.dailyActions .manualTimeTiny { border-color: var(--color-line-strong); border-style: dashed; background: var(--color-panel); color: var(--color-ink); }
 .dailyComplete { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: var(--tap-size); height: var(--tap-size); border: 1px solid var(--color-line-strong); border-radius: 10px 3px 10px 3px; background: white; }
 .dailyCopy { grid-column: 2; }
 .dailyComplete input { position: absolute; opacity: 0; width: 1px; height: 1px; }

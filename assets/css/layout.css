@@ -6,7 +6,7 @@
   align-items: center;
   min-width: 0;
   margin-bottom: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-panel);
@@ -21,7 +21,7 @@
 .inertiaHeroTitle { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; font-size: clamp(20px, 2.1vw, 26px); line-height: 1.06; }
 .inertiaTitleSlash { color: var(--color-primary-hover); }
 .inertiaTitleEn { color: var(--color-muted); }
-.inertiaSubtitle { margin: 0; overflow: hidden; color: var(--color-muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.inertiaSubtitle { margin: 2px 0 0; overflow: hidden; color: var(--color-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .inertiaToolbar {
   display: flex;
   flex-wrap: nowrap;
@@ -34,7 +34,7 @@
 }
 .inertiaToolbar::-webkit-scrollbar { display: none; }
 .headerLabelMobile { display: none; }
-.inertiaToolbar > * { flex: 0 0 auto; min-height: 36px; padding: 5px 9px; white-space: nowrap; }
+.inertiaToolbar > * { flex: 0 0 auto; min-height: 40px; padding: 6px 10px; white-space: nowrap; }
 .viewDock {
   position: sticky;
   top: 8px;
@@ -46,9 +46,8 @@
   padding: 5px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-panel) 94%, transparent);
+  background: var(--color-panel);
   box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(12px);
 }
 .viewDockBtn { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); grid-template-rows: 14px 20px; align-items: center; column-gap: 7px; min-height: 48px; padding: 5px 9px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--color-muted); text-align: left; transition: color var(--motion-fast),background var(--motion-fast),border-color var(--motion-fast),transform var(--motion-fast); }
 .viewDockBtn .dockGlyph { grid-row: 1 / 3; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px 2px 8px 2px; background: var(--color-panel-soft); font-style: normal; }
@@ -58,7 +57,7 @@
 .viewDockBtn.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
 .viewDockBtn.active::after { content: ""; position: absolute; right: 8px; bottom: -1px; left: 46px; height: 3px; background: var(--color-primary); }
-.viewDockUtility { border-color: color-mix(in srgb, var(--color-line-strong) 72%, transparent); background: linear-gradient(135deg, var(--color-utility-surface), var(--color-panel-soft)); color: var(--color-utility); }
+.viewDockUtility { border-color: color-mix(in srgb, var(--color-line-strong) 72%, transparent); background: var(--color-utility-surface); color: var(--color-utility); }
 .viewDockUtilityStart { margin-left: 7px; }
 .viewDockUtilityStart::before { content: ""; position: absolute; top: 5px; bottom: 5px; left: -7px; width: 1px; background: var(--color-line-strong); }
 .viewDockUtility .dockGlyph { border: 1px solid var(--color-utility-line); border-radius: 50%; background: color-mix(in srgb, var(--color-utility-line) 48%, white); color: var(--color-utility); }
@@ -67,6 +66,13 @@
 .viewDockUtility.active { border-color: var(--color-utility); background: var(--color-utility-soft); color: var(--color-ink); box-shadow: inset 0 0 0 1px rgba(82,99,95,.12); }
 .viewDockUtility.active .dockGlyph { border-color: var(--color-utility); background: var(--color-utility); color: white; }
 .viewDockUtility.active::after { top: 8px; right: auto; bottom: 8px; left: -1px; width: 3px; height: auto; border-radius: 0 3px 3px 0; background: var(--color-utility); }
+.viewDockBtn[data-view-target="tasks"]:not(.active) { --dock-zone: var(--zone-daily); background: color-mix(in srgb, var(--zone-daily) 78%, white); }
+.viewDockBtn[data-view-target="weekly"]:not(.active) { --dock-zone: var(--zone-weekly); background: color-mix(in srgb, var(--zone-weekly) 78%, white); }
+.viewDockBtn[data-view-target="fitness"]:not(.active) { --dock-zone: var(--zone-fitness); background: color-mix(in srgb, var(--zone-fitness) 78%, white); }
+.viewDockBtn[data-view-target="game"]:not(.active) { --dock-zone: var(--zone-game); background: color-mix(in srgb, var(--zone-game) 78%, white); }
+.viewDockBtn[data-view-target="time"]:not(.active) { --dock-zone: var(--zone-time); background: color-mix(in srgb, var(--zone-time) 78%, white); }
+.viewDockBtn[data-view-target="library"]:not(.active) { --dock-zone: var(--zone-library); background: color-mix(in srgb, var(--zone-library) 78%, white); }
+.viewDockBtn[data-view-target]:not(.active) .dockGlyph { background: color-mix(in srgb, currentColor 4%, var(--dock-zone, var(--color-panel-soft))); }
 .dockMobileLabel { display: none; }
 .viewIntro, .taskRingControlPanel, .taskFirstBanner, .orbitPanel, .weeklyPlanPanel, .fitnessPanel, .gameQuestPanel, .timePanel, .refBox, .dailyReminder, .notice, .commandMotto {
   min-width: 0;

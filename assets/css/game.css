@@ -1,5 +1,6 @@
 .gameQuestShell { display: grid; gap: 8px; min-width: 0; }
-.gameQuestTopBar { display: grid; grid-template-columns: minmax(230px,.7fr) minmax(600px,1.3fr); gap: 14px; align-items: center; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.gameQuestBoardSections { display: grid; gap: 12px; min-width: 0; }
+.gameQuestTopBar { --task-area-bg: color-mix(in srgb, var(--zone-game) 68%, white); display: grid; grid-template-columns: minmax(230px,.7fr) minmax(600px,1.3fr); gap: 14px; align-items: center; padding: 10px 12px; border: 1px solid var(--color-line); border-left: 5px solid var(--color-primary); border-radius: var(--radius-md); background: var(--task-area-bg); box-shadow: var(--shadow-panel); }
 .gameQuestTopTitle { min-width: 0; }
 .gameQuestHeroSide { display: grid; grid-template-columns: minmax(112px,.8fr) minmax(112px,.9fr) minmax(138px,1.1fr) repeat(2,minmax(112px,.9fr)); gap: 7px; align-items: stretch; min-width: 0; }
 .gameQuestTopMeter, .gameCommandBtn, .gameQuestTopTimer { min-width: 0; min-height: 58px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-panel); }
@@ -26,10 +27,13 @@
 .gameQuestModeBtn { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; padding: 7px 11px; border: 1px solid transparent; border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .gameQuestModeBtn.active { border-color: var(--color-ink); background: var(--color-ink); color: white; }
 .gameQuestModeBtn.active b { color: var(--color-primary); }
-.gameQuestDailyPane, .gameQuestWeeklyPane { min-width: 0; padding: 9px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
+.gameQuestDailyPane, .gameQuestWeeklyPane { min-width: 0; padding: 9px; border: 1px solid var(--color-line); border-radius: var(--radius-md); }
+.gameQuestDailyPane { --game-pane-tint: var(--zone-game-daily); background: color-mix(in srgb, var(--zone-game-daily) 64%, white); }
+.gameQuestWeeklyPane { --game-pane-tint: var(--zone-game-weekly); background: color-mix(in srgb, var(--zone-game-weekly) 72%, white); }
 .gameQuestMetaStrip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 12px; color: var(--color-muted); font-size: 12px; }
+.gameQuestMetaStrip b { color: var(--color-ink); font-size: 14px; }
 .gameQuestMetaStrip em { color: var(--color-warning); font-style: normal; font-weight: 800; }
-.gameQuestDays, .gameQuestFilterTabs, .gameQuestGameTabs { display: flex; gap: 7px; min-width: 0; margin-top: 10px; padding-bottom: 5px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-padding-inline: 8px; scrollbar-width: thin; }
+.gameQuestDays, .gameQuestFilterTabs, .gameQuestGameTabs { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; margin-top: 10px; padding-bottom: 5px; overflow-x: visible; overscroll-behavior-inline: contain; scroll-padding-inline: 8px; scrollbar-width: thin; }
 .gameQuestDay, .gameQuestFilterTabs button, .gameQuestGameTab { flex: 0 0 auto; display: grid; align-content: center; min-width: 78px; min-height: 40px; padding: 6px 9px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-panel-soft); }
 .gameQuestDay span, .gameQuestGameTab span { white-space: nowrap; }
 .gameQuestDay b, .gameQuestFilterTabs b, .gameQuestGameTab b { color: var(--color-muted); font-size: 11px; }
@@ -37,6 +41,7 @@
 .gameQuestDay.active b, .gameQuestFilterTabs .active b, .gameQuestGameTab.active b { color: var(--color-primary); }
 .gameQuestSubHead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 6px; }
 .gameQuestSubHead > span { flex: 1 1 160px; font-size: var(--section-title); font-weight: 800; }
+.gameQuestOverallSummary { margin: 2px 0 8px; padding: 10px; border: 1px solid var(--color-line); border-left: 4px solid var(--color-primary); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--zone-game-weekly) 66%, var(--color-panel-soft)); }
 .gameQuestCompleteDayBtn { flex: 0 0 auto; display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 7px; align-items: center; min-height: 48px; padding: 6px 10px; border: 1px solid var(--color-ink); border-radius: 8px; background: var(--color-primary); color: var(--color-ink); box-shadow: 0 2px 0 var(--color-ink); text-align: left; }
 .gameQuestCompleteDayBtn > span:first-child { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--color-ink); color: var(--color-primary); font-size: 15px; font-weight: 900; }
 .gameQuestCompleteDayBtn > span:last-child { display: grid; min-width: 0; }
@@ -50,7 +55,7 @@
 .gameQuestMetric strong { display: block; font-size: 17px; line-height: 1.1; white-space: nowrap; }
 .gameQuestMetric em { color: var(--color-muted); font-size: 11px; font-style: normal; }
 .gameQuestGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.gameQuestGrid.focused { grid-template-columns: minmax(0, 1fr); padding: 6px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: #f3f0e8; }
+.gameQuestGrid.focused { grid-template-columns: minmax(0, 1fr); padding: 6px; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: color-mix(in srgb, var(--game-pane-tint, var(--zone-game)) 62%, var(--color-panel-soft)); }
 .gameQuestCard { min-width: 0; padding: 10px; border: 1px solid var(--color-card-line); border-left: 4px solid var(--color-info); border-radius: var(--radius-md); background: var(--color-card); box-shadow: var(--shadow-card); overflow: visible; transition: transform var(--motion-fast),box-shadow var(--motion-fast),border-color var(--motion-fast); }
 .gameQuestCard:hover { border-color: var(--color-line-strong); box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
 .gameQuestCard.done { opacity: .7; border-left-color: var(--color-success); }

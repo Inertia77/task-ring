@@ -6,10 +6,10 @@ body {
   min-height: 100vh;
   color: var(--color-ink);
   background:
-    linear-gradient(rgba(23, 23, 20, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(23, 23, 20, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(23, 23, 20, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 23, 20, 0.018) 1px, transparent 1px),
     var(--color-canvas);
-  background-size: 32px 32px;
+  background-size: 40px 40px;
   font: 450 var(--body-size)/1.55 var(--font-sans);
   overflow-x: clip;
 }
@@ -34,6 +34,7 @@ summary::-webkit-details-marker { display: none; }
 .viewPanel.active { display: block; }
 .locked { overflow: hidden; }
 .modalOpen { overflow: hidden; }
+.controlCenterOpen { overflow: hidden; }
 .locked .wrap, .locked ~ * { visibility: hidden; }
 
 .lockScreen {

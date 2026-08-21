@@ -21,7 +21,7 @@
 @media (max-width: 700px) {
   html { scroll-padding-bottom: calc(var(--nav-mobile-height) + 20px + env(safe-area-inset-bottom)); }
   body { width: 100%; max-width: 100%; padding-inline: 0; padding-bottom: calc(var(--nav-mobile-height) + 14px + env(safe-area-inset-bottom)); background-size: 24px 24px; }
-  .wrap { width: 100%; max-width: none; margin-inline: 0; padding: calc(6px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 10px max(8px,env(safe-area-inset-left)); }
+  .wrap { width: 100%; max-width: none; margin-inline: 0; padding: calc(8px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 12px max(10px,env(safe-area-inset-left)); }
   .wrap > *, .viewPanel { max-width: 100%; }
   .inertiaHeader { gap: 6px; margin-bottom: 7px; padding: 7px; border-radius: var(--radius-md); }
   .inertiaHeroBrand { gap: 7px; }
@@ -30,12 +30,13 @@
   .inertiaHeroTitle { margin: 0; font-size: 19px; }
   .inertiaTitleSlash, .inertiaTitleEn { display: none; }
   .inertiaSubtitle { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; font-size: 10.5px; }
-  .inertiaToolbar { width: 100%; justify-content: flex-start; gap: 3px; padding-bottom: 1px; }
+  .inertiaToolbar { display: grid; grid-template-columns: auto auto auto minmax(0,1fr) auto; width: 100%; justify-content: stretch; gap: 4px; padding-bottom: 1px; overflow: visible; }
   .headerLabelDesktop { display: none; }
   .headerLabelMobile { display: inline; }
-  .inertiaToolbar > * { width: auto; min-height: 34px; padding: 4px 7px; overflow: visible; text-overflow: clip; white-space: nowrap; font-size: 10.5px; }
-  .inertiaToolbar .cyclePill { font-size: 9.5px; }
-  .controlCenterMenu, .controlCenterMenu.controlCenterSheet { top: max(8px,env(safe-area-inset-top)); right: 8px; bottom: calc(var(--nav-mobile-height) + 16px + env(safe-area-inset-bottom)); left: 8px; width: auto; max-height: none; border-radius: 16px; }
+  .inertiaToolbar > * { width: auto; min-height: 36px; padding: 4px 7px; overflow: visible; text-overflow: clip; white-space: nowrap; font-size: 10.5px; }
+  .inertiaToolbar .githubInlineState { display: none; }
+  .inertiaToolbar .cyclePill { min-width: 0; overflow: hidden; font-size: 9.5px; text-overflow: ellipsis; }
+  .controlCenterMenu, .controlCenterMenu.controlCenterSheet { top: max(8px,env(safe-area-inset-top)); right: 8px; bottom: max(8px,env(safe-area-inset-bottom)); left: 8px; width: auto; max-height: none; border-radius: 14px; }
   .controlCenterHead { padding: 13px 14px 12px; }
   .controlCenterHeading > strong { font-size: 20px; }
   .controlCenterHeading > p { display: none; }
@@ -44,14 +45,14 @@
   .controlCenterMenu .controlAreaCard { grid-template-columns: 34px minmax(0,1fr); min-height: 108px; padding: 10px; gap: 3px 8px; }
   .controlAreaIcon { width: 34px; height: 34px; border-radius: 9px; font-size: 17px; }
   .controlAreaCopy b { font-size: 13px; }
-  .controlAreaCopy em { -webkit-line-clamp: 1; font-size: 9.5px; }
-  .controlAreaAction { padding-top: 5px; font-size: 9px; }
+  .controlAreaCopy em { -webkit-line-clamp: 1; font-size: 10.5px; }
+  .controlAreaAction { padding-top: 5px; font-size: 10px; }
   .controlUtilityGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .controlCenterMenu .controlUtilityBtn { display: grid; justify-items: center; gap: 5px; min-height: 66px; padding: 7px 5px; text-align: center; }
   .controlUtilityBtn > span:last-child { justify-items: center; }
   .controlUtilityBtn em { display: none; }
   .controlCenterMenu .controlSafetyBtn { min-height: 54px; padding: 7px 9px; }
-  .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 500; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 16px; }
+  .viewDock { position: fixed; top: auto; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); left: 8px; z-index: 200; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 3px; margin: 0; padding: 6px; border-radius: 14px; }
   .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 28px 20px; justify-items: center; min-height: 56px; padding: 4px 2px; text-align: center; }
   .viewDockBtn .dockGlyph { grid-row: auto; width: 28px; height: 28px; }
   .viewDockUtility { background: var(--color-utility-surface); }
@@ -101,8 +102,9 @@
   .dailyGroupBody { gap: 6px; padding: 6px; }
   .dailyCard { padding: 10px; }
   .dailyMain { grid-template-columns: var(--tap-size) minmax(0,1fr); }
-  .dailyActions { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; margin-top: 5px; padding-left: 0; }
-  .dailyActions button, .dailyActions a { min-width: 0; min-height: 34px; padding-inline: 3px; font-size: 10.5px; }
+  .dailyActions { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; margin-top: 7px; padding-left: 0; }
+  .dailyActions button, .dailyActions a { min-width: 0; min-height: 36px; padding-inline: 5px; font-size: 11px; }
+  .dailyActions .timerStartTiny, .dailyActions .timerNowChip { grid-column: span 2; }
   .subtaskInline { margin-top: 7px; margin-left: 0; }
   .weekMatrixHeader { grid-template-columns: minmax(0,1fr); gap: 8px; padding: 10px; }
   .weekMatrixHeader > div:first-child > em { line-height: 1.35; }
@@ -127,10 +129,12 @@
   .allocationChip { flex: 0 0 145px; }
   .missionHead { grid-template-columns: 40px minmax(0,1fr); }
   .missionScore { grid-column: 2; display: flex; flex-wrap: wrap; gap: 5px 10px; text-align: left; }
-  .missionActions button, .missionActions a { min-height: 34px; padding-inline: 3px; font-size: 10px; }
+  .missionActions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .missionActions button, .missionActions a { min-height: 38px; padding-inline: 5px; font-size: 11px; }
   .gameQuestTopBar { grid-template-columns: minmax(0,1fr); gap: 10px; padding: 11px; }
   .gameQuestHeroSide { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-padding-inline: 4px; scrollbar-width: none; }
   .gameQuestHeroSide::-webkit-scrollbar { display: none; }
+  .gameQuestDays, .gameQuestFilterTabs, .gameQuestGameTabs { flex-wrap: nowrap; overflow-x: auto; }
   .gameQuestTopMeter { order: 1; flex: 0 0 112px; }
   .gameQuestTodayQuick { order: 2; flex: 0 0 112px; }
   .gameQuestTopTimer { order: 3; flex: 0 0 142px; }
@@ -140,6 +144,7 @@
   .gameQuestDailyPane, .gameQuestWeeklyPane { padding: 7px; }
   .gameQuestCompleteDayBtn { min-height: 44px; padding: 5px 8px; }
   .gameQuestMetricSet { width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+  .gameQuestOverallSummary .gameQuestMetricSet { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .gameQuestMetric { min-width: 0; padding: 6px 4px; }
   .gameQuestMetric strong { font-size: 17px; }
   .gameQuestMetric span { font-size: 10px; }
@@ -170,19 +175,19 @@
   .refBoxHeader { align-items: center; min-height: 54px; padding: 6px 8px; }
   .refSummaryIcon { width: 38px; height: 38px; }
   .refExpandAllBtn { display: inline-flex; align-items: center; justify-content: center; min-width: 78px; min-height: 36px; padding: 5px 8px; font-size: 11px; }
-  .refGroupBody { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 3px; padding: 0 4px 4px; }
-  .refItem { grid-template-columns: 16px minmax(0,1fr) 34px; gap: 4px; min-height: 48px; padding: 4px 5px; }
-  .refItemNo { font-size: 9.5px; }
+  .refGroupBody { grid-template-columns: minmax(0,1fr); gap: 5px; padding: 0 5px 5px; }
+  .refItem { grid-template-columns: 20px minmax(0,1fr) 36px; gap: 6px; min-height: 54px; padding: 5px 7px; }
+  .refItemNo { font-size: 10.5px; }
   .refItemCopy strong {
     overflow: visible;
     overflow-wrap: anywhere;
-    font-size: 11.5px;
+    font-size: 13px;
     line-height: 1.22;
     text-overflow: clip;
     white-space: normal;
     word-break: break-word;
   }
-  .refItemCopy > span { overflow: visible; font-size: 8.6px; line-height: 1.15; text-overflow: clip; white-space: normal; word-break: break-word; }
+  .refItemCopy > span { overflow: visible; font-size: 10.5px; line-height: 1.25; text-overflow: clip; white-space: normal; word-break: break-word; }
   .libraryToolbar { grid-template-columns: minmax(0,1fr) auto; }
   .libraryToolbar label { grid-column: 1/-1; }
   .ghModal, .taskEditorModal, .refEditorModal, .gameQuestEditorModal, .fitnessEditorModal, .timeDetailModal, .weeklyTargetModal { place-items: stretch; padding: 0; }
