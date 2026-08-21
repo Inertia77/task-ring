@@ -2711,9 +2711,9 @@ let gameQuestSelectedDay=today;
 let gameQuestEditorDay=today;
 let gameQuestDraftConfig=null;
 const GAMEQUEST_COLLAPSE_KEY=`${GH_PREFIX}gamequest_collapsed`;
-function isGameQuestCollapsed(){return false}
-function setGameQuestCollapsed(v){localStorage.removeItem(GAMEQUEST_COLLAPSE_KEY)}
-function toggleGameQuestCollapsed(){renderGameQuestPanel()}
+function isGameQuestCollapsed(){const saved=localStorage.getItem(GAMEQUEST_COLLAPSE_KEY);return saved===null?true:saved==="1"}
+function setGameQuestCollapsed(v){localStorage.setItem(GAMEQUEST_COLLAPSE_KEY,v?"1":"0");renderGameQuestPanel()}
+function toggleGameQuestCollapsed(){setGameQuestCollapsed(!isGameQuestCollapsed())}
 function setGameQuestBoardMode(mode){
   gameQuestBoardMode=mode==="week"?"week":"today";
   localStorage.setItem(GQ_BOARD_MODE_KEY,gameQuestBoardMode);

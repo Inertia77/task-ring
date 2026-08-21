@@ -143,6 +143,9 @@
   .gameQuestModeBtn span { white-space: nowrap; }
   .gameQuestDailyPane, .gameQuestWeeklyPane { padding: 7px; }
   .gameQuestCompleteDayBtn { min-height: 44px; padding: 5px 8px; }
+  .gameQuestDailyCollapseBar { grid-template-columns: minmax(0,1fr); gap: 5px; }
+  .gameQuestDailyToggle { min-height: 44px; padding: 5px 3px; }
+  .gameQuestDailyCollapseBar > .gameQuestCompleteDayBtn { width: 100%; }
   .gameQuestMetricSet { width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
   .gameQuestOverallSummary .gameQuestMetricSet { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .gameQuestMetric { min-width: 0; padding: 6px 4px; }
