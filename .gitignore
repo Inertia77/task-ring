@@ -13,6 +13,10 @@ Thumbs.db
 # local-only config or exports
 taskring-config.local.json
 taskring-state.json
+taskring-tasks-*.json
+taskring-game-quest-*.json
+taskring-fitness-*.json
+taskring-library-*.json
 *.bak
 
 # dependency folders, if this project later grows a build step
