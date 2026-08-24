@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-24 — Conflict-safe sync, data migration & CI
+
+- 修复 Gist 自动读取可能把较新的本机配置静默替换为较旧云端配置的问题；配置同步改为基于共同指纹的三方判定。
+- 本机和云端同时修改配置时不再自动选边覆盖：保留当前本机配置、记录云端冲突副本，并要求显式处理覆盖动作。
+- 完成状态新增逐项 `value / updatedAt / deviceId` 元数据和删除 tombstone；取消完成与周期重置可以跨设备正确传播。
+- 旧版仅保存 `"1"` 的完成状态首次升级时采用并集合并，避免迁移阶段因“缺少键”误删另一设备已有勾选。
+- 修复公开 Demo 中 `time_category: "create"` 与 `time_category: "it"` 两个无效值，并兼容旧配置自动迁移到 `creator` / `it_ai`。
+- `.gitignore` 新增 TaskRing 四类真实 JSON 导出文件规则，降低 `git add .` 误提交个人数据的风险。
+- 新增 `integrity-core.js` 与 `data-integrity.js`，把纯数据合并逻辑和浏览器同步副作用分开。
+- 新增 Node 内置测试与 GitHub Actions CI，覆盖同步冲突、状态 tombstone、分类迁移、运行资源/PWA 缓存一致性和 JavaScript 语法。
+- Service Worker 缓存版本升级到 `taskring-shell-20260824-1`，并把新同步模块加入离线 APP_SHELL。
+- 更新结构文档与同步相关 UI 文案，移除“从云端读取 = 覆盖本机状态”的旧描述。
+
 ## 2026-07-20 — Game task links, navigation roles & README refresh
 
 - 修复本周游戏作战池点击“＋任务”后，空白编辑行被任务清洗逻辑立即过滤、导致无法新增任务的问题。

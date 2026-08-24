@@ -12,7 +12,7 @@ TaskRing 是一个本地优先的个人任务指挥中心。它用纯静态 HTML
 - 训练饮食：按星期维护项目名称、备注和链接。
 - 时间账本：任务计时、暂停、继续、补记、明细和 JSON 导出。
 - 资料库：分组保存链接或纯文本备注，并支持搜索。
-- 本地与同步：配置和状态默认保存在浏览器；配置 GitHub Token 后可通过加密 Gist 跨设备同步。
+- 本地与同步：配置和状态默认保存在浏览器；配置 GitHub Token 后可通过 Gist 跨设备同步。同步会先安全合并并检测双边修改，不再把“云端读取”当作无条件覆盖本机。
 - 响应式与可访问性：支持手机全屏编辑器、键盘焦点、Dialog 焦点循环、`aria-expanded` 和 `prefers-reduced-motion`。
 
 ## 快速开始
@@ -34,7 +34,7 @@ TaskRing 可以作为独立应用安装到手机桌面，任务数据仍保存�
 - 安装后可独立全屏启动；已经打开过的页面资源可在离线时继续使用。
 - 首次安装与离线缓存需要通过 HTTPS（GitHub Pages 已满足）或 localhost 访问；直接打开本地 `file://` 页面不能安装。
 
-发布新版本时需要同步更新 `service-worker.js` 中的 `CACHE_NAME`，安装版随后会在“总控”中提示更新。
+发布新版本时需要同步更新 `service-worker.js` 中的 `CACHE_NAME`。CI 会检查 `index.html` 引用的本地 JavaScript 是否都进入 Service Worker 的 `APP_SHELL`，减少“页面已更新但安装版漏资源”的问题。
 
 调试指定日期时使用查询参数：
 
@@ -66,10 +66,13 @@ http://127.0.0.1:8000/?date=2026-07-20
 主要数据边界如下：
 
 - 任务、资料库、游戏任务和训练饮食共用一份版本化配置。
-- 完成状态使用稳定的任务代码或条目 ID 保存，可选择同步。
+- 配置同步保存“上次本机与云端一致时”的内容指纹。只有一侧变化时自动采用变化侧；两侧都变化时保留本机并记录云端冲突副本，不静默覆盖。
+- 完成状态使用稳定的任务代码或条目 ID，并额外记录 `value / updatedAt / deviceId`；取消完成与周期重置使用 tombstone，因此旧设备不会把已经取消的勾重新复活。
+- 第一次遇到旧版“只有已完成键”的状态文件时采用并集合并，再迁移到带时间戳的状态格式，避免迁移本身造成数据丢失。
 - 时间日志与活动计时器保存在本机；同步启用后，已完成的时间日志可随状态同步。
 - 页面、筛选、Accordion、横向滚动位置等界面偏好只用于恢复当前浏览体验。
 - 游戏任务链接存储在 `gameQuest.schedule[day][gameId][].url` 或 `gameQuest.weekly[gameId][].url`。
+- 历史 `time_category` 的 `create` / `it` 会自动兼容为 `creator` / `it_ai`。
 
 完整的隐私安全配置示例见 [`docs/taskring-config.example.json`](docs/taskring-config.example.json)。
 
@@ -78,9 +81,11 @@ http://127.0.0.1:8000/?date=2026-07-20
 ```text
 task-ring/
 ├─ index.html                     # 唯一页面入口
+├─ service-worker.js              # PWA APP_SHELL 与离线缓存
 ├─ README.md                      # 使用与维护入口
+├─ .github/workflows/ci.yml       # 自动语法 / 数据行为 / 资源一致性检查
 ├─ assets/
-│  ├─ icons/                      # favicon
+│  ├─ icons/                      # favicon 与 PWA 图标
 │  ├─ images/                     # 本地装饰图和完成演出资源
 │  ├─ css/
 │  │  ├─ main.css                 # 唯一样式入口
@@ -99,13 +104,19 @@ task-ring/
 │  │  └─ responsive.css           # 响应式规则
 │  └─ js/
 │     ├─ data/default-data.js      # 隐私安全的公开 Demo
+│     ├─ data/integrity-core.js    # 可测试的配置/状态合并纯函数
 │     ├─ app.js                    # 配置、状态、计时和编辑器业务
+│     ├─ data-integrity.js         # 冲突安全的 Gist 同步保护层
+│     ├─ pwa.js                    # PWA 安装与更新
 │     └─ views/
 │        ├─ completion-effects.js  # 完成反馈
 │        ├─ editor-ux.js           # 任务编辑器交互
 │        ├─ fitness-view.js        # 训练饮食视图与编辑器
 │        ├─ product-ui.js          # 主要产品视图
 │        └─ time-ledger-view.js    # 时间账本视图
+├─ tests/
+│  ├─ integrity-core.test.js       # 同步冲突 / tombstone / 分类迁移测试
+│  └─ repo-integrity-check.js      # 运行资源、PWA、gitignore 一致性检查
 └─ docs/
    ├─ STRUCTURE.md                 # 加载顺序、职责和状态边界
    ├─ CHANGELOG.md                 # 版本变更
@@ -117,22 +128,34 @@ task-ring/
 
 ## 开发与验证
 
-项目没有构建步骤。修改后至少完成以下检查：
+项目没有构建步骤，也不依赖第三方 npm 包。修改后至少完成以下检查：
 
 ```powershell
-# JavaScript 语法检查（使用本机或工作区 Node.js）
+# 核心与全部运行时 JavaScript 语法检查
 node --check assets/js/app.js
-node --check assets/js/views/product-ui.js
+node --check assets/js/data/integrity-core.js
+node --check assets/js/data-integrity.js
+node --check service-worker.js
+
+# 数据行为测试
+node --test tests/*.test.js
+
+# 页面资源 / PWA / 导出规则一致性
+node tests/repo-integrity-check.js
 
 # 确认工作区改动
 git diff --check
 git status --short
 ```
 
+上述检查也由 `.github/workflows/ci.yml` 在 `main`、`fix/**` 和 Pull Request 自动执行。
+
 浏览器回归重点：
 
 - 今日、周计划、游戏、训练饮食、时间和资料库页面可正常切换。
-- 任务完成、计时和补记不会因重新渲染丢失。
+- 任务完成、取消完成、计时和补记不会因重新渲染或跨设备同步丢失。
+- 本机配置比云端新时，自动 Pull 不得用旧云端覆盖；云端比本机新且本机没改时可正常更新。
+- 两台设备都修改同一共同配置后，必须进入冲突保护而不是静默选择任意一边。
 - 各编辑器在桌面与 320px–390px 手机宽度下可保存、关闭且没有页面级横向滚动。
 - 有效链接显示“打开”入口，无链接或无效链接不显示入口。
 - 游戏任务的“打开”链接不会同时切换完成状态。

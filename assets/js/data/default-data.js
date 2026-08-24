@@ -51,7 +51,7 @@ const defaultBlocks=[
     url:"https://example.com/",
     important:1,
     plan_mode:"daily",
-    time_category:"create",
+    time_category:"creator",
     estimated_minutes:60,
     weekly_minutes:180
   },
@@ -109,7 +109,7 @@ const defaultBlocks=[
     url:"https://developer.mozilla.org/",
     optional:1,
     plan_mode:"weekly",
-    time_category:"it",
+    time_category:"it_ai",
     estimated_minutes:60,
     weekly_minutes:90
   }
