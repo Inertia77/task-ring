@@ -7,13 +7,16 @@
 1. `assets/css/main.css`
 2. `assets/js/data/default-data.js`
 3. `assets/js/app.js`
-4. `assets/js/views/completion-effects.js`
-5. `assets/js/views/time-ledger-view.js`
-6. `assets/js/views/editor-ux.js`
-7. `assets/js/views/fitness-view.js`
-8. `assets/js/views/product-ui.js`
+4. `assets/js/data/integrity-core.js`
+5. `assets/js/data-integrity.js`
+6. `assets/js/views/completion-effects.js`
+7. `assets/js/views/time-ledger-view.js`
+8. `assets/js/views/editor-ux.js`
+9. `assets/js/views/fitness-view.js`
+10. `assets/js/views/product-ui.js`
+11. `assets/js/pwa.js`
 
-`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`。旧版 v20/v21 boot 链已移除。
+`integrity-core.js` 提供可在浏览器和 Node 测试中复用的纯数据合并逻辑；`data-integrity.js` 必须在 `product-ui.js` 之前执行，用于安装冲突安全的 Gist 同步层。`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`，因此首次自动同步也会经过完整的数据完整性保护。`pwa.js` 在 UI 启动后注册 Service Worker 与安装/更新交互。
 
 ## CSS 分层
 
@@ -41,21 +44,47 @@
 
 - `default-data.js`：内置任务、资料库、游戏和训练饮食演示配置。
 - `app.js`：配置标准化、本地状态、软锁、Gist、时间日志、业务操作和编辑器数据收集。
+- `integrity-core.js`：纯函数数据完整性层；负责配置指纹、三方配置判定、旧 `time_category` 别名以及带时间戳状态/tombstone 合并，可直接由 Node 测试加载。
+- `data-integrity.js`：浏览器同步保护层；在核心业务启动前接管配置拉取/推送、状态写入和周期重置，避免旧云端静默覆盖新本机。
 - `completion-effects.js`：分级完成演出、角色预加载、随机去重、队列节流与 DOM 清理。
 - `product-ui.js`：今日、周计划、游戏、资料库渲染；展开状态；筛选恢复；Dialog 和表单可访问性。
 - `time-ledger-view.js`：时间账本正式渲染。
 - `editor-ux.js`：任务编辑器筛选、折叠任务配置和周目标编辑。
 - `fitness-view.js`：训练饮食渲染、链接打开和编辑器交互。
+- `pwa.js`：PWA 安装、Service Worker 更新提示和版本切换。
+
+## 同步与数据完整性
+
+配置同步使用本机保存的“上次双方一致配置指纹”做三方判定：
+
+- 只有本机相对共同版本变化：保留本机并上传。
+- 只有云端相对共同版本变化：采用云端。
+- 双方都变化：进入冲突状态，保留本机，并把云端配置保存为本机冲突副本；不会静默覆盖任意一边。
+- 首次没有共同基线时才使用 `updatedAt` 判断；时间相同但内容不同视为冲突。
+
+完成状态继续保留原有 `taskring_github_v2_*` 真值键以兼容旧数据，同时新增 `taskring_sync_state_meta_v1`：每个状态记录 `value`、`updatedAt` 与 `deviceId`。取消完成和周期重置会写入 `value: "0"` tombstone，因此多设备合并时不会把已经取消的旧勾选重新复活。旧 Gist 只有真值状态时先采用并集迁移，迁移完成后进入按状态时间戳合并。
 
 ## 数据边界
 
 - Token：`taskring_gist_token_v1`，仅本机。
 - 完成/游戏状态：`taskring_github_v2_*`，可同步。
+- 状态同步元数据：`taskring_sync_state_meta_v1`，仅本机持久化并随 Gist state 文件同步。
+- 配置共同基线：`taskring_sync_config_base_fp_v1`，仅本机，用于冲突判定。
+- 配置冲突快照：`taskring_sync_config_conflict_v1`，仅本机；发生双边编辑冲突时保留云端副本。
 - 任务配置：`taskring_local_config_v1`，本机缓存；有 Token 时同步加密配置。
 - 游戏任务链接：保存在每日/指定日 `schedule` 或本周 `weekly` 条目的 `url` 字段，仅允许 HTTP/HTTPS。
 - 时间日志：`taskring_time_logs_v1`；活动计时器保持本机。
 - 展开状态：`taskring_ui_disclosure_v1`，仅本机 UI 偏好。
 - 页面与滚动：`taskring_github_v2_active_view_v1`、`taskring_ui_scroll_state_v1`。
+
+## 自动验证
+
+GitHub Actions 工作流位于 `.github/workflows/ci.yml`，在 `main`、`fix/**` push 和所有 Pull Request 上执行：
+
+- 所有 JavaScript 的 `node --check`。
+- `tests/integrity-core.test.js` 的配置冲突、分类迁移、状态 tombstone 与旧格式迁移测试。
+- `tests/repo-integrity-check.js` 的页面资源、Service Worker APP_SHELL、导出 `.gitignore` 与默认数据一致性检查。
+- `git diff --check` 空白字符检查。
 
 ## 资源依赖图
 
@@ -66,10 +95,12 @@ index.html
 ├─ assets/css/main.css
 │  └─ 13 个职责 CSS（无图片 url()）
 ├─ assets/images/cutins/（16 张本地角色图）
-└─ 7 个 JavaScript 文件
-   ├─ 内置数据
+└─ 10 个 JavaScript 文件
+   ├─ 公开默认数据
    ├─ 核心业务
-   └─ 5 个视图模块
+   ├─ 数据完整性核心 + 浏览器同步保护
+   ├─ 5 个视图模块
+   └─ PWA 注册模块
 ```
 
-运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。
+运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript；CI 会阻止漏缓存的新运行时模块进入主分支。
