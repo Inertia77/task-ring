@@ -99,7 +99,7 @@ index.html
 ├─ assets/css/main.css
 │  └─ 14 个职责 CSS（含 ux-efficiency.css）
 ├─ assets/images/cutins/（16 张本地角色图）
-└─ 11 个直接脚本 + 1 个后置 UX 脚本
+└─ 10 个直接脚本 + 1 个后置 UX 脚本
    ├─ 公开默认数据
    ├─ 核心业务
    ├─ 数据完整性核心 + 浏览器同步保护
