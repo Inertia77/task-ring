@@ -6,6 +6,30 @@
 .inertiaToolbar { align-items: stretch; }
 .githubInlineState { min-height: 40px; }
 
+/* Keyboard discovery stays intentionally quiet and desktop-only. */
+.uxShortcutHint { display: none; }
+@media (min-width: 1100px) and (hover: hover) {
+  .inertiaToolbar > .uxShortcutHint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 40px;
+    padding: 5px 6px;
+    border: 0;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 10px;
+    font-weight: 700;
+    opacity: .55;
+    cursor: help;
+    transition: opacity var(--motion-fast);
+  }
+  .inertiaToolbar > .uxShortcutHint:hover { opacity: .86; }
+  .uxShortcutHint kbd { padding: 1px 5px; border: 1px solid var(--color-line); border-bottom-color: var(--color-line-strong); border-radius: 5px; background: var(--color-panel-soft); color: var(--color-ink); font: 700 9px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; box-shadow: 0 1px 0 var(--color-line); }
+  .uxShortcutGlyph { font-size: 11px; }
+}
+
 /* Control Center is for editing/maintenance; page navigation remains in the dock. */
 .controlAreaGrid { grid-template-columns: repeat(4,minmax(0,1fr)); }
 .controlCenterMenu .controlAreaCard { min-height: 114px; }
@@ -38,6 +62,20 @@
 .uxActionMenu a { display: flex; align-items: center; justify-content: flex-start; width: 100%; min-height: 38px; padding: 7px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--color-ink); text-align: left; text-decoration: none; font-size: 11.5px; font-weight: 700; }
 .uxActionMenu button:hover,
 .uxActionMenu a:hover { border-color: var(--color-line); background: var(--color-panel-soft); }
+
+/* Editor controls keep every capability visible, but primary actions should not visually compete with maintenance utilities. */
+.taskEditorToolbar #saveConfigBtn,
+.taskEditorToolbar #saveGameQuestBtn,
+.taskEditorToolbar #saveFitnessBtn,
+.taskEditorToolbar #saveRefConfigBtn { border-color: var(--color-ink); background: var(--color-primary); color: var(--color-ink); font-weight: 850; }
+.taskEditorToolbar #addTaskBtn,
+.taskEditorToolbar #addRefGroupBtn { border-color: var(--color-ink); background: white; }
+.taskEditorToolbar #restoreLocalBackupBtn,
+.taskEditorToolbar #restoreCloudPreviousBtn { border-style: dashed; }
+.taskEditorModal .ghLog.uxIdleLog,
+.refEditorModal .ghLog.uxIdleLog,
+.gameQuestEditorModal .ghLog.uxIdleLog,
+.fitnessEditorModal .ghLog.uxIdleLog { display: none; }
 
 /* A collapsed overview gets users to actual tasks faster; explicit user choice still persists. */
 .orbitPanel { margin-bottom: 7px; }
