@@ -1,16 +1,31 @@
 {
-  "version": 4,
-  "updatedAt": "2026-07-11",
+  "version": 5,
+  "updatedAt": "2026-08-25",
   "runtimeAssets": [
     {
       "file": "assets/icons/favicon.svg",
-      "source": "html",
+      "source": "index.html",
       "usage": "浏览器 favicon 与 Header 品牌标记"
     },
     {
       "file": "assets/icons/favicon.png",
-      "source": "html",
+      "source": "index.html",
       "usage": "Apple touch icon 与分享预览图"
+    },
+    {
+      "file": "assets/icons/app-icon-192.png",
+      "source": "manifest.webmanifest + service-worker.js",
+      "usage": "PWA 192px 应用图标"
+    },
+    {
+      "file": "assets/icons/app-icon-512.png",
+      "source": "manifest.webmanifest + service-worker.js",
+      "usage": "PWA 512px 应用图标"
+    },
+    {
+      "file": "assets/icons/app-icon-maskable-512.png",
+      "source": "manifest.webmanifest + service-worker.js",
+      "usage": "PWA maskable 512px 应用图标"
     }
   ],
   "cssUrlAssets": [],
@@ -22,16 +37,11 @@
       "usage": "任务、父任务、游戏大卡与每日全清的随机角色 Cut-in；使用相对路径并提供文字降级"
     }
   ],
-  "unusedRetained": [
-    {
-      "path": "assets/images/css/",
-      "reason": "历史主题图片不在当前正式 CSS 链中；为避免误删已有素材而保留。"
-    }
-  ],
+  "unusedRetained": [],
   "localOnlyData": [
     {
       "path": "tmp_bk/",
-      "reason": "被 .gitignore 排除的真实任务、资料和游戏备份；不是部署资源，但为防止误删用户数据而保留。"
+      "reason": "被 .gitignore 排除的真实任务、资料和游戏备份；不是部署资源"
     }
   ]
 }

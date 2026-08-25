@@ -1,7 +1,7 @@
 {
   "version": 4,
   "privacy": "coded-state-keys",
-  "updatedAt": "2026-07-07T00:00:00.000Z",
+  "updatedAt": "2026-08-25T00:00:00.000Z",
   "tasks": [
     {
       "id": "example-daily",
@@ -53,21 +53,41 @@
   ],
   "gameQuest": {
     "version": 2,
-    "updatedAt": "2026-07-07T00:00:00.000Z",
+    "updatedAt": "2026-08-25T00:00:00.000Z",
     "games": [
-      { "id": "ww", "name": "鸣潮", "short": "鸣潮", "icon": "🌊", "accent": "cyan", "enabled": true }
+      { "id": "example-game", "name": "示例游戏", "short": "示例", "icon": "GQ", "accent": "cyan", "enabled": true }
     ],
     "schedule": {
       "1": {
-        "ww": [
-          { "id": "ww-daily", "title": "日常体力", "url": "https://example.com", "plan_mode": "daily" }
+        "example-game": [
+          { "id": "example-daily-game", "title": "示例：日常体力", "url": "https://example.com", "plan_mode": "daily" }
         ]
       }
     },
     "weekly": {
-      "ww": [
-        { "id": "ww-weekly", "title": "深塔 / 海墟", "url": "https://example.com", "plan_mode": "weekly" }
+      "example-game": [
+        { "id": "example-weekly-game", "title": "示例：本周挑战", "url": "https://example.com", "plan_mode": "weekly" }
       ]
+    }
+  },
+  "fitness": {
+    "version": 1,
+    "updatedAt": "2026-08-25T00:00:00.000Z",
+    "days": {
+      "1": {
+        "training": [
+          { "id": "training-example", "title": "示例：全身基础训练 30 分钟", "note": "公开演示数据", "url": "", "enabled": true }
+        ],
+        "nutrition": [
+          { "id": "nutrition-example", "title": "示例：准备均衡三餐", "note": "公开演示数据", "url": "", "enabled": true }
+        ]
+      },
+      "2": { "training": [], "nutrition": [] },
+      "3": { "training": [], "nutrition": [] },
+      "4": { "training": [], "nutrition": [] },
+      "5": { "training": [], "nutrition": [] },
+      "6": { "training": [], "nutrition": [] },
+      "0": { "training": [], "nutrition": [] }
     }
   }
 }

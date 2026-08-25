@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-25 — Repository cleanup & current-doc consolidation
+
+- 删除未被当前 HTML/CSS/JavaScript/PWA 引用的历史主题资源目录 `assets/images/css/`，包括重复图片与约 2.5 MB 的旧拼贴背景；保留正在运行的 `assets/images/cutins/` 完成演出资源。
+- 删除已经被 Git 历史和本变更日志替代的 `REFACTOR_REPORT.md` 与 `CLEANUP_REPORT.md`，避免旧施工结论继续冒充当前架构说明。
+- `ASSET_MANIFEST.json` 更新为当前 favicon、PWA 图标与 16 张动态 Cut-in 的真实运行资源清单，不再声明保留未使用部署资源。
+- `taskring-config.example.json` 补齐 `fitness` 分区并更新为完整的隐私安全当前配置示例。
+- README 项目树与延伸文档同步精简到当前长期维护文档。
+- 仓库完整性检查新增废弃目录/报告防回归规则，防止清理完成后又被历史资源误提交回来。
+
 ## 2026-08-24 — Conflict-safe sync, data migration & CI
 
 - 修复 Gist 自动读取可能把较新的本机配置静默替换为较旧云端配置的问题；配置同步改为基于共同指纹的三方判定。
@@ -54,4 +63,4 @@
 - 统一 Dialog、焦点恢复、焦点循环、表单标签和 Accordion `aria-expanded`。
 - 删除旧主题、旧 boot/renderer 和旧版本设计文档。
 
-历史版本的实现说明已由 `REFACTOR_REPORT.md`、`CLEANUP_REPORT.md` 与 Git 历史替代。
+更早的施工细节由 Git 历史保留；当前架构以 README、`STRUCTURE.md`、`ASSET_MANIFEST.json` 和本变更日志为准。

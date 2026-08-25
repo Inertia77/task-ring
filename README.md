@@ -86,7 +86,7 @@ task-ring/
 ├─ .github/workflows/ci.yml       # 自动语法 / 数据行为 / 资源一致性检查
 ├─ assets/
 │  ├─ icons/                      # favicon 与 PWA 图标
-│  ├─ images/                     # 本地装饰图和完成演出资源
+│  ├─ images/cutins/              # 当前运行时完成演出资源
 │  ├─ css/
 │  │  ├─ main.css                 # 唯一样式入口
 │  │  ├─ tokens.css               # 设计 Token
@@ -120,11 +120,11 @@ task-ring/
 └─ docs/
    ├─ STRUCTURE.md                 # 加载顺序、职责和状态边界
    ├─ CHANGELOG.md                 # 版本变更
-   ├─ REFACTOR_REPORT.md           # UI 重构记录
-   ├─ CLEANUP_REPORT.md            # 历史资源清理记录
-   ├─ ASSET_MANIFEST.json          # 资源清单
-   └─ taskring-config.example.json # 配置格式示例
+   ├─ ASSET_MANIFEST.json          # 当前运行资源清单
+   └─ taskring-config.example.json # 完整隐私安全配置示例
 ```
+
+历史重构/清理过程不再保留重复的当前树文档，必要时直接查看 Git 历史和 `CHANGELOG.md`。
 
 ## 开发与验证
 
@@ -184,5 +184,5 @@ git status --short
 
 - [结构与依赖](docs/STRUCTURE.md)
 - [变更日志](docs/CHANGELOG.md)
-- [重构报告](docs/REFACTOR_REPORT.md)
-- [清理报告](docs/CLEANUP_REPORT.md)
+- [运行资源清单](docs/ASSET_MANIFEST.json)
+- [配置格式示例](docs/taskring-config.example.json)
