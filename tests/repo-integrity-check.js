@@ -11,6 +11,7 @@ const html=read("index.html");
 const sw=read("service-worker.js");
 const gitignore=read(".gitignore");
 const defaultData=read("assets/js/data/default-data.js");
+const assetManifest=JSON.parse(read("docs/ASSET_MANIFEST.json"));
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -37,5 +38,11 @@ for(const required of ["assets/js/data/integrity-core.js","assets/js/data-integr
   assert(localScripts.includes(required),`index.html must load ${required}`);
   assert(shell.has(required),`service worker must cache ${required}`);
 }
+
+assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
+assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
+assert(!exists("docs/CLEANUP_REPORT.md"),"obsolete CLEANUP_REPORT.md should not return to the current docs tree");
+assert(Array.isArray(assetManifest.unusedRetained)&&assetManifest.unusedRetained.length===0,"asset manifest should not claim intentionally retained unused runtime assets");
+assert(exists("assets/images/cutins"),"active cut-in asset directory is missing");
 
 console.log(`Repository integrity OK: ${localScripts.length} runtime scripts checked.`);
