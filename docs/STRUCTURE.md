@@ -39,8 +39,9 @@
 | 12 | `effects.css` | 完成反馈、Cut-in、粒子、队列视觉与 reduced-motion 降级 |
 | 13 | `responsive.css` | 1024/700/359px 响应式策略 |
 | 14 | `ux-efficiency.css` | 高频/低频操作层级、卡片动作收纳、移动端可发现性优化 |
+| 15 | `visual-polish.css` | 最终视觉层级：降低非选中色块噪音、统一标签几何、淡化背景分区、强化白色内容卡与移动底栏整体感 |
 
-正式样式层不使用 `!important`。
+后置 UX / Visual 样式层不新增 `!important`；历史组件层仍保留少量既有优先级声明，后续只在必要维护时逐步清理。
 
 ## JavaScript 职责
 
@@ -87,7 +88,7 @@ GitHub Actions 工作流位于 `.github/workflows/ci.yml`，在 `main`、`fix/**
 
 - 所有 JavaScript 的 `node --check`。
 - `tests/integrity-core.test.js` 的配置冲突、分类迁移、状态 tombstone 与旧格式迁移测试。
-- `tests/repo-integrity-check.js` 的页面资源、Service Worker APP_SHELL、导出 `.gitignore`、默认数据与后置 UX 资源接线一致性检查。
+- `tests/repo-integrity-check.js` 的页面资源、Service Worker APP_SHELL、导出 `.gitignore`、默认数据、后置 UX 与 Visual 资源接线一致性检查。
 - `git diff --check` 空白字符检查。
 
 ## 资源依赖图
@@ -97,7 +98,7 @@ index.html
 ├─ assets/icons/favicon.svg
 ├─ assets/icons/favicon.png
 ├─ assets/css/main.css
-│  └─ 14 个职责 CSS（含 ux-efficiency.css）
+│  └─ 15 个职责 CSS（含 ux-efficiency.css + visual-polish.css）
 ├─ assets/images/cutins/（16 张本地角色图）
 └─ 10 个直接脚本 + 1 个后置 UX 脚本
    ├─ 公开默认数据
@@ -108,4 +109,4 @@ index.html
    └─ UX efficiency 后置增强
 ```
 
-运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript，以及 `pwa.js` 动态加载的 UX efficiency 资源；CI 会阻止漏缓存的新运行时模块进入主分支。
+运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript、`pwa.js` 动态加载的 UX efficiency 资源以及最终视觉层 `visual-polish.css`；CI 会阻止漏缓存的新运行时模块进入主分支。

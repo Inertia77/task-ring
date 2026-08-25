@@ -1,0 +1,143 @@
+/* TaskRing visual polish: calm the surfaces, keep hierarchy strong, preserve the existing product identity. */
+
+/* Brand hierarchy: keep the yellow owner mark strong and let secondary system metadata recede. */
+.inertiaHeroTitle,
+.taskAreaTitle,
+.weeklyCommandHero > div:first-child > b,
+.timePanelHeader > div:first-child > b,
+.gameQuestTopTitle > strong { letter-spacing: -.015em; }
+.inertiaVersionBadge { border-color: transparent; background: transparent; opacity: .62; }
+.inertiaSubtitle { color: color-mix(in srgb,var(--color-muted) 88%,white); }
+
+/* Section eyebrows should orient the eye, not compete with titles or warnings. */
+.taskAreaEyebrow,
+.taskRingControlHead span,
+.weeklyCommandHero > div:first-child > span,
+.timePanelHeader > div:first-child > span,
+.gameQuestTopTitle > span,
+.fitnessEyebrow { color: color-mix(in srgb,var(--color-muted) 86%,var(--color-ink)); font-size: 10px; letter-spacing: .13em; }
+
+/* Navigation: module color remains in the glyph; inactive whole-button color blocks are softened. */
+.viewDock {
+  border-color: color-mix(in srgb,var(--color-line) 82%,white);
+  background: color-mix(in srgb,var(--color-panel) 96%,transparent);
+  box-shadow: 0 6px 22px rgba(23,23,20,.065);
+  backdrop-filter: blur(12px);
+}
+.viewDockBtn[data-view-target="tasks"]:not(.active),
+.viewDockBtn[data-view-target="weekly"]:not(.active),
+.viewDockBtn[data-view-target="fitness"]:not(.active),
+.viewDockBtn[data-view-target="game"]:not(.active) { background: transparent; }
+.viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility) { border-color: transparent; }
+.viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility) .dockGlyph {
+  background: color-mix(in srgb,var(--dock-zone,var(--color-panel-soft)) 62%,white);
+}
+.viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility):hover {
+  border-color: color-mix(in srgb,var(--color-line-strong) 62%,white);
+  background: color-mix(in srgb,var(--dock-zone,var(--color-panel-soft)) 38%,white);
+}
+
+/* Passive chips share one calm geometry; semantic states keep their existing success/warning/danger colors. */
+.statusBadge,
+.planModeBadge,
+.taskFlag,
+.editorBadge,
+.missionBadges span,
+.gameQuestTaskBadge,
+.mWeekPill,
+.dailyMetaChip {
+  border-radius: 6px;
+  border-color: color-mix(in srgb,var(--color-line) 82%,white);
+  background: color-mix(in srgb,var(--color-panel-soft) 74%,white);
+  font-size: 11.5px;
+}
+.summaryChevron { background: transparent; color: var(--color-muted); }
+
+/* Reduce patchwork: category/module tints become context surfaces, while white task cards remain the focus. */
+.dailyGroupBody { background: color-mix(in srgb,var(--zone-daily) 34%,var(--color-panel-soft)); }
+.weeklyOverviewBody { background: color-mix(in srgb,var(--zone-weekly) 34%,var(--color-panel-soft)); }
+.weeklyMissionGroup > summary { background: color-mix(in srgb,var(--category-tint,var(--zone-weekly)) 38%,white); }
+.weeklyMissionGrid { background: color-mix(in srgb,var(--category-tint,var(--zone-weekly)) 34%,var(--color-panel-soft)); }
+.gameQuestDailyPane { background: color-mix(in srgb,var(--zone-game-daily) 40%,white); }
+.gameQuestWeeklyPane { background: color-mix(in srgb,var(--zone-game-weekly) 42%,white); }
+.gameQuestGrid.focused { background: color-mix(in srgb,var(--game-pane-tint,var(--zone-game)) 32%,var(--color-panel-soft)); }
+.fitnessPanel { background: color-mix(in srgb,var(--zone-fitness) 32%,white); }
+.fitnessLane { background: color-mix(in srgb,var(--zone-fitness) 36%,var(--color-panel-soft)); }
+.refBox { background: color-mix(in srgb,var(--zone-library) 34%,white); }
+.refGroup { background: color-mix(in srgb,var(--zone-library) 36%,var(--color-panel-soft)); }
+.timeLedgerIdle { background: color-mix(in srgb,var(--zone-time) 36%,var(--color-panel-soft)); }
+.timeSubTabs { background: color-mix(in srgb,var(--zone-time) 34%,white); }
+
+/* Metrics read as one visual family across Daily / Weekly / Game / Time. */
+.dailyStatusItem,
+.weeklyHeroStats > div,
+.timeStatCards > div,
+.gameQuestMetric {
+  border-color: color-mix(in srgb,var(--color-line) 80%,white);
+  background: color-mix(in srgb,var(--color-panel) 88%,transparent);
+  box-shadow: 0 1px 0 rgba(23,23,20,.025);
+}
+
+/* Cards get a quieter border and a slightly cleaner elevation rhythm. */
+.dailyCard,
+.weeklyMissionCard,
+.gameQuestCard,
+.fitnessItem,
+.refItem {
+  border-color: color-mix(in srgb,var(--color-card-line) 72%,var(--color-line));
+  box-shadow: 0 1px 0 rgba(23,23,20,.045), 0 4px 12px rgba(23,23,20,.026);
+}
+.dailyCard:hover,
+.weeklyMissionCard:hover,
+.gameQuestCard:hover,
+.fitnessItem:hover,
+.refItem:hover { box-shadow: 0 2px 0 rgba(23,23,20,.055), 0 8px 18px rgba(23,23,20,.05); }
+.dailyCard.done,
+.weeklyMissionCard.done,
+.gameQuestCard.done { opacity: .82; }
+
+/* Large dark focus surfaces stay special without overpowering the whole page. */
+.activeTimerCard,
+.timerFloatDock { box-shadow: 0 14px 36px rgba(23,23,20,.18); }
+
+/* Control Center keeps accent identity while reducing the colored-card mosaic effect. */
+.controlCenterMenu .controlAreaCard { background: color-mix(in srgb,var(--control-accent) 3.5%,white); }
+.controlCenterMenu .controlAreaCard:hover { background: color-mix(in srgb,var(--control-accent) 6%,white); }
+.controlCenterMenu .controlUtilityBtn,
+.controlCenterMenu .controlSafetyBtn { background: color-mix(in srgb,var(--color-panel-soft) 72%,white); }
+
+@media (max-width: 700px) {
+  /* The six first-level entries stay visible; the dock simply reads as one calm floating control surface. */
+  .viewDock {
+    border-color: color-mix(in srgb,var(--color-line-strong) 44%,white);
+    background: color-mix(in srgb,var(--color-panel) 96%,transparent);
+    box-shadow: 0 12px 32px rgba(23,23,20,.14);
+    backdrop-filter: blur(16px);
+  }
+  .viewDockBtn { border-radius: 9px; }
+  .viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility) { background: transparent; }
+
+  /* Reduce the number of simultaneous shaded rectangles on small screens. */
+  .dailyGroupBody,
+  .weeklyMissionGrid,
+  .gameQuestGrid.focused { background: color-mix(in srgb,var(--color-panel-soft) 82%,white); }
+  .weeklyMissionGroup > summary { background: color-mix(in srgb,var(--category-tint,var(--zone-weekly)) 26%,white); }
+  .gameQuestDailyPane,
+  .gameQuestWeeklyPane,
+  .fitnessLane,
+  .refGroup { background: color-mix(in srgb,var(--color-panel-soft) 76%,white); }
+}
+
+@media (prefers-contrast: more) {
+  .viewDock,
+  .dailyCard,
+  .weeklyMissionCard,
+  .gameQuestCard,
+  .fitnessItem,
+  .refItem { border-color: var(--color-line-strong); }
+  .statusBadge,
+  .planModeBadge,
+  .taskFlag,
+  .gameQuestTaskBadge,
+  .dailyMetaChip { border-color: var(--color-line-strong); }
+}

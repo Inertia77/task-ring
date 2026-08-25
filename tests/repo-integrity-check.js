@@ -16,6 +16,7 @@ const mainCss=read("assets/css/main.css");
 const pwa=read("assets/js/pwa.js");
 const uxJs=read("assets/js/ux-efficiency.js");
 const uxCss=read("assets/css/ux-efficiency.css");
+const visualCss=read("assets/css/visual-polish.css");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -54,10 +55,16 @@ assert(uxJs.includes("mutationNeedsEnhance"),"UX layer must keep MutationObserve
 assert(uxCss.includes(".uxShortcutHint"),"desktop shortcut discovery hint is missing");
 assert(uxCss.includes(".uxIdleLog"),"idle editor-log compaction style is missing");
 
+assert(exists("assets/css/visual-polish.css"),"visual polish stylesheet is missing");
+assert(mainCss.includes("visual-polish.css"),"main.css must import visual polish styles");
+assert(shell.has("assets/css/visual-polish.css"),"service worker must cache visual polish styles");
+assert(visualCss.includes(".viewDockBtn[data-view-target=\"tasks\"]:not(.active)"),"visual polish must keep inactive navigation surfaces quiet");
+assert(visualCss.includes("@media (prefers-contrast: more)"),"visual polish must retain a higher-contrast fallback");
+
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
 assert(!exists("docs/CLEANUP_REPORT.md"),"obsolete CLEANUP_REPORT.md should not return to the current docs tree");
 assert(Array.isArray(assetManifest.unusedRetained)&&assetManifest.unusedRetained.length===0,"asset manifest should not claim intentionally retained unused runtime assets");
 assert(exists("assets/images/cutins"),"active cut-in asset directory is missing");
 
-console.log(`Repository integrity OK: ${localScripts.length} index scripts + UX post-render layer checked.`);
+console.log(`Repository integrity OK: ${localScripts.length} index scripts + UX/visual layers checked.`);
