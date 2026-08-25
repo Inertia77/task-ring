@@ -15,8 +15,9 @@
 9. `assets/js/views/fitness-view.js`
 10. `assets/js/views/product-ui.js`
 11. `assets/js/pwa.js`
+12. `assets/js/ux-efficiency.js`（由 `pwa.js` 在主 UI 完成后动态加载）
 
-`integrity-core.js` 提供可在浏览器和 Node 测试中复用的纯数据合并逻辑；`data-integrity.js` 必须在 `product-ui.js` 之前执行，用于安装冲突安全的 Gist 同步层。`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`，因此首次自动同步也会经过完整的数据完整性保护。`pwa.js` 在 UI 启动后注册 Service Worker 与安装/更新交互。
+`integrity-core.js` 提供可在浏览器和 Node 测试中复用的纯数据合并逻辑；`data-integrity.js` 必须在 `product-ui.js` 之前执行，用于安装冲突安全的 Gist 同步层。`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`，因此首次自动同步也会经过完整的数据完整性保护。`pwa.js` 在 UI 启动后注册 Service Worker 与安装/更新交互，同时加载只处理操作层级和界面效率的 `ux-efficiency.js` 后置增强层。
 
 ## CSS 分层
 
@@ -37,6 +38,7 @@
 | 11 | `editors.css` | Dialog、编辑器、固定保存操作 |
 | 12 | `effects.css` | 完成反馈、Cut-in、粒子、队列视觉与 reduced-motion 降级 |
 | 13 | `responsive.css` | 1024/700/359px 响应式策略 |
+| 14 | `ux-efficiency.css` | 高频/低频操作层级、卡片动作收纳、移动端可发现性优化 |
 
 正式样式层不使用 `!important`。
 
@@ -51,7 +53,8 @@
 - `time-ledger-view.js`：时间账本正式渲染。
 - `editor-ux.js`：任务编辑器筛选、折叠任务配置和周目标编辑。
 - `fitness-view.js`：训练饮食渲染、链接打开和编辑器交互。
-- `pwa.js`：PWA 安装、Service Worker 更新提示和版本切换。
+- `pwa.js`：PWA 安装、Service Worker 更新提示、版本切换，并加载后置 UX 效率层。
+- `ux-efficiency.js`：不改任务业务数据；负责移除重复导航、把危险/低频操作移出高频区、压缩卡片动作、记忆周计划分类、默认收起冗余概览、移动端操作可见性和桌面快捷键。
 
 ## 同步与数据完整性
 
@@ -75,6 +78,7 @@
 - 游戏任务链接：保存在每日/指定日 `schedule` 或本周 `weekly` 条目的 `url` 字段，仅允许 HTTP/HTTPS。
 - 时间日志：`taskring_time_logs_v1`；活动计时器保持本机。
 - 展开状态：`taskring_ui_disclosure_v1`，仅本机 UI 偏好。
+- 周计划上次分类：`taskring_ui_weekly_category_v1`，仅本机 UI 偏好。
 - 页面与滚动：`taskring_github_v2_active_view_v1`、`taskring_ui_scroll_state_v1`。
 
 ## 自动验证
@@ -83,7 +87,7 @@ GitHub Actions 工作流位于 `.github/workflows/ci.yml`，在 `main`、`fix/**
 
 - 所有 JavaScript 的 `node --check`。
 - `tests/integrity-core.test.js` 的配置冲突、分类迁移、状态 tombstone 与旧格式迁移测试。
-- `tests/repo-integrity-check.js` 的页面资源、Service Worker APP_SHELL、导出 `.gitignore` 与默认数据一致性检查。
+- `tests/repo-integrity-check.js` 的页面资源、Service Worker APP_SHELL、导出 `.gitignore`、默认数据与后置 UX 资源接线一致性检查。
 - `git diff --check` 空白字符检查。
 
 ## 资源依赖图
@@ -93,14 +97,15 @@ index.html
 ├─ assets/icons/favicon.svg
 ├─ assets/icons/favicon.png
 ├─ assets/css/main.css
-│  └─ 13 个职责 CSS（无图片 url()）
+│  └─ 14 个职责 CSS（含 ux-efficiency.css）
 ├─ assets/images/cutins/（16 张本地角色图）
-└─ 10 个 JavaScript 文件
+└─ 10 个直接脚本 + 1 个后置 UX 脚本
    ├─ 公开默认数据
    ├─ 核心业务
    ├─ 数据完整性核心 + 浏览器同步保护
    ├─ 5 个视图模块
-   └─ PWA 注册模块
+   ├─ PWA 注册模块
+   └─ UX efficiency 后置增强
 ```
 
-运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript；CI 会阻止漏缓存的新运行时模块进入主分支。
+运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript，以及 `pwa.js` 动态加载的 UX efficiency 资源；CI 会阻止漏缓存的新运行时模块进入主分支。
