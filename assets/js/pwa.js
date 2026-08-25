@@ -1,6 +1,81 @@
 (() => {
   "use strict";
 
+  // One-time private task installer. The target URL is accepted only from the URL hash,
+  // written into the user's own TaskRing config, then removed from the address bar.
+  // This keeps personal destinations out of the public repository and server logs.
+  function installAiDailyTaskFromHash(){
+    const rawHash = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    if(!rawHash) return;
+    const params = new URLSearchParams(rawHash);
+    const rawTarget = params.get("aiDaily");
+    if(!rawTarget) return;
+
+    let targetUrl = "";
+    try{
+      const parsed = new URL(rawTarget);
+      if(parsed.protocol !== "https:") throw new Error("https required");
+      targetUrl = parsed.toString();
+    }catch(_){
+      if(typeof window.showToast === "function") window.showToast("AI Daily 入口链接无效，未写入任务。", "err", 4200);
+      return;
+    }
+
+    // Remove the private payload before doing any other work. URL fragments are not sent
+    // in HTTP requests, and replaceState also keeps it out of copy/paste history afterwards.
+    params.delete("aiDaily");
+    const remainingHash = params.toString();
+    history.replaceState(null, "", `${location.pathname}${location.search}${remainingHash ? `#${remainingHash}` : ""}`);
+
+    try{
+      const base = normalizeTaskConfig(loadLocalTaskConfig() || taskConfig || buildDefaultConfig());
+      const canonicalId = "ai-daily-review";
+      const canonicalTitle = "AI Daily｜检查今日归档";
+      const existingIndex = base.tasks.findIndex(task => task.id === canonicalId || String(task.title || "").trim() === canonicalTitle);
+      const existing = existingIndex >= 0 ? base.tasks[existingIndex] : null;
+      const task = {
+        ...(existing || {}),
+        id: existing?.id || canonicalId,
+        code: existing?.code || "",
+        cat: "life",
+        title: canonicalTitle,
+        days: [1,2,3,4,5,6,0],
+        url: targetUrl,
+        core: true,
+        optional: false,
+        important: true,
+        enabled: true,
+        time_category: "life",
+        estimated_minutes: 30,
+        weekly_minutes: 210,
+        plan_mode: "daily",
+        steps: [
+          {id:"ai-daily-life",code:"s01",title:"现实生活总控",enabled:true},
+          {id:"ai-daily-create",code:"s02",title:"游戏创作与版本运营",enabled:true},
+          {id:"ai-daily-game",code:"s03",title:"游戏实战研究与任务提示",enabled:true},
+          {id:"ai-daily-language",code:"s04",title:"语言进阶",enabled:true},
+          {id:"ai-daily-knowledge",code:"s05",title:"知识与人类进展",enabled:true}
+        ]
+      };
+
+      const tasks = base.tasks.slice();
+      if(existingIndex >= 0) tasks[existingIndex] = task;
+      else tasks.unshift(task);
+      const next = normalizeTaskConfig({...base, tasks, updatedAt:new Date().toISOString()});
+      const saved = saveLocalTaskConfig(next, "安装 AI Daily 每日入口前自动备份");
+      applyTaskConfig(saved, true);
+
+      if(typeof window.showToast === "function"){
+        window.showToast("AI Daily 已加入今日执行环：以后点“打开 ↗”直接阅读。", "ok", 5200);
+      }
+    }catch(error){
+      console.error("AI Daily private task install failed", error);
+      if(typeof window.showToast === "function") window.showToast("AI Daily 入口写入失败；原任务配置未被覆盖。", "err", 5200);
+    }
+  }
+
+  installAiDailyTaskFromHash();
+
   // Keep the base UI modules stable and load optional UX refinements after the main renderer has booted.
   if(!document.querySelector('script[data-taskring-ux-efficiency]')){
     const uxScript = document.createElement("script");
