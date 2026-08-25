@@ -14,6 +14,8 @@ const defaultData=read("assets/js/data/default-data.js");
 const assetManifest=JSON.parse(read("docs/ASSET_MANIFEST.json"));
 const mainCss=read("assets/css/main.css");
 const pwa=read("assets/js/pwa.js");
+const uxJs=read("assets/js/ux-efficiency.js");
+const uxCss=read("assets/css/ux-efficiency.css");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -47,6 +49,10 @@ assert(pwa.includes("assets/js/ux-efficiency.js"),"pwa.js must load the post-ren
 assert(mainCss.includes("ux-efficiency.css"),"main.css must import UX efficiency styles");
 assert(shell.has("assets/js/ux-efficiency.js"),"service worker must cache the UX efficiency runtime");
 assert(shell.has("assets/css/ux-efficiency.css"),"service worker must cache UX efficiency styles");
+assert(uxJs.includes("aria-keyshortcuts"),"UX layer must expose keyboard shortcuts to assistive technology");
+assert(uxJs.includes("mutationNeedsEnhance"),"UX layer must keep MutationObserver work targeted instead of rescanning on every DOM update");
+assert(uxCss.includes(".uxShortcutHint"),"desktop shortcut discovery hint is missing");
+assert(uxCss.includes(".uxIdleLog"),"idle editor-log compaction style is missing");
 
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
