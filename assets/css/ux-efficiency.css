@@ -63,6 +63,16 @@
 .uxActionMenu button:hover,
 .uxActionMenu a:hover { border-color: var(--color-line); background: var(--color-panel-soft); }
 
+/* Daily category rows can contain cards with different disclosure heights. Never stretch the shorter card to the tallest sibling: that was inflating action buttons and leaving a large false blank panel. */
+.dailyGroupBody {
+  align-items: start;
+  grid-auto-rows: max-content;
+}
+.dailyCard {
+  align-self: start;
+  align-content: start;
+}
+
 /* Editor controls keep every capability visible, but primary actions should not visually compete with maintenance utilities. */
 .taskEditorToolbar #saveConfigBtn,
 .taskEditorToolbar #saveGameQuestBtn,
