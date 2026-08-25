@@ -4,6 +4,8 @@
 
   const WEEKLY_CATEGORY_KEY="taskring_ui_weekly_category_v1";
   const DISCLOSURE_KEY="taskring_ui_disclosure_v1";
+  const DYNAMIC_UX_SELECTOR=".dailyActions,.missionActions,.weeklyCategoryTabs,.orbitDrawer[data-ui-details-key]";
+  const IDLE_EDITOR_LOGS=new Set(["等待编辑。","等待编辑.","等待编辑","等待设置。","等待设置.","等待设置"]);
   let scheduled=false;
   let restoringWeekly=false;
 
@@ -131,10 +133,31 @@
     });
   }
 
-  function addNavigationShortcuts(){
-    document.querySelectorAll(".viewDockBtn[data-view-target]").forEach((btn,index)=>{
-      if(index<6&&!btn.title)btn.title=`Alt+${index+1} · ${btn.textContent.trim().replace(/\s+/g," ")}`;
+  function compactIdleEditorLogs(){
+    document.querySelectorAll(".taskEditorModal .ghLog,.refEditorModal .ghLog,.gameQuestEditorModal .ghLog,.fitnessEditorModal .ghLog").forEach(log=>{
+      const text=String(log.textContent||"").trim();
+      log.classList.toggle("uxIdleLog",IDLE_EDITOR_LOGS.has(text));
     });
+  }
+
+  function addNavigationShortcuts(){
+    const buttons=[...document.querySelectorAll(".viewDockBtn[data-view-target]")].slice(0,6);
+    buttons.forEach((btn,index)=>{
+      const shortcut=`Alt+${index+1}`;
+      const label=btn.getAttribute("aria-label")||btn.textContent.trim().replace(/\s+/g," ");
+      btn.setAttribute("aria-keyshortcuts",shortcut);
+      if(!String(btn.title||"").includes(shortcut))btn.title=`${shortcut} · ${label}`;
+    });
+
+    const toolbar=document.querySelector(".inertiaToolbar");
+    if(toolbar&&!toolbar.querySelector(".uxShortcutHint")){
+      const hint=document.createElement("span");
+      hint.className="uxShortcutHint";
+      hint.setAttribute("aria-hidden","true");
+      hint.title="桌面快捷键：Alt+1 到 Alt+6 快速切换六个一级页面";
+      hint.innerHTML='<span class="uxShortcutGlyph">⌨</span><kbd>Alt</kbd><span>1–6 快速切换</span>';
+      toolbar.appendChild(hint);
+    }
   }
 
   function enhance(){
@@ -143,6 +166,7 @@
     compactTaskActions();
     restoreWeeklyCategory();
     collapseRedundantOrbitByDefault();
+    compactIdleEditorLogs();
     addNavigationShortcuts();
   }
 
@@ -150,6 +174,18 @@
     if(scheduled)return;
     scheduled=true;
     requestAnimationFrame(enhance);
+  }
+
+  function nodeContainsDynamicUx(node){
+    if(!(node instanceof Element))return false;
+    return node.matches(DYNAMIC_UX_SELECTOR)||!!node.querySelector(DYNAMIC_UX_SELECTOR);
+  }
+
+  function mutationNeedsEnhance(mutation){
+    if(mutation.type==="characterData")return !!mutation.target.parentElement?.closest(".ghLog");
+    const target=mutation.target instanceof Element?mutation.target:mutation.target.parentElement;
+    if(target?.closest(".ghLog"))return true;
+    return [...mutation.addedNodes].some(node=>nodeContainsDynamicUx(node));
   }
 
   document.addEventListener("click",event=>{
@@ -169,8 +205,21 @@
   },true);
 
   document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){
+      const openMenus=[...document.querySelectorAll(".uxActionMore[open]")];
+      if(openMenus.length){
+        event.preventDefault();
+        const last=openMenus[openMenus.length-1];
+        openMenus.forEach(details=>{details.open=false});
+        last.querySelector(":scope > summary")?.focus();
+        return;
+      }
+    }
+
     if(!event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
-    if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||""))return;
+    if(document.body.classList.contains("modalOpen")||document.querySelector(".controlCenterMenu:not(.hidden)"))return;
+    const activeTag=document.activeElement?.tagName||"";
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(activeTag)||document.activeElement?.isContentEditable)return;
     const index=Number(event.key)-1;
     if(index<0||index>5)return;
     const button=document.querySelectorAll(".viewDockBtn[data-view-target]")[index];
@@ -179,8 +228,10 @@
     button.click();
   });
 
-  const observer=new MutationObserver(scheduleEnhance);
-  if(document.body)observer.observe(document.body,{childList:true,subtree:true});
+  const observer=new MutationObserver(mutations=>{
+    if(mutations.some(mutationNeedsEnhance))scheduleEnhance();
+  });
+  if(document.body)observer.observe(document.body,{childList:true,subtree:true,characterData:true});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",scheduleEnhance,{once:true});
   else scheduleEnhance();
 })();
