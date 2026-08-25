@@ -29,7 +29,7 @@
 .viewDockBtn[data-view-target="fitness"]:not(.active),
 .viewDockBtn[data-view-target="game"]:not(.active) { background: transparent; }
 .viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility) { border-color: transparent; }
-.viewDockBtn[data-view-target]:not(.active) .dockGlyph {
+.viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility) .dockGlyph {
   background: color-mix(in srgb,var(--dock-zone,var(--color-panel-soft)) 62%,white);
 }
 .viewDockBtn[data-view-target]:not(.active):not(.viewDockUtility):hover {
