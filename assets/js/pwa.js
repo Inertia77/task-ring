@@ -4,31 +4,20 @@
   // One-time private task installer. The target URL is accepted only from the URL hash,
   // written into the user's own TaskRing config, then removed from the address bar.
   // This keeps personal destinations out of the public repository and server logs.
-  function installAiDailyTaskFromHash(){
-    const rawHash = location.hash.startsWith("#") ? location.hash.slice(1) : "";
-    if(!rawHash) return;
-    const params = new URLSearchParams(rawHash);
-    const rawTarget = params.get("aiDaily");
-    if(!rawTarget) return;
+  const AI_DAILY_PENDING_KEY = "taskring_ai_daily_pending_v1";
+  const baseApplyTaskConfigForAiDaily = typeof applyTaskConfig === "function" ? applyTaskConfig : null;
+  let aiDailyInstalling = false;
 
-    let targetUrl = "";
+  function aiDailyToast(message, type = "ok", duration = 4200){
+    if(typeof window.showToast === "function") window.showToast(message, type, duration);
+    else console.info(message);
+  }
+
+  function installAiDailyTask(targetUrl, sourceConfig){
+    if(aiDailyInstalling) return false;
+    aiDailyInstalling = true;
     try{
-      const parsed = new URL(rawTarget);
-      if(parsed.protocol !== "https:") throw new Error("https required");
-      targetUrl = parsed.toString();
-    }catch(_){
-      if(typeof window.showToast === "function") window.showToast("AI Daily 入口链接无效，未写入任务。", "err", 4200);
-      return;
-    }
-
-    // Remove the private payload before doing any other work. URL fragments are not sent
-    // in HTTP requests, and replaceState also keeps it out of copy/paste history afterwards.
-    params.delete("aiDaily");
-    const remainingHash = params.toString();
-    history.replaceState(null, "", `${location.pathname}${location.search}${remainingHash ? `#${remainingHash}` : ""}`);
-
-    try{
-      const base = normalizeTaskConfig(loadLocalTaskConfig() || taskConfig || buildDefaultConfig());
+      const base = normalizeTaskConfig(sourceConfig || loadLocalTaskConfig() || taskConfig || buildDefaultConfig());
       const canonicalId = "ai-daily-review";
       const canonicalTitle = "AI Daily｜检查今日归档";
       const existingIndex = base.tasks.findIndex(task => task.id === canonicalId || String(task.title || "").trim() === canonicalTitle);
@@ -63,18 +52,70 @@
       else tasks.unshift(task);
       const next = normalizeTaskConfig({...base, tasks, updatedAt:new Date().toISOString()});
       const saved = saveLocalTaskConfig(next, "安装 AI Daily 每日入口前自动备份");
-      applyTaskConfig(saved, true);
-
-      if(typeof window.showToast === "function"){
-        window.showToast("AI Daily 已加入今日执行环：以后点“打开 ↗”直接阅读。", "ok", 5200);
-      }
+      if(baseApplyTaskConfigForAiDaily) baseApplyTaskConfigForAiDaily(saved, true);
+      else applyTaskConfig(saved, true);
+      sessionStorage.removeItem(AI_DAILY_PENDING_KEY);
+      aiDailyToast("AI Daily 已加入今日执行环：以后点“打开 ↗”直接阅读。", "ok", 5200);
+      return true;
     }catch(error){
       console.error("AI Daily private task install failed", error);
-      if(typeof window.showToast === "function") window.showToast("AI Daily 入口写入失败；原任务配置未被覆盖。", "err", 5200);
+      aiDailyToast("AI Daily 入口写入失败；原任务配置未被覆盖。", "err", 5200);
+      return false;
+    }finally{
+      aiDailyInstalling = false;
     }
   }
 
-  installAiDailyTaskFromHash();
+  function tryInstallPendingAiDaily(configHint = null){
+    if(aiDailyInstalling) return false;
+    const targetUrl = sessionStorage.getItem(AI_DAILY_PENDING_KEY) || "";
+    if(!targetUrl) return false;
+    const localConfig = loadLocalTaskConfig();
+    const hasCloudConfigSource = typeof ghToken === "function" && !!ghToken();
+    // On a fresh device with cloud sync configured, do not persist the public demo as the
+    // user's real config. Wait until ghPull applies the actual local/cloud config first.
+    if(!localConfig && hasCloudConfigSource && !configHint) return false;
+    return installAiDailyTask(targetUrl, localConfig || configHint || taskConfig || buildDefaultConfig());
+  }
+
+  function captureAiDailyTaskFromHash(){
+    const rawHash = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    if(!rawHash) return;
+    const params = new URLSearchParams(rawHash);
+    const rawTarget = params.get("aiDaily");
+    if(!rawTarget) return;
+
+    let targetUrl = "";
+    try{
+      const parsed = new URL(rawTarget);
+      if(parsed.protocol !== "https:") throw new Error("https required");
+      targetUrl = parsed.toString();
+    }catch(_){
+      aiDailyToast("AI Daily 入口链接无效，未写入任务。", "err", 4200);
+      return;
+    }
+
+    // Fragments are not sent in HTTP requests. Clear the private payload immediately so
+    // it also disappears from the visible/shareable address after this one-time install.
+    params.delete("aiDaily");
+    const remainingHash = params.toString();
+    history.replaceState(null, "", `${location.pathname}${location.search}${remainingHash ? `#${remainingHash}` : ""}`);
+    sessionStorage.setItem(AI_DAILY_PENDING_KEY, targetUrl);
+    tryInstallPendingAiDaily();
+  }
+
+  // ghPull may still be waiting on the network when this script runs. Hook future config
+  // applications so a fresh device installs the pending private task only after real data arrives.
+  if(baseApplyTaskConfigForAiDaily){
+    applyTaskConfig = function(config, shouldRender = false){
+      const result = baseApplyTaskConfigForAiDaily(config, shouldRender);
+      if(!aiDailyInstalling) tryInstallPendingAiDaily(config);
+      return result;
+    };
+  }
+
+  captureAiDailyTaskFromHash();
+  tryInstallPendingAiDaily();
 
   // Keep the base UI modules stable and load optional UX refinements after the main renderer has booted.
   if(!document.querySelector('script[data-taskring-ux-efficiency]')){
