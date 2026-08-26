@@ -1,0 +1,167 @@
+/* Mobile weekly plan polish: compact the weekly pool for touch screens and keep low-frequency actions as a small contextual popover instead of a bottom-sheet-sized panel. */
+
+@media (max-width: 700px) {
+  /* Weekly header: keep the hierarchy, but spend less vertical space before the actual tasks. */
+  .weeklyCommandHero {
+    gap: 8px;
+    padding: 10px;
+  }
+  .weeklyCommandHero .taskAreaDescription {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.35;
+  }
+  .weeklyHeroStats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .weeklyHeroStats > div {
+    min-width: 0;
+    min-height: 62px;
+    padding: 7px 9px;
+    align-content: center;
+    border-radius: 10px;
+  }
+  .weeklyHeroStats span { font-size: 10px; }
+  .weeklyHeroStats b { margin-top: 2px; font-size: 17px; line-height: 1.1; }
+
+  /* Category navigation behaves like a deliberate touch carousel instead of a row of oversized cards. */
+  .weeklyCategoryTabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(104px, 31vw);
+    gap: 6px;
+    padding: 2px 2px 8px;
+    overflow-x: auto;
+    scroll-padding-inline: 2px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .weeklyCategoryTabs::-webkit-scrollbar { display: none; }
+  .weeklyCategoryTab {
+    min-width: 0;
+    min-height: 58px;
+    padding: 7px 9px;
+    border-radius: 10px;
+    scroll-snap-align: start;
+  }
+  .weeklyCategoryTab span { font-size: 14px; line-height: 1.15; }
+  .weeklyCategoryTab b,
+  .weeklyCategoryTab em { font-size: 10.5px; line-height: 1.2; }
+
+  /* Group headers and task cards should read as one continuous mobile list. */
+  .weeklyTaskGroups { gap: 8px; }
+  .weeklyMissionGroup { border-radius: 12px; }
+  .weeklyMissionGroup > summary { padding: 8px 10px; }
+  .weeklyMissionGroup > .groupMeter { margin-inline: 10px; }
+  .weeklyMissionGrid { gap: 6px; padding: 6px; }
+  .weeklyMissionCard {
+    padding: 10px;
+    border-radius: 11px;
+  }
+  .missionHead {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .missionIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+  .missionTitleBlock b { font-size: 16px; line-height: 1.22; }
+  .missionTitleBlock span { font-size: 11px; line-height: 1.3; }
+  .missionScore {
+    grid-column: 2;
+    gap: 3px 7px;
+    padding-left: 0;
+    align-items: baseline;
+  }
+  .missionScore strong { font-size: 13px; }
+  .missionScore em { font-size: 10.5px; }
+  .missionMeter { margin-top: 7px; }
+
+  /* Keep the three high-frequency controls compact and predictable. */
+  .missionActions.uxCompacted {
+    position: relative;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, .92fr) minmax(76px, .68fr);
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .missionActions.uxCompacted:has(> .uxActionMore:nth-child(2)) {
+    grid-template-columns: minmax(0, 1.55fr) minmax(78px, .72fr);
+  }
+  .missionActions.uxCompacted > button,
+  .missionActions.uxCompacted > a,
+  .missionActions .uxActionMore > summary {
+    min-height: 40px;
+    padding: 5px 7px;
+    border-radius: 9px;
+    font-size: 11.5px;
+  }
+  .missionActions .uxActionMore { position: relative; }
+  .missionActions .uxActionMore > summary:focus { outline: none; }
+  .missionActions .uxActionMore > summary:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Critical mobile fix: override the generic bottom-sheet menu. Weekly card secondary actions fit in one short anchored strip. */
+  .missionActions .uxActionMenu {
+    position: absolute !important;
+    z-index: 160;
+    right: 0 !important;
+    bottom: calc(100% + 7px) !important;
+    left: auto !important;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(304px, calc(100vw - 44px)) !important;
+    max-height: none !important;
+    gap: 3px;
+    padding: 4px;
+    overflow: visible !important;
+    border: 1px solid color-mix(in srgb, var(--color-line-strong) 72%, white);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-panel) 98%, transparent);
+    box-shadow: 0 10px 28px rgba(23, 23, 20, .16);
+    backdrop-filter: blur(12px);
+  }
+  .missionActions .uxActionMenu button,
+  .missionActions .uxActionMenu a {
+    width: auto;
+    min-width: 0;
+    min-height: 40px;
+    padding: 5px 6px;
+    justify-content: center;
+    border-radius: 7px;
+    text-align: center;
+    font-size: 10.5px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  /* Supporting state chips should not form a second toolbar. */
+  .missionBadges {
+    gap: 4px;
+    margin-top: 7px;
+  }
+  .missionBadges > span {
+    min-height: 22px;
+    padding: 2px 6px;
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 420px) {
+  .weeklyCategoryTabs { grid-auto-columns: minmax(96px, 34vw); }
+  .missionActions.uxCompacted {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, .86fr) minmax(72px, .68fr);
+  }
+  .missionActions .uxActionMenu {
+    width: min(292px, calc(100vw - 32px)) !important;
+  }
+  .missionActions .uxActionMenu button,
+  .missionActions .uxActionMenu a { padding-inline: 4px; font-size: 10px; }
+}
