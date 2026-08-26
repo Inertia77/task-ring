@@ -7,6 +7,7 @@
   // and normal server logs.
   const AI_DAILY_PENDING_KEY = "taskring_ai_daily_pending_v1";
   const PRIVATE_TASK_PATCH_PENDING_KEY = "taskring_private_task_patch_pending_v1";
+  const PRIVATE_TASK_PATCH_CONFIRM_KEY = "taskring_private_task_patch_confirm_v1";
   const PRIVATE_WEEKLY_LABELS_KEY = "taskring_private_weekly_labels_v1";
   const baseApplyTaskConfigForPrivateInstallers = typeof applyTaskConfig === "function" ? applyTaskConfig : null;
   let aiDailyInstalling = false;
@@ -239,7 +240,13 @@
           if(operation.required !== false) throw new Error(`required task not found: ${JSON.stringify(matcher)}`);
           return;
         }
-        const set = operation.set && typeof operation.set === "object" ? {...operation.set} : {};
+        const rawSet = operation.set && typeof operation.set === "object" ? operation.set : {};
+        const set = {};
+        // Private patches may reshape planning metadata, but never change stable IDs/codes,
+        // private destinations, enabled state, or other unrelated config fields.
+        ["title","cat","days","core","optional","important","time_category","estimated_minutes","weekly_minutes","plan_mode","steps"].forEach(key => {
+          if(Object.prototype.hasOwnProperty.call(rawSet, key)) set[key] = rawSet[key];
+        });
         if(Object.prototype.hasOwnProperty.call(set, "steps")) set.steps = normalizePrivatePatchSteps(set.steps);
         tasks[index] = {...tasks[index], ...set};
         updatedCount++;
@@ -271,6 +278,7 @@
       else applyTaskConfig(saved, true);
       if(typeof window.renderWeeklyPlanPanel === "function") window.renderWeeklyPlanPanel();
       sessionStorage.removeItem(PRIVATE_TASK_PATCH_PENDING_KEY);
+      sessionStorage.removeItem(PRIVATE_TASK_PATCH_CONFIRM_KEY);
       privateInstallerToast(String(patch.message || "周计划结构已更新。"), "ok", 5600);
 
       // Let the normal conflict-aware Gist pull reconcile and upload the new local config.
@@ -298,6 +306,16 @@
     const localConfig = loadLocalTaskConfig();
     const hasCloudConfigSource = typeof ghToken === "function" && !!ghToken();
     if(!localConfig && hasCloudConfigSource && !configHint) return false;
+    const patchId = String(patch.id || "private-task-patch");
+    if(sessionStorage.getItem(PRIVATE_TASK_PATCH_CONFIRM_KEY) !== patchId){
+      const prompt = String(patch.confirm_message || "将调整当前 TaskRing 的私人任务结构。系统会先做备份，并在结果不符合安全断言时拒绝保存。确认继续？");
+      if(!window.confirm(prompt)){
+        sessionStorage.removeItem(PRIVATE_TASK_PATCH_PENDING_KEY);
+        privateInstallerToast("已取消任务结构调整；没有修改任何配置。", "warn", 4200);
+        return false;
+      }
+      sessionStorage.setItem(PRIVATE_TASK_PATCH_CONFIRM_KEY, patchId);
+    }
     return applyPrivateTaskPatch(patch, localConfig || configHint || taskConfig || buildDefaultConfig());
   }
 
