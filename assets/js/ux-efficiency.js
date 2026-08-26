@@ -234,4 +234,11 @@
   if(document.body)observer.observe(document.body,{childList:true,subtree:true,characterData:true});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",scheduleEnhance,{once:true});
   else scheduleEnhance();
+
+  if(!document.querySelector('script[data-taskring-private-restructure]')){
+    const script=document.createElement("script");
+    script.src="assets/js/private-restructure.js?v=20260826.1";
+    script.dataset.taskringPrivateRestructure="1";
+    document.body.appendChild(script);
+  }
 })();
