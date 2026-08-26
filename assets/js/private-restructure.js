@@ -152,6 +152,31 @@
     let tasks = (base.tasks || []).map(task => ({...task, steps:Array.isArray(task.steps) ? task.steps.map(step => ({...step})) : task.steps}));
     const retired = new Set(Array.isArray(base.retired_task_codes) ? base.retired_task_codes : []);
 
+    // Retain lets migrations define a stable target set inside a category instead of
+    // guessing which obsolete task titles should be removed. It is idempotent when the
+    // keep list includes both current and final target titles.
+    for(const operation of (Array.isArray(payload.retain) ? payload.retain : [])){
+      if(!operation || typeof operation !== "object") continue;
+      const scope = operation.scope || operation.match || {};
+      const keepMatchers = Array.isArray(operation.keep) ? operation.keep : [];
+      const scopedTasks = tasks.filter(task => matches(task, scope));
+      const minScope = operation.min_scope == null ? 1 : Number(operation.min_scope);
+      if(scopedTasks.length < minScope){
+        if(operation.required !== false) throw new Error(`retain scope matched ${scopedTasks.length}, need >= ${minScope}: ${JSON.stringify(scope)}`);
+        continue;
+      }
+      let kept = 0;
+      tasks = tasks.filter(task => {
+        if(!matches(task, scope)) return true;
+        const shouldKeep = keepMatchers.some(matcher => matches(task, matcher));
+        if(shouldKeep){ kept++; return true; }
+        if(task.code) retired.add(String(task.code));
+        return false;
+      });
+      const minKeep = operation.min_keep == null ? 1 : Number(operation.min_keep);
+      if(kept < minKeep) throw new Error(`retain kept ${kept}, need >= ${minKeep}: ${JSON.stringify(scope)}`);
+    }
+
     // Removal is idempotent by default: a task that is already gone is considered done.
     // Set required:true only when absence must abort the restructure.
     for(const operation of (Array.isArray(payload.remove) ? payload.remove : [])){
@@ -176,9 +201,6 @@
       if(matchedTasks.length < min){
         if(operation.required !== false) throw new Error(`collapse matched ${matchedTasks.length}, need >= ${min}: ${JSON.stringify(matcher)}`);
         continue;
-      }
-      if(matchedTasks.length === 1 && operation.allow_single !== true){
-        // Already collapsed: apply the requested final metadata and continue.
       }
       const keeper = pickCollapseKeeper(matchedTasks, operation);
       const keeperId = String(keeper.id || "");
