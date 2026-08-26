@@ -75,6 +75,36 @@
     return out;
   }
 
+  function mergeTaskSteps(tasks){
+    const seen = new Set();
+    const merged = [];
+    tasks.forEach(task => {
+      (Array.isArray(task.steps) ? task.steps : []).forEach(step => {
+        if(!step || step.enabled === false) return;
+        const title = String(step.title || "").trim();
+        if(!title) return;
+        const key = title.toLowerCase();
+        if(seen.has(key)) return;
+        seen.add(key);
+        merged.push({...step, enabled:true});
+      });
+    });
+    return merged;
+  }
+
+  function pickCollapseKeeper(tasks, operation = {}){
+    const preferred = list(operation.prefer_title_contains_any).map(value => value.toLowerCase());
+    const scored = tasks.map(task => {
+      const title = String(task.title || "").toLowerCase();
+      const preferredScore = preferred.some(part => title.includes(part)) ? 1 : 0;
+      const weekly = Number(task.weekly_minutes || task.weeklyMinutes || 0) || 0;
+      const estimated = Number(task.estimated_minutes || task.estimatedMinutes || 0) || 0;
+      return {task, preferredScore, weekly, estimated};
+    });
+    scored.sort((a,b) => b.preferredScore-a.preferredScore || b.weekly-a.weekly || b.estimated-a.estimated);
+    return scored[0]?.task || tasks[0];
+  }
+
   function weeklyStats(config){
     const weekly = (config.tasks || []).filter(task => task.enabled !== false && String(task.plan_mode || task.planMode || "") === "weekly");
     const categoryCounts = {};
@@ -122,6 +152,8 @@
     let tasks = (base.tasks || []).map(task => ({...task, steps:Array.isArray(task.steps) ? task.steps.map(step => ({...step})) : task.steps}));
     const retired = new Set(Array.isArray(base.retired_task_codes) ? base.retired_task_codes : []);
 
+    // Removal is idempotent by default: a task that is already gone is considered done.
+    // Set required:true only when absence must abort the restructure.
     for(const operation of (Array.isArray(payload.remove) ? payload.remove : [])){
       const matcher = operation?.match && typeof operation.match === "object" ? operation.match : operation;
       let matched = 0;
@@ -131,7 +163,38 @@
         if(task.code) retired.add(String(task.code));
         return false;
       });
-      if(operation?.required !== false && matched === 0) throw new Error(`remove matcher found nothing: ${JSON.stringify(matcher)}`);
+      if(operation?.required === true && matched === 0) throw new Error(`required remove matcher found nothing: ${JSON.stringify(matcher)}`);
+    }
+
+    // Collapse a whole category/group without depending on private task titles.
+    // The keeper preserves its stable id/code/url; all other matched tasks are retired.
+    for(const operation of (Array.isArray(payload.collapse) ? payload.collapse : [])){
+      if(!operation || typeof operation !== "object") continue;
+      const matcher = operation.match || {};
+      const matchedTasks = tasks.filter(task => matches(task, matcher));
+      const min = operation.min_matches == null ? 1 : Number(operation.min_matches);
+      if(matchedTasks.length < min){
+        if(operation.required !== false) throw new Error(`collapse matched ${matchedTasks.length}, need >= ${min}: ${JSON.stringify(matcher)}`);
+        continue;
+      }
+      if(matchedTasks.length === 1 && operation.allow_single !== true){
+        // Already collapsed: apply the requested final metadata and continue.
+      }
+      const keeper = pickCollapseKeeper(matchedTasks, operation);
+      const keeperId = String(keeper.id || "");
+      const mergedSteps = operation.merge_steps === false ? keeper.steps : mergeTaskSteps(matchedTasks);
+      const set = safeSet(operation.set || {});
+      if(operation.merge_steps !== false && !Object.prototype.hasOwnProperty.call(set, "steps")) set.steps = mergedSteps;
+
+      tasks = tasks.filter(task => {
+        if(!matches(task, matcher)) return true;
+        if(String(task.id || "") === keeperId) return true;
+        if(task.code) retired.add(String(task.code));
+        return false;
+      });
+      const keeperIndex = tasks.findIndex(task => String(task.id || "") === keeperId);
+      if(keeperIndex < 0) throw new Error("collapse keeper disappeared");
+      tasks[keeperIndex] = {...tasks[keeperIndex], ...set};
     }
 
     for(const operation of (Array.isArray(payload.update) ? payload.update : [])){
@@ -196,7 +259,7 @@
 
     run(payload).catch(error => {
       console.error("weekly restructure failed", error);
-      toast(`周计划重组未通过检查：${String(error.message || error)}`, "err", 7200);
+      toast(`周计划重组未通过检查：${String(error.message || error)}`, "err", 7800);
     });
   }
 
