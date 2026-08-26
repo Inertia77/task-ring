@@ -356,6 +356,31 @@
   tryApplyPendingPrivateTaskPatch();
   if(typeof window.renderWeeklyPlanPanel === "function") window.renderWeeklyPlanPanel();
 
+  // The game board is an execution surface: entering it should always start from the real
+  // current day. Manual weekday browsing still works while the user stays in the board.
+  function resetGameQuestToToday(rerender = false){
+    if(typeof today === "undefined" || typeof gameQuestSelectedDay === "undefined") return false;
+    const currentDay = Number(today);
+    if(!Number.isFinite(currentDay)) return false;
+    const changed = Number(gameQuestSelectedDay) !== currentDay;
+    gameQuestSelectedDay = currentDay;
+    try{
+      if(typeof GH_PREFIX !== "undefined") localStorage.setItem(`${GH_PREFIX}gamequest_selected_day_v1`, String(currentDay));
+    }catch(_){}
+    if(rerender && typeof window.renderGameQuestPanel === "function") window.renderGameQuestPanel();
+    return changed;
+  }
+
+  // product-ui restores the last manually viewed weekday before this script runs. Normalize
+  // that initial state back to today, and repaint immediately if the app reopens on GAME.
+  resetGameQuestToToday(document.body?.dataset?.appView === "game");
+  document.addEventListener("click", event => {
+    const target = event.target instanceof Element ? event.target.closest('[data-view-target="game"]') : null;
+    if(!target) return;
+    // Capture phase runs before app.js stops propagation on dock navigation.
+    resetGameQuestToToday(true);
+  }, true);
+
   // Keep the base UI modules stable and load optional UX refinements after the main renderer has booted.
   if(!document.querySelector('script[data-taskring-ux-efficiency]')){
     const uxScript = document.createElement("script");
