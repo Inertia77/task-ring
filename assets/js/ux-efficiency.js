@@ -8,9 +8,48 @@
   const IDLE_EDITOR_LOGS=new Set(["等待编辑。","等待编辑.","等待编辑","等待设置。","等待设置.","等待设置"]);
   let scheduled=false;
   let restoringWeekly=false;
+  let unifiedModuleLabelsApplied=false;
 
   function readJson(key,fallback={}){
     try{const value=JSON.parse(localStorage.getItem(key)||"");return value&&typeof value==="object"?value:fallback}catch(_){return fallback}
+  }
+
+  function applyUnifiedModuleLabels(){
+    if(unifiedModuleLabelsApplied)return;
+    if(typeof taskConfig==="undefined"||!Array.isArray(taskConfig?.tasks)||typeof taskPlanningMode!=="function"||typeof timeCategoryDefs!=="object")return;
+    const weekly=taskConfig.tasks.filter(task=>task.enabled!==false&&taskPlanningMode(task)==="weekly");
+    const counts={};
+    weekly.forEach(task=>{
+      const category=String(task.time_category||task.timeCategory||"");
+      counts[category]=(counts[category]||0)+1;
+    });
+    const expected=weekly.length===9&&counts.language===5&&counts.creator===3&&counts.body===1;
+    const unexpected=Object.entries(counts).some(([key,count])=>count&&!["language","creator","body"].includes(key));
+    if(!expected||unexpected)return;
+
+    const patches={
+      language:{name:"学习",short:"学习",icon:"学"},
+      creator:{name:"经营",short:"经营",icon:"营"},
+      body:{name:"身体",short:"身体",icon:"身"}
+    };
+    let changed=false;
+    Object.entries(patches).forEach(([key,patch])=>{
+      const def=timeCategoryDefs[key];
+      if(!def)return;
+      Object.entries(patch).forEach(([field,value])=>{
+        if(def[field]!==value){def[field]=value;changed=true}
+      });
+    });
+    unifiedModuleLabelsApplied=true;
+
+    // If the task editor is already open while a cloud pull finishes, update its options too.
+    document.querySelectorAll('select option[value="language"]').forEach(option=>{option.textContent="学习"});
+    document.querySelectorAll('select option[value="creator"]').forEach(option=>{option.textContent="经营"});
+    document.querySelectorAll('select option[value="body"]').forEach(option=>{option.textContent="身体"});
+
+    if(changed&&typeof window.renderWeeklyPlanPanel==="function"){
+      requestAnimationFrame(()=>window.renderWeeklyPlanPanel());
+    }
   }
 
   function simplifyStaticChrome(){
@@ -162,6 +201,7 @@
 
   function enhance(){
     scheduled=false;
+    applyUnifiedModuleLabels();
     simplifyStaticChrome();
     compactTaskActions();
     restoreWeeklyCategory();
