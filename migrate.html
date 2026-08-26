@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TaskRing｜结构调整</title>
+<meta name="theme-color" content="#f4f1e9">
+<style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4f1e9;color:#151510;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif;display:grid;place-items:center;padding:24px}
+  .card{width:min(620px,100%);background:#fffdf8;border:1px solid #d7d2c7;border-radius:24px;box-shadow:0 18px 60px rgba(30,28,20,.09);padding:28px}
+  .eyebrow{font-size:13px;font-weight:800;letter-spacing:.12em;color:#aa6e21}.title{font-size:28px;font-weight:900;margin:8px 0 8px}.sub{color:#6a675f;line-height:1.65;margin:0 0 20px}
+  .status{border:1px solid #ddd8cb;border-radius:16px;background:#f8f6ef;padding:16px;line-height:1.55;font-weight:700;min-height:76px;display:flex;align-items:center}.status.ok{border-color:#b8d0b9;background:#f1f8f1}.status.err{border-color:#e0b0a8;background:#fff4f1}.status.warn{border-color:#dfca8c;background:#fff9e7}
+  .foot{margin-top:16px;color:#777168;font-size:13px;line-height:1.55}.back{display:none;margin-top:18px;width:100%;border:0;border-radius:14px;padding:14px 16px;background:#171711;color:white;font-size:16px;font-weight:800}.back.show{display:block}
+  iframe{position:fixed;width:2px;height:2px;left:-20px;top:-20px;opacity:0;pointer-events:none;border:0}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="eyebrow">TASKRING · SAFE MIGRATION</div>
+  <div class="title">正在调整周计划结构</div>
+  <p class="sub">先读取这台设备当前的真实 TaskRing 配置，再执行结构调整。任何前置条件或最终结构对不上，都会拒绝保存。</p>
+  <div id="status" class="status">正在载入 TaskRing 与云端/本机配置…</div>
+  <button id="back" class="back" type="button">返回 TaskRing</button>
+  <div class="foot">这个页面只在你主动打开时运行一次；任务内容仍保存在 TaskRing 本机配置与加密 Gist 中。</div>
+</main>
+<iframe id="taskringFrame" src="./index.html" title="TaskRing hidden migration host"></iframe>
+<script>
+(() => {
+  "use strict";
+  const status=document.getElementById("status");
+  const back=document.getElementById("back");
+  const frame=document.getElementById("taskringFrame");
+  let finished=false;
+
+  function setStatus(message,type=""){
+    status.textContent=message;
+    status.className=`status ${type||""}`;
+  }
+  window.showToast=(message,type="ok")=>{
+    setStatus(String(message),type);
+    if(type==="ok" && String(message).startsWith("已完成：")){
+      finished=true;
+      back.classList.add("show");
+      back.textContent="调整完成，返回 TaskRing";
+      setTimeout(()=>{ location.href="./index.html"; },2600);
+    }
+    if(type==="err"){
+      back.classList.add("show");
+      back.textContent="返回 TaskRing（未修改）";
+    }
+  };
+  back.addEventListener("click",()=>{location.href="./index.html"});
+
+  function bridge(child){
+    const fnNames=["normalizeTaskConfig","loadLocalTaskConfig","buildDefaultConfig","saveLocalTaskConfig","applyTaskConfig","renderAll","ghToken","ghPatchConfig","setGhStatus","ghLog"];
+    for(const name of fnNames){
+      if(typeof child[name]==="function") window[name]=child[name].bind(child);
+    }
+    window.taskConfig=child.taskConfig;
+    window.timeCategoryDefs=child.timeCategoryDefs;
+  }
+
+  frame.addEventListener("load",()=>{
+    setStatus("已载入 TaskRing；等待初始同步完成后开始核对真实任务结构…");
+    setTimeout(()=>{
+      try{
+        const child=frame.contentWindow;
+        bridge(child);
+        if(typeof window.normalizeTaskConfig!=="function" || typeof window.loadLocalTaskConfig!=="function") throw new Error("TaskRing 核心函数尚未就绪");
+        const script=document.createElement("script");
+        script.src="./assets/js/private-task-migration.js?v=20260826.1";
+        script.onerror=()=>setStatus("迁移模块加载失败，请稍后重试。","err");
+        document.body.appendChild(script);
+      }catch(error){
+        setStatus(`无法启动迁移：${String(error.message||error)}`,"err");
+        back.classList.add("show");
+      }
+    },3000);
+  });
+
+  setTimeout(()=>{
+    if(!finished && status.textContent.includes("载入")) setStatus("载入时间比预期更久；如果 10 秒后仍无变化，请返回后重试。","warn");
+  },8500);
+})();
+</script>
+</body>
+</html>
