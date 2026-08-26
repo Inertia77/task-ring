@@ -1,16 +1,45 @@
 (() => {
   "use strict";
 
-  // One-time private task installer. The target URL is accepted only from the URL hash,
-  // written into the user's own TaskRing config, then removed from the address bar.
-  // This keeps personal destinations out of the public repository and server logs.
+  // Private config installers accept payloads only from the URL hash, write them into
+  // the user's own TaskRing config, then immediately clear the hash. Fragments are not
+  // sent in HTTP requests, so personal task names and destinations stay out of this repo
+  // and normal server logs.
   const AI_DAILY_PENDING_KEY = "taskring_ai_daily_pending_v1";
-  const baseApplyTaskConfigForAiDaily = typeof applyTaskConfig === "function" ? applyTaskConfig : null;
+  const PRIVATE_TASK_PATCH_PENDING_KEY = "taskring_private_task_patch_pending_v1";
+  const PRIVATE_WEEKLY_LABELS_KEY = "taskring_private_weekly_labels_v1";
+  const baseApplyTaskConfigForPrivateInstallers = typeof applyTaskConfig === "function" ? applyTaskConfig : null;
   let aiDailyInstalling = false;
+  let privateTaskPatchApplying = false;
 
-  function aiDailyToast(message, type = "ok", duration = 4200){
+  function privateInstallerToast(message, type = "ok", duration = 4200){
     if(typeof window.showToast === "function") window.showToast(message, type, duration);
     else console.info(message);
+  }
+
+  function privateJsonRead(storage, key, fallback = null){
+    try{
+      const raw = storage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(_){
+      return fallback;
+    }
+  }
+
+  function applyPrivateWeeklyLabels(labels = privateJsonRead(localStorage, PRIVATE_WEEKLY_LABELS_KEY, {}), rerender = true){
+    if(!labels || typeof labels !== "object" || typeof timeCategoryDefs !== "object") return false;
+    let changed = false;
+    Object.entries(labels).forEach(([category, patch]) => {
+      const def = timeCategoryDefs[category];
+      if(!def || !patch || typeof patch !== "object") return;
+      ["name","short","icon"].forEach(key => {
+        if(typeof patch[key] !== "string" || !patch[key].trim()) return;
+        const value = patch[key].trim();
+        if(def[key] !== value){ def[key] = value; changed = true; }
+      });
+    });
+    if(changed && rerender && typeof window.renderWeeklyPlanPanel === "function") window.renderWeeklyPlanPanel();
+    return changed;
   }
 
   function installAiDailyTask(targetUrl, sourceConfig){
@@ -52,14 +81,14 @@
       else tasks.unshift(task);
       const next = normalizeTaskConfig({...base, tasks, updatedAt:new Date().toISOString()});
       const saved = saveLocalTaskConfig(next, "安装 AI Daily 每日入口前自动备份");
-      if(baseApplyTaskConfigForAiDaily) baseApplyTaskConfigForAiDaily(saved, true);
+      if(baseApplyTaskConfigForPrivateInstallers) baseApplyTaskConfigForPrivateInstallers(saved, true);
       else applyTaskConfig(saved, true);
       sessionStorage.removeItem(AI_DAILY_PENDING_KEY);
-      aiDailyToast("AI Daily 已加入今日执行环：以后点“打开 ↗”直接阅读。", "ok", 5200);
+      privateInstallerToast("AI Daily 已加入今日执行环：以后点“打开 ↗”直接阅读。", "ok", 5200);
       return true;
     }catch(error){
       console.error("AI Daily private task install failed", error);
-      aiDailyToast("AI Daily 入口写入失败；原任务配置未被覆盖。", "err", 5200);
+      privateInstallerToast("AI Daily 入口写入失败；原任务配置未被覆盖。", "err", 5200);
       return false;
     }finally{
       aiDailyInstalling = false;
@@ -91,12 +120,10 @@
       if(parsed.protocol !== "https:") throw new Error("https required");
       targetUrl = parsed.toString();
     }catch(_){
-      aiDailyToast("AI Daily 入口链接无效，未写入任务。", "err", 4200);
+      privateInstallerToast("AI Daily 入口链接无效，未写入任务。", "err", 4200);
       return;
     }
 
-    // Fragments are not sent in HTTP requests. Clear the private payload immediately so
-    // it also disappears from the visible/shareable address after this one-time install.
     params.delete("aiDaily");
     const remainingHash = params.toString();
     history.replaceState(null, "", `${location.pathname}${location.search}${remainingHash ? `#${remainingHash}` : ""}`);
@@ -104,18 +131,212 @@
     tryInstallPendingAiDaily();
   }
 
+  function decodeBase64UrlJson(raw){
+    const normalized = String(raw || "").trim().replace(/-/g, "+").replace(/_/g, "/");
+    if(!normalized) throw new Error("empty payload");
+    const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    const text = new TextDecoder().decode(bytes);
+    const parsed = JSON.parse(text);
+    if(!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid patch");
+    return parsed;
+  }
+
+  function stringList(value){
+    if(value == null) return [];
+    return (Array.isArray(value) ? value : [value]).map(v => String(v || "").trim()).filter(Boolean);
+  }
+
+  function privateTaskMatches(task, matcher = {}){
+    if(!task || !matcher || typeof matcher !== "object") return false;
+    const ids = [...stringList(matcher.id), ...stringList(matcher.ids)];
+    const titles = [...stringList(matcher.title), ...stringList(matcher.titles)];
+    const hasIdentity = ids.length || titles.length;
+    if(hasIdentity){
+      const id = String(task.id || "").trim();
+      const title = String(task.title || "").trim();
+      if(!ids.includes(id) && !titles.includes(title)) return false;
+    }
+    const categories = [...stringList(matcher.cat), ...stringList(matcher.cats)];
+    if(categories.length && !categories.includes(String(task.cat || ""))) return false;
+    const timeCategories = [...stringList(matcher.time_category), ...stringList(matcher.time_categories)];
+    const taskTime = String(task.time_category || task.timeCategory || "");
+    if(timeCategories.length && !timeCategories.includes(taskTime)) return false;
+    const planModes = [...stringList(matcher.plan_mode), ...stringList(matcher.plan_modes)];
+    const taskMode = String(task.plan_mode || task.planMode || "");
+    if(planModes.length && !planModes.includes(taskMode)) return false;
+    if(!hasIdentity && !categories.length && !timeCategories.length && !planModes.length) return false;
+    return true;
+  }
+
+  function normalizePrivatePatchSteps(value){
+    if(!Array.isArray(value)) return value;
+    return value.map((step, index) => {
+      if(typeof step === "string") return {id:`private-step-${index+1}`, title:step.trim(), enabled:true};
+      if(!step || typeof step !== "object") return null;
+      return {
+        ...step,
+        id:String(step.id || `private-step-${index+1}`),
+        title:String(step.title || `子任务 ${index+1}`),
+        enabled:step.enabled !== false
+      };
+    }).filter(step => step && step.title.trim());
+  }
+
+  function privatePatchWeeklyStats(config){
+    const weekly = (config.tasks || []).filter(task => task.enabled !== false && String(task.plan_mode || task.planMode || "") === "weekly");
+    const categoryCounts = {};
+    weekly.forEach(task => {
+      const category = String(task.time_category || task.timeCategory || "life");
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+    return {weeklyCount:weekly.length, categoryCounts};
+  }
+
+  function assertPrivatePatchOutcome(config, assertion = {}){
+    if(!assertion || typeof assertion !== "object") return;
+    const stats = privatePatchWeeklyStats(config);
+    if(Number.isFinite(Number(assertion.weekly_count)) && stats.weeklyCount !== Number(assertion.weekly_count)){
+      throw new Error(`weekly_count ${stats.weeklyCount} != ${assertion.weekly_count}`);
+    }
+    if(assertion.category_counts && typeof assertion.category_counts === "object"){
+      Object.entries(assertion.category_counts).forEach(([category, expected]) => {
+        const actual = stats.categoryCounts[category] || 0;
+        if(actual !== Number(expected)) throw new Error(`category ${category} ${actual} != ${expected}`);
+      });
+    }
+  }
+
+  function applyPrivateTaskPatch(patch, sourceConfig){
+    if(privateTaskPatchApplying) return false;
+    privateTaskPatchApplying = true;
+    try{
+      if(Number(patch.version || 1) !== 1) throw new Error("unsupported patch version");
+      const base = normalizeTaskConfig(sourceConfig || loadLocalTaskConfig() || taskConfig || buildDefaultConfig());
+      let tasks = (base.tasks || []).map(task => ({...task, steps:Array.isArray(task.steps) ? task.steps.map(step => ({...step})) : task.steps}));
+      const retired = new Set(Array.isArray(base.retired_task_codes) ? base.retired_task_codes : []);
+      let removedCount = 0;
+      let updatedCount = 0;
+
+      (Array.isArray(patch.remove) ? patch.remove : []).forEach(spec => {
+        const matcher = spec?.match && typeof spec.match === "object" ? spec.match : spec;
+        const next = [];
+        tasks.forEach(task => {
+          if(privateTaskMatches(task, matcher)){
+            if(task.code) retired.add(String(task.code));
+            removedCount++;
+          }else next.push(task);
+        });
+        tasks = next;
+      });
+
+      (Array.isArray(patch.update) ? patch.update : []).forEach(operation => {
+        if(!operation || typeof operation !== "object") return;
+        const matcher = operation.match || {};
+        const index = tasks.findIndex(task => privateTaskMatches(task, matcher));
+        if(index < 0){
+          if(operation.required !== false) throw new Error(`required task not found: ${JSON.stringify(matcher)}`);
+          return;
+        }
+        const set = operation.set && typeof operation.set === "object" ? {...operation.set} : {};
+        if(Object.prototype.hasOwnProperty.call(set, "steps")) set.steps = normalizePrivatePatchSteps(set.steps);
+        tasks[index] = {...tasks[index], ...set};
+        updatedCount++;
+      });
+
+      if(patch.expect && typeof patch.expect === "object"){
+        if(Number.isFinite(Number(patch.expect.removed_count)) && removedCount !== Number(patch.expect.removed_count)){
+          throw new Error(`removed_count ${removedCount} != ${patch.expect.removed_count}`);
+        }
+        if(Number.isFinite(Number(patch.expect.updated_count)) && updatedCount !== Number(patch.expect.updated_count)){
+          throw new Error(`updated_count ${updatedCount} != ${patch.expect.updated_count}`);
+        }
+      }
+
+      const candidate = normalizeTaskConfig({
+        ...base,
+        tasks,
+        retired_task_codes:[...retired],
+        updatedAt:new Date().toISOString()
+      });
+      assertPrivatePatchOutcome(candidate, patch.expect || {});
+
+      const saved = saveLocalTaskConfig(candidate, String(patch.backup_reason || "应用私人任务结构调整前自动备份"));
+      if(patch.labels && typeof patch.labels === "object"){
+        localStorage.setItem(PRIVATE_WEEKLY_LABELS_KEY, JSON.stringify(patch.labels));
+        applyPrivateWeeklyLabels(patch.labels, false);
+      }
+      if(baseApplyTaskConfigForPrivateInstallers) baseApplyTaskConfigForPrivateInstallers(saved, true);
+      else applyTaskConfig(saved, true);
+      if(typeof window.renderWeeklyPlanPanel === "function") window.renderWeeklyPlanPanel();
+      sessionStorage.removeItem(PRIVATE_TASK_PATCH_PENDING_KEY);
+      privateInstallerToast(String(patch.message || "周计划结构已更新。"), "ok", 5600);
+
+      // Let the normal conflict-aware Gist pull reconcile and upload the new local config.
+      // This avoids bypassing TaskRing's safety layer or overwriting a newer cloud edit.
+      if(typeof ghToken === "function" && ghToken() && typeof ghPull === "function"){
+        setTimeout(() => {
+          try{ ghPull(); }
+          catch(error){ console.warn("private task patch cloud reconciliation skipped", error); }
+        }, 1600);
+      }
+      return true;
+    }catch(error){
+      console.error("TaskRing private task patch failed", error);
+      privateInstallerToast("任务结构调整未通过安全检查；原配置已保留。", "err", 6200);
+      return false;
+    }finally{
+      privateTaskPatchApplying = false;
+    }
+  }
+
+  function tryApplyPendingPrivateTaskPatch(configHint = null){
+    if(privateTaskPatchApplying) return false;
+    const patch = privateJsonRead(sessionStorage, PRIVATE_TASK_PATCH_PENDING_KEY, null);
+    if(!patch) return false;
+    const localConfig = loadLocalTaskConfig();
+    const hasCloudConfigSource = typeof ghToken === "function" && !!ghToken();
+    if(!localConfig && hasCloudConfigSource && !configHint) return false;
+    return applyPrivateTaskPatch(patch, localConfig || configHint || taskConfig || buildDefaultConfig());
+  }
+
+  function capturePrivateTaskPatchFromHash(){
+    const rawHash = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    if(!rawHash) return;
+    const params = new URLSearchParams(rawHash);
+    const encoded = params.get("taskPatch");
+    if(!encoded) return;
+    try{
+      const patch = decodeBase64UrlJson(encoded);
+      sessionStorage.setItem(PRIVATE_TASK_PATCH_PENDING_KEY, JSON.stringify(patch));
+      params.delete("taskPatch");
+      const remainingHash = params.toString();
+      history.replaceState(null, "", `${location.pathname}${location.search}${remainingHash ? `#${remainingHash}` : ""}`);
+      tryApplyPendingPrivateTaskPatch();
+    }catch(error){
+      console.error("invalid private task patch payload", error);
+      privateInstallerToast("任务结构调整链接无效，未修改任何配置。", "err", 5200);
+    }
+  }
+
   // ghPull may still be waiting on the network when this script runs. Hook future config
-  // applications so a fresh device installs the pending private task only after real data arrives.
-  if(baseApplyTaskConfigForAiDaily){
+  // applications so a fresh device installs pending private changes only after real data arrives.
+  if(baseApplyTaskConfigForPrivateInstallers){
     applyTaskConfig = function(config, shouldRender = false){
-      const result = baseApplyTaskConfigForAiDaily(config, shouldRender);
+      const result = baseApplyTaskConfigForPrivateInstallers(config, shouldRender);
       if(!aiDailyInstalling) tryInstallPendingAiDaily(config);
+      if(!privateTaskPatchApplying) tryApplyPendingPrivateTaskPatch(config);
       return result;
     };
   }
 
+  applyPrivateWeeklyLabels(undefined, false);
   captureAiDailyTaskFromHash();
+  capturePrivateTaskPatchFromHash();
   tryInstallPendingAiDaily();
+  tryApplyPendingPrivateTaskPatch();
+  if(typeof window.renderWeeklyPlanPanel === "function") window.renderWeeklyPlanPanel();
 
   // Keep the base UI modules stable and load optional UX refinements after the main renderer has booted.
   if(!document.querySelector('script[data-taskring-ux-efficiency]')){
