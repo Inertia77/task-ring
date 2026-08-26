@@ -4,6 +4,7 @@
 
   const WEEKLY_CATEGORY_KEY="taskring_ui_weekly_category_v1";
   const DISCLOSURE_KEY="taskring_ui_disclosure_v1";
+  const MODULE_LABEL_SYNC_KEY="taskring_module_labels_synced_v1";
   const DYNAMIC_UX_SELECTOR=".dailyActions,.missionActions,.weeklyCategoryTabs,.orbitDrawer[data-ui-details-key]";
   const IDLE_EDITOR_LOGS=new Set(["等待编辑。","等待编辑.","等待编辑","等待设置。","等待设置.","等待设置"]);
   let scheduled=false;
@@ -14,9 +15,59 @@
     try{const value=JSON.parse(localStorage.getItem(key)||"");return value&&typeof value==="object"?value:fallback}catch(_){return fallback}
   }
 
-  function applyUnifiedModuleLabels(){
-    if(unifiedModuleLabelsApplied)return;
-    if(typeof taskConfig==="undefined"||!Array.isArray(taskConfig?.tasks)||typeof taskPlanningMode!=="function"||typeof timeCategoryDefs!=="object")return;
+  function sanitizeTimeCategoryLabels(raw){
+    const out={};
+    if(!raw||typeof raw!=="object"||Array.isArray(raw))return out;
+    Object.entries(raw).forEach(([key,value])=>{
+      if(typeof timeCategoryDefs!=="object"||!timeCategoryDefs[key]||!value||typeof value!=="object")return;
+      const patch={};
+      ["name","short","icon"].forEach(field=>{
+        const text=String(value[field]||"").trim();
+        if(text)patch[field]=text.slice(0,24);
+      });
+      if(Object.keys(patch).length)out[key]=patch;
+    });
+    return out;
+  }
+
+  function applyTimeCategoryLabels(raw){
+    const labels=sanitizeTimeCategoryLabels(raw);
+    let changed=false;
+    Object.entries(labels).forEach(([key,patch])=>{
+      const def=timeCategoryDefs[key];
+      if(!def)return;
+      Object.entries(patch).forEach(([field,value])=>{
+        if(def[field]!==value){def[field]=value;changed=true}
+      });
+    });
+    document.querySelectorAll('select option[value="language"]').forEach(option=>{option.textContent=timeCategoryDefs.language?.name||"学习"});
+    document.querySelectorAll('select option[value="creator"]').forEach(option=>{option.textContent=timeCategoryDefs.creator?.name||"经营"});
+    document.querySelectorAll('select option[value="body"]').forEach(option=>{option.textContent=timeCategoryDefs.body?.name||"身体"});
+    return changed;
+  }
+
+  // v4 task configs predate custom time-category labels. Preserve this optional metadata
+  // through normal local/Gist normalization without changing the core task schema.
+  const baseNormalizeTaskConfig=typeof normalizeTaskConfig==="function"?normalizeTaskConfig:null;
+  if(baseNormalizeTaskConfig){
+    normalizeTaskConfig=function(config){
+      const normalized=baseNormalizeTaskConfig(config);
+      const labels=sanitizeTimeCategoryLabels(config?.time_category_labels||config?.timeCategoryLabels);
+      if(Object.keys(labels).length)normalized.time_category_labels=labels;
+      return normalized;
+    };
+  }
+
+  const baseApplyTaskConfig=typeof applyTaskConfig==="function"?applyTaskConfig:null;
+  if(baseApplyTaskConfig){
+    applyTaskConfig=function(config,shouldRender=false){
+      applyTimeCategoryLabels(config?.time_category_labels||config?.timeCategoryLabels);
+      return baseApplyTaskConfig(config,shouldRender);
+    };
+  }
+
+  function consolidatedModuleSignature(){
+    if(typeof taskConfig==="undefined"||!Array.isArray(taskConfig?.tasks)||typeof taskPlanningMode!=="function")return null;
     const weekly=taskConfig.tasks.filter(task=>task.enabled!==false&&taskPlanningMode(task)==="weekly");
     const counts={};
     weekly.forEach(task=>{
@@ -25,31 +76,54 @@
     });
     const expected=weekly.length===9&&counts.language===5&&counts.creator===3&&counts.body===1;
     const unexpected=Object.entries(counts).some(([key,count])=>count&&!["language","creator","body"].includes(key));
-    if(!expected||unexpected)return;
+    return expected&&!unexpected?{weekly,counts}:null;
+  }
 
-    const patches={
+  function persistUnifiedModuleLabels(labels){
+    if(typeof taskConfig==="undefined"||!taskConfig||localStorage.getItem(MODULE_LABEL_SYNC_KEY)==="1")return;
+    try{
+      const current=sanitizeTimeCategoryLabels(taskConfig.time_category_labels);
+      const same=JSON.stringify(current)===JSON.stringify(labels);
+      const next=same?taskConfig:normalizeTaskConfig({...taskConfig,time_category_labels:labels,updatedAt:new Date().toISOString()});
+      const saved=same?taskConfig:saveLocalTaskConfig(next,"同步周计划模块显示名之前自动备份");
+      if(!same&&baseApplyTaskConfig)applyTaskConfig(saved,false);
+      if(typeof ghToken==="function"&&ghToken()&&typeof ghPatchConfig==="function"){
+        localStorage.setItem(MODULE_LABEL_SYNC_KEY,"pending");
+        Promise.resolve(ghPatchConfig(saved)).then(()=>{
+          localStorage.setItem(MODULE_LABEL_SYNC_KEY,"1");
+          if(typeof setGhStatus==="function")setGhStatus("GitHub：已同步","on");
+        }).catch(error=>{
+          console.warn("module label sync failed",error);
+          localStorage.removeItem(MODULE_LABEL_SYNC_KEY);
+        });
+      }else if(same){
+        localStorage.setItem(MODULE_LABEL_SYNC_KEY,"1");
+      }
+    }catch(error){
+      console.warn("module label persistence skipped",error);
+    }
+  }
+
+  function applyUnifiedModuleLabels(){
+    const synced=typeof taskConfig!=="undefined"?sanitizeTimeCategoryLabels(taskConfig?.time_category_labels):{};
+    if(Object.keys(synced).length){
+      const changed=applyTimeCategoryLabels(synced);
+      unifiedModuleLabelsApplied=true;
+      if(changed&&typeof window.renderWeeklyPlanPanel==="function")requestAnimationFrame(()=>window.renderWeeklyPlanPanel());
+      return;
+    }
+    if(unifiedModuleLabelsApplied)return;
+    if(!consolidatedModuleSignature())return;
+
+    const labels={
       language:{name:"学习",short:"学习",icon:"学"},
       creator:{name:"经营",short:"经营",icon:"营"},
       body:{name:"身体",short:"身体",icon:"身"}
     };
-    let changed=false;
-    Object.entries(patches).forEach(([key,patch])=>{
-      const def=timeCategoryDefs[key];
-      if(!def)return;
-      Object.entries(patch).forEach(([field,value])=>{
-        if(def[field]!==value){def[field]=value;changed=true}
-      });
-    });
+    const changed=applyTimeCategoryLabels(labels);
     unifiedModuleLabelsApplied=true;
-
-    // If the task editor is already open while a cloud pull finishes, update its options too.
-    document.querySelectorAll('select option[value="language"]').forEach(option=>{option.textContent="学习"});
-    document.querySelectorAll('select option[value="creator"]').forEach(option=>{option.textContent="经营"});
-    document.querySelectorAll('select option[value="body"]').forEach(option=>{option.textContent="身体"});
-
-    if(changed&&typeof window.renderWeeklyPlanPanel==="function"){
-      requestAnimationFrame(()=>window.renderWeeklyPlanPanel());
-    }
+    persistUnifiedModuleLabels(labels);
+    if(changed&&typeof window.renderWeeklyPlanPanel==="function")requestAnimationFrame(()=>window.renderWeeklyPlanPanel());
   }
 
   function simplifyStaticChrome(){
