@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <title>TaskRing｜游戏配置更新</title>
+  <style>
+    :root{font-family:Inter,"Noto Sans SC","PingFang SC",system-ui,sans-serif;color:#171714;background:#f4f0e6}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
+    main{width:min(620px,100%);background:#fffdf8;border:1px solid #d8d2c5;border-radius:24px;padding:28px;box-shadow:0 18px 55px rgba(35,30,20,.12)}
+    .mark{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:#171714;color:#ffd916;font-size:28px;font-weight:900}
+    h1{font-size:26px;margin:18px 0 8px}p{line-height:1.7;color:#625e55;margin:0 0 12px}
+    .status{margin-top:20px;border-radius:16px;background:#f3f1eb;padding:16px 18px;font-weight:700;line-height:1.55}
+    .status.ok{background:#edf8ee}.status.err{background:#fff0ed}.status.warn{background:#fff8dc}
+    a{display:inline-flex;margin-top:18px;padding:12px 18px;border-radius:12px;background:#171714;color:white;text-decoration:none;font-weight:800}
+    iframe{position:fixed;width:2px;height:2px;opacity:.001;pointer-events:none;left:-10px;top:-10px;border:0}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark">⚡</div>
+    <h1>TaskRing 游戏配置更新</h1>
+    <p>这是一页一次性私人配置安装器。它会先读取你这台设备当前的加密同步配置，再应用指定的游戏任务变更；不会把你的私人任务写进公开仓库。</p>
+    <div class="status" id="status">正在载入 TaskRing 当前配置……</div>
+    <a href="./" id="openApp" hidden>打开 TaskRing 游戏作战区</a>
+  </main>
+  <iframe id="appFrame" title="TaskRing 配置安装运行环境"></iframe>
+  <script>
+  (()=>{
+    const status=document.getElementById('status');
+    const openApp=document.getElementById('openApp');
+    const frame=document.getElementById('appFrame');
+    const hash=location.hash||'';
+    if(!hash.includes('gameQuestPatch=')){
+      status.className='status err';
+      status.textContent='缺少游戏配置更新内容；没有修改任何数据。';
+      return;
+    }
+    function set(text,kind=''){
+      status.className='status'+(kind?' '+kind:'');
+      status.textContent=text;
+    }
+    window.addEventListener('message',event=>{
+      if(event.origin!==location.origin||event.data?.type!=='taskring-gamequest-patch')return;
+      const {status:s,message}=event.data;
+      if(s==='ready')set('已读取更新内容，正在等待当前配置……');
+      else if(s==='applying')set('正在备份并更新游戏作战区……','warn');
+      else if(s==='syncing')set('本机更新完成，正在同步加密 Gist……','warn');
+      else if(s==='success'){set(message||'游戏作战区已更新。','ok');openApp.hidden=false;}
+      else if(s==='cancelled')set('已取消，没有修改任何配置。','warn');
+      else if(s==='error'){set('更新失败：'+(message||'未知错误'),'err');openApp.hidden=false;}
+    });
+    frame.addEventListener('load',async()=>{
+      try{
+        const w=frame.contentWindow;
+        set('正在读取本机 / Gist 最新配置……');
+        if(typeof w.ghPull==='function') await w.ghPull();
+        const script=frame.contentDocument.createElement('script');
+        script.src='./assets/js/private-gamequest-patch.js?v=20260827.1';
+        script.onerror=()=>set('安装器脚本加载失败；没有修改配置。','err');
+        frame.contentDocument.body.appendChild(script);
+      }catch(error){
+        console.error(error);
+        set('无法读取 TaskRing 配置；没有修改任何数据。','err');
+      }
+    },{once:true});
+    frame.src='./index.html'+hash;
+  })();
+  </script>
+</body>
+</html>
