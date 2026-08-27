@@ -1,6 +1,7 @@
-const CACHE_NAME = "taskring-shell-20260827-4";
+const CACHE_NAME = "taskring-shell-20260827-5";
 const GAMEQUEST_V3_SCRIPT = "./assets/js/gamequest-v3.js";
 const GAMEQUEST_PRIORITY_SCRIPT = "./assets/js/gamequest-priority.js";
+const GAMEQUEST_COMMAND_SCRIPT = "./assets/js/gamequest-command-board.js";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -41,7 +42,8 @@ const APP_SHELL = [
   "./assets/js/private-restructure.js",
   "./assets/js/pwa.js",
   GAMEQUEST_V3_SCRIPT,
-  GAMEQUEST_PRIORITY_SCRIPT
+  GAMEQUEST_PRIORITY_SCRIPT,
+  GAMEQUEST_COMMAND_SCRIPT
 ];
 
 self.addEventListener("install", event => {
@@ -88,6 +90,7 @@ async function injectGameQuestLayers(response){
   const tags = [];
   if(!html.includes("assets/js/gamequest-v3.js")) tags.push(`<script src="assets/js/gamequest-v3.js?v=20260827.2"></script>`);
   if(!html.includes("assets/js/gamequest-priority.js")) tags.push(`<script src="assets/js/gamequest-priority.js?v=20260827.1"></script>`);
+  if(!html.includes("assets/js/gamequest-command-board.js")) tags.push(`<script src="assets/js/gamequest-command-board.js?v=20260827.1"></script>`);
   if(tags.length){
     const scripts = tags.join("");
     html = html.includes("</body>") ? html.replace("</body>",`${scripts}</body>`) : `${html}${scripts}`;
