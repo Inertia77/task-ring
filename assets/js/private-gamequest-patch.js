@@ -11,6 +11,14 @@
     else console.info(message);
   }
 
+  function report(status, message = ""){
+    try{
+      if(window.parent && window.parent !== window){
+        window.parent.postMessage({type:"taskring-gamequest-patch",status,message}, location.origin);
+      }
+    }catch(_){ }
+  }
+
   function decodePayload(raw){
     const normalized = String(raw || "").trim().replace(/-/g, "+").replace(/_/g, "/");
     if(!normalized) throw new Error("empty payload");
@@ -134,12 +142,14 @@
       if(!window.confirm(prompt)){
         sessionStorage.removeItem(PENDING_KEY);
         toast("已取消游戏任务更新；没有修改配置。", "warn", 4200);
+        report("cancelled", "用户取消");
         return false;
       }
       sessionStorage.setItem(CONFIRM_KEY, patchId);
     }
 
     applying = true;
+    report("applying", "正在读取并更新游戏配置");
     try{
       const source = localConfig || configHint || taskConfig || buildDefaultConfig();
       const next = applyPatchToConfig(source, payload);
@@ -149,17 +159,22 @@
       if(typeof renderGameQuestPanel === "function") renderGameQuestPanel();
 
       if(hasCloud && typeof ghPatchConfig === "function"){
+        report("syncing", "本机已更新，正在同步加密配置");
         await ghPatchConfig(saved);
         if(typeof setGhStatus === "function") setGhStatus("GitHub：已同步", "on");
       }
 
       sessionStorage.removeItem(PENDING_KEY);
       sessionStorage.removeItem(CONFIRM_KEY);
-      toast(String(payload.message || "游戏作战区已更新并同步。"), "ok", 6200);
+      const message = String(payload.message || "游戏作战区已更新并同步。");
+      toast(message, "ok", 6200);
+      report("success", message);
       return true;
     }catch(error){
       console.error("private game quest patch failed", error);
-      toast(`游戏任务更新失败：${String(error.message || error)}；原配置已保留。`, "err", 7600);
+      const message = `${String(error.message || error)}；原配置已保留。`;
+      toast(`游戏任务更新失败：${message}`, "err", 7600);
+      report("error", message);
       return false;
     }finally{
       applying = false;
@@ -178,9 +193,11 @@
       params.delete(PARAM);
       const remaining = params.toString();
       history.replaceState(null, "", `${location.pathname}${location.search}${remaining ? `#${remaining}` : ""}`);
+      report("ready", "更新内容已读取");
     }catch(error){
       console.error("invalid private game quest patch", error);
       toast("游戏任务更新链接无效；没有修改配置。", "err", 5200);
+      report("error", "更新链接无效");
     }
   }
 
