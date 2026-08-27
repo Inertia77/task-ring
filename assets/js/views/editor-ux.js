@@ -1,4 +1,4 @@
-// v20 Editor UX
+// v21 Editor UX
 // 独立管理任务编辑器：停用任务收纳、搜索/筛选、折叠卡片、周目标确认弹窗。
 (function(){
   const EDITOR_FILTER_KEY="taskring_editor_filter_v20";
@@ -8,7 +8,9 @@
   function editorMatches(t){
     const q=String(editorUiState.query||"").trim().toLowerCase();
     if(!q)return true;
-    const hay=[t.title,t.id,t.code,t.cat,taskPlanningMode(t),taskTimeCategory(t),(t.steps||[]).map(s=>s.title).join(" ")].join(" ").toLowerCase();
+    const category=taskTimeCategory(t);
+    const categoryDef=timeCategoryDefs[category]||timeCategoryDefs.life;
+    const hay=[t.title,t.id,t.code,category,categoryDef.name,categoryDef.short,taskPlanningMode(t),(t.steps||[]).map(s=>s.title).join(" ")].join(" ").toLowerCase();
     return hay.includes(q);
   }
   function dayBoxesHtml(t){return [1,2,3,4,5,6,0].map(d=>`<label><input type="checkbox" class="cfgDay" value="${d}" ${t.days?.includes(d)?"checked":""}>${dayName(d)}</label>`).join("")}
@@ -33,9 +35,8 @@
       <div class="cfgBodyV20">
         <div class="cfgGrid">
           <div class="cfgField wide"><label>任务名</label><input class="cfgTitle" value="${cfgEsc(t.title)}"></div>
-          <div class="cfgField"><label>分类</label><select class="cfgCat"><option value="life" ${t.cat==="life"?"selected":""}>生活&经济</option><option value="gamecreate" ${t.cat==="gamecreate"?"selected":""}>游戏&创作</option><option value="language" ${t.cat==="language"?"selected":""}>语言&学习</option></select></div>
+          <div class="cfgField"><label>分类</label><select class="cfgCat cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].icon} ${timeCategoryDefs[k].name}</option>`).join("")}</select></div>
           <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务是否进入今日执行环，还是只在周计划池按时间推进">${taskPlanModeOrder.map(k=>`<option value="${k}" ${taskPlanningMode(t)===k?"selected":""}>${taskPlanModeDefs[k].name}</option>`).join("")}</select></div>
-          <div class="cfgField"><label>时间分类</label><select class="cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].name}</option>`).join("")}</select></div>
           <div class="cfgField"><label>预计分钟/次</label><input class="cfgEstimatedMinutes" type="number" min="1" max="480" step="5" value="${taskEstimatedMinutes(t)}"></div>
           <div class="cfgField"><label>每周目标分钟</label><input class="cfgWeeklyMinutes" type="number" min="0" max="10080" step="5" value="${taskWeeklyMinutes(t)}" title="用于任务行显示 本周已用 / 每周目标；填 0 表示不设目标"></div>
           <div class="cfgField wide"><label>链接 URL</label><input class="cfgUrl" value="${cfgEsc(t.url||"")}" placeholder="https://..."></div>
@@ -67,7 +68,7 @@
     const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
     const deletedIds=editorDeletedTaskIds(list);
     const tasks=cfg.tasks.filter(t=>!deletedIds.has(t.id));
-    const counts={all:tasks.length,active:tasks.filter(t=>t.enabled!==false).length,disabled:tasks.filter(t=>t.enabled===false).length,weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==="weekly").length,daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!=="weekly").length};
+    const counts={all:tasks.length,active:tasks.filter(t=>t.enabled!==false).length,disabled:tasks.filter(t=>t.enabled===false).length,weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==="weekly").length,daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!==="weekly").length};
     const activeTasks=tasks.filter(t=>scopePass(t));
     const disabledTasks=tasks.filter(t=>t.enabled===false&&!scopePass(t));
     const renderedTasks=[...activeTasks,...disabledTasks];
@@ -81,7 +82,7 @@
   window.addEditorTask=function(){
     const host=document.querySelector("#taskEditorList .taskEditorActiveList")||document.getElementById("taskEditorList");
     const planMode=editorUiState.scope==="daily"?"daily":"weekly";
-    const t={id:makeTaskId(),code:makeTaskCode(),cat:"life",title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:planMode,enabled:true,core:false,optional:false,important:false,steps:[]};
+    const t={id:makeTaskId(),code:makeTaskCode(),title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:planMode,enabled:true,core:false,optional:false,important:false,steps:[]};
     host.insertAdjacentHTML("afterbegin",taskEditorRowHtml(t));
     const row=host.querySelector(".cfgTask");
     if(row){row.dataset.editorNew="1";row.open=true;row.classList.add("newFocus");row.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>row.querySelector(".cfgTitle")?.focus(),260)}
