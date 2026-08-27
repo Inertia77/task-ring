@@ -80,17 +80,17 @@ function isAppNavigation(request){
   return url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
 }
 
-async function injectGameQuestEnhancements(response){
+async function injectGameQuestLayers(response){
   if(!response || !response.ok) return response;
   const type = response.headers.get("content-type") || "";
   if(!type.includes("text/html")) return response;
   let html = await response.text();
-  const tags=[];
+  const tags = [];
   if(!html.includes("assets/js/gamequest-v3.js")) tags.push(`<script src="assets/js/gamequest-v3.js?v=20260827.2"></script>`);
   if(!html.includes("assets/js/gamequest-priority.js")) tags.push(`<script src="assets/js/gamequest-priority.js?v=20260827.1"></script>`);
   if(tags.length){
-    const joined=tags.join("");
-    html = html.includes("</body>") ? html.replace("</body>",`${joined}</body>`) : `${html}${joined}`;
+    const scripts = tags.join("");
+    html = html.includes("</body>") ? html.replace("</body>",`${scripts}</body>`) : `${html}${scripts}`;
   }
   const headers = new Headers(response.headers);
   headers.delete("content-length");
@@ -104,13 +104,13 @@ async function networkFirstPage(request){
   try{
     const response = await fetch(request);
     if(!appNav) return response;
-    const enhanced = await injectGameQuestEnhancements(response.clone());
+    const enhanced = await injectGameQuestLayers(response.clone());
     if(enhanced.ok) await cache.put("./index.html", enhanced.clone());
     return enhanced;
   }catch(_){
     if(!appNav) return Response.error();
     const cached = await cache.match("./index.html");
-    return cached ? injectGameQuestEnhancements(cached) : Response.error();
+    return cached ? injectGameQuestLayers(cached) : Response.error();
   }
 }
 
