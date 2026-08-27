@@ -54,7 +54,8 @@
         const w=frame.contentWindow,doc=frame.contentDocument;
         set('正在读取本机 / Gist 最新配置……');
         if(typeof w.ghPull==='function') await w.ghPull();
-        if(!w.__TASKRING_GAMEQUEST_V3__) await loadScript(doc,'./assets/js/gamequest-v3.js?v=20260827.1');
+        if(!w.__TASKRING_GAMEQUEST_V3__) await loadScript(doc,'./assets/js/gamequest-v3.js?v=20260827.2');
+        if(!w.__TASKRING_GAMEQUEST_PRIORITY__) await loadScript(doc,'./assets/js/gamequest-priority.js?v=20260827.1');
         await loadScript(doc,'./assets/js/private-gamequest-patch.js?v=20260827.2');
       }catch(error){
         console.error(error);
