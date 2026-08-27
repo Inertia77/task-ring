@@ -13,6 +13,8 @@
   const VALID_TIME_CATEGORIES=new Set(timeCategoryOrder);
   const baseNormalizeTimeCategory=normalizeTimeCategory;
   const baseInferTaskTimeCategory=inferTaskTimeCategory;
+  const baseNormalizeTaskConfig=normalizeTaskConfig;
+  const baseApplyTaskConfig=applyTaskConfig;
   const baseSaveLocalTaskConfig=saveLocalTaskConfig;
   const baseGhPatchConfig=ghPatchConfig;
   let pushQueued=false;
@@ -65,19 +67,100 @@
     return baseInferTaskTimeCategory(raw);
   };
 
+  // v21: `time_category` is the only persisted task classification.
+  // The old three-way `cat` value is generated only as a temporary adapter while the
+  // legacy normalizer runs, then removed before config reaches memory/storage/Gist.
+  function legacyCatForCategory(category){
+    const key=normalizeTimeCategory(category,"life");
+    if(key==="game"||key==="creator")return "gamecreate";
+    if(key==="language"||key==="it_ai"||key==="science")return "language";
+    return "life";
+  }
+  function prepareLegacyNormalizerInput(config){
+    if(!config||!Array.isArray(config.tasks))return config;
+    return {...config,tasks:config.tasks.map(task=>{
+      const category=inferTaskTimeCategory(task||{});
+      return {...task,cat:legacyCatForCategory(category),time_category:category};
+    })};
+  }
+  function stripLegacyTaskCategory(config){
+    if(!config||!Array.isArray(config.tasks))return config;
+    return {...config,tasks:config.tasks.map(task=>{
+      const clean={...task,time_category:inferTaskTimeCategory(task||{})};
+      delete clean.cat;
+      delete clean.timeCategory;
+      return clean;
+    })};
+  }
+  normalizeTaskConfig=function(config){
+    return stripLegacyTaskCategory(baseNormalizeTaskConfig(prepareLegacyNormalizerInput(config)));
+  };
+  applyTaskConfig=function(config,shouldRender=false){
+    baseApplyTaskConfig(normalizeTaskConfig(config),false);
+    // Existing daily/mobile renderers still read `t.cat`; keep a runtime-only alias that
+    // points to the canonical rich category. It is never written back to taskConfig.
+    blocks.forEach(task=>{task.cat=taskTimeCategory(task)});
+    if(shouldRender&&typeof renderAll==="function")renderAll();
+  };
+
+  function installUnifiedCategoryPresentation(){
+    if(typeof cats==="undefined"||typeof mobileCatNames==="undefined")return;
+    const visualGroups={
+      game:{color:"var(--gamecreate)",cls:"gamecreate"},
+      creator:{color:"var(--gamecreate)",cls:"gamecreate"},
+      language:{color:"var(--language)",cls:"language"},
+      it_ai:{color:"var(--language)",cls:"language"},
+      science:{color:"var(--language)",cls:"language"},
+      body:{color:"var(--life)",cls:"life"},
+      economy:{color:"var(--life)",cls:"life"},
+      life:{color:"var(--life)",cls:"life"}
+    };
+    Object.keys(cats).forEach(key=>delete cats[key]);
+    Object.keys(mobileCatNames).forEach(key=>delete mobileCatNames[key]);
+    timeCategoryOrder.forEach(key=>{
+      const visual=visualGroups[key]||visualGroups.life;
+      const entry={color:visual.color,cls:visual.cls};
+      Object.defineProperty(entry,"name",{enumerable:true,get:()=>timeCategoryDefs[key]?.name||key});
+      Object.defineProperty(entry,"icon",{enumerable:true,get:()=>timeCategoryDefs[key]?.icon||"•"});
+      cats[key]=entry;
+      Object.defineProperty(mobileCatNames,key,{configurable:true,enumerable:true,get:()=>timeCategoryDefs[key]?.short||timeCategoryDefs[key]?.name||key});
+    });
+  }
+  installUnifiedCategoryPresentation();
+
+  function hasLegacyTaskCategory(config){
+    return Array.isArray(config?.tasks)&&config.tasks.some(task=>task&&Object.prototype.hasOwnProperty.call(task,"cat"));
+  }
+  ghParseConfig=async function(gist){
+    const file=gist.files&&gist.files[CONFIG_FILE];
+    if(!file||!file.content)return {config:null,mode:"missing",legacyCategory:false};
+    try{
+      const raw=JSON.parse(file.content);
+      if(raw&&raw.encrypted===true){
+        const decrypted=await decryptConfigObject(raw);
+        return {config:normalizeTaskConfig(decrypted),mode:"encrypted",legacyCategory:hasLegacyTaskCategory(decrypted)};
+      }
+      return {config:normalizeTaskConfig(raw),mode:"plaintext",legacyCategory:hasLegacyTaskCategory(raw)};
+    }catch(e){
+      ghLog("任务配置读取失败，已使用内置默认配置："+e.message);
+      return {config:null,mode:"error",legacyCategory:false,error:e};
+    }
+  };
+
   function migrateStoredTimeCategories(){
     try{
       const raw=localStorage.getItem(TASK_CONFIG_LOCAL_KEY);if(!raw)return false;
       const config=JSON.parse(raw);if(!Array.isArray(config?.tasks))return false;
       let changed=false;
       config.tasks.forEach(task=>{
-        const current=task?.time_category??task?.timeCategory;
-        const canonical=Core.canonicalTimeCategory(current,VALID_TIME_CATEGORIES,"");
-        if(canonical&&canonical!==current){task.time_category=canonical;delete task.timeCategory;changed=true}
+        const category=inferTaskTimeCategory(task||{});
+        if(task.time_category!==category){task.time_category=category;changed=true}
+        if(Object.prototype.hasOwnProperty.call(task,"timeCategory")){delete task.timeCategory;changed=true}
+        if(Object.prototype.hasOwnProperty.call(task,"cat")){delete task.cat;changed=true}
       });
       if(changed)localStorage.setItem(TASK_CONFIG_LOCAL_KEY,JSON.stringify(config));
       return changed;
-    }catch(err){console.warn("time category migration failed",err);return false}
+    }catch(err){console.warn("task category migration failed",err);return false}
   }
 
   // If a caller changes config content but forgets to touch updatedAt, repair the timestamp before saving.
@@ -272,8 +355,9 @@
       }
 
       applyTaskConfig(configToUse,false);
-      if(cfgResult.mode==="plaintext"&&!configConflict&&!pushLocalConfig&&cfgResult.config){
-        ghLog("检测到旧版明文配置，正在安全迁移为加密配置…");
+      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&cfgResult.config){
+        if(cfgResult.legacyCategory)ghLog("检测到旧三分类字段，正在迁移为唯一分类字段并安全写回云端…");
+        else ghLog("检测到旧版明文配置，正在安全迁移为加密配置…");
         await patchConfigSafely(cfgResult.config,{interactive:false,preloadedGist:gist});
       }
 
@@ -313,7 +397,8 @@
   }catch(err){console.warn("integrity startup normalization skipped",err)}
 
   window.TaskRingIntegrity={
-    version:"1.0.0",
+    version:"1.1.0",
+    categorySchema:"time_category-only",
     core:Core,
     stateMetaKey:STATE_META_KEY,
     configConflictKey:CONFIG_CONFLICT_KEY,
