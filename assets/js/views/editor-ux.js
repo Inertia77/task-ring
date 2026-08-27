@@ -68,7 +68,13 @@
     const cfg=normalizeTaskConfig(taskConfig||buildDefaultConfig());
     const deletedIds=editorDeletedTaskIds(list);
     const tasks=cfg.tasks.filter(t=>!deletedIds.has(t.id));
-    const counts={all:tasks.length,active:tasks.filter(t=>t.enabled!==false).length,disabled:tasks.filter(t=>t.enabled===false).length,weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==="weekly").length,daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!==="weekly").length};
+    const counts={
+      all:tasks.length,
+      active:tasks.filter(t=>t.enabled!==false).length,
+      disabled:tasks.filter(t=>t.enabled===false).length,
+      weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==='weekly').length,
+      daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!=='weekly').length
+    };
     const activeTasks=tasks.filter(t=>scopePass(t));
     const disabledTasks=tasks.filter(t=>t.enabled===false&&!scopePass(t));
     const renderedTasks=[...activeTasks,...disabledTasks];
