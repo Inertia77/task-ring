@@ -98,6 +98,7 @@
         if(typeof w.ghPull==='function')await w.ghPull();
         if(!w.__TASKRING_GAMEQUEST_V3__)await loadScript(doc,'./assets/js/gamequest-v3.js?v=20260827.2');
         if(!w.__TASKRING_GAMEQUEST_PRIORITY__)await loadScript(doc,'./assets/js/gamequest-priority.js?v=20260827.1');
+        if(!w.__TASKRING_GAMEQUEST_COMMAND_BOARD__)await loadScript(doc,'./assets/js/gamequest-command-board.js?v=20260827.1');
         await loadScript(doc,'./assets/js/private-gamequest-patch.js?v=20260827.3');
       }catch(error){console.error(error);set('无法读取或重构 TaskRing 配置；原数据没有被覆盖。','err');}
     },{once:true});
