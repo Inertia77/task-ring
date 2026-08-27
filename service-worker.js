@@ -1,5 +1,6 @@
-const CACHE_NAME = "taskring-shell-20260827-3";
+const CACHE_NAME = "taskring-shell-20260827-4";
 const GAMEQUEST_V3_SCRIPT = "./assets/js/gamequest-v3.js";
+const GAMEQUEST_PRIORITY_SCRIPT = "./assets/js/gamequest-priority.js";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -39,7 +40,8 @@ const APP_SHELL = [
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
   "./assets/js/pwa.js",
-  GAMEQUEST_V3_SCRIPT
+  GAMEQUEST_V3_SCRIPT,
+  GAMEQUEST_PRIORITY_SCRIPT
 ];
 
 self.addEventListener("install", event => {
@@ -78,20 +80,22 @@ function isAppNavigation(request){
   return url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
 }
 
-async function injectGameQuestV3(response){
+async function injectGameQuestEnhancements(response){
   if(!response || !response.ok) return response;
   const type = response.headers.get("content-type") || "";
   if(!type.includes("text/html")) return response;
-  const html = await response.text();
-  if(html.includes("assets/js/gamequest-v3.js")){
-    return new Response(html,{status:response.status,statusText:response.statusText,headers:response.headers});
+  let html = await response.text();
+  const tags=[];
+  if(!html.includes("assets/js/gamequest-v3.js")) tags.push(`<script src="assets/js/gamequest-v3.js?v=20260827.2"></script>`);
+  if(!html.includes("assets/js/gamequest-priority.js")) tags.push(`<script src="assets/js/gamequest-priority.js?v=20260827.1"></script>`);
+  if(tags.length){
+    const joined=tags.join("");
+    html = html.includes("</body>") ? html.replace("</body>",`${joined}</body>`) : `${html}${joined}`;
   }
-  const tag = `<script src="assets/js/gamequest-v3.js?v=20260827.1"></script>`;
-  const body = html.includes("</body>") ? html.replace("</body>",`${tag}</body>`) : `${html}${tag}`;
   const headers = new Headers(response.headers);
   headers.delete("content-length");
   headers.delete("content-encoding");
-  return new Response(body,{status:response.status,statusText:response.statusText,headers});
+  return new Response(html,{status:response.status,statusText:response.statusText,headers});
 }
 
 async function networkFirstPage(request){
@@ -100,13 +104,13 @@ async function networkFirstPage(request){
   try{
     const response = await fetch(request);
     if(!appNav) return response;
-    const enhanced = await injectGameQuestV3(response.clone());
+    const enhanced = await injectGameQuestEnhancements(response.clone());
     if(enhanced.ok) await cache.put("./index.html", enhanced.clone());
     return enhanced;
   }catch(_){
     if(!appNav) return Response.error();
     const cached = await cache.match("./index.html");
-    return cached ? injectGameQuestV3(cached) : Response.error();
+    return cached ? injectGameQuestEnhancements(cached) : Response.error();
   }
 }
 
