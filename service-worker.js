@@ -1,4 +1,5 @@
-const CACHE_NAME = "taskring-shell-20260827-2";
+const CACHE_NAME = "taskring-shell-20260827-3";
+const GAMEQUEST_V3_SCRIPT = "./assets/js/gamequest-v3.js";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -37,7 +38,8 @@ const APP_SHELL = [
   "./assets/js/views/product-ui.js",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
-  "./assets/js/pwa.js"
+  "./assets/js/pwa.js",
+  GAMEQUEST_V3_SCRIPT
 ];
 
 self.addEventListener("install", event => {
@@ -71,14 +73,40 @@ self.addEventListener("fetch", event => {
   event.respondWith(staleWhileRevalidate(event, request));
 });
 
+function isAppNavigation(request){
+  const url = new URL(request.url);
+  return url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
+}
+
+async function injectGameQuestV3(response){
+  if(!response || !response.ok) return response;
+  const type = response.headers.get("content-type") || "";
+  if(!type.includes("text/html")) return response;
+  const html = await response.text();
+  if(html.includes("assets/js/gamequest-v3.js")){
+    return new Response(html,{status:response.status,statusText:response.statusText,headers:response.headers});
+  }
+  const tag = `<script src="assets/js/gamequest-v3.js?v=20260827.1"></script>`;
+  const body = html.includes("</body>") ? html.replace("</body>",`${tag}</body>`) : `${html}${tag}`;
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  headers.delete("content-encoding");
+  return new Response(body,{status:response.status,statusText:response.statusText,headers});
+}
+
 async function networkFirstPage(request){
   const cache = await caches.open(CACHE_NAME);
+  const appNav = isAppNavigation(request);
   try{
     const response = await fetch(request);
-    if(response.ok) await cache.put("./index.html", response.clone());
-    return response;
+    if(!appNav) return response;
+    const enhanced = await injectGameQuestV3(response.clone());
+    if(enhanced.ok) await cache.put("./index.html", enhanced.clone());
+    return enhanced;
   }catch(_){
-    return (await cache.match("./index.html")) || Response.error();
+    if(!appNav) return Response.error();
+    const cached = await cache.match("./index.html");
+    return cached ? injectGameQuestV3(cached) : Response.error();
   }
 }
 
