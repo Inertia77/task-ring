@@ -37,15 +37,13 @@
       status.textContent='缺少游戏配置更新内容；没有修改任何数据。';
       return;
     }
-    function set(text,kind=''){
-      status.className='status'+(kind?' '+kind:'');
-      status.textContent=text;
-    }
+    function set(text,kind=''){status.className='status'+(kind?' '+kind:'');status.textContent=text;}
+    function loadScript(doc,src){return new Promise((resolve,reject)=>{const script=doc.createElement('script');script.src=src;script.onload=resolve;script.onerror=reject;doc.body.appendChild(script);});}
     window.addEventListener('message',event=>{
       if(event.origin!==location.origin||event.data?.type!=='taskring-gamequest-patch')return;
       const {status:s,message}=event.data;
       if(s==='ready')set('已读取更新内容，正在等待当前配置……');
-      else if(s==='applying')set('正在备份并更新游戏作战区……','warn');
+      else if(s==='applying')set('正在备份并重构游戏作战区……','warn');
       else if(s==='syncing')set('本机更新完成，正在同步加密 Gist……','warn');
       else if(s==='success'){set(message||'游戏作战区已更新。','ok');openApp.hidden=false;}
       else if(s==='cancelled')set('已取消，没有修改任何配置。','warn');
@@ -53,16 +51,14 @@
     });
     frame.addEventListener('load',async()=>{
       try{
-        const w=frame.contentWindow;
+        const w=frame.contentWindow,doc=frame.contentDocument;
         set('正在读取本机 / Gist 最新配置……');
         if(typeof w.ghPull==='function') await w.ghPull();
-        const script=frame.contentDocument.createElement('script');
-        script.src='./assets/js/private-gamequest-patch.js?v=20260827.1';
-        script.onerror=()=>set('安装器脚本加载失败；没有修改配置。','err');
-        frame.contentDocument.body.appendChild(script);
+        if(!w.__TASKRING_GAMEQUEST_V3__) await loadScript(doc,'./assets/js/gamequest-v3.js?v=20260827.1');
+        await loadScript(doc,'./assets/js/private-gamequest-patch.js?v=20260827.2');
       }catch(error){
         console.error(error);
-        set('无法读取 TaskRing 配置；没有修改任何数据。','err');
+        set('无法读取或重构 TaskRing 配置；原数据没有被覆盖。','err');
       }
     },{once:true});
     frame.src='./index.html'+hash;
