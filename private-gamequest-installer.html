@@ -21,8 +21,8 @@
   <main>
     <div class="mark">⚡</div>
     <h1>TaskRing 游戏配置更新</h1>
-    <p>一次性私人配置安装器：先读取你这台设备 / Gist 的最新配置，修改前自动备份，再应用游戏任务结构。短链接模式下，配置密文在仓库里，解密钥匙只存在 URL 的 # 片段中，不会发送给 GitHub Pages。</p>
-    <div class="status" id="status">正在读取安装内容……</div>
+    <p>这是一页一次性私人配置安装器。它会先读取你这台设备当前的加密同步配置，再应用指定的游戏任务变更；不会把你的私人任务写进公开仓库。</p>
+    <div class="status" id="status">正在载入 TaskRing 当前配置……</div>
     <a href="./" id="openApp" hidden>打开 TaskRing 游戏作战区</a>
   </main>
   <iframe id="appFrame" title="TaskRing 配置安装运行环境"></iframe>
@@ -31,79 +31,41 @@
     const status=document.getElementById('status');
     const openApp=document.getElementById('openApp');
     const frame=document.getElementById('appFrame');
-    let childHash='';
-
-    function set(text,kind=''){status.className='status'+(kind?' '+kind:'');status.textContent=text;}
-    function loadScript(doc,src){return new Promise((resolve,reject)=>{const script=doc.createElement('script');script.src=src;script.onload=resolve;script.onerror=reject;doc.body.appendChild(script);});}
-    function b64uToBytes(value){
-      const normalized=String(value||'').replace(/-/g,'+').replace(/_/g,'/');
-      const padded=normalized+'='.repeat((4-normalized.length%4)%4);
-      return Uint8Array.from(atob(padded),c=>c.charCodeAt(0));
+    const hash=location.hash||'';
+    if(!hash.includes('gameQuestPatch=')){
+      status.className='status err';
+      status.textContent='缺少游戏配置更新内容；没有修改任何数据。';
+      return;
     }
-    function bytesToB64u(bytes){
-      let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-      return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    function set(text,kind=''){
+      status.className='status'+(kind?' '+kind:'');
+      status.textContent=text;
     }
-    async function gunzip(bytes){
-      if(typeof DecompressionStream!=='function')throw new Error('当前浏览器不支持安全解压，请升级 Chrome / Edge 后重试');
-      const ds=new DecompressionStream('gzip');
-      const stream=new Blob([bytes]).stream().pipeThrough(ds);
-      return new Uint8Array(await new Response(stream).arrayBuffer());
-    }
-    async function decryptPatch(patchId,keyText){
-      if(!/^[a-f0-9]{12,64}$/i.test(patchId))throw new Error('patch id 无效');
-      const response=await fetch(`./private-patches/${patchId}.json`,{cache:'no-store'});
-      if(!response.ok)throw new Error(`找不到安装包（HTTP ${response.status}）`);
-      const blob=await response.json();
-      if(blob?.v!==1||!String(blob.alg||'').startsWith('A256GCM'))throw new Error('安装包格式不受支持');
-      const keyBytes=b64uToBytes(keyText);if(keyBytes.length!==32)throw new Error('解密钥匙无效');
-      const key=await crypto.subtle.importKey('raw',keyBytes,{name:'AES-GCM'},false,['decrypt']);
-      const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64uToBytes(blob.iv)},key,b64uToBytes(blob.ct));
-      let bytes=new Uint8Array(plain);
-      if(String(blob.alg).includes('+gzip'))bytes=await gunzip(bytes);
-      const payloadText=new TextDecoder().decode(bytes);
-      const payload=JSON.parse(payloadText);
-      if(!payload||typeof payload!=='object'||Array.isArray(payload))throw new Error('安装内容无效');
-      return bytesToB64u(new TextEncoder().encode(JSON.stringify(payload)));
-    }
-    async function prepare(){
-      const raw=location.hash.startsWith('#')?location.hash.slice(1):'';
-      const params=new URLSearchParams(raw);
-      const inline=params.get('gameQuestPatch');
-      const patch=params.get('patch');
-      const key=params.get('key');
-      if(inline){childHash=`#gameQuestPatch=${encodeURIComponent(inline)}`;return;}
-      if(!patch||!key)throw new Error('缺少游戏配置更新内容；没有修改任何数据');
-      set('正在本机解密游戏配置……','warn');
-      const payload=await decryptPatch(patch,key);
-      childHash=`#gameQuestPatch=${encodeURIComponent(payload)}`;
-      history.replaceState(null,'',`${location.pathname}${location.search}`);
-    }
-
     window.addEventListener('message',event=>{
       if(event.origin!==location.origin||event.data?.type!=='taskring-gamequest-patch')return;
       const {status:s,message}=event.data;
       if(s==='ready')set('已读取更新内容，正在等待当前配置……');
-      else if(s==='applying')set('正在备份并重构游戏作战区……','warn');
+      else if(s==='applying')set('正在备份并更新游戏作战区……','warn');
       else if(s==='syncing')set('本机更新完成，正在同步加密 Gist……','warn');
       else if(s==='success'){set(message||'游戏作战区已更新。','ok');openApp.hidden=false;}
       else if(s==='cancelled')set('已取消，没有修改任何配置。','warn');
       else if(s==='error'){set('更新失败：'+(message||'未知错误'),'err');openApp.hidden=false;}
     });
-
     frame.addEventListener('load',async()=>{
       try{
-        const w=frame.contentWindow,doc=frame.contentDocument;
+        const w=frame.contentWindow;
         set('正在读取本机 / Gist 最新配置……');
-        if(typeof w.ghPull==='function')await w.ghPull();
-        if(!w.__TASKRING_GAMEQUEST_V3__)await loadScript(doc,'./assets/js/gamequest-v3.js?v=20260827.2');
-        if(!w.__TASKRING_GAMEQUEST_PRIORITY__)await loadScript(doc,'./assets/js/gamequest-priority.js?v=20260827.1');
-        if(!w.__TASKRING_GAMEQUEST_COMMAND_BOARD__)await loadScript(doc,'./assets/js/gamequest-command-board.js?v=20260827.1');
-        await loadScript(doc,'./assets/js/private-gamequest-patch.js?v=20260827.3');
-      }catch(error){console.error(error);set('无法读取或重构 TaskRing 配置；原数据没有被覆盖。','err');}
+        if(typeof w.ghPull==='function') await w.ghPull();
+        const script=frame.contentDocument.createElement('script');
+        script.src='./assets/js/private-gamequest-patch.js?v=20260827.1';
+        script.onerror=()=>set('安装器脚本加载失败；没有修改配置。','err');
+        frame.contentDocument.body.appendChild(script);
+      }catch(error){
+        console.error(error);
+        set('无法读取 TaskRing 配置；没有修改任何数据。','err');
+      }
     },{once:true});
-
-    prepare().then(()=>{frame.src='./index.html'+childHash}).catch(error=>{console.error(error);set(error.message||'安装内容无效；没有修改任何数据。','err');});
+    frame.src='./index.html'+hash;
   })();
   </script>
 </body>
