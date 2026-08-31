@@ -1,7 +1,4 @@
-const CACHE_NAME = "taskring-shell-20260827-5";
-const GAMEQUEST_V3_SCRIPT = "./assets/js/gamequest-v3.js";
-const GAMEQUEST_PRIORITY_SCRIPT = "./assets/js/gamequest-priority.js";
-const GAMEQUEST_COMMAND_SCRIPT = "./assets/js/gamequest-command-board.js";
+const CACHE_NAME = "taskring-shell-20260827-2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -40,10 +37,7 @@ const APP_SHELL = [
   "./assets/js/views/product-ui.js",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
-  "./assets/js/pwa.js",
-  GAMEQUEST_V3_SCRIPT,
-  GAMEQUEST_PRIORITY_SCRIPT,
-  GAMEQUEST_COMMAND_SCRIPT
+  "./assets/js/pwa.js"
 ];
 
 self.addEventListener("install", event => {
@@ -77,43 +71,14 @@ self.addEventListener("fetch", event => {
   event.respondWith(staleWhileRevalidate(event, request));
 });
 
-function isAppNavigation(request){
-  const url = new URL(request.url);
-  return url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
-}
-
-async function injectGameQuestLayers(response){
-  if(!response || !response.ok) return response;
-  const type = response.headers.get("content-type") || "";
-  if(!type.includes("text/html")) return response;
-  let html = await response.text();
-  const tags = [];
-  if(!html.includes("assets/js/gamequest-v3.js")) tags.push(`<script src="assets/js/gamequest-v3.js?v=20260827.2"></script>`);
-  if(!html.includes("assets/js/gamequest-priority.js")) tags.push(`<script src="assets/js/gamequest-priority.js?v=20260827.1"></script>`);
-  if(!html.includes("assets/js/gamequest-command-board.js")) tags.push(`<script src="assets/js/gamequest-command-board.js?v=20260827.1"></script>`);
-  if(tags.length){
-    const scripts = tags.join("");
-    html = html.includes("</body>") ? html.replace("</body>",`${scripts}</body>`) : `${html}${scripts}`;
-  }
-  const headers = new Headers(response.headers);
-  headers.delete("content-length");
-  headers.delete("content-encoding");
-  return new Response(html,{status:response.status,statusText:response.statusText,headers});
-}
-
 async function networkFirstPage(request){
   const cache = await caches.open(CACHE_NAME);
-  const appNav = isAppNavigation(request);
   try{
     const response = await fetch(request);
-    if(!appNav) return response;
-    const enhanced = await injectGameQuestLayers(response.clone());
-    if(enhanced.ok) await cache.put("./index.html", enhanced.clone());
-    return enhanced;
+    if(response.ok) await cache.put("./index.html", response.clone());
+    return response;
   }catch(_){
-    if(!appNav) return Response.error();
-    const cached = await cache.match("./index.html");
-    return cached ? injectGameQuestLayers(cached) : Response.error();
+    return (await cache.match("./index.html")) || Response.error();
   }
 }
 
