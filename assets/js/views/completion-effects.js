@@ -141,3 +141,64 @@
   window.TaskRingEffects={play,preload,clear,version:"1.0.0"};
   if("requestIdleCallback" in window)requestIdleCallback(preload,{timeout:2200});else later(preload,700);
 })();
+
+// Preserve the GameQuest daily disclosure across redraws. The section still defaults
+// closed, but once a user opens it, ordinary task/day/game interactions must not close it.
+(function(){
+  "use strict";
+
+  let intentionalToggle=false;
+  const collapseKey=()=>`${typeof GH_PREFIX==="string"?GH_PREFIX:""}gamequest_collapsed`;
+  const pane=()=>document.querySelector("#gameQuestPanel .gameQuestDailyPane");
+  const isExpanded=()=>{
+    const root=pane();
+    const body=root?.querySelector(".gameQuestDailyBody");
+    return !!(root&&body&&!root.classList.contains("collapsed")&&!body.hidden);
+  };
+  const forceExpanded=()=>{
+    const root=pane();
+    if(!root)return;
+    root.classList.remove("collapsed");
+    const body=root.querySelector(".gameQuestDailyBody");
+    if(body)body.hidden=false;
+    root.querySelector("[data-gq-collapsed-toggle]")?.setAttribute("aria-expanded","true");
+    try{localStorage.setItem(collapseKey(),"0")}catch(_){}
+  };
+
+  function installGuard(){
+    const original=window.renderGameQuestPanel;
+    if(typeof original!=="function"){
+      setTimeout(installGuard,50);
+      return;
+    }
+    if(original.__taskRingDisclosureGuardV1)return;
+
+    const guarded=function(...args){
+      let storedOpen=false;
+      try{storedOpen=localStorage.getItem(collapseKey())==="0"}catch(_){}
+      const keepOpen=!intentionalToggle&&(isExpanded()||storedOpen);
+      if(keepOpen){try{localStorage.setItem(collapseKey(),"0")}catch(_){}}
+      const result=original.apply(this,args);
+      if(keepOpen)forceExpanded();
+      return result;
+    };
+    Object.defineProperty(guarded,"__taskRingDisclosureGuardV1",{value:true});
+    window.renderGameQuestPanel=guarded;
+  }
+
+  document.addEventListener("click",event=>{
+    const toggle=event.target.closest?.("#gameQuestPanel [data-gq-collapsed-toggle],#gameQuestToggleBtn");
+    if(toggle)intentionalToggle=true;
+  },true);
+
+  document.addEventListener("click",event=>{
+    const toggle=event.target.closest?.("#gameQuestPanel [data-gq-collapsed-toggle],#gameQuestToggleBtn");
+    if(!toggle)return;
+    setTimeout(()=>{
+      intentionalToggle=false;
+      try{localStorage.setItem(collapseKey(),isExpanded()?"0":"1")}catch(_){}
+    },0);
+  });
+
+  setTimeout(installGuard,0);
+})();
