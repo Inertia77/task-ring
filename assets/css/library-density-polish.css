@@ -1,0 +1,181 @@
+/* TaskRing library density polish
+ * Fix the archive-group pseudo element participating in summary grid layout and
+ * turn library groups into compact archive drawers. Presentation only.
+ */
+
+.refGrid {
+  gap: 8px;
+  padding: 0 8px 10px;
+}
+
+.refGroup {
+  overflow: hidden;
+  border-radius: 6px 12px 12px 6px;
+}
+
+/* The ARCHIVE spine is decorative hardware, not a grid child. */
+.refGroup > summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto 28px;
+  grid-template-areas: "no title count caret";
+  gap: 8px;
+  align-items: center;
+  min-height: 58px;
+  padding: 8px 10px 8px 58px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--identity-ref, #9a6222) 8%, white), transparent 44%),
+    repeating-linear-gradient(90deg, transparent 0 31px, color-mix(in srgb, var(--identity-ref, #9a6222) 3.5%, transparent) 31px 32px);
+}
+
+.refGroup > summary::before {
+  content: "ARCHIVE";
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--identity-ref, #9a6222) 92%, #4c2c10),
+    color-mix(in srgb, var(--identity-ref, #9a6222) 76%, #744314));
+  color: white;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  writing-mode: vertical-rl;
+  pointer-events: none;
+}
+
+.refGroup > summary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 46px;
+  width: 58px;
+  height: 3px;
+  background: var(--identity-ref, #9a6222);
+  opacity: .8;
+}
+
+.refGroupNo {
+  grid-area: no;
+  color: color-mix(in srgb, var(--identity-ref, #9a6222) 70%, var(--color-muted));
+  font-size: 11px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.refGroupTitle {
+  grid-area: title;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+
+.refGroupCount {
+  grid-area: count;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 220px;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.refGroupCaret {
+  grid-area: caret;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--identity-ref, #9a6222) 18%, var(--color-line));
+  border-radius: 7px;
+  background: rgba(255,255,255,.72);
+}
+
+.refGroup[open] > summary {
+  min-height: 54px;
+  border-bottom: 1px solid color-mix(in srgb, var(--identity-ref, #9a6222) 22%, var(--color-line));
+}
+
+.refGroupBody {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 8px;
+  padding: 9px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.9), color-mix(in srgb, var(--zone-library) 34%, white)),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(154,98,34,.022) 39px 40px);
+}
+
+.refItem {
+  min-height: 66px;
+}
+
+/* Search is a working control, not another card. Keep it compact and aligned. */
+.libraryToolbar {
+  grid-template-columns: auto minmax(220px,1fr) auto;
+  gap: 8px;
+  padding: 4px 0 6px;
+}
+.libraryToolbar label {
+  min-width: 64px;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.libraryToolbar input {
+  min-height: 42px;
+}
+.libraryToolbar button {
+  min-height: 42px;
+}
+
+@media (max-width: 900px) {
+  .refGroupBody { grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); }
+  .refGroupCount { max-width: 150px; }
+}
+
+@media (max-width: 700px) {
+  .refGrid { gap: 6px; padding: 0 5px 8px; }
+
+  .libraryToolbar {
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas: "search manage";
+    gap: 6px;
+    padding-bottom: 7px;
+  }
+  .libraryToolbar label { display: none; }
+  .libraryToolbar input { grid-area: search; min-width: 0; }
+  .libraryToolbar button { grid-area: manage; min-width: 92px; padding-inline: 9px; }
+
+  .refGroup > summary {
+    grid-template-columns: 26px minmax(0,1fr) auto 26px;
+    gap: 6px;
+    min-height: 54px;
+    padding: 7px 7px 7px 47px;
+  }
+  .refGroup > summary::before { width: 38px; font-size: 6px; }
+  .refGroup > summary::after { left: 38px; width: 44px; }
+  .refGroupTitle { font-size: 14px; }
+  .refGroupCount { max-width: 92px; font-size: 10px; }
+  .refGroupCaret { width: 26px; height: 26px; }
+
+  .refGroupBody {
+    grid-template-columns: minmax(0,1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+  .refItem { min-height: 60px; }
+}
