@@ -1,0 +1,179 @@
+/* Game Quest mode contrast: make DAILY and WEEKLY impossible to confuse at a glance. */
+
+.gameQuestShell {
+  --gq-daily-accent: #1769aa;
+  --gq-daily-accent-soft: #e8f4ff;
+  --gq-weekly-accent: #6f45a8;
+  --gq-weekly-accent-soft: #f1e9fb;
+}
+
+/* Give the two execution zones different silhouettes, not just slightly different tints. */
+.gameQuestDailyPane,
+.gameQuestWeeklyPane {
+  position: relative;
+  border-width: 1px 1px 1px 6px;
+  box-shadow: var(--shadow-panel);
+}
+
+.gameQuestDailyPane {
+  border-color: color-mix(in srgb, var(--gq-daily-accent) 34%, var(--color-line));
+  border-left-color: var(--gq-daily-accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gq-daily-accent-soft) 84%, white), white 74%);
+}
+
+.gameQuestWeeklyPane {
+  border-color: color-mix(in srgb, var(--gq-weekly-accent) 31%, var(--color-line));
+  border-left-color: var(--gq-weekly-accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gq-weekly-accent-soft) 88%, white), white 78%);
+}
+
+/* A permanent mode banner remains visible even when the daily section is collapsed. */
+.gameQuestDailyPane::before,
+.gameQuestWeeklyPane::before {
+  display: block;
+  margin: -9px -9px 9px;
+  padding: 7px 12px 6px;
+  border-bottom: 1px solid currentColor;
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  line-height: 1.2;
+}
+
+.gameQuestDailyPane::before {
+  content: "DAILY  /  今日日常";
+  color: var(--gq-daily-accent);
+  background: color-mix(in srgb, var(--gq-daily-accent-soft) 90%, white);
+}
+
+.gameQuestWeeklyPane::before {
+  content: "WEEKLY  /  本周周常";
+  color: var(--gq-weekly-accent);
+  background: color-mix(in srgb, var(--gq-weekly-accent-soft) 92%, white);
+}
+
+.gameQuestDailyPane.collapsed::before {
+  margin-top: -7px;
+  margin-bottom: 7px;
+}
+
+/* Daily header reads as a TODAY command strip. */
+.gameQuestDailyPane .gameQuestDailyCollapseBar {
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--gq-daily-accent) 20%, var(--color-line));
+  border-radius: 9px;
+  background: rgba(255,255,255,.78);
+}
+.gameQuestDailyPane .gameQuestDailyToggleCopy b {
+  color: var(--gq-daily-accent);
+}
+.gameQuestDailyPane .gameQuestDailyToggleChevron {
+  color: var(--gq-daily-accent);
+  background: var(--gq-daily-accent-soft);
+}
+.gameQuestDailyPane .gameQuestDailyBody {
+  margin-top: 8px;
+  border-top-color: color-mix(in srgb, var(--gq-daily-accent) 28%, var(--color-line));
+}
+
+/* Weekly header reads as a separate pool, not a continuation of today's list. */
+.gameQuestWeeklyPane .gameQuestMetaStrip {
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--gq-weekly-accent) 22%, var(--color-line));
+  border-radius: 8px;
+  background: rgba(255,255,255,.78);
+}
+.gameQuestWeeklyPane .gameQuestMetaStrip b {
+  color: var(--gq-weekly-accent);
+}
+.gameQuestWeeklyPane .gameQuestMetaStrip em {
+  color: var(--gq-weekly-accent);
+}
+
+/* Active filters carry the mode color, so the context survives while scrolling inside a section. */
+.gameQuestDailyPane .gameQuestDay.active,
+.gameQuestDailyPane .gameQuestGameTab.active {
+  border-color: var(--gq-daily-accent);
+  background: var(--gq-daily-accent);
+  color: white;
+  box-shadow: inset 0 -3px rgba(0,0,0,.12);
+}
+.gameQuestDailyPane .gameQuestDay.active b,
+.gameQuestDailyPane .gameQuestGameTab.active b {
+  color: #dff0ff;
+}
+
+.gameQuestWeeklyPane .gameQuestFilterTabs .active,
+.gameQuestWeeklyPane .gameQuestGameTab.active {
+  border-color: var(--gq-weekly-accent);
+  background: var(--gq-weekly-accent);
+  color: white;
+  box-shadow: inset 0 -3px rgba(0,0,0,.12);
+}
+.gameQuestWeeklyPane .gameQuestFilterTabs .active b,
+.gameQuestWeeklyPane .gameQuestGameTab.active b {
+  color: #f1e7ff;
+}
+
+/* Cards and rows keep a small mode stripe, useful after the section banner scrolls away. */
+.gameQuestDailyPane .gameQuestGrid.focused {
+  border-color: color-mix(in srgb, var(--gq-daily-accent) 24%, var(--color-line));
+  background: color-mix(in srgb, var(--gq-daily-accent-soft) 74%, var(--color-panel-soft));
+}
+.gameQuestWeeklyPane .gameQuestGrid.focused {
+  border-color: color-mix(in srgb, var(--gq-weekly-accent) 24%, var(--color-line));
+  background: color-mix(in srgb, var(--gq-weekly-accent-soft) 76%, var(--color-panel-soft));
+}
+.gameQuestDailyPane .gameQuestCard {
+  border-left-color: var(--gq-daily-accent);
+}
+.gameQuestWeeklyPane .gameQuestCard,
+.gameQuestWeeklyPane .gameWeeklyGroup {
+  border-left-color: var(--gq-weekly-accent);
+}
+.gameQuestDailyPane .gameQuestMiniCheckBtn {
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--gq-daily-accent) 48%, transparent);
+}
+.gameQuestWeeklyPane .gameQuestMiniCheckBtn {
+  box-shadow: inset 3px 0 color-mix(in srgb, var(--gq-weekly-accent) 52%, transparent);
+}
+
+.gameQuestWeeklyPane .gameWeeklyGroup > summary {
+  background: color-mix(in srgb, var(--gq-weekly-accent-soft) 56%, white);
+}
+
+/* Increase physical separation as well as color separation. */
+.gameQuestBoardSections {
+  gap: 16px;
+}
+.gameQuestWeeklyPane {
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .gameQuestBoardSections {
+    gap: 14px;
+  }
+  .gameQuestDailyPane,
+  .gameQuestWeeklyPane {
+    border-left-width: 5px;
+  }
+  .gameQuestDailyPane::before,
+  .gameQuestWeeklyPane::before {
+    margin-inline: -9px;
+    padding: 7px 10px 6px;
+    font-size: 9.5px;
+    letter-spacing: .11em;
+  }
+  .gameQuestDailyPane .gameQuestDailyCollapseBar,
+  .gameQuestWeeklyPane .gameQuestMetaStrip {
+    background: rgba(255,255,255,.88);
+  }
+  .gameQuestWeeklyPane .gameQuestMetaStrip {
+    min-height: 34px;
+    padding: 6px 8px;
+  }
+}
