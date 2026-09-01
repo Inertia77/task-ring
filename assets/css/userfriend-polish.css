@@ -1,0 +1,326 @@
+/*
+ * TaskRing user-friend audit pass
+ *
+ * Goals: faster scanning, clearer action hierarchy, calmer metadata, stronger keyboard/touch
+ * affordances and better mobile density. Presentation only; no core interaction principles,
+ * task state rules, persistence, default views or completion semantics are changed here.
+ */
+
+:root {
+  --ux-reading-line: 1.45;
+  --ux-control-shadow: 0 1px 0 rgba(23,23,20,.05), 0 6px 16px rgba(23,23,20,.045);
+  --ux-focus-ring: color-mix(in srgb, var(--color-info) 46%, transparent);
+}
+
+html { text-rendering: optimizeLegibility; }
+body { -webkit-font-smoothing: antialiased; }
+button, a, summary, label { -webkit-tap-highlight-color: transparent; }
+button, summary, label[for], [role="button"] { cursor: pointer; }
+
+/* Make keyboard navigation obvious without painting every mouse click blue. */
+:where(button,a,summary,input,select,textarea,[tabindex]):focus-visible {
+  outline: 3px solid var(--ux-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Reading hierarchy ------------------------------------------------------- */
+.taskAreaDescription,
+.sectionSummaryMain span,
+.dailyMeta,
+.missionTitleBlock span,
+.missionScore em,
+.gameQuestShort,
+.gameQuestMetaStrip,
+.fitnessHero p,
+.refSummarySub,
+.refItemCopy > span,
+.timeTaskValue span {
+  line-height: var(--ux-reading-line);
+}
+.taskAreaDescription { max-width: 68ch; }
+.dailyTitle,
+.missionTitleBlock b,
+.gameQuestName,
+.fitnessItem strong,
+.refItemCopy strong {
+  line-height: 1.32;
+  letter-spacing: -.01em;
+}
+.sectionSummaryMain b { letter-spacing: -.01em; }
+
+/* Metadata should support the task title, not fight it. */
+.dailyMeta { gap: 5px 6px; }
+.dailyMetaChip,
+.statusBadge,
+.planModeBadge,
+.missionBadges span,
+.gameQuestTaskBadge,
+.mWeekPill {
+  min-height: 22px;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+.dailyMetaChip:not(.importantFlag),
+.planModeBadge,
+.missionBadges span:not(.hot):not(.weeklyPace) {
+  color: color-mix(in srgb, var(--color-muted) 88%, white);
+}
+
+/* Completed content stays legible. Faded-to-70% cards are hard to scan. */
+.dailyCard.done,
+.weeklyMissionCard.done,
+.gameQuestCard.done { opacity: .9; }
+
+/* Card spacing: content first, decoration second ------------------------- */
+.dailyCard,
+.weeklyMissionCard,
+.gameQuestCard { scroll-margin-top: 12px; }
+.dailyCard { padding-inline: 13px; padding-bottom: 11px; }
+.weeklyMissionCard { padding-inline: 13px; padding-bottom: 11px; }
+.gameQuestCard { padding-inline: 13px; padding-bottom: 12px; }
+
+.dailyMain { align-items: start; }
+.dailyCopy { min-width: 0; }
+.dailyTitle { margin-bottom: 3px; }
+.missionHead { align-items: center; }
+.gameQuestCardTop { align-items: center; }
+
+/* Primary / secondary / tertiary action hierarchy ------------------------ */
+.dailyActions,
+.missionActions { gap: 6px; }
+.dailyActions button,
+.dailyActions a,
+.missionActions button,
+.missionActions a,
+.gameQuestTaskOpen,
+.fitnessItemMetaBtn,
+.fitnessItemLink {
+  box-shadow: none;
+}
+.dailyActions .timerStartTiny,
+.missionActions .missionPrimary {
+  font-weight: 850;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-ink) 90%, transparent);
+}
+.dailyActions a[href],
+.missionActions .missionLink,
+.gameQuestTaskOpen,
+.fitnessItemLink {
+  border-color: color-mix(in srgb, var(--color-ink) 24%, var(--color-line));
+  background: white;
+  color: var(--color-ink);
+  font-weight: 800;
+}
+.dailyActions button:not(.timerStartTiny):not(.timerNowChip),
+.missionActions button:not(.missionPrimary),
+.fitnessItemMetaBtn {
+  background: color-mix(in srgb, var(--color-panel-soft) 86%, white);
+  color: color-mix(in srgb, var(--color-muted) 86%, var(--color-ink));
+}
+
+/* Keep the little dossier header from stealing usable vertical space. */
+.dailyCard::after,
+.weeklyMissionCard::after,
+.fitnessItem::after,
+.gameQuestCard::after,
+.timeTaskRow::after,
+.timeBudgetRow::after,
+.timeLogItem::after,
+.refItem::after {
+  opacity: .82;
+}
+
+/* Daily --------------------------------------------------------------- */
+.dailyGroup > summary,
+.weeklyMissionGroup > summary,
+.refGroup > summary {
+  user-select: none;
+}
+.dailyGroup > summary:hover,
+.weeklyMissionGroup > summary:hover,
+.refGroup > summary:hover { filter: brightness(.99); }
+.dailyComplete { align-self: start; margin-top: 1px; }
+.subtaskInline > summary {
+  min-height: 40px;
+  color: var(--color-muted);
+}
+.subtaskInline[open] > summary { color: var(--color-ink); }
+
+/* Weekly -------------------------------------------------------------- */
+.weeklyCategoryTabs,
+.gameQuestDays,
+.gameQuestFilterTabs,
+.gameQuestGameTabs,
+.fitnessDayTabs {
+  scroll-snap-type: x proximity;
+  scrollbar-color: color-mix(in srgb,var(--color-line-strong) 70%,transparent) transparent;
+}
+.weeklyCategoryTab,
+.gameQuestDay,
+.gameQuestFilterTabs button,
+.gameQuestGameTab,
+.fitnessDayTab { scroll-snap-align: start; }
+.weeklyCategoryTab { min-width: 106px; }
+.missionScore strong { font-variant-numeric: tabular-nums; }
+.missionBadges { row-gap: 5px; }
+
+/* Game: reduce the chance of reading weekly rows as today's mandatory list. */
+.gameQuestDailyPane .gameQuestTaskRow { border-left-color: color-mix(in srgb, var(--identity-game-day, #1675b7) 60%, var(--color-line)); }
+.gameQuestWeeklyPane .gameQuestTaskRow { border-left-color: color-mix(in srgb, var(--identity-game-week, #7446b4) 60%, var(--color-line)); }
+.gameQuestDailyPane .gameQuestTaskBadge { color: color-mix(in srgb, var(--identity-game-day, #1675b7) 80%, var(--color-ink)); }
+.gameQuestWeeklyPane .gameQuestTaskBadge { color: color-mix(in srgb, var(--identity-game-week, #7446b4) 82%, var(--color-ink)); }
+.gameQuestMiniCheckBtn { line-height: 1.4; }
+.gameQuestTaskNo { font-variant-numeric: tabular-nums; }
+
+/* Fitness: information is horizontally dense, so keep actions secondary. */
+.fitnessLaneHead { min-height: 64px; }
+.fitnessItemToggle { min-height: 62px; }
+.fitnessItemActions { background: rgba(255,255,255,.55); }
+.fitnessItemMetaBtn { min-width: 58px; }
+.fitnessItemLink { min-width: 64px; }
+
+/* Time ledger: make numbers easy to compare line by line. */
+.timeTaskName::before { display: none; } /* avoid adding a fourth implicit grid cell */
+.timeTaskRow,
+.timeBudgetRow,
+.timeLogItem { line-height: 1.35; }
+.timeBudgetValue,
+.timeTaskValue { font-weight: 800; font-variant-numeric: tabular-nums; }
+.timeTaskActions > button,
+.timeTaskActions > div { border-radius: 5px 9px 5px 9px; }
+
+/* Reference: title and destination should be readable before the ornament. */
+.refItemCopy strong { font-size: 13.5px; }
+.refItemCopy > span { opacity: .9; }
+.refItemAction { min-width: 38px; min-height: 38px; }
+
+/* Hover feedback only on devices that actually hover. */
+@media (hover:hover) {
+  .dailyActions button:hover,
+  .dailyActions a:hover,
+  .missionActions button:hover,
+  .missionActions a:hover,
+  .gameQuestTaskOpen:hover,
+  .fitnessItemMetaBtn:hover,
+  .fitnessItemLink:hover,
+  .refItemAction:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--ux-control-shadow);
+  }
+}
+
+/* Tablet ----------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .taskAreaDescription { max-width: 76ch; }
+  .dailyCard,
+  .weeklyMissionCard,
+  .gameQuestCard { padding-inline: 12px; }
+}
+
+/* Mobile: one-thumb clarity before decoration ---------------------------- */
+@media (max-width: 700px) {
+  :root { --ux-reading-line: 1.42; }
+
+  .wrap { padding-inline: max(9px, env(safe-area-inset-left)); }
+  .viewPanel { min-width: 0; }
+
+  .taskAreaHeader .taskAreaHeaderCopy .taskAreaTitle { line-height: 1.15; }
+  .taskAreaDescription { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+  .dailyCard,
+  .weeklyMissionCard,
+  .gameQuestCard,
+  .fitnessItem,
+  .refItem { box-shadow: 0 3px 12px rgba(23,23,20,.045); }
+
+  /* Keep archive labels, but don't charge a whole extra line of height for them. */
+  .dailyCard { padding-top: 24px; }
+  .weeklyMissionCard { padding-top: 25px; }
+  .gameQuestCard { padding-top: 26px; }
+  .fitnessItem { padding-top: 20px; }
+  .refItem { padding-top: 23px; }
+  .dailyCard::after,
+  .weeklyMissionCard::after,
+  .fitnessItem::after,
+  .gameQuestCard::after,
+  .refItem::after {
+    top: 6px;
+    right: 8px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+
+  .dailyTitle,
+  .missionTitleBlock b,
+  .gameQuestName,
+  .fitnessItem strong { font-size: 15px; }
+
+  .dailyMeta { gap: 4px; }
+  .dailyMetaChip,
+  .statusBadge,
+  .planModeBadge,
+  .missionBadges span,
+  .gameQuestTaskBadge,
+  .mWeekPill {
+    min-height: 21px;
+    padding: 2px 6px;
+    font-size: 10.5px;
+  }
+
+  .dailyActions button,
+  .dailyActions a,
+  .missionActions button,
+  .missionActions a,
+  .gameQuestTaskOpen,
+  .fitnessItemMetaBtn,
+  .fitnessItemLink,
+  .weeklyCategoryTab,
+  .gameQuestDay,
+  .gameQuestGameTab { min-height: 44px; }
+
+  .dailyActions .timerStartTiny,
+  .dailyActions .timerNowChip { font-size: 12px; }
+
+  .weeklyCategoryTabs,
+  .gameQuestDays,
+  .gameQuestFilterTabs,
+  .gameQuestGameTabs { padding-inline: 2px; }
+
+  .gameQuestDailyPane,
+  .gameQuestWeeklyPane { padding: 7px 6px; }
+  .gameQuestCardTop { grid-template-columns: 42px 36px minmax(0,1fr) auto; gap: 6px; }
+  .gameQuestCheck { width: 42px; height: 42px; }
+  .gameQuestIcon { width: 36px; height: 36px; }
+  .gameQuestTaskRow { gap: 4px; }
+  .gameQuestMiniCheckBtn { min-height: 46px; padding: 5px 6px; }
+
+  .fitnessBoard { gap: 9px; padding: 10px; }
+  .fitnessLaneHead { min-height: 58px; padding: 10px; }
+  .fitnessItemToggle { min-height: 58px; padding: 8px; }
+
+  .refGrid { padding-inline: 5px; }
+  .refGroupBody { padding-inline: 5px; }
+  .refItem { min-height: 62px; }
+
+  .timeTaskRow,
+  .timeBudgetRow,
+  .timeLogItem { padding-inline: 10px; }
+}
+
+/* Accessibility: motion should never be required to understand state. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .dailyCard:hover,
+  .weeklyMissionCard:hover,
+  .fitnessItem:hover,
+  .gameQuestCard:hover,
+  .timeTaskRow:hover,
+  .timeBudgetRow:hover,
+  .timeLogItem:hover,
+  .refItem:hover { transform: none !important; }
+}
