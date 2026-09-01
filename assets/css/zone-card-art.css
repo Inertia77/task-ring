@@ -1,0 +1,376 @@
+/*
+ * TaskRing zone card art
+ *
+ * Borrow the visual grammar of the GUCC game database without importing its dark skin:
+ * coded tabs, edge rails, micro-grids, corner hardware and zone-specific accent systems.
+ * The goal is recognition at a glance: every area should feel like a different instrument
+ * in the same control room, not the same white rectangle with another heading.
+ */
+
+:root {
+  --card-art-graphite: #20211d;
+  --card-art-daily: #d6ab00;
+  --card-art-weekly: #5a67c8;
+  --card-art-body: #2d8b65;
+  --card-art-game-daily: #1976b9;
+  --card-art-game-weekly: #7645b8;
+  --card-art-track: #2d858b;
+  --card-art-ref: #a66a1f;
+}
+
+/* Shared hardware --------------------------------------------------------- */
+.dailyCard,
+.weeklyMissionCard,
+.fitnessItem,
+.gameQuestCard,
+.timeTaskRow,
+.timeBudgetRow,
+.timeLogItem,
+.refItem {
+  isolation: isolate;
+  position: relative;
+}
+
+.dailyCard::before,
+.weeklyMissionCard::before,
+.fitnessItem::before,
+.gameQuestCard::before,
+.timeTaskRow::before,
+.timeBudgetRow::before,
+.timeLogItem::before,
+.refItem::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: .62;
+  background:
+    linear-gradient(128deg, transparent 0 70%, color-mix(in srgb, var(--card-art-accent) 8%, transparent) 70% 78%, transparent 78%),
+    repeating-linear-gradient(90deg, transparent 0 31px, color-mix(in srgb, var(--card-art-accent) 6%, transparent) 31px 32px);
+}
+
+.dailyCard::after,
+.weeklyMissionCard::after,
+.fitnessItem::after,
+.gameQuestCard::after,
+.timeTaskRow::after,
+.timeBudgetRow::after,
+.timeLogItem::after,
+.refItem::after {
+  position: absolute;
+  z-index: 3;
+  top: 7px;
+  right: 10px;
+  pointer-events: none;
+  padding: 2px 6px 2px 7px;
+  border-left: 3px solid var(--card-art-accent);
+  color: color-mix(in srgb, var(--card-art-accent) 80%, var(--color-ink));
+  background: color-mix(in srgb, var(--card-art-accent) 7%, white);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  line-height: 1.2;
+}
+
+.dailyCard > *,
+.weeklyMissionCard > *,
+.fitnessItem > *,
+.gameQuestCard > *,
+.timeTaskRow > *,
+.timeBudgetRow > *,
+.timeLogItem > *,
+.refItem > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Daily / execution file -------------------------------------------------- */
+.dailyCard {
+  --card-art-accent: var(--card-art-daily);
+  padding-top: 28px;
+  border-color: color-mix(in srgb, var(--card-art-daily) 42%, var(--color-card-line));
+  border-left: 5px solid var(--card-art-daily);
+  border-radius: 4px 12px 12px 12px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-daily) 38%, white), white 42%),
+    white;
+  box-shadow: 0 1px 0 rgba(23,23,20,.06), 0 8px 22px rgba(111,91,5,.06);
+}
+.dailyCard::after { content: "DAILY // EXEC"; }
+.dailyCard::before {
+  box-shadow:
+    inset 0 2px var(--card-art-daily),
+    inset 18px 0 color-mix(in srgb, var(--card-art-daily) 7%, transparent);
+}
+.dailyCard .dailyComplete span {
+  border-radius: 5px;
+  transform: rotate(45deg);
+}
+.dailyCard .dailyComplete input:checked + span {
+  transform: rotate(45deg);
+}
+.dailyCard .dailyActions {
+  border-top: 1px solid color-mix(in srgb, var(--card-art-daily) 22%, var(--color-line));
+  padding-top: 7px;
+}
+.dailyCard.running {
+  box-shadow: inset 0 0 0 1px var(--color-ink), 0 10px 28px rgba(23,23,20,.10);
+}
+.dailyCard.highPriority::after { content: "DAILY // PRIORITY"; }
+
+/* Weekly / mission dossier ----------------------------------------------- */
+.weeklyMissionCard {
+  --card-art-accent: var(--card-art-weekly);
+  padding-top: 29px;
+  border-color: color-mix(in srgb, var(--card-art-weekly) 38%, var(--color-card-line));
+  border-left: 5px solid var(--card-art-weekly);
+  border-radius: 12px 4px 12px 12px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--category-tint, var(--zone-weekly)) 72%, white) 0 24%, white 24% 100%);
+  box-shadow: 0 1px 0 rgba(23,23,20,.05), 0 8px 24px rgba(69,79,167,.07);
+}
+.weeklyMissionCard::after { content: "MISSION // WEEK"; }
+.weeklyMissionCard::before {
+  background:
+    linear-gradient(90deg, var(--card-art-weekly) 0 34px, transparent 34px),
+    repeating-linear-gradient(90deg, transparent 0 23px, color-mix(in srgb, var(--card-art-weekly) 7%, transparent) 23px 24px),
+    linear-gradient(132deg, transparent 0 73%, color-mix(in srgb, var(--card-art-weekly) 8%, transparent) 73% 80%, transparent 80%);
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
+}
+.weeklyMissionCard.running { --card-art-accent: var(--color-primary); }
+.weeklyMissionCard.near { --card-art-accent: var(--color-warning); }
+.weeklyMissionCard.behind { --card-art-accent: var(--color-danger); }
+.weeklyMissionCard .missionIcon {
+  border: 1px solid color-mix(in srgb, var(--card-art-accent) 42%, var(--color-line));
+  border-radius: 3px;
+  box-shadow: inset 3px 0 var(--card-art-accent);
+}
+.weeklyMissionCard .missionMeter {
+  height: 6px;
+  border-radius: 0;
+}
+
+/* Body / routine telemetry ------------------------------------------------ */
+.fitnessItem {
+  --card-art-accent: var(--card-art-body);
+  min-height: 70px;
+  padding-top: 22px;
+  border-color: color-mix(in srgb, var(--card-art-body) 34%, var(--color-line));
+  border-left: 5px solid var(--card-art-body);
+  border-radius: 14px 7px 14px 7px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--zone-fitness) 82%, white), white 38%);
+  box-shadow: 0 7px 18px rgba(36,112,80,.055);
+}
+.fitnessItem::after { content: "BIO // ROUTINE"; }
+.fitnessItem::before {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11px, color-mix(in srgb, var(--card-art-body) 8%, transparent) 11px 12px) top right / 120px 12px no-repeat,
+    linear-gradient(120deg, transparent 0 78%, color-mix(in srgb, var(--card-art-body) 7%, transparent) 78% 100%);
+  box-shadow: inset 0 2px color-mix(in srgb, var(--card-art-body) 72%, transparent);
+}
+.fitnessItem .fitnessCheck {
+  border: 2px solid color-mix(in srgb, var(--card-art-body) 50%, var(--color-line-strong));
+  border-radius: 3px 50% 50% 50%;
+}
+.fitnessItem .fitnessItemMetaBtn,
+.fitnessItem .fitnessItemLink {
+  border-color: color-mix(in srgb, var(--card-art-body) 18%, var(--color-line));
+}
+.fitnessItem.done::after { content: "BIO // COMPLETE"; }
+
+/* Game / quest archive ---------------------------------------------------- */
+.gameQuestDailyPane .gameQuestCard {
+  --card-art-accent: var(--card-art-game-daily);
+}
+.gameQuestWeeklyPane .gameQuestCard {
+  --card-art-accent: var(--card-art-game-weekly);
+}
+.gameQuestCard {
+  padding-top: 30px;
+  border: 1px solid color-mix(in srgb, var(--card-art-accent) 44%, var(--color-card-line));
+  border-left: 6px solid var(--card-art-accent);
+  border-radius: 3px 16px 8px 16px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--card-art-accent) 7%, white) 0 29%, white 29% 100%);
+  box-shadow: 0 9px 26px color-mix(in srgb, var(--card-art-accent) 9%, transparent);
+}
+.gameQuestDailyPane .gameQuestCard::after { content: "QUEST // DAILY"; }
+.gameQuestWeeklyPane .gameQuestCard::after { content: "QUEST // WEEKLY"; }
+.gameQuestCard::before {
+  background:
+    repeating-linear-gradient(90deg, var(--card-art-accent) 0 8px, transparent 8px 13px) 16px 8px / 68px 4px no-repeat,
+    repeating-linear-gradient(0deg, transparent 0 13px, color-mix(in srgb, var(--card-art-accent) 7%, transparent) 13px 14px),
+    linear-gradient(125deg, transparent 0 76%, color-mix(in srgb, var(--card-art-accent) 10%, transparent) 76% 84%, transparent 84%);
+  box-shadow: inset 0 2px var(--card-art-accent);
+}
+.gameQuestCard .gameQuestIcon {
+  border: 1px solid color-mix(in srgb, var(--card-art-accent) 42%, var(--color-line));
+  border-radius: 2px 10px 2px 10px;
+  background: color-mix(in srgb, var(--card-art-accent) 9%, white);
+  box-shadow: inset 3px 0 var(--card-art-accent);
+}
+.gameQuestCard .gameQuestProgressRail {
+  height: 6px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--card-art-accent) 10%, #e9e5dc);
+}
+.gameQuestCard .gameQuestMiniCheckBtn {
+  border-left: 3px solid color-mix(in srgb, var(--card-art-accent) 58%, var(--color-line));
+  border-radius: 3px 8px 8px 3px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--card-art-accent) 5%, white), var(--color-panel-soft));
+}
+.gameQuestCard.done::after { content: "QUEST // CLEARED"; }
+
+/* Track / time ledger ----------------------------------------------------- */
+.timeTaskList,
+.timeBudgetList,
+.timeLogList {
+  display: grid;
+  gap: 7px;
+  padding: 7px;
+  border-color: color-mix(in srgb, var(--card-art-track) 24%, var(--color-line));
+  background: color-mix(in srgb, var(--zone-time) 55%, white);
+}
+.timeTaskRow,
+.timeBudgetRow,
+.timeLogItem {
+  --card-art-accent: var(--card-art-track);
+  border: 1px solid color-mix(in srgb, var(--card-art-track) 34%, var(--color-line));
+  border-left: 5px solid var(--card-art-track);
+  border-radius: 4px 11px 4px 11px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--zone-time) 80%, white), white 34%);
+  box-shadow: 0 5px 16px rgba(35,104,108,.05);
+}
+.timeTaskRow { padding-top: 28px; }
+.timeTaskRow::after { content: "TRACK // TASK"; }
+.timeBudgetRow { padding-top: 26px; }
+.timeBudgetRow::after { content: "TRACK // ALLOC"; }
+.timeLogItem { padding-top: 28px; }
+.timeLogItem::after { content: "TRACK // LOG"; }
+.timeTaskRow::before,
+.timeBudgetRow::before,
+.timeLogItem::before {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 17px, color-mix(in srgb, var(--card-art-track) 8%, transparent) 17px 18px),
+    linear-gradient(125deg, transparent 0 82%, color-mix(in srgb, var(--card-art-track) 8%, transparent) 82% 100%);
+  box-shadow: inset 0 2px var(--card-art-track);
+}
+.timeTaskMeter,
+.timeBudgetBar {
+  height: 6px;
+  border-radius: 1px;
+}
+
+/* Reference / archive index ---------------------------------------------- */
+.refGroupBody {
+  gap: 8px;
+  padding: 2px 8px 9px;
+}
+.refItem {
+  --card-art-accent: var(--card-art-ref);
+  min-height: 68px;
+  padding-top: 25px;
+  border-color: color-mix(in srgb, var(--card-art-ref) 36%, var(--color-card-line));
+  border-left: 5px solid var(--card-art-ref);
+  border-radius: 2px 12px 12px 2px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--zone-library) 82%, white), white 42%);
+  box-shadow: 0 6px 18px rgba(119,75,24,.05);
+}
+.refItem::after { content: "ARCHIVE // REF"; }
+.refItem::before {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--card-art-ref) 72%, transparent) 0 38px, transparent 38px) top left / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, var(--card-art-ref) 7%, transparent) 18px 19px),
+    linear-gradient(135deg, transparent 0 82%, color-mix(in srgb, var(--card-art-ref) 7%, transparent) 82% 100%);
+}
+.refItemNo {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  border: 1px solid color-mix(in srgb, var(--card-art-ref) 45%, var(--color-line));
+  background: color-mix(in srgb, var(--card-art-ref) 8%, white);
+  color: color-mix(in srgb, var(--card-art-ref) 75%, var(--color-ink));
+  font-weight: 850;
+}
+.refItemAction {
+  border-radius: 3px 10px 3px 10px;
+}
+
+/* Hover: cards lift like control modules, not generic web tiles. */
+@media (hover:hover) {
+  .dailyCard:hover,
+  .weeklyMissionCard:hover,
+  .fitnessItem:hover,
+  .gameQuestCard:hover,
+  .timeTaskRow:hover,
+  .timeBudgetRow:hover,
+  .timeLogItem:hover,
+  .refItem:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--card-art-accent) 68%, var(--color-line-strong));
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--card-art-accent) 24%, transparent), 0 13px 28px color-mix(in srgb, var(--card-art-accent) 11%, transparent);
+  }
+}
+
+/* Mobile: keep the identity, trim the ornamental tax. */
+@media (max-width: 700px) {
+  .dailyCard,
+  .weeklyMissionCard,
+  .gameQuestCard {
+    padding-top: 25px;
+  }
+  .fitnessItem,
+  .refItem {
+    padding-top: 21px;
+  }
+  .dailyCard::after,
+  .weeklyMissionCard::after,
+  .fitnessItem::after,
+  .gameQuestCard::after,
+  .timeTaskRow::after,
+  .timeBudgetRow::after,
+  .timeLogItem::after,
+  .refItem::after {
+    top: 5px;
+    right: 7px;
+    padding: 1px 5px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+  .dailyCard::before,
+  .weeklyMissionCard::before,
+  .fitnessItem::before,
+  .gameQuestCard::before,
+  .timeTaskRow::before,
+  .timeBudgetRow::before,
+  .timeLogItem::before,
+  .refItem::before {
+    opacity: .38;
+  }
+  .timeTaskList,
+  .timeBudgetList,
+  .timeLogList {
+    gap: 6px;
+    padding: 6px;
+  }
+  .timeTaskRow,
+  .timeBudgetRow,
+  .timeLogItem {
+    padding-top: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dailyCard,
+  .weeklyMissionCard,
+  .fitnessItem,
+  .gameQuestCard,
+  .timeTaskRow,
+  .timeBudgetRow,
+  .timeLogItem,
+  .refItem {
+    transition: none;
+  }
+}
