@@ -142,8 +142,9 @@
   if("requestIdleCallback" in window)requestIdleCallback(preload,{timeout:2200});else later(preload,700);
 })();
 
-// Preserve the GameQuest daily disclosure across redraws. The section still defaults
-// closed, but once a user opens it, ordinary task/day/game interactions must not close it.
+// Preserve the GameQuest daily disclosure only while the user remains in the game view.
+// It still defaults closed on each entry into GAME, but ordinary redraws inside GAME retain
+// the user's current open/closed choice until the view is left.
 (function(){
   "use strict";
 
@@ -164,6 +165,9 @@
     root.querySelector("[data-gq-collapsed-toggle]")?.setAttribute("aria-expanded","true");
     try{localStorage.setItem(collapseKey(),"0")}catch(_){}
   };
+  const resetForNextEntry=()=>{
+    try{localStorage.setItem(collapseKey(),"1")}catch(_){}
+  };
 
   function installGuard(){
     const original=window.renderGameQuestPanel;
@@ -171,7 +175,7 @@
       setTimeout(installGuard,50);
       return;
     }
-    if(original.__taskRingDisclosureGuardV1)return;
+    if(original.__taskRingDisclosureGuardV2)return;
 
     const guarded=function(...args){
       let storedOpen=false;
@@ -182,13 +186,16 @@
       if(keepOpen)forceExpanded();
       return result;
     };
-    Object.defineProperty(guarded,"__taskRingDisclosureGuardV1",{value:true});
+    Object.defineProperty(guarded,"__taskRingDisclosureGuardV2",{value:true});
     window.renderGameQuestPanel=guarded;
   }
 
   document.addEventListener("click",event=>{
     const toggle=event.target.closest?.("#gameQuestPanel [data-gq-collapsed-toggle],#gameQuestToggleBtn");
     if(toggle)intentionalToggle=true;
+
+    const viewTarget=event.target.closest?.("[data-view-target]")?.dataset?.viewTarget;
+    if(viewTarget&&viewTarget!=="game")resetForNextEntry();
   },true);
 
   document.addEventListener("click",event=>{
