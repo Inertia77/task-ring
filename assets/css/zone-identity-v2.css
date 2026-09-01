@@ -1,0 +1,293 @@
+/*
+ * TaskRing zone identity v2
+ *
+ * Each work area is a different instrument in the same personal operating system.
+ * Keep the light readable shell, but give every zone its own archive / control-panel grammar.
+ * This file is presentation-only: no task semantics, persistence or navigation behavior changes.
+ */
+
+:root {
+  --identity-daily: #c99f00;
+  --identity-week: #5064c5;
+  --identity-body: #287d5d;
+  --identity-game-day: #1675b7;
+  --identity-game-week: #7446b4;
+  --identity-time: #237d84;
+  --identity-ref: #9a6222;
+  --identity-ink-soft: #2b2c27;
+}
+
+/* DAILY // execution console --------------------------------------------- */
+.dailyGroups { gap: 12px; }
+.dailyGroup {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--identity-daily) 34%, var(--color-line));
+  border-left: 5px solid var(--identity-daily);
+  border-radius: 5px 14px 14px 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zone-daily) 48%, white), white 42%);
+  box-shadow: 0 8px 24px rgba(111, 87, 0, .055);
+}
+.dailyGroup > summary {
+  position: relative;
+  overflow: hidden;
+  padding-right: 150px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--identity-daily) 9%, white), transparent 34%),
+    repeating-linear-gradient(90deg, transparent 0 27px, color-mix(in srgb, var(--identity-daily) 5%, transparent) 27px 28px);
+}
+.dailyGroup > summary::after {
+  content: "EXECUTION // GROUP";
+  position: absolute;
+  top: 9px;
+  right: 44px;
+  padding: 3px 8px;
+  border-left: 3px solid var(--identity-daily);
+  background: color-mix(in srgb, var(--identity-daily) 8%, white);
+  color: color-mix(in srgb, var(--identity-daily) 76%, var(--color-ink));
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+.dailyGroup.hasAttention { border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-line)); }
+.dailyGroup.hasAttention > summary::after { content: "EXECUTION // ALERT"; border-left-color: var(--color-danger); color: var(--color-danger); }
+.dailyGroup.completed > summary::after { content: "EXECUTION // CLEAR"; border-left-color: var(--color-success); color: var(--color-success); }
+.dailyGroupBody {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-daily) 55%, white), color-mix(in srgb, var(--zone-daily) 28%, white)),
+    repeating-linear-gradient(0deg, transparent 0 30px, rgba(120, 96, 0, .025) 30px 31px);
+}
+
+/* WEEKLY // strategic mission stack -------------------------------------- */
+.weeklyTaskGroups { gap: 14px; }
+.weeklyMissionGroup {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--identity-week) 33%, var(--color-line));
+  border-left: 5px solid var(--identity-week);
+  border-radius: 14px 4px 14px 10px;
+  box-shadow: 0 9px 28px rgba(54, 70, 161, .06);
+}
+.weeklyMissionGroup > summary {
+  position: relative;
+  overflow: hidden;
+  padding-right: 156px;
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--identity-week) 12%, white), color-mix(in srgb, var(--category-tint, var(--zone-weekly)) 72%, white) 52%),
+    repeating-linear-gradient(90deg, transparent 0 25px, color-mix(in srgb, var(--identity-week) 5%, transparent) 25px 26px);
+}
+.weeklyMissionGroup > summary::after {
+  content: "MISSION STACK // WEEK";
+  position: absolute;
+  top: 9px;
+  right: 44px;
+  padding: 3px 7px;
+  border-left: 3px solid var(--identity-week);
+  color: color-mix(in srgb, var(--identity-week) 82%, var(--color-ink));
+  background: color-mix(in srgb, var(--identity-week) 7%, white);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+.weeklyMissionGroup.running > summary::after { content: "MISSION STACK // ACTIVE"; border-left-color: var(--color-primary); color: var(--color-ink); background: var(--color-primary-soft); }
+.weeklyMissionGroup .groupMeter { height: 4px; border-radius: 0; }
+.weeklyMissionGrid {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--category-tint, var(--zone-weekly)) 66%, white), color-mix(in srgb, var(--zone-weekly) 35%, white)),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(72, 82, 164, .028) 39px 40px);
+}
+
+/* BODY // bio telemetry --------------------------------------------------- */
+.fitnessPanel {
+  border-color: color-mix(in srgb, var(--identity-body) 28%, var(--color-line));
+  box-shadow: 0 10px 30px rgba(37, 104, 79, .055);
+}
+.fitnessLane {
+  position: relative;
+  border-color: color-mix(in srgb, var(--identity-body) 30%, var(--color-line));
+  border-top: 4px solid var(--identity-body);
+  border-radius: 4px 14px 14px 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-fitness) 74%, white), white 55%);
+}
+.fitnessLaneHead {
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, var(--identity-body) 5%, transparent) 18px 19px),
+    color-mix(in srgb, var(--zone-fitness) 68%, white);
+}
+.fitnessLaneHead::after {
+  content: "BIO TELEMETRY";
+  position: absolute;
+  right: 12px;
+  bottom: 4px;
+  color: color-mix(in srgb, var(--identity-body) 70%, var(--color-muted));
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  opacity: .72;
+}
+.fitnessItems {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.65), color-mix(in srgb, var(--zone-fitness) 35%, white)),
+    repeating-linear-gradient(0deg, transparent 0 24px, rgba(31, 109, 78, .025) 24px 25px);
+}
+
+/* GAME // dispatch vs archive -------------------------------------------- */
+.gameQuestDailyPane,
+.gameQuestWeeklyPane {
+  position: relative;
+  overflow: hidden;
+}
+.gameQuestDailyPane {
+  border: 1px solid color-mix(in srgb, var(--identity-game-day) 48%, var(--color-line));
+  border-left: 6px solid var(--identity-game-day);
+  border-radius: 4px 14px 14px 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-game-daily) 76%, white), white 78%),
+    repeating-linear-gradient(90deg, transparent 0 36px, rgba(22,117,183,.035) 36px 37px);
+}
+.gameQuestWeeklyPane {
+  border: 1px solid color-mix(in srgb, var(--identity-game-week) 48%, var(--color-line));
+  border-left: 6px solid var(--identity-game-week);
+  border-radius: 14px 4px 14px 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-game-weekly) 78%, white), white 78%),
+    repeating-linear-gradient(90deg, transparent 0 36px, rgba(116,70,180,.035) 36px 37px);
+}
+.gameQuestDailyPane::before,
+.gameQuestWeeklyPane::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  width: 190px;
+  height: 44px;
+  pointer-events: none;
+  opacity: .7;
+}
+.gameQuestDailyPane::before {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--identity-game-day) 25%, transparent) 0 5px, transparent 5px 10px);
+  clip-path: polygon(25% 0,100% 0,100% 100%,0 100%);
+}
+.gameQuestWeeklyPane::before {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--identity-game-week) 20%, transparent) 0 5px, transparent 5px 10px);
+  clip-path: polygon(25% 0,100% 0,100% 100%,0 100%);
+}
+.gameQuestDailyPane > *, .gameQuestWeeklyPane > * { position: relative; z-index: 1; }
+.gameQuestDailyToggleCopy b { color: color-mix(in srgb, var(--identity-game-day) 85%, var(--color-ink)); }
+.gameQuestWeeklyPane .gameQuestSubHead > span { color: color-mix(in srgb, var(--identity-game-week) 86%, var(--color-ink)); }
+.gameQuestDailyPane .gameQuestGameTab.active {
+  border-color: var(--identity-game-day);
+  background: var(--identity-game-day);
+  color: white;
+  box-shadow: inset 0 -3px rgba(255,255,255,.28);
+}
+.gameQuestWeeklyPane .gameQuestGameTab.active {
+  border-color: var(--identity-game-week);
+  background: var(--identity-game-week);
+  color: white;
+  box-shadow: inset 0 -3px rgba(255,255,255,.24);
+}
+.gameQuestWeeklyPane .gameQuestGameTab.active b,
+.gameQuestDailyPane .gameQuestGameTab.active b { color: white; opacity: .82; }
+
+/* TIME // chrono terminal ------------------------------------------------- */
+.timeTaskList,
+.timeBudgetList,
+.timeLogList,
+.timeLogGrid {
+  border-color: color-mix(in srgb, var(--identity-time) 32%, var(--color-line));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-time) 68%, white), white),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(35,125,132,.03) 39px 40px);
+}
+.timeBudgetValue,
+.timeTaskValue,
+.activeTimerClock,
+.timerFloatClock,
+.timeHistorySummary b {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.timeBudgetLabel::before,
+.timeTaskName::before {
+  content: "";
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border: 2px solid var(--identity-time);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--identity-time) 8%, transparent);
+}
+.timeHistoryToolbar {
+  background:
+    linear-gradient(105deg, color-mix(in srgb, var(--zone-time) 76%, white), white 60%),
+    repeating-linear-gradient(90deg, transparent 0 29px, rgba(35,125,132,.035) 29px 30px);
+}
+
+/* REFERENCE // physical archive drawer ----------------------------------- */
+.refGroup {
+  position: relative;
+  border-color: color-mix(in srgb, var(--identity-ref) 30%, var(--color-line));
+  border-radius: 4px 13px 13px 13px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zone-library) 82%, white), white 74%);
+  box-shadow: 0 7px 20px rgba(111,70,22,.045);
+}
+.refGroup > summary {
+  position: relative;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--identity-ref) 9%, white), transparent 45%),
+    repeating-linear-gradient(90deg, transparent 0 25px, color-mix(in srgb, var(--identity-ref) 4%, transparent) 25px 26px);
+}
+.refGroup > summary::before {
+  content: "ARCHIVE";
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  margin: -4px 1px -4px -9px;
+  padding-inline: 7px;
+  background: color-mix(in srgb, var(--identity-ref) 86%, #5e3815);
+  color: white;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  writing-mode: vertical-rl;
+}
+.refGroup[open] > summary { border-bottom: 1px solid color-mix(in srgb, var(--identity-ref) 25%, var(--color-line)); }
+.refGroupBody {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), color-mix(in srgb, var(--zone-library) 45%, white)),
+    repeating-linear-gradient(0deg, transparent 0 28px, rgba(154,98,34,.025) 28px 29px);
+}
+
+/* Shared zone-level polish ------------------------------------------------ */
+.taskAreaHeader {
+  position: relative;
+  overflow: hidden;
+}
+.taskAreaHeader::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 7px;
+  width: 88px;
+  height: 5px;
+  pointer-events: none;
+  opacity: .3;
+  background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px);
+}
+
+@media (max-width: 700px) {
+  .dailyGroup > summary,
+  .weeklyMissionGroup > summary { padding-right: 42px; }
+  .dailyGroup > summary::after,
+  .weeklyMissionGroup > summary::after { display: none; }
+  .fitnessLaneHead::after { display: none; }
+  .gameQuestDailyPane::before,
+  .gameQuestWeeklyPane::before { width: 94px; height: 30px; opacity: .42; }
+  .refGroup > summary::before { min-width: 34px; font-size: 6px; }
+  .taskAreaHeader::after { display: none; }
+}
