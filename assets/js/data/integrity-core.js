@@ -151,3 +151,12 @@
     isoMillis
   };
 });
+
+// UI compatibility hotfix: first visit stays open; afterwards the Game Quest daily pane
+// follows the user's last explicit open/closed choice stored by the core toggle logic.
+if(typeof isGameQuestCollapsed==="function"&&typeof GAMEQUEST_COLLAPSE_KEY!=="undefined"){
+  isGameQuestCollapsed=function(){
+    const saved=localStorage.getItem(GAMEQUEST_COLLAPSE_KEY);
+    return saved===null?false:saved==="1";
+  };
+}
