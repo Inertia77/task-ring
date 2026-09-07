@@ -1,5 +1,5 @@
 // Game Quest view policy: daily and weekly live on separate sub-pages.
-// Each sub-page is still collapsible, but every visit/switch starts expanded.
+// Each sub-page is collapsible; fresh GAME entry starts on expanded Daily.
 (() => {
   "use strict";
 
@@ -7,6 +7,7 @@
   let dailyCollapsed = false;
   let weeklyCollapsed = false;
   let scheduled = false;
+  let pendingTabViewport = null;
 
   function injectStyles(){
     if(document.getElementById("gameDisclosurePolicyStyles")) return;
@@ -246,11 +247,59 @@
     applyPageState();
   }
 
-  // Retire the old persistent daily-collapse state. Collapse is now a temporary
-  // in-page action only; a fresh GAME visit always starts on expanded Daily.
+  function gameViewIsCurrentlyActive(){
+    const dock = document.querySelector('.viewDockBtn[data-view-target="game"]');
+    if(dock) return dock.classList.contains("active");
+    const panel = document.getElementById("gameQuestPanel");
+    return !!panel?.classList.contains("active");
+  }
+
+  function captureTabViewport(target){
+    const tab = target?.closest?.("[data-gq-game-select],[data-gamequest-day-select],[data-gq-weekly-filter]");
+    if(!tab) return;
+    pendingTabViewport = {
+      x: window.scrollX,
+      y: window.scrollY,
+      page: activePage,
+      selector: tab.hasAttribute("data-gq-game-select")
+        ? `[data-gq-game-select="${CSS.escape(tab.dataset.gqGameSelect || "")}"]`
+        : tab.hasAttribute("data-gamequest-day-select")
+          ? `[data-gamequest-day-select="${CSS.escape(tab.dataset.gamequestDaySelect || "")}"]`
+          : `[data-gq-weekly-filter="${CSS.escape(tab.dataset.gqWeeklyFilter || "")}"]`
+    };
+  }
+
+  function restoreTabViewport(){
+    const snapshot = pendingTabViewport;
+    pendingTabViewport = null;
+    if(!snapshot) return;
+    activePage = snapshot.page === "weekly" ? "weekly" : "daily";
+    applyPageState();
+    requestAnimationFrame(() => {
+      window.scrollTo(snapshot.x, snapshot.y);
+      const replacement = document.querySelector(snapshot.selector);
+      if(replacement && replacement.matches(":focus-visible")) replacement.focus({preventScroll:true});
+    });
+  }
+
+  // Retire the old persistent daily-collapse state. Collapse is a temporary in-page
+  // action only; a real navigation into GAME starts on expanded Daily.
   try{
     if(typeof GH_PREFIX !== "undefined") localStorage.removeItem(`${GH_PREFIX}gamequest_collapsed`);
   }catch(_){ }
+
+  // Product UI and legacy handlers rebuild the game panel for several tab actions.
+  // Re-apply the split-page state synchronously so a render cannot briefly expose both
+  // panes, reset Weekly back to Daily, or clamp the viewport before the next frame.
+  if(typeof window.renderGameQuestPanel === "function"){
+    const baseRenderGameQuestPanel = window.renderGameQuestPanel;
+    window.renderGameQuestPanel = function(...args){
+      const result = baseRenderGameQuestPanel.apply(this, args);
+      enhance();
+      restoreTabViewport();
+      return result;
+    };
+  }
 
   document.addEventListener("click", event => {
     const pageButton = event.target.closest?.("[data-gq-page]");
@@ -260,6 +309,8 @@
       switchPage(pageButton.dataset.gqPage);
       return;
     }
+
+    captureTabViewport(event.target);
 
     const dailyToggle = event.target.closest?.("[data-gq-collapsed-toggle]");
     if(dailyToggle){
@@ -279,14 +330,17 @@
     }
   }, true);
 
-  // Entering GAME always means: Daily page, expanded. Weekly is a separate page
-  // and is also expanded whenever the user switches to it.
+  // Only a real transition from another top-level page into GAME resets to Daily.
+  // Re-renders that merely re-apply the already-active GAME view must not reset the
+  // selected Daily/Weekly sub-page.
   if(typeof setActiveAppView === "function"){
     const baseSetActiveAppView = setActiveAppView;
     setActiveAppView = function(view, ...args){
-      if(String(view) === "game") resetForGameEntry();
+      const targetIsGame = String(view) === "game";
+      const enteringGame = targetIsGame && !gameViewIsCurrentlyActive();
+      if(enteringGame) resetForGameEntry();
       const result = baseSetActiveAppView.call(this, view, ...args);
-      if(String(view) === "game") scheduleEnhance();
+      if(targetIsGame) scheduleEnhance();
       return result;
     };
   }
