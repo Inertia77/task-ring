@@ -573,3 +573,148 @@
 
   if(typeof renderGameQuestPanel === "function") renderGameQuestPanel();
 })();
+
+// Game Quest bulk note controls: one-click expand/collapse for all notes in the current page.
+(() => {
+  "use strict";
+
+  let scheduled = false;
+
+  function injectBulkStyles(){
+    if(document.getElementById("gameQuestNoteBulkStyles")) return;
+    const style = document.createElement("style");
+    style.id = "gameQuestNoteBulkStyles";
+    style.textContent = `
+      .gameQuestNoteBulkTools{
+        display:flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap:4px;
+        min-height:22px;
+        margin:0 0 4px;
+        padding:0 2px;
+        color:var(--color-muted);
+      }
+      .gameQuestNoteBulkLabel{
+        margin-right:1px;
+        font-size:9px;
+        line-height:1;
+        font-weight:800;
+        letter-spacing:.08em;
+        opacity:.55;
+        user-select:none;
+      }
+      .gameQuestNoteBulkBtn{
+        min-height:22px;
+        padding:2px 7px;
+        border:1px solid color-mix(in srgb,var(--color-line-strong) 38%,transparent);
+        border-radius:999px;
+        background:transparent;
+        color:color-mix(in srgb,var(--color-muted) 88%,transparent);
+        font:800 9px/1 ui-sans-serif,system-ui,sans-serif;
+        cursor:pointer;
+        opacity:.72;
+        transition:opacity .14s ease,border-color .14s ease,background .14s ease,color .14s ease;
+      }
+      .gameQuestNoteBulkBtn:hover,.gameQuestNoteBulkBtn:focus-visible{
+        border-color:color-mix(in srgb,var(--color-warning) 58%,var(--color-line-strong));
+        background:color-mix(in srgb,var(--color-primary) 12%,white);
+        color:var(--color-ink);
+        opacity:1;
+        outline:none;
+      }
+      .gameQuestNoteBulkBtn:disabled{
+        opacity:.28;
+        cursor:default;
+        background:transparent;
+      }
+      @media(max-width:700px){
+        .gameQuestNoteBulkTools{min-height:20px;margin-bottom:3px;padding-right:0}
+        .gameQuestNoteBulkLabel{font-size:8px}
+        .gameQuestNoteBulkBtn{min-height:20px;padding:2px 6px;font-size:8px}
+      }
+      @media(prefers-contrast:more){
+        .gameQuestNoteBulkBtn{border-color:var(--color-line-strong);color:var(--color-ink);opacity:1}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function notesInPane(pane){
+    return pane ? [...pane.querySelectorAll("details.gameQuestTaskNote")] : [];
+  }
+
+  function syncTools(pane, tools){
+    if(!pane || !tools) return;
+    const notes = notesInPane(pane);
+    const opened = notes.filter(note => note.open).length;
+    const openBtn = tools.querySelector('[data-gq-note-bulk="open"]');
+    const closeBtn = tools.querySelector('[data-gq-note-bulk="close"]');
+    if(openBtn){
+      openBtn.disabled = notes.length > 0 && opened === notes.length;
+      openBtn.title = `展开本页全部备注（${notes.length} 条）`;
+    }
+    if(closeBtn){
+      closeBtn.disabled = opened === 0;
+      closeBtn.title = `收起本页全部备注（${notes.length} 条）`;
+    }
+  }
+
+  function ensurePaneTools(pane){
+    if(!pane) return;
+    const notes = notesInPane(pane);
+    let tools = pane.querySelector(".gameQuestNoteBulkTools");
+    const firstList = pane.querySelector(".gameQuestTaskList");
+    if(notes.length < 2 || !firstList){
+      tools?.remove();
+      return;
+    }
+    if(!tools){
+      tools = document.createElement("div");
+      tools.className = "gameQuestNoteBulkTools";
+      tools.setAttribute("role","group");
+      tools.setAttribute("aria-label","批量备注操作");
+      tools.innerHTML = '<span class="gameQuestNoteBulkLabel">备注</span><button type="button" class="gameQuestNoteBulkBtn" data-gq-note-bulk="open">全部展开</button><button type="button" class="gameQuestNoteBulkBtn" data-gq-note-bulk="close">全部收起</button>';
+      firstList.insertAdjacentElement("beforebegin", tools);
+    }
+    syncTools(pane, tools);
+  }
+
+  function enhance(){
+    scheduled = false;
+    injectBulkStyles();
+    document.querySelectorAll("#gameQuestPanel .gameQuestDailyPane,#gameQuestPanel .gameQuestWeeklyPane").forEach(ensurePaneTools);
+  }
+
+  function scheduleEnhance(){
+    if(scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(enhance);
+  }
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest?.("[data-gq-note-bulk]");
+    if(!button) return;
+    const pane = button.closest(".gameQuestDailyPane,.gameQuestWeeklyPane");
+    if(!pane) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const shouldOpen = button.dataset.gqNoteBulk === "open";
+    notesInPane(pane).forEach(note => { note.open = shouldOpen; });
+    syncTools(pane, button.closest(".gameQuestNoteBulkTools"));
+  }, true);
+
+  document.addEventListener("toggle", event => {
+    const note = event.target;
+    if(!(note instanceof HTMLDetailsElement) || !note.classList.contains("gameQuestTaskNote")) return;
+    const pane = note.closest(".gameQuestDailyPane,.gameQuestWeeklyPane");
+    syncTools(pane, pane?.querySelector(".gameQuestNoteBulkTools"));
+  }, true);
+
+  const panel = document.getElementById("gameQuestPanel");
+  if(panel){
+    new MutationObserver(scheduleEnhance).observe(panel,{childList:true,subtree:true});
+  }
+
+  scheduleEnhance();
+})();
