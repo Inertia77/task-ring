@@ -1,0 +1,53 @@
+/* Compact wide-screen lanes for Game Quest and Weekly mission cards.
+   The goal is to stop low-density task rows from becoming full-width horizontal strips.
+   Mobile/tablet keep the existing single-column layout. */
+
+@media (min-width: 1280px) {
+  /* Game Quest: focused game keeps its overview full width, but task rows become
+     a compact two-column checklist. Notes remain attached to each task cell. */
+  .gameQuestGrid.focused .gameQuestTaskList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 10px;
+    row-gap: 6px;
+    align-items: start;
+  }
+
+  .gameQuestGrid.focused .gameQuestTaskList > li {
+    min-width: 0;
+    align-self: start;
+  }
+
+  .gameQuestGrid.focused .gameQuestTaskRow {
+    min-width: 0;
+  }
+
+  /* Weekly plan: keep the native two-column mission grid even when a category
+     contains only one mission, instead of stretching that card edge to edge. */
+  .weeklyMissionGrid,
+  .weeklyMissionGrid:has(> .weeklyMissionCard:only-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* If the selected weekly category truly contains only one mission, compact the
+     whole category lane as well. This removes the giant empty dossier frame while
+     preserving the normal full-width layout for categories with multiple missions. */
+  .weeklyMissionGroup:has(> .weeklyMissionGrid > .weeklyMissionCard:only-child) {
+    width: calc(50% - 5px);
+    max-width: 760px;
+  }
+
+  .weeklyMissionGroup:has(> .weeklyMissionGrid > .weeklyMissionCard:only-child) .weeklyMissionGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Between laptop and wide desktop, avoid forcing extra columns: readable line
+   length matters more than density at this width. */
+@media (min-width: 901px) and (max-width: 1279px) {
+  .gameQuestGrid.focused .gameQuestTaskList,
+  .weeklyMissionGrid,
+  .weeklyMissionGrid:has(> .weeklyMissionCard:only-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
