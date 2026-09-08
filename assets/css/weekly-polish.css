@@ -12,6 +12,12 @@
   border-left-width: 3px;
 }
 
+/* The aggregate “全部” category is intentionally omitted from the weekly tab strip.
+   The default all-category overview may still be shown, but only real categories are clickable filters. */
+.weeklyCategoryTab[data-weekly-category-tab="all"] {
+  display: none !important;
+}
+
 /* Tighten the task header without losing the title / target hierarchy. */
 .missionHead {
   grid-template-columns: 38px minmax(0, 1fr) auto;
