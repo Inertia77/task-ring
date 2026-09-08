@@ -5,6 +5,12 @@
   position: relative;
 }
 
+/* Weekly game tabs are already the primary navigation; the aggregate "All" tab adds
+   little value and crowds the row, so keep only per-game tabs visible. */
+.gameQuestWeeklyPane .gameQuestFilterTabs [data-gq-weekly-filter="all"] {
+  display: none !important;
+}
+
 /* Reserve only a tiny inline zone when a closed note exists. */
 .gameQuestTaskList > li:has(> .gameQuestTaskNote:not([open])) > .gameQuestTaskRow {
   padding-right: 60px;
