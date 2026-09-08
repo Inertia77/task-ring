@@ -1,0 +1,61 @@
+/* Daily execution density pass: keep desktop cards compact without reducing mobile tap targets. */
+
+@media (min-width: 901px) {
+  .dailyGroup > summary {
+    padding: 7px 10px;
+  }
+
+  .dailyCard {
+    padding: 8px 10px 8px;
+    border-left-width: 3px;
+  }
+
+  .dailyTitle {
+    margin-bottom: 2px;
+  }
+
+  .dailyActions {
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .dailyActions button,
+  .dailyActions a,
+  .dailyActions .uxActionMore > summary {
+    min-height: 32px;
+  }
+
+  .subtaskInline {
+    margin-top: 5px;
+  }
+
+  .subtaskInline > summary {
+    min-height: 34px;
+  }
+}
+
+/* On medium desktop widths, a lone task should not stretch across the entire dashboard. */
+@media (min-width: 901px) and (max-width: 1279px) {
+  .dailyGroupBody:has(> .dailyCard:only-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Wide desktop: categories themselves become compact dashboard lanes. */
+@media (min-width: 1280px) {
+  .dailyGroups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .dailyGroup {
+    align-self: start;
+  }
+
+  .dailyGroupBody,
+  .dailyGroupBody:has(> .dailyCard:only-child) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+}
