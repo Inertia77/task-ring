@@ -1,10 +1,6 @@
 /* Daily execution density pass: keep desktop cards compact without reducing mobile tap targets. */
 
 @media (min-width: 901px) {
-  .dailyGroup > summary {
-    padding: 7px 10px;
-  }
-
   .dailyCard {
     padding: 8px 10px 8px;
     border-left-width: 3px;
@@ -34,14 +30,18 @@
   }
 }
 
-/* On medium desktop widths, a lone task should not stretch across the entire dashboard. */
+/* Medium desktop keeps the dossier label, so preserve the right-side breathing room it needs. */
 @media (min-width: 901px) and (max-width: 1279px) {
+  .dailyGroup > summary {
+    padding: 7px 150px 7px 10px;
+  }
+
   .dailyGroupBody:has(> .dailyCard:only-child) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Wide desktop: categories themselves become compact dashboard lanes. */
+/* Wide desktop: categories become compact two-column lanes. The decorative group label is redundant here and otherwise collides with status chips. */
 @media (min-width: 1280px) {
   .dailyGroups {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -50,6 +50,14 @@
 
   .dailyGroup {
     align-self: start;
+  }
+
+  .dailyGroup > summary {
+    padding: 7px 10px;
+  }
+
+  .dailyGroup > summary::after {
+    display: none;
   }
 
   .dailyGroupBody,
