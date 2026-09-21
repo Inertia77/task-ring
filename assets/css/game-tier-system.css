@@ -1,8 +1,8 @@
 
 /* GameQuest v3 tier system: T1 full clear / T2 attendance / T3 interest. */
 .gameQuestModeTabs.tiered{grid-template-columns:repeat(3,minmax(0,1fr))}
-.gameQuestTierV3 .gameQuestTopBar{grid-template-columns:minmax(280px,.95fr) minmax(360px,1.05fr)}
-.gameQuestTierV3 .gameQuestHeroSide{grid-template-columns:minmax(150px,1fr) repeat(2,minmax(120px,.8fr))}
+.gameQuestTierV3 .gameQuestTopBar{grid-template-columns:minmax(280px,.75fr) minmax(620px,1.25fr)}
+.gameQuestTierV3 .gameQuestHeroSide{grid-template-columns:minmax(150px,1fr) repeat(4,minmax(108px,.78fr))}
 .gameQuestInterestPane{min-width:0;padding:9px;border:1px solid color-mix(in srgb,#2f8f67 30%,var(--color-line));border-left:6px solid #2f8f67;border-radius:14px 4px 14px 14px;background:linear-gradient(180deg,color-mix(in srgb,#dff4e9 72%,white),white 80%)}
 .gqTierLane{display:grid;gap:8px;margin-top:12px;padding:10px;border:1px solid var(--color-line);border-radius:12px;background:rgba(255,255,255,.55)}
 .gqTierLane>header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
