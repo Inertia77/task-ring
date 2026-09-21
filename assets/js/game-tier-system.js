@@ -1,231 +1,292 @@
-// GameQuest v3 tier policy. Loaded after game-disclosure.js so it can preserve its note support.
-(function(){
-  'use strict';
-  var DEF={
-    1:{id:'t1',short:'T1',name:'全勤・全清'},
-    2:{id:'t2',short:'T2',name:'全勤・非全清'},
-    3:{id:'t3',short:'T3',name:'兴趣制'}
-  };
-  window.TaskRingGameTierDefs=DEF;
+(() => {
+"use strict";
+const TIERS={
+  1:{name:"全勤・全清",short:"T1"},
+  2:{name:"全勤・非全清",short:"T2"},
+  3:{name:"兴趣制",short:"T3"}
+};
+const LEGACY={zzz:1,hsr:1,wuwa:2,nte:2,onmyoji:3,endfield:3};
+const POLICY={defaultTier:3,coreCompletion:"required_only",t3CreatesDebt:false,tiers:{
+  "1":{name:"全勤・全清",attendanceRequired:true,allConfiguredRewardsRequired:true},
+  "2":{name:"全勤・非全清",attendanceRequired:true,allConfiguredRewardsRequired:false},
+  "3":{name:"兴趣制",attendanceRequired:false,allConfiguredRewardsRequired:false}
+}};
+window.TaskRingGameTierSystem={version:3,TIERS};
 
-  function tier(v,fallback){
-    var n=Number(v);
-    if(n===1||n===2||n===3)return n;
-    var s=String(v==null?'':v).toLowerCase();
-    if(['t1','full','core','all_rewards'].includes(s))return 1;
-    if(['t2','attendance','regular'].includes(s))return 2;
-    if(['t3','interest','casual','optional'].includes(s))return 3;
-    return fallback==null?3:fallback;
-  }
-  function gameTier(g){return tier(g&&g.tier,1);}
-  function gameById(id,cfg){return ((cfg||gameQuestConfig).games||[]).find(function(g){return String(g.id)===String(id);})||null;}
-  function requirementFromTitle(title){
-    var t=String(title||'').trim(),r=null;
-    if(/^(必|必做|MUST)\s*[｜|:：]\s*/i.test(t)){r=true;t=t.replace(/^(必|必做|MUST)\s*[｜|:：]\s*/i,'').trim();}
-    else if(/^(选|选做|OPTIONAL)\s*[｜|:：]\s*/i.test(t)){r=false;t=t.replace(/^(选|选做|OPTIONAL)\s*[｜|:：]\s*/i,'').trim();}
-    return {title:t,required:r};
-  }
-  function rawItems(value){return Array.isArray(value)?value:(typeof value==='string'?value.split(/\n+/):[]);}
-  function rawMatch(list,task,index){
-    var id=String(task&&task.id||''),title=String(task&&task.title||'');
-    return list.find(function(x){return x&&typeof x==='object'&&id&&String(x.id||'')===id;})||
-      list.find(function(x){return x&&typeof x==='object'&&title&&requirementFromTitle(x.title||x.name).title===title;})||list[index]||null;
-  }
+function tier(v,f=3){const n=Number(v);return [1,2,3].includes(n)?n:f}
+function gameTier(g){return tier(g?.tier,LEGACY[String(g?.id||"")]||3)}
+function rawList(v){return Array.isArray(v)?v:(typeof v==="string"?v.split(/\n+/):[])}
+function stripPrefix(v){
+  let title=String(v||"").trim(),required=null;
+  if(/^(?:必|必做|MUST)\s*[｜|:：]\s*/i.test(title)){required=true;title=title.replace(/^(?:必|必做|MUST)\s*[｜|:：]\s*/i,"").trim()}
+  else if(/^(?:选|选做|OPTIONAL)\s*[｜|:：]\s*/i.test(title)){required=false;title=title.replace(/^(?:选|选做|OPTIONAL)\s*[｜|:：]\s*/i,"").trim()}
+  return {title,required};
+}
+function sourceFor(items,t,i){
+  const id=String(t?.id||"").trim();
+  if(id){const hit=items.find(x=>x&&typeof x==="object"&&String(x.id||"").trim()===id);if(hit)return hit}
+  const title=stripPrefix(t?.title||"").title;
+  return items.find(x=>x&&typeof x==="object"&&stripPrefix(x.title||x.name||"").title===title)||(items[i]&&typeof items[i]==="object"?items[i]:null);
+}
+function requiredFor(t,g,pool){
+  if(typeof t?.required==="boolean")return t.required;
+  const p=stripPrefix(t?.title||"").required;if(p!==null)return p;
+  const gt=gameTier(g);
+  return pool==="daily"?gt<=2:pool==="weekly"?gt===1:false;
+}
+function cadenceFor(t,f=""){return String(t?.cadence||"").trim()||(t?.plan_mode==="daily"?"daily":t?.plan_mode==="weekly"?"weekly":f)}
+function pushUnique(list,t){
+  if(!t?.title)return;
+  const sig=`${t.cadence||""}|${t.id||""}|${t.title}`.toLowerCase();
+  if(!list.some(x=>`${x.cadence||""}|${x.id||""}|${x.title}`.toLowerCase()===sig))list.push(t);
+}
 
-  var baseNormalize=normalizeGameQuestTaskList;
-  normalizeGameQuestTaskList=function(value,context){
-    context=context||'scheduled';
-    var list=rawItems(value);
-    return baseNormalize(value,context).map(function(task,index){
-      var src=rawMatch(list,task,index),pref=requirementFromTitle(task.title),out=Object.assign({},task,{title:pref.title});
-      if(src&&typeof src.required==='boolean')out.required=src.required;
-      else if(pref.required!==null)out.required=pref.required;
-      if(src&&src.cadence)out.cadence=String(src.cadence);
-      if(context==='interest'||String(src&&src.plan_mode||'')==='interest'){
-        out.plan_mode='interest';out.required=false;
+const baseNormalizeTaskList=normalizeGameQuestTaskList;
+normalizeGameQuestTaskList=function(v,context="scheduled"){
+  const items=rawList(v);
+  return baseNormalizeTaskList(v,context).map((t,i)=>{
+    const src=sourceFor(items,t,i),p=stripPrefix(t.title),out={...t,title:p.title};
+    const req=typeof src?.required==="boolean"?src.required:p.required;
+    if(req!==null)out.required=req;
+    if(src?.cadence)out.cadence=String(src.cadence);
+    return out;
+  });
+};
+gameQuestTaskStoreList=function(v,context="scheduled"){
+  return normalizeGameQuestTaskList(v,context).map(t=>{
+    const o={id:t.id,title:t.title,url:t.url||"",plan_mode:t.plan_mode};
+    if(t.note)o.note=String(t.note).trim();
+    if(typeof t.required==="boolean")o.required=t.required;
+    if(t.cadence)o.cadence=String(t.cadence);
+    if(Number.isFinite(Number(t.weekly_minutes)))o.weekly_minutes=Number(t.weekly_minutes);
+    if(Number.isFinite(Number(t.estimated_minutes)))o.estimated_minutes=Number(t.estimated_minutes);
+    return o;
+  });
+};
+
+const baseNormalizeConfig=normalizeGameQuestConfig;
+normalizeGameQuestConfig=function(config){
+  const src=config&&typeof config==="object"?config:{},base=baseNormalizeConfig(config);
+  const srcGames=new Map((Array.isArray(src.games)?src.games:[]).map(g=>[String(g.id),g]));
+  const games=(base.games||[]).map(g=>({...g,tier:tier(srcGames.get(String(g.id))?.tier,LEGACY[String(g.id)]||3)}));
+  const interest={};
+  games.filter(g=>gameTier(g)===3).forEach(g=>interest[g.id]=[]);
+  Object.entries(src.interest||{}).forEach(([gid,list])=>{
+    if(!interest[gid])interest[gid]=[];
+    normalizeGameQuestTaskList(list,"scheduled").forEach(t=>pushUnique(interest[gid],{...t,plan_mode:"interest",required:false,cadence:cadenceFor(t,"interest")}));
+  });
+  [1,2,3,4,5,6,0].forEach(d=>{
+    const k=String(d),rawDay=src.schedule?.[k]||{};
+    games.forEach(g=>{
+      if(gameTier(g)===3){
+        normalizeGameQuestTaskList(rawDay[g.id],"scheduled").forEach(t=>pushUnique(interest[g.id],{...t,plan_mode:"interest",required:false,cadence:cadenceFor(t,"daily")}));
+        if(base.schedule?.[k])delete base.schedule[k][g.id];
+      }else{
+        (base.schedule?.[k]?.[g.id]||[]).forEach(t=>{
+          if(typeof t.required!=="boolean")t.required=requiredFor(t,g,"daily");
+          if(!t.cadence)t.cadence=cadenceFor(t,"daily");
+        });
       }
-      return out;
     });
-  };
-  gameQuestTaskStoreList=function(value,context){
-    return normalizeGameQuestTaskList(value,context||'scheduled').map(function(t){
-      var o={id:t.id,title:t.title,url:t.url||'',plan_mode:t.plan_mode};
-      if(typeof t.required==='boolean')o.required=t.required;
-      if(t.note)o.note=t.note;
-      if(t.cadence)o.cadence=t.cadence;
-      if(Number.isFinite(Number(t.weekly_minutes)))o.weekly_minutes=Number(t.weekly_minutes);
-      if(Number.isFinite(Number(t.estimated_minutes)))o.estimated_minutes=Number(t.estimated_minutes);
-      return o;
-    });
-  };
-  if(typeof gameQuestPlanModeDefs==='object')gameQuestPlanModeDefs.interest={name:'兴趣任务',short:'兴趣',hint:'T3 兴趣池，不计核心完成率。'};
+  });
+  games.forEach(g=>{
+    if(gameTier(g)===3){
+      normalizeGameQuestTaskList(src.weekly?.[g.id]||[],"weekly").forEach(t=>pushUnique(interest[g.id],{...t,plan_mode:"interest",required:false,cadence:cadenceFor(t,"weekly")}));
+      base.weekly[g.id]=[];
+    }else{
+      (base.weekly[g.id]||[]).forEach(t=>{
+        if(typeof t.required!=="boolean")t.required=requiredFor(t,g,"weekly");
+        if(!t.cadence)t.cadence=cadenceFor(t,"weekly");
+      });
+    }
+  });
+  Object.keys(interest).forEach(gid=>interest[gid]=interest[gid].slice(0,40));
+  return {version:3,updatedAt:String(src.updatedAt||base.updatedAt||""),tierPolicy:{...POLICY,...(src.tierPolicy||{})},games,schedule:base.schedule||{},weekly:base.weekly||{},interest};
+};
 
-  var baseNormalizeConfig=normalizeGameQuestConfig;
-  normalizeGameQuestConfig=function(config){
-    var source=config&&typeof config==='object'?deepClone(config):{};
-    var legacy=Number(source.version||1)<3;
-    var normalized=baseNormalizeConfig(source);
-    normalized.version=3;
-    normalized.tierPolicy={defaultTier:tier(source.tierPolicy&&source.tierPolicy.defaultTier,3),coreCompletion:'required_only',t3CreatesDebt:false};
-    normalized.games=(normalized.games||[]).map(function(g,i){
-      var raw=(source.games||[]).find(function(x){return String(x.id)===String(g.id);})||{};
-      return Object.assign({},g,{tier:tier(raw.tier,legacy?1:normalized.tierPolicy.defaultTier)});
-    });
-    normalized.interest={};
-    normalized.games.forEach(function(g){
-      var rawInterest=source.interest&&source.interest[g.id];
-      normalized.interest[g.id]=normalizeGameQuestTaskList(rawInterest||[],'interest').map(function(t){return Object.assign({},t,{plan_mode:'interest',required:false});});
-    });
-    Object.keys(normalized.schedule||{}).forEach(function(day){
-      Object.keys(normalized.schedule[day]||{}).forEach(function(gid){
-        normalized.schedule[day][gid]=normalizeGameQuestTaskList((source.schedule&&source.schedule[day]&&source.schedule[day][gid])||normalized.schedule[day][gid],'scheduled');
+const baseCreateDraftGame=createGameQuestDraftGame;
+createGameQuestDraftGame=function(){return {...baseCreateDraftGame(),tier:3}};
+
+buildGameQuestDailyByGame=function(cfg){
+  const map={};(cfg?.games||[]).forEach(g=>map[g.id]=[]);
+  [1,2,3,4,5,6,0].forEach(d=>{
+    const day=cfg?.schedule?.[String(d)]||{};
+    (cfg?.games||[]).forEach(g=>{
+      if(gameTier(g)===3)return;
+      normalizeGameQuestTaskList(day[g.id],"scheduled").forEach(t=>{
+        if(t.plan_mode==="weekly")return;
+        const sig=`${t.id||""}|${t.title}`.toLowerCase();
+        let x=map[g.id].find(a=>`${a.id||""}|${a.title}`.toLowerCase()===sig);
+        if(!x){x={id:t.id,title:t.title,url:t.url||"",note:t.note||"",required:requiredFor(t,g,"daily"),cadence:cadenceFor(t,"daily"),days:[]};map[g.id].push(x)}
+        if(!x.days.includes(d))x.days.push(d);
       });
     });
-    Object.keys(normalized.weekly||{}).forEach(function(gid){
-      normalized.weekly[gid]=normalizeGameQuestTaskList((source.weekly&&source.weekly[gid])||normalized.weekly[gid],'weekly');
+  });
+  Object.values(map).forEach(list=>list.forEach(t=>t.days.sort((a,b)=>gameQuestDaySortValue(a)-gameQuestDaySortValue(b))));
+  return map;
+};
+applyDailyByGameToSchedule=function(cfg){
+  const schedule={};[1,2,3,4,5,6,0].forEach(d=>schedule[String(d)]={});
+  (cfg.games||[]).forEach(g=>{
+    if(gameTier(g)===3)return;
+    (cfg.dailyByGame?.[g.id]||[]).forEach(t=>{
+      const title=String(t.title||"").trim(),days=Array.isArray(t.days)?[...new Set(t.days.map(Number))].filter(d=>[0,1,2,3,4,5,6].includes(d)):[];
+      if(!title||!days.length)return;
+      const mode=days.length>=7?"daily":"scheduled";
+      days.forEach(d=>{
+        const k=String(d);if(!schedule[k][g.id])schedule[k][g.id]=[];
+        const o={id:t.id,title,url:normalizeFitnessUrl(t.url||""),plan_mode:mode,required:t.required!==false,cadence:String(t.cadence||mode)};
+        if(t.note)o.note=String(t.note).trim();
+        schedule[k][g.id].push(o);
+      });
     });
-    return normalized;
-  };
+  });
+  cfg.schedule=schedule;
+};
 
-  function required(task,g,scope){
-    if(typeof task.required==='boolean')return task.required;
-    var t=gameTier(g);
-    if(t===1)return scope!=='interest';
-    if(t===2)return scope==='daily';
-    return false;
-  }
-  function state(tasks,g,doneFn,scope){
-    var done=tasks.filter(doneFn).length,req=tasks.filter(function(t){return required(t,g,scope);});
-    var rd=req.filter(doneFn).length;
-    return {tasks:tasks,done:done,total:tasks.length,requiredDone:rd,requiredTotal:req.length,cardDone:req.length?rd>=req.length:false};
-  }
-  gameQuestEntryState=function(gameId,dayId,cfg,cycle){
-    cfg=cfg||gameQuestConfig;cycle=cycle||cycleYmd;
-    var g=gameById(gameId,cfg),tasks=gameQuestTaskObjectsFor(gameId,dayId,cfg);
-    return state(tasks,g,function(t){return isGameQuestItemDone(gameId,dayId,t.id,cycle);},'daily');
-  };
-  gameQuestWeeklyEntryState=function(gameId,cfg,cycle){
-    cfg=cfg||gameQuestConfig;cycle=cycle||cycleYmd;
-    var g=gameById(gameId,cfg),tasks=gameQuestWeeklyTasksFor(gameId,cfg);
-    return state(tasks,g,function(t){return isGameQuestWeeklyItemDone(gameId,t.id,cycle);},'weekly');
-  };
-  gameQuestEntriesForDay=function(dayId,cfg){
-    cfg=cfg||gameQuestConfig;
-    return enabledGameQuestGames(cfg).filter(function(g){return gameTier(g)<3;}).map(function(g){return Object.assign({game:g},gameQuestEntryState(g.id,dayId,cfg));}).filter(function(e){return e.tasks.length;});
-  };
-  gameQuestWeeklyEntries=function(cfg){
-    cfg=cfg||gameQuestConfig;
-    return enabledGameQuestGames(cfg).filter(function(g){return gameTier(g)<3;}).map(function(g){return Object.assign({game:g},gameQuestWeeklyEntryState(g.id,cfg));}).filter(function(e){return e.tasks.length;});
-  };
-  function stats(entries){
-    var total=entries.reduce(function(s,e){return s+e.requiredTotal;},0),done=entries.reduce(function(s,e){return s+e.requiredDone;},0);
-    var core=entries.filter(function(e){return e.requiredTotal>0;});
-    return {total:total,done:done,pct:total?Math.round(done/total*100):100,cards:core.length,cardsDone:core.filter(function(e){return e.cardDone;}).length};
-  }
-  gameQuestStats=function(dayId){return stats(gameQuestEntriesForDay(dayId));};
-  gameQuestWeeklyStats=function(){return stats(gameQuestWeeklyEntries());};
-  gameQuestWeekStats=function(){var total=0,done=0;days.forEach(function(d){var s=gameQuestStats(d.id);total+=s.total;done+=s.done;});return {total:total,done:done,pct:total?Math.round(done/total*100):100};};
+const baseWeeklyEditorTasksFor=gameQuestWeeklyEditorTasksFor;
+gameQuestWeeklyEditorTasksFor=function(gid,cfg=gameQuestDraftConfig){
+  const g=cfg?.games?.find(x=>String(x.id)===String(gid));
+  return baseWeeklyEditorTasksFor(gid,cfg).map((t,i)=>{
+    const raw=cfg?.weekly?.[gid]?.[i];
+    return {...t,required:typeof raw?.required==="boolean"?raw.required:requiredFor(t,g,"weekly"),cadence:String(raw?.cadence||"weekly")};
+  });
+};
+const baseDailyRow=gameQuestDailyRowHtml,baseWeeklyRow=gameQuestWeeklyRowHtml;
+gameQuestDailyRowHtml=function(gid,t,i,n){
+  return baseDailyRow(gid,t,i,n).replace('<div class="gqDailyRowOps">',`<label class="gqObligationToggle"><input class="gqTaskRequired" type="checkbox" ${t.required!==false?"checked":""}><span>计入核心完成率</span></label><div class="gqDailyRowOps">`);
+};
+gameQuestWeeklyRowHtml=function(gid,t,i,n){
+  return baseWeeklyRow(gid,t,i,n).replace('<div class="gqDailyRowOps">',`<label class="gqObligationToggle"><input class="gqTaskRequired" type="checkbox" ${t.required===true?"checked":""}><span>计入核心完成率</span></label><div class="gqDailyRowOps">`);
+};
 
-  function interestTasks(gameId){return normalizeGameQuestTaskList((gameQuestConfig.interest||{})[gameId]||[],'interest');}
-  function interestKey(gameId,itemId){return GH_PREFIX+cycleYmd+'_gqint_'+gameId+'_'+itemId;}
-  function interestDone(gameId,itemId){return localStorage.getItem(interestKey(gameId,itemId))==='1';}
-  function interestEntries(){
-    return enabledGameQuestGames(gameQuestConfig).filter(function(g){return gameTier(g)===3;}).map(function(g){
-      var tasks=interestTasks(g.id),done=tasks.filter(function(t){return interestDone(g.id,t.id);}).length;
-      return {game:g,tasks:tasks,done:done,total:tasks.length};
-    }).filter(function(e){return e.tasks.length;});
-  }
-  function interestStats(){var es=interestEntries();return {games:es.length,total:es.reduce(function(s,e){return s+e.total;},0),done:es.reduce(function(s,e){return s+e.done;},0)};}
-
-  var oldBadge=gameQuestTaskBadge;
-  gameQuestTaskBadge=function(t){
-    var base=oldBadge(t),label=t.plan_mode==='interest'?'兴趣':(t.required===false?'选做':'必做'),cls=t.plan_mode==='interest'?'interest':(t.required===false?'optional':'required');
-    return base+'<span class="gameQuestReqBadge '+cls+'">'+label+'</span>';
-  };
-  function tierBadge(g){var d=DEF[gameTier(g)];return '<em class="gameQuestTierBadge '+d.id+'">'+d.short+' '+d.name+'</em>';}
-  function entryProgress(e){return e.requiredTotal?{done:e.requiredDone,total:e.requiredTotal,pct:Math.round(e.requiredDone/e.requiredTotal*100)}:{done:e.done,total:e.total,pct:e.total?Math.round(e.done/e.total*100):0};}
-  function card(entry,dayId,weekly){
-    var g=entry.game,p=entryProgress(entry),isDone=p.total&&p.done>=p.total;
-    var title=escapeHtml(g.name),count=p.done+'/'+p.total,body=weekly?gameQuestWeeklyTaskListHtml(g.id,entry.tasks):gameQuestTaskListHtml(g.id,dayId,entry.tasks);
-    var btn=weekly?'<button type="button" class="gameQuestCheck '+(isDone?'done':'')+'" data-gq-weekly-card-btn="1" data-gamequest-weekly-game="'+escapeHtml(g.id)+'" data-cycle="'+escapeHtml(cycleYmd)+'"><span></span></button>':'<button type="button" class="gameQuestCheck '+(isDone?'done':'')+'" data-gq-card-btn="1" data-gamequest-game="'+escapeHtml(g.id)+'" data-gamequest-day="'+dayId+'" data-cycle="'+escapeHtml(cycleYmd)+'"><span></span></button>';
-    return '<article class="gameQuestCard gameQuestCardV2 tier-'+DEF[gameTier(g)].id+' accent-'+escapeHtml(g.accent)+' '+(isDone?'done':'')+'" style="--gq-p:'+p.pct+'%"><div class="gameQuestCardTop">'+btn+'<span class="gameQuestIcon gameQuestIconOrb">'+escapeHtml(String(g.short||g.name).slice(0,1))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+title+' '+tierBadge(g)+'</span><span class="gameQuestShort">'+(gameTier(g)===1?'核心奖励追踪':'今日只保全勤 / 周奖励可选')+'</span></div><span class="gameQuestCount">'+count+'</span></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody">'+body+'</div></article>';
-  }
-  gameQuestCardHtml=function(e,d){return card(e,d,false);};
-  gameQuestWeeklyCardHtml=function(e){return card(e,gameQuestSelectedDay,true);};
-
-  function interestList(gid,tasks){
-    return '<ul class="gameQuestTaskList gameQuestTaskListV2 interest">'+tasks.map(function(t,i){
-      var done=interestDone(gid,t.id),note=t.note?'<details class="gameQuestTaskNote"><summary>备注</summary><div class="gameQuestTaskNoteBody">'+escapeHtml(t.note)+'</div></details>':'';
-      return '<li class="'+(done?'done':'')+'"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 '+(done?'done':'')+'" data-gq-interest-item="1" data-gq-interest-game="'+escapeHtml(gid)+'" data-gq-interest-id="'+escapeHtml(t.id)+'" aria-pressed="'+(done?'true':'false')+'"><span class="gameQuestTaskNo">'+String(i+1).padStart(2,'0')+'</span><span class="gameQuestMiniBox"></span><i>'+escapeHtml(t.title)+'</i><span class="gameQuestReqBadge interest">兴趣</span>'+(t.cadence?'<span class="gameQuestCadenceBadge">'+escapeHtml(t.cadence)+'</span>':'')+'</button></div>'+note+'</li>';
-    }).join('')+'</ul>';
-  }
-  function interestCard(e){
-    var g=e.game,p=e.total?Math.round(e.done/e.total*100):0;
-    return '<article class="gameQuestCard gameQuestCardV2 gameQuestInterestCard tier-t3 accent-'+escapeHtml(g.accent)+'" style="--gq-p:'+p+'%"><div class="gameQuestCardTop"><span class="gameQuestCheck passive"><span></span></span><span class="gameQuestIcon gameQuestIconOrb">'+escapeHtml(String(g.short||g.name).slice(0,1))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+escapeHtml(g.name)+' '+tierBadge(g)+'</span><span class="gameQuestShort">想玩就玩，不形成欠账。</span></div><span class="gameQuestCount">'+e.done+'/'+e.total+'</span></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody">'+interestList(g.id,e.tasks)+'</div></article>';
-  }
-  function group(title,desc,cls,entries,render){
-    var s=stats(entries),cards=entries.length?entries.map(render).join(''):'<div class="gameQuestEmpty compact"><b>没有配置项目。</b></div>';
-    return '<section class="gameQuestTierGroup '+cls+'"><header class="gameQuestTierGroupHead"><div><b>'+title+'</b><span>'+desc+'</span></div><em>'+(s.total?s.done+'/'+s.total:'不计核心')+'</em></header><div class="gameQuestGrid">'+cards+'</div></section>';
-  }
-
-  setGameQuestBoardMode=function(mode){gameQuestBoardMode=['today','week','interest'].includes(mode)?mode:'today';localStorage.setItem(GQ_BOARD_MODE_KEY,gameQuestBoardMode);renderGameQuestPanel();};
-  renderGameQuestPanel=function(){
-    var panel=document.getElementById('gameQuestPanel');if(!panel)return;
-    var daily=gameQuestStats(gameQuestSelectedDay),weekly=gameQuestWeeklyStats(),ints=interestStats();
-    var tabs='<div class="gameQuestModeTabs" role="tablist"><button type="button" class="gameQuestModeBtn '+(gameQuestBoardMode==='today'?'active':'')+'" data-gamequest-board-mode="today"><span>今日全勤</span><b>'+daily.done+'/'+daily.total+'</b></button><button type="button" class="gameQuestModeBtn '+(gameQuestBoardMode==='week'?'active':'')+'" data-gamequest-board-mode="week"><span>本周奖励</span><b>'+weekly.done+'/'+weekly.total+'</b></button><button type="button" class="gameQuestModeBtn '+(gameQuestBoardMode==='interest'?'active':'')+'" data-gamequest-board-mode="interest"><span>兴趣池</span><b>'+ints.games+' GAME</b></button></div>';
-    var top='<div class="gameQuestTopBar gameQuestTopBarStandalone"><div class="gameQuestTopTitle"><span>GAME QUEST</span><strong>游戏作战区</strong><em>T1 全勤全清 / T2 只保全勤 / T3 兴趣制。完成率只算真正的义务。</em></div><div class="gameQuestHeroSide"><button type="button" class="gameCommandBtn gameQuestTodayQuick" id="gameQuestTodayBtn"><span class="gameCommandIcon">◎</span><span class="gameCommandCopy"><small>TODAY</small><b>今日</b><em>回到今天</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>梯度 / 日常 / 周常</em></span></button></div></div>';
-    var body='';
-    if(gameQuestBoardMode==='interest'){
-      var ie=interestEntries();body='<div class="gameQuestInterestPane"><div class="gameQuestMetaStrip"><span>T3｜不要求全勤，不产生逾期；感兴趣的时候再玩。</span><em>NO DEBT</em></div><div class="gameQuestGrid gameQuestInterestGrid">'+(ie.length?ie.map(interestCard).join(''):'<div class="gameQuestEmpty"><b>兴趣池为空。</b></div>')+'</div></div>';
-    }else if(gameQuestBoardMode==='week'){
-      var we=gameQuestWeeklyEntries(),w1=we.filter(function(e){return gameTier(e.game)===1;}),w2=we.filter(function(e){return gameTier(e.game)===2;});
-      body='<div class="gameQuestWeeklyPane"><div class="gameQuestMetaStrip"><span>T1 奖励必须清完；T2 周常 / 高难只作为可做收益。</span><em>'+weekly.pct+'% CORE</em></div>'+group('T1｜本周必须清完','绝区零 / 崩铁：配置中的奖励追到领取完成。','t1',w1,function(e){return gameQuestWeeklyCardHtml(e);})+group('T2｜本周可做收益','鸣潮 / 异环：不影响核心完成率。','t2',w2,function(e){return gameQuestWeeklyCardHtml(e);})+'</div>';
-    }else{
-      var de=gameQuestEntriesForDay(gameQuestSelectedDay),d1=de.filter(function(e){return gameTier(e.game)===1;}),d2=de.filter(function(e){return gameTier(e.game)===2;});
-      body='<div class="gameQuestDailyPane"><div class="gameQuestMetaStrip"><span>今日只出现 T1 + T2；T3 不进入日清。</span><em>'+daily.pct+'% CORE</em></div><div class="gameQuestDays">'+gameQuestDayTabsHtml()+'</div><div class="gameQuestSubHead"><span>'+escapeHtml(dayName(gameQuestSelectedDay))+(gameQuestSelectedDay===today?'｜今日':'')+'</span></div>'+group('T1｜全勤 + 全清','每天完成核心日常；奖励链在本周页继续追踪。','t1',d1,function(e){return gameQuestCardHtml(e,gameQuestSelectedDay);})+group('T2｜只保全勤','每天完成基础日课即可。','t2',d2,function(e){return gameQuestCardHtml(e,gameQuestSelectedDay);})+'</div>';
+function interestRows(cfg){
+  return (cfg.games||[]).filter(g=>g.enabled!==false&&gameTier(g)===3).map(g=>{
+    const items=cfg.interest?.[g.id]||[];
+    const rows=items.length?items.map((t,i)=>`<div class="gqInterestEditRow" data-gq-interest-row="${i}" data-gq-task-id="${escapeHtml(t.id||"")}"><div class="gqTaskFields"><label><span>兴趣项目</span><input class="gqInterestTaskTitle" value="${escapeHtml(t.title||"")}" placeholder="例如：斗技 / 活动剧情 / 清图"></label><label><span>链接（选填）</span><input class="gqInterestTaskUrl" type="url" value="${escapeHtml(t.url||"")}"></label><label class="gqTaskNoteField"><span>备注（选填）</span><textarea class="gqInterestTaskNote" rows="2">${escapeHtml(t.note||"")}</textarea></label><label><span>原始频率</span><select class="gqInterestCadence"><option value="interest" ${t.cadence==="interest"?"selected":""}>随兴趣</option><option value="daily" ${t.cadence==="daily"?"selected":""}>原日常</option><option value="weekly" ${t.cadence==="weekly"?"selected":""}>原周常/周期</option></select></label></div><button type="button" class="gqDailyMiniBtn danger" data-gq-interest-delete="${i}" data-gq-game="${escapeHtml(g.id)}">✕</button></div>`).join(""):`<div class="gqDailyEmpty">还没有兴趣项目。</div>`;
+    return `<div class="gameQuestEditRow gameQuestEditRowV2 gqInterestEditGame" data-gq-interest-game="${escapeHtml(g.id)}"><div class="gameQuestEditGame"><span>${escapeHtml(g.icon)}</span><b>${escapeHtml(g.name)}</b><em>T3 兴趣池 · ${items.length} 项</em><button type="button" class="gqDailyAddBtn" data-gq-interest-add="${escapeHtml(g.id)}">＋ 项目</button></div><div class="gqInterestRows">${rows}</div></div>`;
+  }).join("")||`<div class="gqDailyEmpty">当前没有 T3 游戏。</div>`;
+}
+function enhanceEditor(){
+  const cfg=gameQuestDraftConfig,root=document.getElementById("gameQuestEditorList");if(!cfg||!root)return;
+  (cfg.games||[]).forEach(g=>{
+    const row=root.querySelector(`[data-gq-game-row="${safeCssEscape(g.id)}"]`);
+    if(row&&!row.querySelector(".gqMetaTier")){
+      const x=document.createElement("div");x.className="gqMetaField tier";x.innerHTML=`<label>梯度</label><select class="gqMetaTier"><option value="1" ${gameTier(g)===1?"selected":""}>T1｜全勤・全清</option><option value="2" ${gameTier(g)===2?"selected":""}>T2｜全勤・非全清</option><option value="3" ${gameTier(g)===3?"selected":""}>T3｜兴趣制</option></select>`;
+      row.querySelector(".gqMetaField.accent")?.insertAdjacentElement("afterend",x);
     }
-    panel.innerHTML='<div class="gameQuestShell gameQuestStandalone">'+top+tabs+body+'</div>';
-  };
-
-  var baseCreate=createGameQuestDraftGame;
-  createGameQuestDraftGame=function(){var g=baseCreate();g.tier=3;return g;};
-  var baseRenderEditor=renderGameQuestEditor;
-  renderGameQuestEditor=function(){
-    baseRenderEditor();var cfg=gameQuestDraftConfig||gameQuestConfig;
-    document.querySelectorAll('[data-gq-game-row]').forEach(function(row){
-      if(row.querySelector('.gqMetaTier'))return;var g=gameById(row.dataset.gqGameRow,cfg);if(!g)return;
-      var host=row.querySelector('.gqMetaField.accent');if(!host)return;
-      var html='<div class="gqMetaField tier"><label>游戏梯度</label><select class="gqMetaTier"><option value="1" '+(gameTier(g)===1?'selected':'')+'>T1｜全勤・全清</option><option value="2" '+(gameTier(g)===2?'selected':'')+'>T2｜全勤・非全清</option><option value="3" '+(gameTier(g)===3?'selected':'')+'>T3｜兴趣制</option></select></div>';
-      host.insertAdjacentHTML('afterend',html);
-    });
-  };
-  var baseCollect=collectGameQuestEditorState;
-  collectGameQuestEditorState=function(){
-    baseCollect();if(!gameQuestDraftConfig)return;
-    document.querySelectorAll('[data-gq-game-row]').forEach(function(row){var g=(gameQuestDraftConfig.games||[]).find(function(x){return x.id===row.dataset.gqGameRow;});if(g)g.tier=tier(row.querySelector('.gqMetaTier')&&row.querySelector('.gqMetaTier').value,g.tier||3);});
-  };
-
-  document.addEventListener('click',function(ev){
-    var b=ev.target.closest&&ev.target.closest('[data-gq-interest-item]');if(!b)return;
-    ev.preventDefault();ev.stopPropagation();syncSetItem(interestKey(b.dataset.gqInterestGame,b.dataset.gqInterestId),b.getAttribute('aria-pressed')!=='true');renderAll();
-  },true);
-
-  try{
-    var raw=localStorage.getItem(TASK_CONFIG_LOCAL_KEY),saved=raw?JSON.parse(raw):null;
-    gameQuestConfig=normalizeGameQuestConfig((saved&&saved.gameQuest)||(taskConfig&&taskConfig.gameQuest)||gameQuestConfig);
-    if(taskConfig)taskConfig.gameQuest=gameQuestConfig;
-  }catch(_){gameQuestConfig=normalizeGameQuestConfig(gameQuestConfig);}
-  if(typeof applyTaskConfig==='function'){
-    var baseApply=applyTaskConfig;
-    applyTaskConfig=function(config,shouldRender){
-      var c=config&&typeof config==='object'?deepClone(config):config;
-      if(c&&c.gameQuest)c.gameQuest=normalizeGameQuestConfig(c.gameQuest);
-      var result=baseApply(c,shouldRender);
-      gameQuestConfig=normalizeGameQuestConfig((taskConfig&&taskConfig.gameQuest)||gameQuestConfig);
-      if(taskConfig)taskConfig.gameQuest=gameQuestConfig;
-      if(shouldRender)renderGameQuestPanel();
-      return result;
-    };
+    if(gameTier(g)===3){
+      root.querySelector(`[data-gq-daily-game="${safeCssEscape(g.id)}"]`)?.remove();
+      root.querySelector(`[data-gq-weekly-edit-game="${safeCssEscape(g.id)}"]`)?.remove();
+    }
+  });
+  if(!root.querySelector(".gameQuestInterestGroup")){
+    const s=document.createElement("section");s.className="gameQuestEditGroup gameQuestInterestGroup";s.innerHTML=`<div class="gameQuestEditHead"><div><b>T3 兴趣池</b><span>不进今日清理，不产生逾期/遗留，不影响核心完成率；以后新增游戏默认 T3。</span></div></div><div class="gameQuestInterestBody">${interestRows(cfg)}</div>`;
+    root.querySelector(".gameQuestMetaDetails")?.insertAdjacentElement("beforebegin",s);
   }
-  renderGameQuestPanel();
+}
+const baseRenderEditor=renderGameQuestEditor;
+renderGameQuestEditor=function(){const r=baseRenderEditor();enhanceEditor();return r};
+
+const baseCollect=collectGameQuestEditorState;
+collectGameQuestEditorState=function(){
+  if(!gameQuestDraftConfig)return;
+  const root=document.getElementById("gameQuestEditorList"),tiers={},dreq={},wreq={},interest={};
+  root?.querySelectorAll("[data-gq-game-row]").forEach(row=>tiers[row.dataset.gqGameRow]=tier(row.querySelector(".gqMetaTier")?.value,3));
+  root?.querySelectorAll("[data-gq-daily-game]").forEach(card=>dreq[card.dataset.gqDailyGame]=[...card.querySelectorAll("[data-gq-daily-row]")].map(r=>r.querySelector(".gqTaskRequired")?.checked!==false));
+  root?.querySelectorAll("[data-gq-weekly-edit-game]").forEach(card=>wreq[card.dataset.gqWeeklyEditGame]=[...card.querySelectorAll("[data-gq-weekly-row]")].map(r=>r.querySelector(".gqTaskRequired")?.checked===true));
+  root?.querySelectorAll("[data-gq-interest-game]").forEach(card=>interest[card.dataset.gqInterestGame]=[...card.querySelectorAll("[data-gq-interest-row]")].map(r=>({id:r.dataset.gqTaskId||"",title:r.querySelector(".gqInterestTaskTitle")?.value.trim()||"",url:r.querySelector(".gqInterestTaskUrl")?.value.trim()||"",note:r.querySelector(".gqInterestTaskNote")?.value.trim()||"",cadence:r.querySelector(".gqInterestCadence")?.value||"interest",plan_mode:"interest",required:false})).filter(t=>t.title));
+  baseCollect();
+  (gameQuestDraftConfig.games||[]).forEach(g=>g.tier=tiers[g.id]||gameTier(g));
+  Object.entries(dreq).forEach(([gid,a])=>(gameQuestDraftConfig.dailyByGame?.[gid]||[]).forEach((t,i)=>t.required=a[i]!==false));
+  Object.entries(wreq).forEach(([gid,a])=>(gameQuestDraftConfig.weekly?.[gid]||[]).forEach((t,i)=>{t.required=a[i]===true;t.cadence=t.cadence||"weekly"}));
+  if(!gameQuestDraftConfig.interest)gameQuestDraftConfig.interest={};
+  Object.entries(interest).forEach(([gid,a])=>gameQuestDraftConfig.interest[gid]=a);
+  (gameQuestDraftConfig.games||[]).filter(g=>gameTier(g)===3).forEach(g=>{if(gameQuestDraftConfig.dailyByGame)gameQuestDraftConfig.dailyByGame[g.id]=[];if(gameQuestDraftConfig.weekly)gameQuestDraftConfig.weekly[g.id]=[];gameQuestDraftConfig.interest[g.id]??=[]});
+  applyDailyByGameToSchedule(gameQuestDraftConfig);
+};
+const baseRemoveGame=removeGameQuestGame;
+removeGameQuestGame=function(id){baseRemoveGame(id);if(gameQuestDraftConfig?.interest)delete gameQuestDraftConfig.interest[id]};
+
+document.addEventListener("click",e=>{
+  const add=e.target.closest?.("[data-gq-interest-add]");
+  if(add){e.preventDefault();e.stopPropagation();collectGameQuestEditorState();const gid=add.dataset.gqInterestAdd;gameQuestDraftConfig.interest??={};gameQuestDraftConfig.interest[gid]??=[];gameQuestDraftConfig.interest[gid].push({id:"",title:"",url:"",note:"",cadence:"interest",plan_mode:"interest",required:false});renderGameQuestEditor();return}
+  const del=e.target.closest?.("[data-gq-interest-delete]");
+  if(del){e.preventDefault();e.stopPropagation();collectGameQuestEditorState();gameQuestDraftConfig.interest?.[del.dataset.gqGame]?.splice(Number(del.dataset.gqInterestDelete),1);renderGameQuestEditor()}
+},true);
+
+isGameQuestItemDone=(gid,did,iid,cycle=cycleYmd)=>localStorage.getItem(gameQuestItemKey(gid,did,iid,cycle))==="1";
+isGameQuestWeeklyItemDone=(gid,iid,cycle=cycleYmd)=>localStorage.getItem(gameQuestWeeklyItemKey(gid,iid,cycle))==="1";
+const interestKey=(gid,iid,cycle=cycleYmd)=>`${GH_PREFIX}${cycle}_gqii_${gid}_${iid}`;
+const interestDone=(gid,iid,cycle=cycleYmd)=>localStorage.getItem(interestKey(gid,iid,cycle))==="1";
+function setInterest(gid,iid,val,el,cycle=cycleYmd){syncSetItem(interestKey(gid,iid,cycle),val);if(val&&el)playCompletionEffect({level:"micro",category:"gamecreate",anchor:el,title:"兴趣项目完成",eventId:`gqi:${cycle}:${gid}:${iid}`});renderAll()}
+
+function dailyState(gid,did,cfg=gameQuestConfig,cycle=cycleYmd){
+  const g=cfg?.games?.find(x=>String(x.id)===String(gid)),tasks=gameQuestTaskObjectsFor(gid,did,cfg),req=tasks.filter(t=>requiredFor(t,g,"daily")),opt=tasks.filter(t=>!requiredFor(t,g,"daily"));
+  const rd=req.filter(t=>isGameQuestItemDone(gid,did,t.id,cycle)).length,od=opt.filter(t=>isGameQuestItemDone(gid,did,t.id,cycle)).length;
+  return {tasks,required:req,optional:opt,requiredDone:rd,requiredTotal:req.length,optionalDone:od,optionalTotal:opt.length,done:rd,total:req.length,cardDone:req.length===0||rd>=req.length};
+}
+function weeklyState(gid,cfg=gameQuestConfig,cycle=cycleYmd){
+  const g=cfg?.games?.find(x=>String(x.id)===String(gid)),tasks=gameQuestWeeklyTasksFor(gid,cfg),req=tasks.filter(t=>requiredFor(t,g,"weekly")),opt=tasks.filter(t=>!requiredFor(t,g,"weekly"));
+  const rd=req.filter(t=>isGameQuestWeeklyItemDone(gid,t.id,cycle)).length,od=opt.filter(t=>isGameQuestWeeklyItemDone(gid,t.id,cycle)).length;
+  return {tasks,required:req,optional:opt,requiredDone:rd,requiredTotal:req.length,optionalDone:od,optionalTotal:opt.length,done:rd,total:req.length,cardDone:req.length===0||rd>=req.length};
+}
+gameQuestEntryState=dailyState;gameQuestWeeklyEntryState=weeklyState;
+gameQuestEntriesForDay=function(d,cfg=gameQuestConfig){return enabledGameQuestGames(cfg).filter(g=>gameTier(g)<=2).map(g=>({game:g,...dailyState(g.id,d,cfg)})).filter(e=>e.tasks.length)};
+gameQuestWeeklyEntries=function(cfg=gameQuestConfig){return enabledGameQuestGames(cfg).filter(g=>gameTier(g)<=2).map(g=>({game:g,...weeklyState(g.id,cfg)})).filter(e=>e.tasks.length)};
+function interestEntries(cfg=gameQuestConfig){return enabledGameQuestGames(cfg).filter(g=>gameTier(g)===3).map(g=>{const tasks=normalizeGameQuestTaskList(cfg?.interest?.[g.id]||[],"scheduled").map(t=>({...t,plan_mode:"interest",required:false}));return {game:g,tasks,done:tasks.filter(t=>interestDone(g.id,t.id)).length,total:tasks.length}}).filter(e=>e.tasks.length)}
+gameQuestStats=function(d){const e=gameQuestEntriesForDay(d),total=e.reduce((s,x)=>s+x.requiredTotal,0),done=e.reduce((s,x)=>s+x.requiredDone,0),ot=e.reduce((s,x)=>s+x.optionalTotal,0),od=e.reduce((s,x)=>s+x.optionalDone,0);return {total,done,pct:total?Math.round(done/total*100):100,cards:e.filter(x=>x.requiredTotal).length,cardsDone:e.filter(x=>x.requiredTotal&&x.cardDone).length,optionalTotal:ot,optionalDone:od}};
+gameQuestWeeklyStats=function(){const e=gameQuestWeeklyEntries(),total=e.reduce((s,x)=>s+x.requiredTotal,0),done=e.reduce((s,x)=>s+x.requiredDone,0),ot=e.reduce((s,x)=>s+x.optionalTotal,0),od=e.reduce((s,x)=>s+x.optionalDone,0);return {total,done,pct:total?Math.round(done/total*100):100,cards:e.filter(x=>x.requiredTotal).length,cardsDone:e.filter(x=>x.requiredTotal&&x.cardDone).length,optionalTotal:ot,optionalDone:od}};
+gameQuestWeekStats=function(){let total=0,done=0;days.forEach(d=>{const s=gameQuestStats(d.id);total+=s.total;done+=s.done});return {total,done,pct:total?Math.round(done/total*100):100}};
+
+setGameQuestItemDone=function(gid,did,iid,val,el,cycle=cycleYmd){syncSetItem(gameQuestItemKey(gid,did,iid,cycle),val);if(val&&el){const g=gameQuestConfig.games.find(x=>String(x.id)===String(gid)),s=dailyState(gid,did,gameQuestConfig,cycle);playCompletionEffect({level:s.cardDone?"parent":"micro",category:"gamecreate",anchor:el,title:s.cardDone?`${g?.name||"游戏"} 今日核心完成`:"游戏项目完成",eventId:`gq:${cycle}:${gid}:d${did}:${iid}`})}renderAll()};
+setGameQuestWeeklyItemDone=function(gid,iid,val,el,cycle=cycleYmd){syncSetItem(gameQuestWeeklyItemKey(gid,iid,cycle),val);if(val&&el){const g=gameQuestConfig.games.find(x=>String(x.id)===String(gid)),s=weeklyState(gid,gameQuestConfig,cycle);playCompletionEffect({level:s.cardDone&&s.requiredTotal?"parent":"micro",category:"gamecreate",anchor:el,title:s.cardDone&&s.requiredTotal?`${g?.name||"游戏"} 周期核心完成`:"游戏周期项目完成",eventId:`gqw:${cycle}:${gid}:${iid}`})}renderAll()};
+setGameQuestDone=function(gid,did,val,el,cycle=cycleYmd){const g=gameQuestConfig.games.find(x=>String(x.id)===String(gid)),s=dailyState(gid,did,gameQuestConfig,cycle);s.required.forEach(t=>syncSetItem(gameQuestItemKey(gid,did,t.id,cycle),val));syncSetItem(gameQuestDoneKey(gid,did,cycle),false);if(val&&el)playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:`${g?.name||"游戏"} 今日核心完成`,eventId:`gq-card:${cycle}:${gid}:d${did}`});renderAll()};
+completeGameQuestDay=function(d,el,cycle=cycleYmd){const entries=gameQuestEntriesForDay(Number(d),gameQuestConfig),rem=entries.reduce((s,e)=>s+(e.requiredTotal-e.requiredDone),0);if(!rem){showToast("这一天的核心游戏任务已经完成","ok");return}entries.forEach(e=>e.required.forEach(t=>syncSetItem(gameQuestItemKey(e.game.id,Number(d),t.id,cycle),true)));showToast(`已完成 ${rem} 项核心任务；选做项不会被自动勾选。`,"ok");renderAll()};
+setGameQuestWeeklyDone=function(gid,val,el,cycle=cycleYmd){const g=gameQuestConfig.games.find(x=>String(x.id)===String(gid)),s=weeklyState(gid,gameQuestConfig,cycle);s.required.forEach(t=>syncSetItem(gameQuestWeeklyItemKey(gid,t.id,cycle),val));syncSetItem(gameQuestWeeklyDoneKey(gid,cycle),false);if(val&&el&&s.requiredTotal)playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:`${g?.name||"游戏"} 周期核心完成`,eventId:`gqw-card:${cycle}:${gid}`});renderAll()};
+
+function tBadge(g){return `<span class="gqTierBadge t${gameTier(g)}">${TIERS[gameTier(g)].short}｜${TIERS[gameTier(g)].name}</span>`}
+function note(t){const n=String(t.note||"").trim();return n?`<details class="gameQuestTaskNote"><summary>备注</summary><div class="gameQuestTaskNoteBody">${escapeHtml(n)}</div></details>`:""}
+function taskList(g,tasks,pool,did){
+  return `<ul class="gameQuestTaskList gameQuestTaskListV2 ${pool}">${tasks.map((t,i)=>{
+    const isInterest=pool==="interest",done=isInterest?interestDone(g.id,t.id):pool==="daily"?isGameQuestItemDone(g.id,did,t.id):isGameQuestWeeklyItemDone(g.id,t.id),url=safeUrl(t.url),req=!isInterest&&requiredFor(t,g,pool);
+    const attrs=isInterest?`data-gq-interest-item="1" data-gq-interest-game="${escapeHtml(g.id)}" data-gq-interest-id="${escapeHtml(t.id)}"`:pool==="daily"?`data-gq-item-btn="1" data-gamequest-item-game="${escapeHtml(g.id)}" data-gamequest-item-day="${did}" data-gamequest-item="${escapeHtml(t.id)}"`:`data-gq-weekly-item-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}" data-gamequest-weekly-item="${escapeHtml(t.id)}"`;
+    const badge=isInterest?(t.cadence==="daily"?"原日":t.cadence==="weekly"?"原周":"兴趣"):(req?"必":"选");
+    return `<li class="${done?"done":""}"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""} ${req?"required":"optional"}" ${attrs} data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(i+1).padStart(2,"0")}</span><span class="gameQuestMiniBox"></span><i>${escapeHtml(t.title)}</i><span class="gameQuestTaskBadge ${req?"required":"optional"}">${badge}</span></button>${url?`<a class="gameQuestTaskOpen" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</div>${note(t)}</li>`;
+  }).join("")}</ul>`;
+}
+function coreCard(e,did,pool){
+  const g=e.game,pct=e.requiredTotal?Math.round(e.requiredDone/e.requiredTotal*100):100,done=e.requiredTotal===0||e.requiredDone>=e.requiredTotal;
+  const bulk=e.requiredTotal?`<button type="button" class="gameQuestCheck ${done?"done":""}" ${pool==="daily"?`data-gq-card-btn="1" data-gamequest-game="${escapeHtml(g.id)}" data-gamequest-day="${did}"`:`data-gq-weekly-card-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}"`} data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span></span></button>`:`<span class="gameQuestCheck passive"><span></span></span>`;
+  return `<article class="gameQuestCard gameQuestCardV2 tier-${gameTier(g)} ${done&&e.requiredTotal?"done":""}" style="--gq-p:${pct}%"><div class="gameQuestCardTop">${bulk}<span class="gameQuestIcon">${escapeHtml(String(g.short||g.name).slice(0,1))}</span><div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)} ${tBadge(g)}</span><span class="gameQuestShort">${e.requiredTotal?"核心看必做项；选做不拉低完成率":"本区全部为可做收益"}</span></div><span class="gameQuestCount">${e.requiredDone}/${e.requiredTotal}${e.optionalTotal?` · 选 ${e.optionalDone}/${e.optionalTotal}`:""}</span></div><div class="gameQuestProgressRail"><span></span></div>${taskList(g,e.tasks,pool,did)}</article>`;
+}
+function lane(title,sub,entries,renderer,cls){return entries.length?`<section class="gqTierLane ${cls}"><header><div><b>${title}</b><span>${sub}</span></div><em>${entries.length} GAME${entries.length>1?"S":""}</em></header><div class="gameQuestGrid">${entries.map(renderer).join("")}</div></section>`:""}
+
+setGameQuestBoardMode=function(m){gameQuestBoardMode=["today","week","interest"].includes(m)?m:"today";localStorage.setItem(GQ_BOARD_MODE_KEY,gameQuestBoardMode);renderGameQuestPanel()};
+renderGameQuestPanel=function(){
+  const panel=document.getElementById("gameQuestPanel");if(!panel)return;
+  const ds=gameQuestStats(gameQuestSelectedDay),ws=gameQuestWeeklyStats(),ints=interestEntries(),idone=ints.reduce((s,e)=>s+e.done,0),itotal=ints.reduce((s,e)=>s+e.total,0);
+  const display=gameQuestBoardMode==="week"?ws:gameQuestBoardMode==="interest"?{done:idone,total:itotal,pct:itotal?Math.round(idone/itotal*100):0}:ds;
+  const mode=`<div class="gameQuestModeTabs tiered"><button class="gameQuestModeBtn ${gameQuestBoardMode==="today"?"active":""}" data-gamequest-board-mode="today"><span>今日作战</span><b>${gameQuestStats(today).done}/${gameQuestStats(today).total}</b></button><button class="gameQuestModeBtn ${gameQuestBoardMode==="week"?"active":""}" data-gamequest-board-mode="week"><span>周期作战</span><b>${ws.done}/${ws.total}</b></button><button class="gameQuestModeBtn ${gameQuestBoardMode==="interest"?"active":""}" data-gamequest-board-mode="interest"><span>兴趣池</span><b>${idone}/${itotal}</b></button></div>`;
+  const top=`<div class="gameQuestTopBar"><div class="gameQuestTopTitle"><span>GAME QUEST / TIER OPS</span><strong>游戏作战区</strong><em>T1 全勤全清 · T2 全勤非全清 · T3 兴趣制。核心完成率只计算“必”。</em></div><div class="gameQuestHeroSide"><div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:${display.pct}%"><i>${display.pct}%</i></span><span class="gameCommandCopy"><small>CORE</small><b>${display.done}/${display.total}</b><em>${gameQuestBoardMode==="interest"?"仅记录兴趣":"核心完成率"}</em></span></div><button class="gameCommandBtn gameQuestTodayQuick" id="gameQuestTodayBtn"><span class="gameCommandIcon">◎</span><span class="gameCommandCopy"><small>TODAY</small><b>今日</b><em>回到今天</em></span></button><button class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>梯度 / 日常 / 周期 / 兴趣</em></span></button></div></div>`;
+  let body="";
+  if(gameQuestBoardMode==="today"){
+    const e=gameQuestEntriesForDay(gameQuestSelectedDay),t1=e.filter(x=>gameTier(x.game)===1),t2=e.filter(x=>gameTier(x.game)===2);
+    body=`<div class="gameQuestDailyPane tiered"><div class="gameQuestMetaStrip"><span>今日只出现 T1 + T2；T3 永不形成日课债务。</span><em>${ds.pct}% CORE DAILY</em></div><div class="gameQuestDays">${gameQuestDayTabsHtml()}</div><div class="gameQuestSubHead"><span>${escapeHtml(dayName(gameQuestSelectedDay))}${gameQuestSelectedDay===today?"｜今日":""}</span>${gameQuestCompleteDayButtonHtml(gameQuestSelectedDay,ds)}<div class="gameQuestMetricSet"><span class="gameQuestMetric"><strong>${ds.done}/${ds.total}</strong><em>核心</em></span><span class="gameQuestMetric"><strong>${ds.optionalDone}/${ds.optionalTotal}</strong><em>选做</em></span></div></div>${lane("T1｜全勤・全清","每日必须完成。",t1,x=>coreCard(x,gameQuestSelectedDay,"daily"),"tier1")}${lane("T2｜全勤・非全清","只保全勤/基础日课，额外收益不形成债务。",t2,x=>coreCard(x,gameQuestSelectedDay,"daily"),"tier2")}</div>`;
+  }else if(gameQuestBoardMode==="week"){
+    const e=gameQuestWeeklyEntries(),t1=e.filter(x=>gameTier(x.game)===1),t2=e.filter(x=>gameTier(x.game)===2);
+    body=`<div class="gameQuestWeeklyPane tiered"><div class="gameQuestMetaStrip"><span>T1 必须清完；T2 全部作为可做收益，不拉低核心完成率。</span><em>${ws.pct}% CORE CYCLE</em></div>${lane("T1｜必须清完","周常 / 高难 / 赛季奖励入口。",t1,x=>coreCard(x,null,"weekly"),"tier1")}${lane("T2｜可做收益","看时间和收益决定做多少。",t2,x=>coreCard(x,null,"weekly"),"tier2")}</div>`;
+  }else{
+    body=`<div class="gameQuestInterestPane"><div class="gameQuestMetaStrip"><span>T3｜兴趣制：无全勤、无逾期、无 carryover。</span><em>NO DEBT</em></div><div class="gameQuestGrid">${ints.map(e=>`<article class="gameQuestCard tier-3" style="--gq-p:${e.total?Math.round(e.done/e.total*100):0}%"><div class="gameQuestCardTop"><span class="gameQuestCheck passive interestMark"><span>★</span></span><span class="gameQuestIcon">${escapeHtml(String(e.game.short||e.game.name).slice(0,1))}</span><div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(e.game.name)} ${tBadge(e.game)}</span><span class="gameQuestShort">想玩时再开，不影响任何完成率</span></div><span class="gameQuestCount">${e.done}/${e.total}</span></div><div class="gameQuestProgressRail"><span></span></div>${taskList(e.game,e.tasks,"interest",null)}</article>`).join("")||`<div class="gameQuestEmpty"><b>兴趣池为空。</b></div>`}</div></div>`;
+  }
+  panel.innerHTML=`<div class="gameQuestShell gameQuestTierV3">${top}${mode}${body}</div>`;
+};
+document.addEventListener("click",e=>{const b=e.target.closest?.("[data-gq-interest-item]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();setInterest(b.dataset.gqInterestGame,b.dataset.gqInterestId,b.getAttribute("aria-pressed")!=="true",b,b.dataset.cycle||cycleYmd)},true);
+
+try{
+  const current=typeof loadLocalTaskConfig==="function"?(loadLocalTaskConfig()||taskConfig):taskConfig;
+  if(current){const upgraded=normalizeTaskConfig({...current,gameQuest:normalizeGameQuestConfig(current.gameQuest||gameQuestConfig||defaultGameQuestConfig)});applyTaskConfig(upgraded,false)}
+  else if(gameQuestConfig)gameQuestConfig=normalizeGameQuestConfig(gameQuestConfig);
+}catch(err){console.warn("GameQuest tier v3 rehydrate skipped",err)}
+renderGameQuestPanel();
 })();
