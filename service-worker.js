@@ -32,6 +32,7 @@ const APP_SHELL = [
   "./assets/css/userfriend-polish.css",
   "./assets/css/library-density-polish.css",
   "./assets/css/game-note-density.css",
+  "./assets/css/game-tier-system.css",
   "./assets/css/daily-density.css",
   "./assets/css/lane-density.css",
   "./assets/js/data/default-data.js",
@@ -44,6 +45,8 @@ const APP_SHELL = [
   "./assets/js/views/fitness-view.js",
   "./assets/js/views/product-ui.js",
   "./assets/js/game-disclosure.js",
+  "./assets/js/game-tier-system.js",
+  "./assets/js/game-tier-editor.js",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
   "./assets/js/pwa.js"
