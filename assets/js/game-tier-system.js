@@ -29,10 +29,14 @@ function sourceFor(items,t,i){
   return items.find(x=>x&&typeof x==="object"&&stripPrefix(x.title||x.name||"").title===title)||(items[i]&&typeof items[i]==="object"?items[i]:null);
 }
 function requiredFor(t,g,pool){
+  const gt=gameTier(g);
+  // 周/周期义务由游戏梯度固定：T1 全清，T2 只做收益，T3 不形成义务。
+  if(pool==="weekly")return gt===1;
+  if(pool==="interest")return false;
+  // 日常层仍允许单任务区分核心/选做，例如信赖、邀约等不必强行计入。
   if(typeof t?.required==="boolean")return t.required;
   const p=stripPrefix(t?.title||"").required;if(p!==null)return p;
-  const gt=gameTier(g);
-  return pool==="daily"?gt<=2:pool==="weekly"?gt===1:false;
+  return gt<=2;
 }
 function cadenceFor(t,f=""){return String(t?.cadence||"").trim()||(t?.plan_mode==="daily"?"daily":t?.plan_mode==="weekly"?"weekly":f)}
 function pushUnique(list,t){
@@ -95,7 +99,7 @@ normalizeGameQuestConfig=function(config){
       base.weekly[g.id]=[];
     }else{
       (base.weekly[g.id]||[]).forEach(t=>{
-        if(typeof t.required!=="boolean")t.required=requiredFor(t,g,"weekly");
+        t.required=requiredFor(t,g,"weekly");
         if(!t.cadence)t.cadence=cadenceFor(t,"weekly");
       });
     }
@@ -149,7 +153,7 @@ gameQuestWeeklyEditorTasksFor=function(gid,cfg=gameQuestDraftConfig){
   const g=cfg?.games?.find(x=>String(x.id)===String(gid));
   return baseWeeklyEditorTasksFor(gid,cfg).map((t,i)=>{
     const raw=cfg?.weekly?.[gid]?.[i];
-    return {...t,required:typeof raw?.required==="boolean"?raw.required:requiredFor(t,g,"weekly"),cadence:String(raw?.cadence||"weekly")};
+    return {...t,required:requiredFor(t,g,"weekly"),cadence:String(raw?.cadence||"weekly")};
   });
 };
 const baseDailyRow=gameQuestDailyRowHtml,baseWeeklyRow=gameQuestWeeklyRowHtml;
@@ -157,7 +161,9 @@ gameQuestDailyRowHtml=function(gid,t,i,n){
   return baseDailyRow(gid,t,i,n).replace('<div class="gqDailyRowOps">',`<label class="gqObligationToggle"><input class="gqTaskRequired" type="checkbox" ${t.required!==false?"checked":""}><span>计入核心完成率</span></label><div class="gqDailyRowOps">`);
 };
 gameQuestWeeklyRowHtml=function(gid,t,i,n){
-  return baseWeeklyRow(gid,t,i,n).replace('<div class="gqDailyRowOps">',`<label class="gqObligationToggle"><input class="gqTaskRequired" type="checkbox" ${t.required===true?"checked":""}><span>计入核心完成率</span></label><div class="gqDailyRowOps">`);
+  const g=gameQuestDraftConfig?.games?.find(x=>String(x.id)===String(gid));
+  const core=gameTier(g)===1;
+  return baseWeeklyRow(gid,t,i,n).replace('<div class="gqDailyRowOps">',`<label class="gqObligationToggle fixed"><input class="gqTaskRequired" type="checkbox" ${core?"checked":""} disabled><span>${core?"T1｜计入核心":"T2｜可做收益"}</span></label><div class="gqDailyRowOps">`);
 };
 
 function interestRows(cfg){
@@ -199,7 +205,10 @@ collectGameQuestEditorState=function(){
   baseCollect();
   (gameQuestDraftConfig.games||[]).forEach(g=>g.tier=tiers[g.id]||gameTier(g));
   Object.entries(dreq).forEach(([gid,a])=>(gameQuestDraftConfig.dailyByGame?.[gid]||[]).forEach((t,i)=>t.required=a[i]!==false));
-  Object.entries(wreq).forEach(([gid,a])=>(gameQuestDraftConfig.weekly?.[gid]||[]).forEach((t,i)=>{t.required=a[i]===true;t.cadence=t.cadence||"weekly"}));
+  Object.entries(wreq).forEach(([gid])=>{
+    const g=gameQuestDraftConfig.games?.find(x=>String(x.id)===String(gid));
+    (gameQuestDraftConfig.weekly?.[gid]||[]).forEach(t=>{t.required=gameTier(g)===1;t.cadence=t.cadence||"weekly"});
+  });
   if(!gameQuestDraftConfig.interest)gameQuestDraftConfig.interest={};
   Object.entries(interest).forEach(([gid,a])=>gameQuestDraftConfig.interest[gid]=a);
   (gameQuestDraftConfig.games||[]).filter(g=>gameTier(g)===3).forEach(g=>{if(gameQuestDraftConfig.dailyByGame)gameQuestDraftConfig.dailyByGame[g.id]=[];if(gameQuestDraftConfig.weekly)gameQuestDraftConfig.weekly[g.id]=[];gameQuestDraftConfig.interest[g.id]??=[]});
