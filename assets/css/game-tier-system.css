@@ -1,0 +1,160 @@
+/* GameQuest v3 tier system ------------------------------------------------ */
+.gameQuestModeTabs{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+.gameQuestTierGroup{
+  margin:12px 0 16px;
+  padding:10px;
+  border:1px solid var(--color-line);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--color-panel-soft) 78%,white);
+}
+.gameQuestTierGroup.t1{border-left:5px solid var(--color-warning)}
+.gameQuestTierGroup.t2{border-left:5px solid var(--identity-game-day,#1675b7)}
+.gameQuestTierGroupHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 9px;
+  padding:2px 4px 8px;
+  border-bottom:1px solid color-mix(in srgb,var(--color-line) 82%,transparent);
+}
+.gameQuestTierGroupHead>div{display:grid;gap:2px;min-width:0}
+.gameQuestTierGroupHead b{font-size:13px;font-weight:900;color:var(--color-ink)}
+.gameQuestTierGroupHead span{font-size:11px;line-height:1.45;color:var(--color-muted)}
+.gameQuestTierGroupHead em{
+  flex:0 0 auto;
+  padding:4px 8px;
+  border:1px solid var(--color-line);
+  border-radius:999px;
+  background:white;
+  color:var(--color-muted);
+  font-size:10px;
+  font-style:normal;
+  font-weight:900;
+}
+.gameQuestTierBadge{
+  display:inline-flex;
+  align-items:center;
+  min-height:19px;
+  margin-left:5px;
+  padding:1px 6px;
+  border:1px solid currentColor;
+  border-radius:999px;
+  font-size:9px;
+  line-height:1;
+  font-style:normal;
+  font-weight:900;
+  vertical-align:middle;
+}
+.gameQuestTierBadge.t1{color:color-mix(in srgb,var(--color-warning) 78%,#6d4a00)}
+.gameQuestTierBadge.t2{color:color-mix(in srgb,var(--identity-game-day,#1675b7) 82%,#173f60)}
+.gameQuestTierBadge.t3{color:color-mix(in srgb,var(--identity-body,#2f8a67) 82%,#244f40)}
+.gameQuestReqBadge,
+.gameQuestCadenceBadge{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:20px;
+  padding:1px 6px;
+  border-radius:999px;
+  font-size:9px;
+  line-height:1;
+  font-weight:900;
+}
+.gameQuestReqBadge.required{
+  background:color-mix(in srgb,var(--color-warning) 16%,white);
+  color:color-mix(in srgb,var(--color-warning) 76%,#5b4200);
+  border:1px solid color-mix(in srgb,var(--color-warning) 38%,var(--color-line));
+}
+.gameQuestReqBadge.optional{
+  background:color-mix(in srgb,var(--identity-game-week,#7446b4) 8%,white);
+  color:var(--color-muted);
+  border:1px solid var(--color-line);
+}
+.gameQuestReqBadge.interest{
+  background:color-mix(in srgb,var(--identity-body,#2f8a67) 10%,white);
+  color:color-mix(in srgb,var(--identity-body,#2f8a67) 82%,var(--color-ink));
+  border:1px solid color-mix(in srgb,var(--identity-body,#2f8a67) 30%,var(--color-line));
+}
+.gameQuestCadenceBadge{
+  background:transparent;
+  color:var(--color-muted);
+  border:1px dashed var(--color-line-strong);
+}
+.gameQuestCard.tier-t2 .gameQuestProgressRail{opacity:.74}
+.gameQuestCard.tier-t2 .gameQuestCheck{border-style:dashed}
+.gameQuestInterestPane{
+  position:relative;
+  padding:8px 7px;
+  border:1px solid color-mix(in srgb,var(--identity-body,#2f8a67) 38%,var(--color-line));
+  border-left:6px solid var(--identity-body,#2f8a67);
+  border-radius:4px 14px 14px 14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--identity-body,#2f8a67) 6%,white),white 72%);
+}
+.gameQuestInterestGrid{margin-top:8px}
+.gameQuestInterestCard .gameQuestCheck.passive{pointer-events:none;opacity:.45}
+.gameQuestInterestCard .gameQuestProgressRail{opacity:.45}
+.gameQuestTaskList.interest .gameQuestMiniCheckBtn{background:color-mix(in srgb,var(--identity-body,#2f8a67) 4%,white)}
+
+/* Editor --------------------------------------------------------------- */
+.gqMetaField.tier{min-width:170px}
+.gqMetaField.tier select,
+.gqInterestCadence{
+  width:100%;
+  min-height:38px;
+  border:1px solid var(--color-line);
+  border-radius:8px;
+  background:white;
+  color:var(--color-ink);
+  font:inherit;
+}
+.gqTaskRequiredToggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  min-height:32px;
+  margin:2px 0 4px;
+  padding:4px 8px;
+  border:1px solid var(--color-line);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--color-panel-soft) 86%,white);
+  color:var(--color-muted);
+  font-size:10px;
+  font-weight:850;
+}
+.gqTaskRequiredToggle input{accent-color:var(--color-warning)}
+.gameQuestInterestEditorGroup{
+  border-color:color-mix(in srgb,var(--identity-body,#2f8a67) 32%,var(--color-line))!important;
+}
+.gameQuestInterestEditRow{
+  border-left:4px solid var(--identity-body,#2f8a67)!important;
+}
+.gqInterestTaskNote{
+  width:100%;
+  min-height:62px;
+  padding:8px 9px;
+  border:1px solid var(--color-line);
+  border-radius:var(--radius-sm);
+  background:white;
+  color:var(--color-ink);
+  font:inherit;
+  line-height:1.45;
+  resize:vertical;
+}
+
+@media (max-width:700px){
+  .gameQuestModeTabs{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+  .gameQuestModeBtn{min-height:48px!important;padding:7px 7px!important}
+  .gameQuestModeBtn span{font-size:11px!important}
+  .gameQuestModeBtn b{padding:3px 5px!important;font-size:9px!important}
+  .gameQuestTierGroup{padding:7px;margin:9px 0 12px}
+  .gameQuestTierGroupHead{align-items:flex-start}
+  .gameQuestTierGroupHead span{font-size:10px}
+  .gameQuestTierBadge{display:block;width:max-content;margin:3px 0 0}
+  .gameQuestReqBadge,.gameQuestCadenceBadge{font-size:8px;min-height:18px;padding-inline:5px}
+  .gqMetaField.tier{min-width:0}
+}
