@@ -46,7 +46,6 @@ const APP_SHELL = [
   "./assets/js/views/product-ui.js",
   "./assets/js/game-disclosure.js",
   "./assets/js/game-tier-system.js",
-  "./assets/js/game-tier-editor.js",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
   "./assets/js/pwa.js"
