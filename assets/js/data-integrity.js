@@ -317,7 +317,9 @@
     return activePushPromise;
   };
 
-  ghPull=async function(){
+  ghPull=async function(options={}){
+    const preferRemote=options?.preferRemote===true;
+    const interactive=options?.interactive===true;
     if(!ghToken()){
       enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
       return;
@@ -332,8 +334,36 @@
       let configToUse=localCfg||cfgResult.config||buildDefaultConfig();
       let pushLocalConfig=false;
       let configConflict=false;
+      let remotePreferenceFailed=false;
 
-      if(decision.source==="remote"){
+      if(preferRemote&&cfgResult.config){
+        const sameConfig=!!localCfg&&Core.configFingerprint(localCfg)===Core.configFingerprint(cfgResult.config);
+        if(localCfg&&!sameConfig&&interactive){
+          const accepted=confirm("本机配置与云端配置不同。\n\n继续后将以云端配置为准；当前本机配置会先自动备份。是否继续？");
+          if(!accepted){
+            if(hasConfigConflict())setGhStatus("GitHub：配置冲突","err");
+            else setGhStatus("GitHub：已同步","on");
+            ghLog("已取消手动云端优先读取，本机配置未修改。");
+            showToast("已取消从云端覆盖本机","warn",2400);
+            unlockApp();renderAll();
+            return;
+          }
+        }
+        if(localCfg&&!sameConfig){
+          try{pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")}catch(err){console.warn("manual cloud pull local backup failed",err)}
+        }
+        configToUse=cfgResult.config;
+        baseSaveLocalTaskConfig(configToUse,"手动从云端读取：接受云端配置");
+        recordConfigBaseline(configToUse,gist);
+        ghLog(sameConfig?"手动从云端读取：本机与云端配置一致，已刷新同步基线。":"手动从云端读取：已明确采用云端配置，本机旧配置已进入备份池。");
+        if(!sameConfig)showToast("已采用云端配置；本机旧配置已自动备份","ok",3200);
+      }else if(preferRemote&&!cfgResult.config){
+        remotePreferenceFailed=true;
+        configToUse=localCfg||buildDefaultConfig();
+        const message=cfgResult.mode==="error"?"云端配置读取或解密失败，未改动本机配置。":"云端没有可用配置，未改动本机配置。";
+        ghLog(message);
+        showToast(message,"warn",3600);
+      }else if(decision.source==="remote"){
         configToUse=cfgResult.config;
         if(configToUse)baseSaveLocalTaskConfig(configToUse,"安全同步：接受更新的云端配置");
         if(configToUse)recordConfigBaseline(configToUse,gist);
@@ -355,7 +385,7 @@
       }
 
       applyTaskConfig(configToUse,false);
-      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&cfgResult.config){
+      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&!remotePreferenceFailed&&cfgResult.config){
         if(cfgResult.legacyCategory)ghLog("检测到旧三分类字段，正在迁移为唯一分类字段并安全写回云端…");
         else ghLog("检测到旧版明文配置，正在安全迁移为加密配置…");
         await patchConfigSafely(cfgResult.config,{interactive:false,preloadedGist:gist});
@@ -373,14 +403,16 @@
       const timeResult=mergeGhTimeLogs(remoteState.time_logs||[]);
       const afterSignature=stateSignature(merged.states,merged.stateMeta);
 
-      if(pushLocalConfig&&!configConflict){
+      if(pushLocalConfig&&!configConflict&&!remotePreferenceFailed){
         await patchConfigSafely(configToUse,{interactive:false,preloadedGist:gist});
       }
 
       const stateNeedsPush=beforeSignature!==afterSignature||timeResult.changed||deletedResult.changed||!remoteState.state_meta;
       if(stateNeedsPush)await ghPush(true);
 
-      if(configConflict)setGhStatus("GitHub：配置冲突","err");else setGhStatus("GitHub：已同步","on");
+      if(remotePreferenceFailed)setGhStatus("GitHub：云端配置不可用","err");
+      else if(configConflict)setGhStatus("GitHub：配置冲突","err");
+      else setGhStatus("GitHub：已同步","on");
       ghLog(`安全读取完成：状态 ${Object.keys(merged.states).length} 项；状态迁移 ${merged.stats.migrated} 项；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
       unlockApp();renderAll();
     }catch(err){
@@ -397,7 +429,7 @@
   }catch(err){console.warn("integrity startup normalization skipped",err)}
 
   window.TaskRingIntegrity={
-    version:"1.1.0",
+    version:"1.2.0",
     categorySchema:"time_category-only",
     core:Core,
     stateMetaKey:STATE_META_KEY,
