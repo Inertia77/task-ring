@@ -17,6 +17,8 @@ const pwa=read("assets/js/pwa.js");
 const uxJs=read("assets/js/ux-efficiency.js");
 const uxCss=read("assets/css/ux-efficiency.css");
 const visualCss=read("assets/css/visual-polish.css");
+const appJs=read("assets/js/app.js");
+const dataIntegrityJs=read("assets/js/data-integrity.js");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -60,6 +62,11 @@ assert(mainCss.includes("visual-polish.css"),"main.css must import visual polish
 assert(shell.has("assets/css/visual-polish.css"),"service worker must cache visual polish styles");
 assert(visualCss.includes(".viewDockBtn[data-view-target=\"tasks\"]:not(.active)"),"visual polish must keep inactive navigation surfaces quiet");
 assert(visualCss.includes("@media (prefers-contrast: more)"),"visual polish must retain a higher-contrast fallback");
+
+assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cloud pull buttons must explicitly request cloud-wins conflict resolution");
+assert(dataIntegrityJs.includes("preferRemote&&cfgResult.config"),"data-integrity layer must support explicit cloud-wins config resolution");
+assert(dataIntegrityJs.includes('pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")'),"manual cloud-wins resolution must back up the replaced local config");
+assert(dataIntegrityJs.includes("recordConfigBaseline(configToUse,gist)"),"manual cloud-wins resolution must reset the shared config baseline");
 
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
