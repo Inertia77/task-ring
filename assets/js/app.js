@@ -1146,7 +1146,7 @@ function initGithubSyncUI(){
   document.getElementById("githubSetupBtn")?.addEventListener("click",openGhModal);
   document.getElementById("githubStatus")?.addEventListener("click",openGhModal);
   document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});
-  document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull()});
+  document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull({preferRemote:true,interactive:true})});
   document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
   document.getElementById("controlExportJsonBtn")?.addEventListener("click",exportAllJsonSections);
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
@@ -1156,7 +1156,7 @@ function initGithubSyncUI(){
   document.getElementById("controlCenterBtn")?.addEventListener("click",e=>{e.stopPropagation();toggleControlCenter()});
   document.getElementById("ghCloseBtn")?.addEventListener("click",closeGhModal);
   document.getElementById("ghSaveTokenBtn")?.addEventListener("click",()=>{const v=document.getElementById("ghTokenInput").value.trim();setGhToken(v);ghLog("Token 已保存到本机，开始同步");showToast("Token 已保存，开始同步","ok");closeGhModal();ghPull()});
-  document.getElementById("ghPullBtn")?.addEventListener("click",ghPull);
+  document.getElementById("ghPullBtn")?.addEventListener("click",()=>ghPull({preferRemote:true,interactive:true}));
   document.getElementById("ghPushBtn")?.addEventListener("click",()=>ghPush(false));
   document.getElementById("ghClearTokenBtn")?.addEventListener("click",()=>{
     if(confirm("确认清除本机保存的 GitHub Token？页面不会上锁，只会切回本机模式。")){
