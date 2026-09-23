@@ -51,3 +51,103 @@
   .gqTierLane>header{display:grid}
   .gqInterestEditRow{grid-template-columns:1fr}
 }
+
+/* T3 interest cadence lanes: make former daily vs weekly/cycle tasks instantly scannable. */
+.gqInterestCard .gameQuestProgressRail{margin-bottom:12px}
+.gqInterestCadenceStack{display:grid;gap:11px}
+.gqInterestCadenceGroup{
+  --interest-cadence-accent:#6a756f;
+  --interest-cadence-bg:#f7f8f7;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--interest-cadence-accent) 28%,var(--color-line));
+  border-left:5px solid var(--interest-cadence-accent);
+  border-radius:10px;
+  background:var(--interest-cadence-bg);
+}
+.gqInterestCadenceGroup.daily{
+  --interest-cadence-accent:#278b68;
+  --interest-cadence-bg:#f0faf5;
+}
+.gqInterestCadenceGroup.weekly{
+  --interest-cadence-accent:#7052a6;
+  --interest-cadence-bg:#f7f3fc;
+  border-top-style:dashed;
+  border-bottom-style:dashed;
+}
+.gqInterestCadenceGroup.interest{
+  --interest-cadence-accent:#9a7430;
+  --interest-cadence-bg:#fbf8ef;
+}
+.gqInterestCadenceHead{
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  min-height:48px;
+  padding:7px 9px;
+  border-bottom:1px solid color-mix(in srgb,var(--interest-cadence-accent) 20%,var(--color-line));
+  background:color-mix(in srgb,var(--interest-cadence-bg) 78%,white);
+}
+.gqInterestCadenceGroup.weekly .gqInterestCadenceHead{
+  background:
+    repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in srgb,var(--interest-cadence-accent) 5%,transparent) 10px 11px),
+    color-mix(in srgb,var(--interest-cadence-bg) 78%,white);
+}
+.gqInterestCadenceGlyph{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid color-mix(in srgb,var(--interest-cadence-accent) 52%,transparent);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--interest-cadence-accent) 12%,white);
+  color:var(--interest-cadence-accent);
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.04em;
+}
+.gqInterestCadenceHead>div{display:grid;gap:1px;min-width:0}
+.gqInterestCadenceHead b{color:color-mix(in srgb,var(--interest-cadence-accent) 84%,var(--color-ink));font-size:13px;line-height:1.2}
+.gqInterestCadenceHead em{overflow:hidden;color:var(--color-muted);font-size:10px;font-style:normal;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.gqInterestCadenceHead>strong{
+  min-width:44px;
+  padding:4px 7px;
+  border:1px solid color-mix(in srgb,var(--interest-cadence-accent) 28%,var(--color-line));
+  border-radius:999px;
+  background:white;
+  color:var(--interest-cadence-accent);
+  font-size:11px;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.gqInterestCadenceGroup>.gameQuestTaskList{gap:5px;padding:7px}
+.gqInterestCadenceGroup .gameQuestMiniCheckBtn.interest{
+  border-color:color-mix(in srgb,var(--interest-cadence-accent) 24%,var(--color-line));
+  border-left:3px solid var(--interest-cadence-accent);
+  background:color-mix(in srgb,var(--interest-cadence-bg) 58%,white);
+}
+.gqInterestCadenceGroup.weekly .gameQuestMiniCheckBtn.interest{
+  border-left-width:5px;
+}
+.gqInterestCadenceGroup .gameQuestMiniCheckBtn.interest.done{
+  background:color-mix(in srgb,var(--color-success) 7%,white);
+}
+.gameQuestTaskBadge.interest{
+  min-width:25px;
+  justify-content:center;
+  border-color:color-mix(in srgb,var(--interest-cadence-accent,#6a756f) 34%,var(--color-line));
+  color:var(--interest-cadence-accent,#6a756f);
+  background:white;
+  font-weight:950;
+}
+.gqInterestCadenceGroup.daily .gameQuestTaskBadge.interest{color:#23775a;border-color:#9fd5c0;background:#f3fcf8}
+.gqInterestCadenceGroup.weekly .gameQuestTaskBadge.interest{color:#62468f;border-color:#c9b9df;background:#fbf8ff}
+.gqInterestCadenceGroup.interest .gameQuestTaskBadge.interest{color:#7e602a;border-color:#ddca9f;background:#fffaf0}
+
+@media(max-width:700px){
+  .gqInterestCadenceStack{gap:8px}
+  .gqInterestCadenceHead{grid-template-columns:28px minmax(0,1fr) auto;min-height:44px;padding:6px 7px}
+  .gqInterestCadenceGlyph{width:28px;height:28px}
+  .gqInterestCadenceHead em{white-space:normal}
+  .gqInterestCadenceGroup>.gameQuestTaskList{padding:6px}
+}
