@@ -256,13 +256,36 @@ setGameQuestWeeklyDone=function(gid,val,el,cycle=cycleYmd){const g=gameQuestConf
 
 function tBadge(g){return `<span class="gqTierBadge t${gameTier(g)}">${TIERS[gameTier(g)].short}｜${TIERS[gameTier(g)].name}</span>`}
 function note(t){const n=String(t.note||"").trim();return n?`<details class="gameQuestTaskNote"><summary>备注</summary><div class="gameQuestTaskNoteBody">${escapeHtml(n)}</div></details>`:""}
+function interestCadence(t){
+  const c=String(t?.cadence||"interest").trim().toLowerCase();
+  return c==="daily"?"daily":c==="weekly"?"weekly":"interest";
+}
+function interestCadenceMeta(c){
+  if(c==="daily")return {code:"D",label:"每日类",sub:"按日频率整理，但不形成日课债务",badge:"日"};
+  if(c==="weekly")return {code:"W",label:"每周 / 周期类",sub:"按周或周期整理，但不形成周债务",badge:"周"};
+  return {code:"★",label:"随兴趣",sub:"没有固定频率，想玩时再做",badge:"随"};
+}
 function taskList(g,tasks,pool,did){
   return `<ul class="gameQuestTaskList gameQuestTaskListV2 ${pool}">${tasks.map((t,i)=>{
-    const isInterest=pool==="interest",done=isInterest?interestDone(g.id,t.id):pool==="daily"?isGameQuestItemDone(g.id,did,t.id):isGameQuestWeeklyItemDone(g.id,t.id),url=safeUrl(t.url),req=!isInterest&&requiredFor(t,g,pool);
+    const isInterest=pool==="interest",cadence=isInterest?interestCadence(t):"",done=isInterest?interestDone(g.id,t.id):pool==="daily"?isGameQuestItemDone(g.id,did,t.id):isGameQuestWeeklyItemDone(g.id,t.id),url=safeUrl(t.url),req=!isInterest&&requiredFor(t,g,pool);
     const attrs=isInterest?`data-gq-interest-item="1" data-gq-interest-game="${escapeHtml(g.id)}" data-gq-interest-id="${escapeHtml(t.id)}"`:pool==="daily"?`data-gq-item-btn="1" data-gamequest-item-game="${escapeHtml(g.id)}" data-gamequest-item-day="${did}" data-gamequest-item="${escapeHtml(t.id)}"`:`data-gq-weekly-item-btn="1" data-gamequest-weekly-game="${escapeHtml(g.id)}" data-gamequest-weekly-item="${escapeHtml(t.id)}"`;
-    const badge=isInterest?(t.cadence==="daily"?"原日":t.cadence==="weekly"?"原周":"兴趣"):(req?"必":"选");
-    return `<li class="${done?"done":""}"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""} ${req?"required":"optional"}" ${attrs} data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(i+1).padStart(2,"0")}</span><span class="gameQuestMiniBox"></span><i>${escapeHtml(t.title)}</i><span class="gameQuestTaskBadge ${req?"required":"optional"}">${badge}</span></button>${url?`<a class="gameQuestTaskOpen" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</div>${note(t)}</li>`;
+    const meta=isInterest?interestCadenceMeta(cadence):null,badge=isInterest?meta.badge:(req?"必":"选");
+    const cadenceClass=isInterest?` interest cadence-${cadence}`:"";
+    const cadenceTitle=isInterest?` title="${escapeHtml(meta.label)}｜${escapeHtml(meta.sub)}"`:"";
+    return `<li class="${done?"done ":""}${isInterest?`interestTask cadence-${cadence}`:""}"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 ${done?"done":""} ${req?"required":"optional"}${cadenceClass}" ${attrs} data-cycle="${escapeHtml(cycleYmd)}" aria-pressed="${done?"true":"false"}"><span class="gameQuestTaskNo">${String(i+1).padStart(2,"0")}</span><span class="gameQuestMiniBox"></span><i>${escapeHtml(t.title)}</i><span class="gameQuestTaskBadge ${req?"required":"optional"}${cadenceClass}"${cadenceTitle}>${badge}</span></button>${url?`<a class="gameQuestTaskOpen" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</div>${note(t)}</li>`;
   }).join("")}</ul>`;
+}
+function interestCadenceGroup(g,tasks,cadence){
+  if(!tasks.length)return "";
+  const meta=interestCadenceMeta(cadence),done=tasks.filter(t=>interestDone(g.id,t.id)).length;
+  return `<section class="gqInterestCadenceGroup ${cadence}"><header class="gqInterestCadenceHead"><span class="gqInterestCadenceGlyph" aria-hidden="true">${meta.code}</span><div><b>${meta.label}</b><em>${meta.sub}</em></div><strong>${done}/${tasks.length}</strong></header>${taskList(g,tasks,"interest",null)}</section>`;
+}
+function interestCard(e){
+  const g=e.game,pct=e.total?Math.round(e.done/e.total*100):0;
+  const daily=e.tasks.filter(t=>interestCadence(t)==="daily"),weekly=e.tasks.filter(t=>interestCadence(t)==="weekly"),free=e.tasks.filter(t=>interestCadence(t)==="interest");
+  const dDone=daily.filter(t=>interestDone(g.id,t.id)).length,wDone=weekly.filter(t=>interestDone(g.id,t.id)).length,fDone=free.filter(t=>interestDone(g.id,t.id)).length;
+  const split=[daily.length?`日 ${dDone}/${daily.length}`:"",weekly.length?`周 ${wDone}/${weekly.length}`:"",free.length?`随 ${fDone}/${free.length}`:""].filter(Boolean).join(" · ");
+  return `<article class="gameQuestCard tier-3 gqInterestCard" style="--gq-p:${pct}%"><div class="gameQuestCardTop"><span class="gameQuestCheck passive interestMark"><span>★</span></span><span class="gameQuestIcon">${escapeHtml(String(g.short||g.name).slice(0,1))}</span><div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(g.name)} ${tBadge(g)}</span><span class="gameQuestShort">${split||"暂无分类"}｜全部不影响完成率</span></div><span class="gameQuestCount">${e.done}/${e.total}</span></div><div class="gameQuestProgressRail"><span></span></div><div class="gqInterestCadenceStack">${interestCadenceGroup(g,daily,"daily")}${interestCadenceGroup(g,weekly,"weekly")}${interestCadenceGroup(g,free,"interest")}</div></article>`;
 }
 function coreCard(e,did,pool){
   const g=e.game,pct=e.requiredTotal?Math.round(e.requiredDone/e.requiredTotal*100):100,done=e.requiredTotal===0||e.requiredDone>=e.requiredTotal;
@@ -291,7 +314,7 @@ renderGameQuestPanel=function(){
     const e=gameQuestWeeklyEntries(),t1=e.filter(x=>gameTier(x.game)===1),t2=e.filter(x=>gameTier(x.game)===2);
     body=`<div class="gameQuestWeeklyPane tiered"><div class="gameQuestMetaStrip"><span>T1 必须清完；T2 全部作为可做收益，不拉低核心完成率。</span><em>${ws.pct}% CORE CYCLE</em></div>${lane("T1｜必须清完","周常 / 高难 / 赛季奖励入口。",t1,x=>coreCard(x,null,"weekly"),"tier1")}${lane("T2｜可做收益","看时间和收益决定做多少。",t2,x=>coreCard(x,null,"weekly"),"tier2")}</div>`;
   }else{
-    body=`<div class="gameQuestInterestPane"><div class="gameQuestMetaStrip"><span>T3｜兴趣制：无全勤、无逾期、无 carryover。</span><em>NO DEBT</em></div><div class="gameQuestGrid">${ints.map(e=>`<article class="gameQuestCard tier-3" style="--gq-p:${e.total?Math.round(e.done/e.total*100):0}%"><div class="gameQuestCardTop"><span class="gameQuestCheck passive interestMark"><span>★</span></span><span class="gameQuestIcon">${escapeHtml(String(e.game.short||e.game.name).slice(0,1))}</span><div class="gameQuestNameWrap"><span class="gameQuestName">${escapeHtml(e.game.name)} ${tBadge(e.game)}</span><span class="gameQuestShort">想玩时再开，不影响任何完成率</span></div><span class="gameQuestCount">${e.done}/${e.total}</span></div><div class="gameQuestProgressRail"><span></span></div>${taskList(e.game,e.tasks,"interest",null)}</article>`).join("")||`<div class="gameQuestEmpty"><b>兴趣池为空。</b></div>`}</div></div>`;
+    body=`<div class="gameQuestInterestPane"><div class="gameQuestMetaStrip"><span>T3｜兴趣制：无全勤、无逾期、无 carryover。每日类与每周/周期类只做视觉分类，不产生债务。</span><em>NO DEBT</em></div><div class="gameQuestGrid">${ints.map(e=>interestCard(e)).join("")||`<div class="gameQuestEmpty"><b>兴趣池为空。</b></div>`}</div></div>`;
   }
   panel.innerHTML=`<div class="gameQuestShell gameQuestTierV3">${top}${mode}${body}</div>`;
 };
