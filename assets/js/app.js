@@ -1182,12 +1182,12 @@ function exportAllJsonSections(){
     const files=[
       {name:`taskring-tasks-${date}.json`,payload:taskEditorExportPayload(cfg)},
       {name:`taskring-game-quest-${date}.json`,payload:deepClone(gameQuestConfig||cfg.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig))},
-      {name:`taskring-fitness-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness"}},
+      {name:`taskring-life-improvement-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness",module:"life-improvement"}},
       {name:`taskring-library-${date}.json`,payload:{version:1,refs:deepClone(refGroups||cfg.refs||normalizeRefGroups(defaultRefGroups))}}
     ];
     files.forEach(file=>downloadJsonBackupFile(file.name,file.payload));
     closeControlCenter();
-    showToast("已导出任务、游戏、训练饮食、资料库 4 个 JSON 文件","ok",3200);
+    showToast("已导出任务、游戏、生活改善、资料库 4 个 JSON 文件","ok",3200);
   }catch(error){
     console.error("export all JSON sections failed",error);
     showToast("JSON 导出失败，请重试","err",3000);
@@ -2180,7 +2180,7 @@ function localDateTimeInputValue(date=new Date()){
 }
 function manualTimeEntryTarget(kind,taskId=""){
   if(kind==="gamequest")return {kind:"gamequest",task_id:"gamequest-board",task_code:"gq-board",title:"游戏作战区",category:"game",estimated_minutes:60};
-  if(kind==="fitness")return {kind:"fitness",task_id:"fitness-training",task_code:"fitness-board",title:"训练区",category:"body",estimated_minutes:60};
+  if(kind==="fitness")return {kind:"fitness",task_id:"fitness-training",task_code:"fitness-board",title:"生活改善",category:"body",estimated_minutes:60};
   const task=taskById(taskId);
   if(!task)return null;
   return {kind:"task",task_id:task.id,task_code:taskCode(task.id),title:task.title,category:taskTimeCategory(task),estimated_minutes:taskEstimatedMinutes(task)};
@@ -2586,7 +2586,7 @@ function renderTimerDock(){
   }
   const warn=active.estimated_minutes&&activeTimerElapsedSeconds(active)>active.estimated_minutes*120;
   const targetBtn=active.kind==="gamequest"?"game":active.kind==="fitness"?"fitness":"time";
-  const targetName=active.kind==="gamequest"?"游戏作战区":active.kind==="fitness"?"训练饮食":"时间账本";
+  const targetName=active.kind==="gamequest"?"游戏作战区":active.kind==="fitness"?"生活改善":"时间账本";
   dock.className=`timerFloatDock timerFloatCompact ${active.paused?"paused":"running"} ${warn?"warn":""}`;
   dock.innerHTML=`<button type="button" class="timerFloatMain" data-view-target="${targetBtn}" title="打开${targetName}"><span class="timerFloatBadge">${active.paused?"PAUSE":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em>${timeCategoryLabel(active.category)}${warn?" · 可能忘关":""}</em></button><div class="timerFloatClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="timerFloatActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div>`;
 }
