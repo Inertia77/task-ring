@@ -349,20 +349,73 @@ function normalizeFitnessItemList(value,kind="training"){
     return {id,title,note,url,enabled:obj?.enabled!==false};
   }).filter(item=>item&&item.enabled!==false).slice(0,30);
 }
+const FITNESS_SECTION_DEFAULTS=[
+  {id:"training",name:"训练",short:"TRAINING",icon:"动",accent:"green",locked:true,enabled:true},
+  {id:"nutrition",name:"饮食",short:"NUTRITION",icon:"食",accent:"amber",locked:true,enabled:true}
+];
+const FITNESS_SECTION_ACCENTS=new Set(["green","amber","blue","violet","rose","cyan","slate"]);
+function normalizeFitnessSectionId(value,fallback="life"){
+  const raw=String(value||"").trim().toLowerCase();
+  const cleaned=raw.replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40);
+  return cleaned||slugifyId(raw||fallback,fallback);
+}
+function normalizeFitnessSections(value,rawDays={}){
+  const source=Array.isArray(value)&&value.length?value:FITNESS_SECTION_DEFAULTS;
+  const used=new Set();
+  const sections=[];
+  const pushSection=(raw,idx=sections.length)=>{
+    if(!raw||typeof raw!=="object")return;
+    const baseName=String(raw.name||raw.title||raw.short||`改善分区 ${idx+1}`).trim()||`改善分区 ${idx+1}`;
+    let id=normalizeFitnessSectionId(raw.id||baseName,`life-${idx+1}`);
+    if(used.has(id)){let base=id,n=2;while(used.has(`${base}-${n}`))n++;id=`${base}-${n}`}
+    used.add(id);
+    const accent=FITNESS_SECTION_ACCENTS.has(String(raw.accent||"").trim())?String(raw.accent).trim():["green","amber","blue","violet","rose","cyan","slate"][idx%7];
+    const defaultMeta=FITNESS_SECTION_DEFAULTS.find(x=>x.id===id);
+    sections.push({
+      id,
+      name:baseName,
+      short:String(raw.short||defaultMeta?.short||baseName).trim().slice(0,18)||baseName,
+      icon:String(raw.icon||defaultMeta?.icon||baseName.slice(0,1)||"＋").trim().slice(0,4)||"＋",
+      accent,
+      locked:defaultMeta?true:raw.locked===true,
+      enabled:raw.enabled!==false
+    });
+  };
+  source.forEach(pushSection);
+  FITNESS_SECTION_DEFAULTS.forEach((def,idx)=>{
+    if(!sections.some(s=>s.id===def.id))sections.splice(Math.min(idx,sections.length),0,{...def});
+  });
+  const known=new Set(sections.map(s=>s.id));
+  Object.values(rawDays&&typeof rawDays==="object"?rawDays:{}).forEach(day=>{
+    if(!day||typeof day!=="object"||Array.isArray(day))return;
+    Object.keys(day).forEach(key=>{
+      if(known.has(key))return;
+      const id=normalizeFitnessSectionId(key,"life");
+      if(known.has(id))return;
+      known.add(id);
+      pushSection({id,name:key,short:String(key).toUpperCase(),icon:String(key).slice(0,1),accent:"blue",enabled:true});
+    });
+  });
+  return sections.slice(0,12);
+}
 function normalizeFitnessConfig(config){
-  const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:1,days:{}});
+  const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:2,sections:FITNESS_SECTION_DEFAULTS,days:{}});
   const src=config&&typeof config==="object"&&!Array.isArray(config)?config:fallback;
+  const sourceDays=src.days&&typeof src.days==="object"&&!Array.isArray(src.days)?src.days:{};
+  const fallbackDays=fallback.days&&typeof fallback.days==="object"?fallback.days:{};
+  const sections=normalizeFitnessSections(src.sections||fallback.sections||FITNESS_SECTION_DEFAULTS,sourceDays);
   const days={};
   [1,2,3,4,5,6,0].forEach(day=>{
     const key=String(day);
-    const hasDay=!!src.days&&Object.prototype.hasOwnProperty.call(src.days,key);
-    const raw=hasDay&&src.days[key]&&typeof src.days[key]==="object"?src.days[key]:hasDay?{}:(fallback.days?.[key]||{});
-    days[key]={
-      training:normalizeFitnessItemList(raw.training,"training"),
-      nutrition:normalizeFitnessItemList(raw.nutrition,"nutrition")
-    };
+    const hasDay=Object.prototype.hasOwnProperty.call(sourceDays,key);
+    const raw=hasDay&&sourceDays[key]&&typeof sourceDays[key]==="object"&&!Array.isArray(sourceDays[key])?sourceDays[key]:hasDay?{}:(fallbackDays[key]||{});
+    const dayOut={};
+    sections.forEach(section=>{
+      dayOut[section.id]=normalizeFitnessItemList(raw?.[section.id],section.id);
+    });
+    days[key]=dayOut;
   });
-  return {version:1,updatedAt:String(src.updatedAt||""),days};
+  return {version:2,updatedAt:String(src.updatedAt||""),sections,days};
 }
 
 function buildDefaultConfig(){
@@ -1129,12 +1182,12 @@ function exportAllJsonSections(){
     const files=[
       {name:`taskring-tasks-${date}.json`,payload:taskEditorExportPayload(cfg)},
       {name:`taskring-game-quest-${date}.json`,payload:deepClone(gameQuestConfig||cfg.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig))},
-      {name:`taskring-fitness-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness"}},
+      {name:`taskring-life-improvement-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness",module:"life-improvement"}},
       {name:`taskring-library-${date}.json`,payload:{version:1,refs:deepClone(refGroups||cfg.refs||normalizeRefGroups(defaultRefGroups))}}
     ];
     files.forEach(file=>downloadJsonBackupFile(file.name,file.payload));
     closeControlCenter();
-    showToast("已导出任务、游戏、训练饮食、资料库 4 个 JSON 文件","ok",3200);
+    showToast("已导出任务、游戏、生活改善、资料库 4 个 JSON 文件","ok",3200);
   }catch(error){
     console.error("export all JSON sections failed",error);
     showToast("JSON 导出失败，请重试","err",3000);
@@ -2127,7 +2180,7 @@ function localDateTimeInputValue(date=new Date()){
 }
 function manualTimeEntryTarget(kind,taskId=""){
   if(kind==="gamequest")return {kind:"gamequest",task_id:"gamequest-board",task_code:"gq-board",title:"游戏作战区",category:"game",estimated_minutes:60};
-  if(kind==="fitness")return {kind:"fitness",task_id:"fitness-training",task_code:"fitness-board",title:"训练区",category:"body",estimated_minutes:60};
+  if(kind==="fitness")return {kind:"fitness",task_id:"fitness-training",task_code:"fitness-board",title:"生活改善",category:"body",estimated_minutes:60};
   const task=taskById(taskId);
   if(!task)return null;
   return {kind:"task",task_id:task.id,task_code:taskCode(task.id),title:task.title,category:taskTimeCategory(task),estimated_minutes:taskEstimatedMinutes(task)};
@@ -2533,7 +2586,7 @@ function renderTimerDock(){
   }
   const warn=active.estimated_minutes&&activeTimerElapsedSeconds(active)>active.estimated_minutes*120;
   const targetBtn=active.kind==="gamequest"?"game":active.kind==="fitness"?"fitness":"time";
-  const targetName=active.kind==="gamequest"?"游戏作战区":active.kind==="fitness"?"训练饮食":"时间账本";
+  const targetName=active.kind==="gamequest"?"游戏作战区":active.kind==="fitness"?"生活改善":"时间账本";
   dock.className=`timerFloatDock timerFloatCompact ${active.paused?"paused":"running"} ${warn?"warn":""}`;
   dock.innerHTML=`<button type="button" class="timerFloatMain" data-view-target="${targetBtn}" title="打开${targetName}"><span class="timerFloatBadge">${active.paused?"PAUSE":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em>${timeCategoryLabel(active.category)}${warn?" · 可能忘关":""}</em></button><div class="timerFloatClock" data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</div><div class="timerFloatActions">${active.paused?`<button type="button" data-timer-resume>继续</button>`:`<button type="button" data-timer-pause>暂停</button>`}<button type="button" data-timer-complete>完成</button><button type="button" class="timerGhost" data-timer-abandon>放弃</button></div>`;
 }

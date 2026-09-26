@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>TASK RING｜任务指挥中心</title>
-<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、训练饮食、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
+<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、生活改善、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
 <meta name="application-name" content="TaskRing"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -16,12 +16,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.png"/>
 <meta name="theme-color" content="#f4f1e9"/>
 <meta property="og:title" content="TASK RING｜任务指挥中心"/>
-<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 训练饮食 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
+<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 生活改善 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260921.1"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260926.1"/>
 </head>
 <body class="nx locked">
 
@@ -107,9 +107,9 @@
           <button type="button" id="controlFitnessEditorBtn" class="controlAreaCard controlAreaFitness" data-control-area="fitness">
             <span class="controlAreaIcon" aria-hidden="true">↗</span>
             <span class="controlAreaCopy">
-              <small>03 / BODY</small>
-              <b>训练与饮食</b>
-              <em>编排每日训练及饮食项目</em>
+              <small>03 / LIFE</small>
+              <b>生活改善</b>
+              <em>训练、饮食与可扩展的生活改善计划</em>
             </span>
             <span class="controlAreaAction">编辑计划 <i aria-hidden="true">→</i></span>
           </button>
@@ -178,7 +178,7 @@
         </div>
         <button type="button" id="controlExportJsonBtn" class="controlExportBtn">
           <span class="controlUtilityIcon" aria-hidden="true">↓</span>
-          <span class="controlExportCopy"><b>一键导出全部 JSON</b><em>任务 · 游戏 · 训练饮食 · 资料库</em></span>
+          <span class="controlExportCopy"><b>一键导出全部 JSON</b><em>任务 · 游戏 · 生活改善 · 资料库</em></span>
           <span class="controlExportCount">4 FILES</span>
         </button>
       </section>
@@ -205,7 +205,7 @@
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
   <button type="button" class="viewDockBtn active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">今日执行环</span><span class="dockMobileLabel">今日</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划池</span><span class="dockMobileLabel">周计划</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>BODY</span><b><span class="dockDesktopLabel">训练饮食</span><span class="dockMobileLabel">健身</span></b></button>
+  <button type="button" class="viewDockBtn" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活</span></b></button>
   <button type="button" class="viewDockBtn" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏作战区</span><span class="dockMobileLabel">游戏</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" aria-hidden="true">◷</i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" aria-hidden="true">▤</i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
@@ -232,7 +232,7 @@
 <section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
 <section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
-<section class="fitnessPanel viewPanel" id="fitnessPanel" data-view-panel="fitness" aria-label="训练与饮食计划"></section>
+<section class="fitnessPanel viewPanel" id="fitnessPanel" data-view-panel="fitness" aria-label="生活改善计划"></section>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
@@ -308,8 +308,8 @@
   <div class="fitnessEditorCard">
     <div class="taskEditorHead">
       <div>
-        <div class="taskEditorTitle" id="fitnessEditorTitle">训练饮食编辑器</div>
-        <div class="taskEditorSub">按星期安排固定训练和饮食项目。保存后只更新 fitness 分区，并随加密配置同步。</div>
+        <div class="taskEditorTitle" id="fitnessEditorTitle">生活改善编辑器</div>
+        <div class="taskEditorSub">按星期维护训练、饮食与其他生活改善分区。内部继续沿用 fitness 配置键，保证旧数据和完成状态兼容。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -317,17 +317,17 @@
       </div>
     </div>
     <div class="taskEditorToolbar fitnessEditorToolbar">
-      <button id="saveFitnessBtn">保存训练饮食</button>
+      <button id="saveFitnessBtn">保存生活改善</button>
       <button id="reloadFitnessBtn">重载已保存配置</button>
-      <button id="exportFitnessBtn">导出训练饮食 JSON</button>
-      <button id="importFitnessBtn">导入训练饮食 JSON</button>
+      <button id="exportFitnessBtn">导出生活改善 JSON</button>
+      <button id="importFitnessBtn">导入生活改善 JSON</button>
     </div>
-    <div class="taskEditorHint">导入/导出只处理训练饮食分区，不包含也不会覆盖任务、游戏和资料库。每个项目的名称、备注和链接均为独立输入框；只有填写真实网址时，执行页面才会显示“打开”按钮。</div>
+    <div class="taskEditorHint">导入/导出只处理生活改善分区，不包含也不会覆盖任务、游戏和资料库。训练与饮食原样保留；可以新增睡眠、恢复、护肤等任意改善分区。</div>
     <div id="fitnessEditorList" class="fitnessEditorList"></div>
     <pre id="fitnessEditorLog" class="ghLog">等待编辑。</pre>
     <div class="editorBottomBar">
       <button id="fitnessEditorBottomCloseBtn" type="button" class="returnControlBottomBtn" data-return-control>← 返回总控</button>
-      <button id="fitnessEditorBottomSaveBtn" type="button">保存训练饮食</button>
+      <button id="fitnessEditorBottomSaveBtn" type="button">保存生活改善</button>
     </div>
   </div>
 </div>
@@ -397,14 +397,14 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260824.1"></script>
-<script src="assets/js/app.js?v=20260923.2"></script>
+<script src="assets/js/data/default-data.js?v=20260926.1"></script>
+<script src="assets/js/app.js?v=20260926.1"></script>
 <script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
 <script src="assets/js/data-integrity.js?v=20260923.2"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
-<script src="assets/js/views/time-ledger-view.js?v=20260801.1"></script>
+<script src="assets/js/views/time-ledger-view.js?v=20260926.1"></script>
 <script src="assets/js/views/editor-ux.js?v=20260713.3"></script>
-<script src="assets/js/views/fitness-view.js?v=20260720.1"></script>
+<script src="assets/js/views/fitness-view.js?v=20260926.1"></script>
 <script src="assets/js/views/product-ui.js?v=20260822.1"></script>
 <script src="assets/js/game-disclosure.js?v=20260921.1"></script>
   <script src="assets/js/game-tier-system.js?v=20260923.1"></script>
