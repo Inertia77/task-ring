@@ -56,13 +56,14 @@
   .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 28px 20px; justify-items: center; min-height: 56px; padding: 4px 2px; text-align: center; }
   .viewDockBtn .dockGlyph { grid-row: auto; width: 28px; height: 28px; }
   .viewDockUtility { background: var(--color-utility-surface); }
-  .viewDockUtilityStart { margin-left: 3px; }
-  .viewDockUtilityStart::before { top: 4px; bottom: 4px; left: -3px; }
+  .viewDockUtilityStart { margin-left: 5px; }
+  .viewDockUtilityStart::before { top: 4px; bottom: 4px; left: -4px; width: 2px; }
   .viewDockUtility.active { background: var(--color-utility-soft); }
   .viewDockUtility.active::after { top: 7px; bottom: 7px; left: -1px; width: 2px; }
   .viewDockBtn > span, .dockDesktopLabel { display: none; }
   .viewDockBtn b { width: 100%; font-size: 12px; }
   .dockMobileLabel { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .viewDockBtn[data-view-target="fitness"] b { font-size: 11px; }
   .viewIntro.active { display: grid; grid-template-columns: minmax(94px,.42fr) minmax(0,1fr); gap: 8px; margin-bottom: 8px; padding: 9px 10px; }
   .viewIntro strong { font-size: 16px; }
   .viewIntro p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; line-height: 1.4; }
