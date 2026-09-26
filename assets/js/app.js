@@ -113,9 +113,9 @@ function taskWeeklyMinutes(task){return inferWeeklyMinutes(task||{})}
 
 /* === v16.0 Planning Mode: Daily Ring vs Weekly Pool === */
 const taskPlanModeDefs={
-  daily:{name:"每日环",short:"每日",hint:"真每日/保底：进入今日执行环，计入今日完成度。"},
+  daily:{name:"每日",short:"每日",hint:"真每日/保底：进入「每日」模块，计入今日完成度。"},
   scheduled:{name:"指定日",short:"指定日",hint:"必须安排在某些星期：到日出现，错过后按遗留处理。"},
-  weekly:{name:"周计划池",short:"周计划",hint:"不占每日环；按本周目标时间推进，适合语言、IT、科学、创作等弹性任务。"}
+  weekly:{name:"周计划",short:"周计划",hint:"不占每日模块；按本周目标时间推进，适合语言、IT、科学、创作等弹性任务。"}
 };
 const taskPlanModeOrder=["daily","scheduled","weekly"];
 function normalizeTaskPlanMode(v,fallback="weekly"){
@@ -1296,7 +1296,7 @@ function taskEditorRowHtml(t){
         <option value="gamecreate" ${t.cat==="gamecreate"?"selected":""}>游戏&创作</option>
         <option value="language" ${t.cat==="language"?"selected":""}>语言&学习</option>
       </select></div>
-      <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务是否进入今日执行环，还是只在周计划池按时间推进">
+      <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务进入「每日」模块，还是进入「周计划」按本周时间推进">
         ${taskPlanModeOrder.map(k=>`<option value="${k}" ${taskPlanningMode(t)===k?"selected":""}>${taskPlanModeDefs[k].name}</option>`).join("")}
       </select></div>
       <div class="cfgField"><label>时间分类</label><select class="cfgTimeCategory">
@@ -2523,8 +2523,8 @@ function renderWeeklyPlanPanel(){
     const target=catTasks.reduce((sum,t)=>sum+weeklyTaskStatus(t).target,0);
     return `<section class="weeklyTaskGroup"><div class="weeklyTaskGroupHead"><div><span>${def.icon}</span><b>${escapeHtml(def.name)}</b></div><em>${fmtMinutes(used)}${target?` / ${fmtMinutes(target)}`:""}</em></div><div class="weeklyTaskGrid">${catTasks.map(weeklyTaskCardHtml).join("")}</div></section>`;
   }).join("");
-  const cards=grouped||`<div class="weeklyEmpty"><b>周计划池为空</b><span>在任务编辑器里把任务模式设为「周计划池」，它就会出现在这里。</span></div>`;
-  el.innerHTML=`<div class="weeklyShell v19"><div class="weeklyHero"><div><span>WEEKLY ALLOCATION</span><b>周计划池</b><em>不用每天打卡的主线，按本周投入推进。</em></div><div class="weeklyHeroStats"><div><span>投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}<div class="weeklySummaryGrid">${summaries}</div><div class="weeklyTaskGroups">${cards}</div></div>`;
+  const cards=grouped||`<div class="weeklyEmpty"><b>周计划为空</b><span>在任务编辑器里把任务模式设为「周计划」，它就会出现在这里。</span></div>`;
+  el.innerHTML=`<div class="weeklyShell v19"><div class="weeklyHero"><div><span>WEEKLY ALLOCATION</span><b>周计划</b><em>不用每天打卡的主线，按本周投入推进。</em></div><div class="weeklyHeroStats"><div><span>投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}<div class="weeklySummaryGrid">${summaries}</div><div class="weeklyTaskGroups">${cards}</div></div>`;
 }
 
 
@@ -2720,7 +2720,7 @@ function taskRowHtml(t,c,metaHtml,stepHtml="",frontCheck="",dayId=stepContextDay
   return `<div class="taskRowInner"><div class="taskMainLine">${frontCheck}${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="taskMetaLine">${metaHtml}${timerControlsHtml(t,dayId,cycle)}</div>${stepHtml||""}</div>`;
 }
 function catCellHtml(c){return `<div class="catInner">${escapeHtml(c.name)}</div>`}
-function renderTable(){const table=document.getElementById("taskTable");const isAll=viewMode==="all";const vDays=visibleDaysForMode();let html=`<thead><tr><th class="catHead">区分</th><th class="taskHead">任务</th>${isAll?vDays.map(d=>`<th class="dayHead ${d.id===today?"todayHead":""}">${d.name}${d.id===today?"｜今日":""}</th>`).join(""):""}</tr></thead><tbody>`;if(isAll){for(const t of ringBlocks()){const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const ctxDay=stepContextDay(t);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t),stepPanelHtml(t,ctxDay,c.cls,cycleYmd),"",ctxDay,cycleYmd)}</td>`;for(const d of vDays){if(t.days.includes(d.id)){html+=cellHtml(t,d.id,cycleYmd,d.id===today?"activeTodayCell":"")}else{html+=`<td class="dayCell blank"></td>`}}html+=`</tr>`}}else{const occs=todayOccurrences(viewMode==="today");if(!occs.length){html+=`<tr><td class="category" style="background:#f4f7fb"><div class="catInner">完成</div></td><td class="taskName"><div class="taskRowInner emptyRow"><div class="taskMainLine">今日执行环已经清空。长期主线请切到「周计划池」继续推进。</div><div class="taskMetaLine"><span class="metaSpacer">&nbsp;</span></div></div></td></tr>`}else{for(const o of occs){const t=o.t;const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const st=occurrenceState(t,o.dayId,o.cycle);const meta=occurrenceMeta(t,o.dayId,o.cycle);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t,st,meta),stepPanelHtml(t,o.dayId,c.cls,o.cycle),frontCheckHtml(t,o.dayId,o.cycle),o.dayId,o.cycle)}</td></tr>`}}}table.innerHTML=html+`</tbody>`}
+function renderTable(){const table=document.getElementById("taskTable");const isAll=viewMode==="all";const vDays=visibleDaysForMode();let html=`<thead><tr><th class="catHead">区分</th><th class="taskHead">任务</th>${isAll?vDays.map(d=>`<th class="dayHead ${d.id===today?"todayHead":""}">${d.name}${d.id===today?"｜今日":""}</th>`).join(""):""}</tr></thead><tbody>`;if(isAll){for(const t of ringBlocks()){const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const ctxDay=stepContextDay(t);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t),stepPanelHtml(t,ctxDay,c.cls,cycleYmd),"",ctxDay,cycleYmd)}</td>`;for(const d of vDays){if(t.days.includes(d.id)){html+=cellHtml(t,d.id,cycleYmd,d.id===today?"activeTodayCell":"")}else{html+=`<td class="dayCell blank"></td>`}}html+=`</tr>`}}else{const occs=todayOccurrences(viewMode==="today");if(!occs.length){html+=`<tr><td class="category" style="background:#f4f7fb"><div class="catInner">完成</div></td><td class="taskName"><div class="taskRowInner emptyRow"><div class="taskMainLine">「每日」里的今日任务已经清空。长期主线请切到「周计划」继续推进。</div><div class="taskMetaLine"><span class="metaSpacer">&nbsp;</span></div></div></td></tr>`}else{for(const o of occs){const t=o.t;const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const st=occurrenceState(t,o.dayId,o.cycle);const meta=occurrenceMeta(t,o.dayId,o.cycle);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t,st,meta),stepPanelHtml(t,o.dayId,c.cls,o.cycle),frontCheckHtml(t,o.dayId,o.cycle),o.dayId,o.cycle)}</td></tr>`}}}table.innerHTML=html+`</tbody>`}
 function renderMobileTabs(){const tabs=document.getElementById("dayTabs");if(viewMode==="all"){tabs.innerHTML=`<div class="mobileModeHint">全周一览：现在改为按天折叠；默认展开。若有未完成提醒或被强制打差，会在当天标题上高亮显示。</div>`;return}if(viewMode==="undone"){tabs.innerHTML=`<div class="mobileModeHint">今日未完成：包含今天任务 + 单次任务/最后一次任务的遗留项。</div>`;mobileDay=today;return}mobileDay=today;tabs.innerHTML=`<button class="dayTab active" data-mobile-day="${today}">${dayName(today)}｜今日</button>`}
 function renderMobileCards(){
   const box=document.getElementById("mobileCards");
@@ -2754,9 +2754,9 @@ function renderMobileCards(){
     return;
   }
   const occs=todayOccurrences(viewMode==="today");
-  box.innerHTML=occs.map(o=>renderOne(o)).join("")||`<div class="mTask emptyMobileTask"><div></div><div class="mTaskBody"><div class="mTitle">今天剩余任务已经清空</div><div class="mMeta">可以休息，或者切到「周计划池」推进长期主线。</div></div></div>`;
+  box.innerHTML=occs.map(o=>renderOne(o)).join("")||`<div class="mTask emptyMobileTask"><div></div><div class="mTaskBody"><div class="mTitle">今天剩余任务已经清空</div><div class="mMeta">可以休息，或者切到「周计划」推进长期主线。</div></div></div>`;
 }
-function updateProgress(){const occs=todayOccurrences(true);const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;const total=occs.length;const pct=total?Math.round(done/total*100):0;const carry=carryoverOccurrences().length;const progressEl=document.getElementById("progressText");if(progressEl)progressEl.textContent=`今日完成度 ${done}/${total}（${pct}%）${carry?`｜遗留 ${carry} 项`:""}`;const barEl=document.getElementById("bar");if(barEl)barEl.style.width=pct+"%";const modeEl=document.getElementById("modeText");if(modeEl)modeEl.textContent=viewMode==="today"?"今日 + 遗留":viewMode==="undone"?"今日未完成 + 遗留":"今日执行环全周视图";document.getElementById("showToday")?.classList.toggle("active",viewMode==="today");document.getElementById("showAll")?.classList.toggle("active",viewMode==="all");document.getElementById("showUndone")?.classList.toggle("active",viewMode==="undone")}
+function updateProgress(){const occs=todayOccurrences(true);const done=occs.filter(o=>isDone(o.t.id,o.dayId,o.cycle)).length;const total=occs.length;const pct=total?Math.round(done/total*100):0;const carry=carryoverOccurrences().length;const progressEl=document.getElementById("progressText");if(progressEl)progressEl.textContent=`今日完成度 ${done}/${total}（${pct}%）${carry?`｜遗留 ${carry} 项`:""}`;const barEl=document.getElementById("bar");if(barEl)barEl.style.width=pct+"%";const modeEl=document.getElementById("modeText");if(modeEl)modeEl.textContent=viewMode==="today"?"今日 + 遗留":viewMode==="undone"?"今日未完成 + 遗留":"每日模块全周视图";document.getElementById("showToday")?.classList.toggle("active",viewMode==="today");document.getElementById("showAll")?.classList.toggle("active",viewMode==="all");document.getElementById("showUndone")?.classList.toggle("active",viewMode==="undone")}
 
 
 /* === v10.9 Game Quest Board === */
