@@ -318,7 +318,7 @@
   }
   function exportFitnessConfig(){
     const cfg=collectFitnessEditor();
-    const payload={...cfg,section:"fitness"};
+    const payload={...cfg,section:"fitness",module:"life-improvement"};
     navigator.clipboard?.writeText(JSON.stringify(payload,null,2)).then(()=>{editorLog("生活改善 JSON 已复制，不包含其他配置分区。");showToast("生活改善 JSON 已复制","ok")}).catch(()=>{editorLog(JSON.stringify(payload,null,2));showToast("复制失败，已输出到日志","warn")});
   }
   function importFitnessConfig(){
