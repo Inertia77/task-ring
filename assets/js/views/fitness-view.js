@@ -6,18 +6,18 @@
   let initialized=false;
   let editorItemCounter=0;
 
+  function normalizedFitness(cfg=fitnessConfig){return normalizeFitnessConfig(cfg||defaultFitnessConfig)}
+  function activeSections(cfg=fitnessConfig){return normalizedFitness(cfg).sections.filter(section=>section.enabled!==false)}
+  function sectionFor(kind,cfg=fitnessConfig){return normalizedFitness(cfg).sections.find(section=>section.id===String(kind))||{id:String(kind||"life"),name:String(kind||"生活"),short:String(kind||"LIFE").toUpperCase(),icon:"＋",accent:"blue",enabled:true}}
   function dayConfig(dayId,cfg=fitnessConfig){
-    const normalized=normalizeFitnessConfig(cfg||defaultFitnessConfig);
-    return normalized.days[String(Number(dayId))]||{training:[],nutrition:[]};
+    const normalized=normalizedFitness(cfg);
+    return normalized.days[String(Number(dayId))]||{};
   }
   function doneKey(dayId,kind,itemId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_fitness_d${Number(dayId)}_${kind}_${itemId}`}
   function isItemDone(dayId,kind,itemId,cycle=cycleYmd){return localStorage.getItem(doneKey(dayId,kind,itemId,cycle))==="1"}
   function itemsForDay(dayId,cfg=fitnessConfig){
     const data=dayConfig(dayId,cfg);
-    return [
-      ...data.training.map(item=>({...item,kind:"training"})),
-      ...data.nutrition.map(item=>({...item,kind:"nutrition"}))
-    ];
+    return activeSections(cfg).flatMap(section=>(data[section.id]||[]).map(item=>({...item,kind:section.id,section})));
   }
   function dayStats(dayId,cfg=fitnessConfig){
     const items=itemsForDay(dayId,cfg);
@@ -28,18 +28,20 @@
     syncSetItem(doneKey(dayId,kind,itemId),value);
     if(value&&sourceEl&&typeof playCompletionEffect==="function"){
       const stats=dayStats(dayId);
-      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"micro",category:"life",anchor:sourceEl,title:stats.total&&stats.done===stats.total?"训练饮食计划完成":"健康项目完成",eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
+      const section=sectionFor(kind);
+      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"micro",category:"life",anchor:sourceEl,title:stats.total&&stats.done===stats.total?"今日生活改善完成":`${section.name}项目完成`,eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
     }
     renderAll();
   }
   function setLaneDone(dayId,kind,value,sourceEl){
     const items=dayConfig(dayId)?.[kind]||[];
+    const section=sectionFor(kind);
     items.forEach(item=>syncSetItem(doneKey(dayId,kind,item.id),value));
     if(value&&sourceEl&&items.length&&typeof playCompletionEffect==="function"){
       const stats=dayStats(dayId);
-      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"task",category:"life",anchor:sourceEl,title:kind==="training"?"训练计划全部完成":"饮食计划全部完成",eventId:`fitness-lane:${cycleYmd}:${dayId}:${kind}`});
+      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"task",category:"life",anchor:sourceEl,title:`${section.name}计划全部完成`,eventId:`fitness-lane:${cycleYmd}:${dayId}:${kind}`});
     }
-    showToast(value?(kind==="training"?"训练项目已全部完成":"饮食项目已全部完成"):(kind==="training"?"已取消全部训练完成状态":"已取消全部饮食完成状态"),value?"ok":"warn",1300);
+    showToast(value?`${section.name}项目已全部完成`:`已取消全部${section.name}完成状态`,value?"ok":"warn",1300);
     renderAll();
   }
   function openFitnessItemUrl(value){
