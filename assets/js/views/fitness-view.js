@@ -50,7 +50,7 @@
     try{
       const opened=window.open("about:blank","_blank");
       if(opened){opened.opener=null;opened.location.replace(url);return}
-    }catch(error){console.warn("训练饮食链接新窗口打开失败",error)}
+    }catch(error){console.warn("生活改善链接新窗口打开失败",error)}
     showToast("新窗口被拦截，已在当前页面打开","warn",1800);
     window.location.assign(url);
   }
@@ -62,8 +62,8 @@
     const active=readActiveTimer();
     const key=fitnessTimerKey(normalizedDay,cycle);
     if(active){
-      if(activeTimerKey(active)===key){showToast(active.paused?"训练计时已暂停，可点继续":"训练区正在计时","warn");return}
-      const ok=confirm(`当前正在计时：${active.title}（${fmtTimer(activeTimerElapsedSeconds(active))}）。\n\n要先完成并记录它，然后开始「训练区」吗？`);
+      if(activeTimerKey(active)===key){showToast(active.paused?"生活改善计时已暂停，可点继续":"生活改善正在计时","warn");return}
+      const ok=confirm(`当前正在计时：${active.title}（${fmtTimer(activeTimerElapsedSeconds(active))}）。\n\n要先完成并记录它，然后开始「生活改善」吗？`);
       if(!ok)return;
       completeActiveTimer(true);
     }
@@ -74,7 +74,7 @@
       task_code:"fitness-board",
       day_id:normalizedDay,
       cycle,
-      title:`训练区｜${dayName(normalizedDay)}`,
+      title:`生活改善｜${dayName(normalizedDay)}`,
       category:"body",
       estimated_minutes:60,
       first_started_at:now,
@@ -83,7 +83,7 @@
       paused:false,
       paused_at:null
     });
-    showToast("开始计时：训练区","ok",1300);
+    showToast("开始计时：生活改善","ok",1300);
     renderAll();
   }
   function openFitnessTimeDetail(){
@@ -95,23 +95,22 @@
     const used=week.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
     const todayUsed=todayLogs.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
     const allUsed=all.reduce((sum,log)=>sum+Number(log.duration_minutes||0),0)+activeMinutes;
-    const lines=week.slice(0,20).map(log=>`<li><span>${fmtLogWhen(log)} · ${escapeHtml(log.title)}${timeLogSourceLabel(log)}</span><b>${fmtMinutes(log.duration_minutes)}</b><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="empty"><span>本周还没有训练区记录</span><b>0m</b></li>`;
-    const body=`<button type="button" class="timeDetailAddButton" data-manual-time-entry="fitness">+手动补记训练时间</button><div class="timeDetailStats"><div><span>今日</span><b>${fmtMinutes(todayUsed)}</b></div><div><span>本周</span><b>${fmtMinutes(used)}</b></div><div><span>累计</span><b>${fmtMinutes(allUsed)}</b></div></div><div class="timeDetailProgress" style="--w:${used?100:0}%"><div><span>统计方式</span><b>训练区整体计时${activeMinutes?` · 当前 ${fmtMinutes(activeMinutes)}`:""}</b></div><i></i></div><ul class="timeDetailLogs">${lines}</ul>`;
-    openTimeDetailModal("训练区",body);
+    const lines=week.slice(0,20).map(log=>`<li><span>${fmtLogWhen(log)} · ${escapeHtml(log.title)}${timeLogSourceLabel(log)}</span><b>${fmtMinutes(log.duration_minutes)}</b><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="empty"><span>本周还没有生活改善记录</span><b>0m</b></li>`;
+    const body=`<button type="button" class="timeDetailAddButton" data-manual-time-entry="fitness">+ 手动补记生活改善时间</button><div class="timeDetailStats"><div><span>今日</span><b>${fmtMinutes(todayUsed)}</b></div><div><span>本周</span><b>${fmtMinutes(used)}</b></div><div><span>累计</span><b>${fmtMinutes(allUsed)}</b></div></div><div class="timeDetailProgress" style="--w:${used?100:0}%"><div><span>统计方式</span><b>生活改善整体计时${activeMinutes?` · 当前 ${fmtMinutes(activeMinutes)}`:""}</b></div><i></i></div><ul class="timeDetailLogs">${lines}</ul>`;
+    openTimeDetailModal("生活改善",body);
   }
-  function itemHtml(item,dayId){
-    const done=isItemDone(dayId,item.kind,item.id);
-    const kindName=item.kind==="training"?"训练":"饮食";
+  function itemHtml(item,section,dayId){
+    const done=isItemDone(dayId,section.id,item.id);
     const note=String(item.note||"").trim();
     const url=normalizeFitnessUrl(item.url,item.note);
     const actions=note||url?`<div class="fitnessItemActions">${note?`<button type="button" class="fitnessItemMetaBtn" data-fitness-toggle-note aria-expanded="false" aria-label="查看备注：${escapeHtml(item.title)}"><span>备注</span><b>i</b></button>`:""}${url?`<button type="button" class="fitnessItemLink" data-fitness-open-url="${escapeHtml(url)}" aria-label="打开链接：${escapeHtml(item.title)}" title="打开链接：${escapeHtml(item.title)}"><span>打开</span> ↗</button>`:""}</div>`:"";
     const notePanel=note?`<div class="fitnessItemNote" data-fitness-note-panel hidden><span>NOTE / 备注</span><p>${escapeHtml(note)}</p></div>`:"";
-    return `<article class="fitnessItem ${done?"done":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${item.kind}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span><em>${kindName}</em></button>${actions}${notePanel}</article>`;
+    return `<article class="fitnessItem ${done?"done":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${escapeHtml(section.id)}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span><em>${escapeHtml(section.name)}</em></button>${actions}${notePanel}</article>`;
   }
-  function laneHtml(kind,title,items,dayId){
-    const done=items.filter(item=>isItemDone(dayId,kind,item.id)).length;
+  function laneHtml(section,items,dayId){
+    const done=items.filter(item=>isItemDone(dayId,section.id,item.id)).length;
     const allDone=items.length>0&&done===items.length;
-    return `<section class="fitnessLane fitnessLane-${kind}"><header class="fitnessLaneHead"><div><span>${kind==="training"?"TRAINING":"NUTRITION"}</span><b>${title}</b></div><div class="fitnessLaneActions"><em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${kind}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button></div></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml({...item,kind},dayId)).join(""):`<div class="fitnessEmpty">${kind==="training"?"当天没有安排训练项目":"当天没有安排饮食项目"}</div>`}</div></section>`;
+    return `<section class="fitnessLane lifeLane" data-life-accent="${escapeHtml(section.accent||"blue")}"><header class="fitnessLaneHead"><div class="fitnessLaneIdentity"><span class="fitnessLaneIcon" aria-hidden="true">${escapeHtml(section.icon||"＋")}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><div class="fitnessLaneActions"><em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${escapeHtml(section.id)}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button></div></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml(item,section,dayId)).join(""):`<div class="fitnessEmpty">当天没有安排${escapeHtml(section.name)}项目</div>`}</div></section>`;
   }
   function revealSelectedDay(tabsEl,smooth=false){
     const activeTab=tabsEl?.querySelector(".fitnessDayTab.active");
@@ -329,7 +328,7 @@
       const todayBtn=event.target.closest("[data-fitness-today]");
       if(todayBtn){event.preventDefault();const tabs=document.querySelector("#fitnessPanel .fitnessDayTabs");selectedDay=today;renderFitnessPanel({scrollLeft:tabs?.scrollLeft||0,revealSelected:true});return}
       const timerBtn=event.target.closest("[data-fitness-timer]");
-      if(timerBtn){event.preventDefault();const active=readActiveTimer();if(active?.kind==="fitness"&&active.paused)resumeActiveTimer();else if(active?.kind==="fitness")showToast("训练区正在计时","warn");else startFitnessTimer(selectedDay);return}
+      if(timerBtn){event.preventDefault();const active=readActiveTimer();if(active?.kind==="fitness"&&active.paused)resumeActiveTimer();else if(active?.kind==="fitness")showToast("生活改善正在计时","warn");else startFitnessTimer(selectedDay);return}
       const detailBtn=event.target.closest("[data-time-fitness-detail]");
       if(detailBtn){event.preventDefault();event.stopPropagation();openFitnessTimeDetail();return}
       const noteBtn=event.target.closest("[data-fitness-toggle-note]");
