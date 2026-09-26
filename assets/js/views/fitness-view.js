@@ -133,26 +133,29 @@
     if(!panel)return;
     const previousTabs=panel.querySelector(".fitnessDayTabs");
     const previousScrollLeft=Number.isFinite(options.scrollLeft)?options.scrollLeft:(previousTabs?.scrollLeft||0);
-    const data=dayConfig(selectedDay);
-    const stats=dayStats(selectedDay);
+    const cfg=normalizedFitness();
+    const sections=cfg.sections.filter(section=>section.enabled!==false);
+    const data=dayConfig(selectedDay,cfg);
+    const stats=dayStats(selectedDay,cfg);
     const active=readActiveTimer();
     const fitnessActive=active?.kind==="fitness";
     const timerLabel=fitnessActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时";
-    const timerSub=fitnessActive?(active.paused?"已暂停":"训练计时中"):`本周 ${fmtMinutes(fitnessWeekMinutes())}`;
+    const timerSub=fitnessActive?(active.paused?"已暂停":"生活改善计时中"):`本周 ${fmtMinutes(fitnessWeekMinutes())}`;
     const tabs=[1,2,3,4,5,6,0].map(day=>{
-      const s=dayStats(day);
+      const s=dayStats(day,cfg);
       return `<button type="button" class="fitnessDayTab ${day===selectedDay?"active":""} ${day===today?"today":""}" data-fitness-day="${day}" aria-pressed="${day===selectedDay?"true":"false"}">${escapeHtml(dayName(day))}<span>${s.done}/${s.total}</span></button>`;
     }).join("");
-    panel.innerHTML=`<header class="fitnessHero taskAreaHeader">
-      <div class="fitnessHeroCopy taskAreaHeaderCopy"><span class="fitnessEyebrow taskAreaEyebrow">BODY / DAILY PLAN</span><h2 class="taskAreaTitle">训练与饮食</h2><p class="taskAreaDescription">${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜按既定计划执行，训练和饮食分别确认。</p></div>
+    const lanes=sections.map(section=>laneHtml(section,data[section.id]||[],selectedDay)).join("");
+    panel.innerHTML=`<header class="fitnessHero taskAreaHeader lifeHero">
+      <div class="fitnessHeroCopy taskAreaHeaderCopy"><span class="fitnessEyebrow taskAreaEyebrow">LIFE / IMPROVEMENT</span><h2 class="taskAreaTitle">生活改善</h2><p class="taskAreaDescription">${escapeHtml(dayName(selectedDay))}${selectedDay===today?" · 今日":""}｜训练、饮食和其他生活改善项目统一在这里维护；分区可以继续扩展。</p></div>
       <div class="fitnessHeroSide taskAreaHeaderSide">
         <div class="fitnessProgressCard"><div class="fitnessProgressRing" style="--fitness-progress:${stats.pct}%"><b>${stats.pct}%</b></div><span><small>PROGRESS</small><b>${stats.done}/${stats.total}</b><em>所选日期</em></span></div>
         <button type="button" class="fitnessCommandBtn fitnessTodayBtn ${selectedDay===today?"active":""}" data-fitness-today><span class="fitnessCommandIcon">◎</span><span class="fitnessCommandCopy"><small>TODAY</small><b>今日</b><em>${selectedDay===today?"当前日期":"回到今天"}</em></span></button>
-        <button type="button" class="fitnessTimerBtn ${fitnessActive?"active":""}" data-fitness-timer title="把训练区作为一个整体记录时间"><span>${fitnessActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><span class="fitnessCommandCopy"><small>TIMER</small><b ${fitnessActive?"data-live-timer":""}>${timerLabel}</b><em>${timerSub}</em></span></button>
-        <button type="button" class="fitnessCommandBtn fitnessManualBtn" data-manual-time-entry="fitness" title="补记忘记开始的训练时间"><span class="fitnessCommandIcon">＋</span><span class="fitnessCommandCopy"><small>MANUAL</small><b>补记</b><em>训练时间</em></span></button>
-        <button type="button" class="fitnessCommandBtn fitnessEditBtn" data-open-fitness-editor><span class="fitnessCommandIcon">✎</span><span class="fitnessCommandCopy"><small>PLAN</small><b>编辑计划</b><em>训练与饮食</em></span></button>
+        <button type="button" class="fitnessTimerBtn ${fitnessActive?"active":""}" data-fitness-timer title="把生活改善区作为一个整体记录时间"><span>${fitnessActive?(active.paused?"Ⅱ":"◷"):"◷"}</span><span class="fitnessCommandCopy"><small>TIMER</small><b ${fitnessActive?"data-live-timer":""}>${timerLabel}</b><em>${timerSub}</em></span></button>
+        <button type="button" class="fitnessCommandBtn fitnessManualBtn" data-manual-time-entry="fitness" title="补记忘记开始的生活改善时间"><span class="fitnessCommandIcon">＋</span><span class="fitnessCommandCopy"><small>MANUAL</small><b>补记</b><em>改善时间</em></span></button>
+        <button type="button" class="fitnessCommandBtn fitnessEditBtn" data-open-fitness-editor><span class="fitnessCommandIcon">✎</span><span class="fitnessCommandCopy"><small>PLAN</small><b>编辑改善</b><em>${sections.length} 个分区</em></span></button>
       </div>
-    </header><nav class="fitnessDayTabs" aria-label="训练饮食星期切换">${tabs}</nav><div class="fitnessBoard">${laneHtml("training","训练计划",data.training,selectedDay)}${laneHtml("nutrition","饮食计划",data.nutrition,selectedDay)}</div>`;
+    </header><nav class="fitnessDayTabs" aria-label="生活改善星期切换">${tabs}</nav><div class="fitnessBoard lifeBoard">${lanes||`<div class="fitnessEmpty lifeEmpty"><b>还没有生活改善分区。</b><span>打开编辑器新增一个分区即可开始。</span></div>`}</div>`;
     const nextTabs=panel.querySelector(".fitnessDayTabs");
     if(nextTabs){
       nextTabs.scrollLeft=previousScrollLeft;
