@@ -283,7 +283,7 @@
       const fitness=normalizeFitnessConfig({...collectFitnessEditor(),updatedAt:new Date().toISOString()});
       const base=normalizeTaskConfig(taskConfig||buildDefaultConfig());
       const cfg=normalizeTaskConfig({...base,fitness,updatedAt:new Date().toISOString()});
-      saveLocalTaskConfig(cfg,"训练饮食编辑器保存前");
+      saveLocalTaskConfig(cfg,"生活改善编辑器保存前");
       applyTaskConfig(cfg,true);
       draftConfig=deepClone(fitnessConfig);
       renderFitnessEditor();
@@ -291,45 +291,45 @@
         setGhStatus("GitHub：保存配置中","sync");
         await ghPatchConfig(cfg);
         setGhStatus("GitHub：已同步","on");
-        editorLog("训练饮食配置已保存并加密同步。");
-        showToast("训练饮食已保存并同步","ok");
+        editorLog("生活改善配置已保存并加密同步。");
+        showToast("生活改善已保存并同步","ok");
       }else{
-        editorLog("训练饮食配置已保存到本机。");
-        showToast("训练饮食已保存到本机","ok");
+        editorLog("生活改善配置已保存到本机。");
+        showToast("生活改善已保存到本机","ok");
       }
     }catch(error){
       console.error(error);
       editorLog("保存失败："+String(error.message||error));
-      showToast("训练饮食保存失败","err");
+      showToast("生活改善保存失败","err");
     }finally{setBtnBusy(btn,false)}
   }
   function reloadFitnessConfig(){
-    if(!confirm("确认放弃尚未保存的训练饮食修改，并重载当前已保存配置？"))return;
+    if(!confirm("确认放弃尚未保存的生活改善修改，并重载当前已保存配置？"))return;
     draftConfig=deepClone(fitnessConfig||normalizeFitnessConfig(defaultFitnessConfig));
     renderFitnessEditor();
-    editorLog("已重载当前保存的训练饮食配置。");
+    editorLog("已重载当前保存的生活改善配置。");
   }
   function fitnessImportConfig(value){
     const imported=value&&typeof value==="object"&&!Array.isArray(value)&&Object.prototype.hasOwnProperty.call(value,"fitness")?value.fitness:value;
     if(!imported||typeof imported!=="object"||Array.isArray(imported)||!imported.days||typeof imported.days!=="object"||Array.isArray(imported.days)){
-      throw new Error("训练饮食 JSON 必须包含 days 对象");
+      throw new Error("生活改善 JSON 必须包含 days 对象");
     }
     return normalizeFitnessConfig(imported);
   }
   function exportFitnessConfig(){
     const cfg=collectFitnessEditor();
     const payload={...cfg,section:"fitness"};
-    navigator.clipboard?.writeText(JSON.stringify(payload,null,2)).then(()=>{editorLog("训练饮食 JSON 已复制，不包含其他配置分区。");showToast("训练饮食 JSON 已复制","ok")}).catch(()=>{editorLog(JSON.stringify(payload,null,2));showToast("复制失败，已输出到日志","warn")});
+    navigator.clipboard?.writeText(JSON.stringify(payload,null,2)).then(()=>{editorLog("生活改善 JSON 已复制，不包含其他配置分区。");showToast("生活改善 JSON 已复制","ok")}).catch(()=>{editorLog(JSON.stringify(payload,null,2));showToast("复制失败，已输出到日志","warn")});
   }
   function importFitnessConfig(){
-    const raw=prompt("粘贴训练饮食 JSON：支持独立 fitness JSON 或旧版完整 taskring-config.json；只会导入训练饮食配置。");
+    const raw=prompt("粘贴生活改善 JSON：支持新版生活改善 JSON、旧版 fitness JSON 或完整 taskring-config.json；只会导入生活改善配置。");
     if(!raw)return;
     try{
       draftConfig=fitnessImportConfig(JSON.parse(raw));
       renderFitnessEditor();
-      editorLog("训练饮食导入成功；其他配置分区未改动，保存后生效。");
-      showToast("训练饮食已导入，记得保存","ok");
-    }catch(error){editorLog("导入失败："+String(error.message||error));showToast("训练饮食 JSON 不合法","err")}
+      editorLog("生活改善导入成功；旧版训练/饮食会自动迁移，其他配置分区不变。保存后生效。");
+      showToast("生活改善已导入，记得保存","ok");
+    }catch(error){editorLog("导入失败："+String(error.message||error));showToast("生活改善 JSON 不合法","err")}
   }
   function initFitnessUI(){
     if(initialized)return;
@@ -342,14 +342,54 @@
     document.getElementById("exportFitnessBtn")?.addEventListener("click",exportFitnessConfig);
     document.getElementById("importFitnessBtn")?.addEventListener("click",importFitnessConfig);
     document.body.addEventListener("click",event=>{
+      const addSection=event.target.closest("[data-life-section-add]");
+      if(addSection){
+        event.preventDefault();event.stopPropagation();
+        collectFitnessEditor();
+        const id=normalizeFitnessSectionId(`life-${Date.now().toString(36)}`,"life");
+        const accents=["blue","violet","rose","cyan","slate","green","amber"];
+        draftConfig.sections.push({id,name:"新改善分区",short:"LIFE",icon:"＋",accent:accents[draftConfig.sections.length%accents.length],locked:false,enabled:true});
+        Object.values(draftConfig.days||{}).forEach(day=>{day[id]=[]});
+        renderFitnessEditor();
+        document.querySelector(`[data-life-section-id="${safeCssEscape(id)}"] .lifeSectionName`)?.select();
+        return;
+      }
+      const deleteSection=event.target.closest("[data-life-section-delete]");
+      if(deleteSection){
+        event.preventDefault();event.stopPropagation();
+        collectFitnessEditor();
+        const id=deleteSection.dataset.lifeSectionDelete;
+        const section=draftConfig.sections.find(x=>x.id===id);
+        if(!section||section.locked)return;
+        if(!confirm(`删除改善分区「${section.name}」？该分区在一周内的项目也会从配置中删除。`))return;
+        draftConfig.sections=draftConfig.sections.filter(x=>x.id!==id);
+        Object.values(draftConfig.days||{}).forEach(day=>{delete day[id]});
+        renderFitnessEditor();
+        editorLog(`已删除改善分区：${section.name}`);
+        return;
+      }
+      const moveSection=event.target.closest("[data-life-section-move]");
+      if(moveSection){
+        event.preventDefault();event.stopPropagation();
+        collectFitnessEditor();
+        const id=moveSection.dataset.lifeSectionId;
+        const index=draftConfig.sections.findIndex(x=>x.id===id);
+        const next=index+(moveSection.dataset.lifeSectionMove==="up"?-1:1);
+        if(index>=0&&next>=0&&next<draftConfig.sections.length){
+          [draftConfig.sections[index],draftConfig.sections[next]]=[draftConfig.sections[next],draftConfig.sections[index]];
+          renderFitnessEditor();
+        }
+        return;
+      }
       const editorAdd=event.target.closest("[data-fitness-add-item]");
       if(editorAdd){
         event.preventDefault();event.stopPropagation();
         const group=editorAdd.closest("[data-fitness-editor-group]");
         const kind=editorAdd.dataset.fitnessAddItem;
-        const itemList=group?.querySelector(`[data-fitness-editor-list="${kind}"]`);
+        const section=(draftConfig?.sections||[]).find(x=>x.id===kind)||sectionFor(kind,draftConfig);
+        const itemList=group?.querySelector(`[data-fitness-editor-list="${safeCssEscape(kind)}"]`);
         itemList?.querySelector("[data-fitness-editor-empty]")?.remove();
-        itemList?.insertAdjacentHTML("beforeend",fitnessEditorItemRowHtml({},kind));
+        itemList?.insertAdjacentHTML("beforeend",fitnessEditorItemRowHtml({},section));
         updateFitnessEditorDayCount(editorAdd.closest("[data-fitness-editor-day]"));
         itemList?.lastElementChild?.querySelector("[data-fitness-item-title]")?.focus();
         return;
