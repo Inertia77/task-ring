@@ -224,10 +224,14 @@ const defaultGameQuestConfig={
   }
 };
 
-// 训练饮食分区的公开演示配置。仅使用通用示例，不包含任何用户真实训练、身体或饮食数据。
+// 生活改善分区的公开演示配置。训练与饮食作为默认基础分区；以后可继续添加睡眠、恢复、护肤等自定义分区。
 const defaultFitnessConfig={
-  version:1,
+  version:2,
   updatedAt:"",
+  sections:[
+    {id:"training",name:"训练",short:"TRAINING",icon:"动",accent:"green",locked:true,enabled:true},
+    {id:"nutrition",name:"饮食",short:"NUTRITION",icon:"食",accent:"amber",locked:true,enabled:true}
+  ],
   days:{
     "1":{training:["示例：全身基础训练 30 分钟"],nutrition:["示例：准备均衡三餐","示例：完成饮水检查"]},
     "2":{training:["示例：轻有氧与活动度 30 分钟"],nutrition:["示例：每餐加入蔬菜"]},
