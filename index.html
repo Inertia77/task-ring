@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>TASK RING｜任务指挥中心</title>
-<meta name="description" content="TASK RING — 个人任务环：今日执行环、周计划池、生活改善、游戏作战区、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
+<meta name="description" content="TASK RING — 个人任务环：每日、周计划、生活改善、游戏、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
 <meta name="application-name" content="TaskRing"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -16,12 +16,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.png"/>
 <meta name="theme-color" content="#f4f1e9"/>
 <meta property="og:title" content="TASK RING｜任务指挥中心"/>
-<meta property="og:description" content="个人任务环：今日执行环 / 周计划池 / 生活改善 / 游戏作战区 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
+<meta property="og:description" content="个人任务环：每日 / 周计划 / 生活改善 / 游戏 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260926.1"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260926.2"/>
 </head>
 <body class="nx locked">
 
@@ -88,8 +88,8 @@
             <span class="controlAreaIcon" aria-hidden="true">✓</span>
             <span class="controlAreaCopy">
               <small>01 / DAILY</small>
-              <b>今日执行环</b>
-              <em>编辑每日、指定日与周计划任务</em>
+              <b>每日</b>
+              <em>管理每天与指定日要执行的任务</em>
             </span>
             <span class="controlAreaAction">编辑任务 <i aria-hidden="true">→</i></span>
           </button>
@@ -98,7 +98,7 @@
             <span class="controlAreaIcon" aria-hidden="true">▦</span>
             <span class="controlAreaCopy">
               <small>02 / WEEK</small>
-              <b>周计划池</b>
+              <b>周计划</b>
               <em>查看本周矩阵、目标与完成分布</em>
             </span>
             <span class="controlAreaAction">打开分区 <i aria-hidden="true">→</i></span>
@@ -118,8 +118,8 @@
             <span class="controlAreaIcon" aria-hidden="true">✦</span>
             <span class="controlAreaCopy">
               <small>04 / GAME</small>
-              <b>游戏作战区</b>
-              <em>配置游戏、日常与周常作战池</em>
+              <b>游戏</b>
+              <em>配置游戏、日常与周期作战内容</em>
             </span>
             <span class="controlAreaAction">编辑任务 <i aria-hidden="true">→</i></span>
           </button>
@@ -203,18 +203,18 @@
   </div>
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
-  <button type="button" class="viewDockBtn active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">今日执行环</span><span class="dockMobileLabel">今日</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划池</span><span class="dockMobileLabel">周计划</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活</span></b></button>
-  <button type="button" class="viewDockBtn" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏作战区</span><span class="dockMobileLabel">游戏</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore active" data-view-target="tasks" aria-current="page"><i class="dockGlyph" aria-hidden="true">✓</i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="weekly" aria-current="false"><i class="dockGlyph" aria-hidden="true">▦</i><span>WEEK</span><b><span class="dockDesktopLabel">周计划</span><span class="dockMobileLabel">周计划</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="fitness" aria-current="false"><i class="dockGlyph" aria-hidden="true">◆</i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="game" aria-current="false"><i class="dockGlyph" aria-hidden="true">✦</i><span>GAME</span><b><span class="dockDesktopLabel">游戏</span><span class="dockMobileLabel">游戏</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" aria-hidden="true">◷</i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" aria-hidden="true">▤</i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
 </nav>
-<section class="taskRingControlPanel taskAreaHeader viewPanel active" data-view-panel="tasks" aria-label="今日执行环筛选与进度">
+<section class="taskRingControlPanel taskAreaHeader viewPanel active" data-view-panel="tasks" aria-label="每日模块筛选与进度">
   <div class="taskRingControlHead taskAreaHeaderCopy">
     <div>
       <span class="taskAreaEyebrow">TR / DAILY COMMAND</span>
-      <strong class="taskAreaTitle">今日执行</strong>
+      <strong class="taskAreaTitle">每日</strong>
       <div class="taskRingModeText taskAreaDescription" id="modeText">只看今日未完成模式</div>
     </div>
   </div>
@@ -225,10 +225,10 @@
     <button id="resetCurrentWeek" type="button" class="softDangerBtn" title="清空本周全部勾选状态，需要再次确认">重置本周</button>
   </div>
   <div class="dailyStatusHost" id="dayTabs"></div>
-  <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计今日执行环，不影响周计划池 / 游戏作战区</span></div><div class="progress"><div id="bar"></div></div></div>
+  <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计「每日」里的今日任务，不影响周计划 / 游戏</span></div><div class="progress"><div id="bar"></div></div></div>
 </section>
 <section class="orbitPanel viewPanel active" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
-<section class="weeklyPlanPanel viewPanel" id="weeklyPlanPanel" data-view-panel="weekly" aria-label="周计划池"></section>
+<section class="weeklyPlanPanel viewPanel" id="weeklyPlanPanel" data-view-panel="weekly" aria-label="周计划"></section>
 <section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
 <section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
 <details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
@@ -398,7 +398,7 @@
 </div>
 
 <script src="assets/js/data/default-data.js?v=20260926.1"></script>
-<script src="assets/js/app.js?v=20260926.1"></script>
+<script src="assets/js/app.js?v=20260926.2"></script>
 <script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
 <script src="assets/js/data-integrity.js?v=20260923.2"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
