@@ -349,20 +349,73 @@ function normalizeFitnessItemList(value,kind="training"){
     return {id,title,note,url,enabled:obj?.enabled!==false};
   }).filter(item=>item&&item.enabled!==false).slice(0,30);
 }
+const FITNESS_SECTION_DEFAULTS=[
+  {id:"training",name:"训练",short:"TRAINING",icon:"动",accent:"green",locked:true,enabled:true},
+  {id:"nutrition",name:"饮食",short:"NUTRITION",icon:"食",accent:"amber",locked:true,enabled:true}
+];
+const FITNESS_SECTION_ACCENTS=new Set(["green","amber","blue","violet","rose","cyan","slate"]);
+function normalizeFitnessSectionId(value,fallback="life"){
+  const raw=String(value||"").trim().toLowerCase();
+  const cleaned=raw.replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40);
+  return cleaned||slugifyId(raw||fallback,fallback);
+}
+function normalizeFitnessSections(value,rawDays={}){
+  const source=Array.isArray(value)&&value.length?value:FITNESS_SECTION_DEFAULTS;
+  const used=new Set();
+  const sections=[];
+  const pushSection=(raw,idx=sections.length)=>{
+    if(!raw||typeof raw!=="object")return;
+    const baseName=String(raw.name||raw.title||raw.short||`改善分区 ${idx+1}`).trim()||`改善分区 ${idx+1}`;
+    let id=normalizeFitnessSectionId(raw.id||baseName,`life-${idx+1}`);
+    if(used.has(id)){let base=id,n=2;while(used.has(`${base}-${n}`))n++;id=`${base}-${n}`}
+    used.add(id);
+    const accent=FITNESS_SECTION_ACCENTS.has(String(raw.accent||"").trim())?String(raw.accent).trim():["green","amber","blue","violet","rose","cyan","slate"][idx%7];
+    const defaultMeta=FITNESS_SECTION_DEFAULTS.find(x=>x.id===id);
+    sections.push({
+      id,
+      name:baseName,
+      short:String(raw.short||defaultMeta?.short||baseName).trim().slice(0,18)||baseName,
+      icon:String(raw.icon||defaultMeta?.icon||baseName.slice(0,1)||"＋").trim().slice(0,4)||"＋",
+      accent,
+      locked:defaultMeta?true:raw.locked===true,
+      enabled:raw.enabled!==false
+    });
+  };
+  source.forEach(pushSection);
+  FITNESS_SECTION_DEFAULTS.forEach((def,idx)=>{
+    if(!sections.some(s=>s.id===def.id))sections.splice(Math.min(idx,sections.length),0,{...def});
+  });
+  const known=new Set(sections.map(s=>s.id));
+  Object.values(rawDays&&typeof rawDays==="object"?rawDays:{}).forEach(day=>{
+    if(!day||typeof day!=="object"||Array.isArray(day))return;
+    Object.keys(day).forEach(key=>{
+      if(known.has(key))return;
+      const id=normalizeFitnessSectionId(key,"life");
+      if(known.has(id))return;
+      known.add(id);
+      pushSection({id,name:key,short:String(key).toUpperCase(),icon:String(key).slice(0,1),accent:"blue",enabled:true});
+    });
+  });
+  return sections.slice(0,12);
+}
 function normalizeFitnessConfig(config){
-  const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:1,days:{}});
+  const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:2,sections:FITNESS_SECTION_DEFAULTS,days:{}});
   const src=config&&typeof config==="object"&&!Array.isArray(config)?config:fallback;
+  const sourceDays=src.days&&typeof src.days==="object"&&!Array.isArray(src.days)?src.days:{};
+  const fallbackDays=fallback.days&&typeof fallback.days==="object"?fallback.days:{};
+  const sections=normalizeFitnessSections(src.sections||fallback.sections||FITNESS_SECTION_DEFAULTS,sourceDays);
   const days={};
   [1,2,3,4,5,6,0].forEach(day=>{
     const key=String(day);
-    const hasDay=!!src.days&&Object.prototype.hasOwnProperty.call(src.days,key);
-    const raw=hasDay&&src.days[key]&&typeof src.days[key]==="object"?src.days[key]:hasDay?{}:(fallback.days?.[key]||{});
-    days[key]={
-      training:normalizeFitnessItemList(raw.training,"training"),
-      nutrition:normalizeFitnessItemList(raw.nutrition,"nutrition")
-    };
+    const hasDay=Object.prototype.hasOwnProperty.call(sourceDays,key);
+    const raw=hasDay&&sourceDays[key]&&typeof sourceDays[key]==="object"&&!Array.isArray(sourceDays[key])?sourceDays[key]:hasDay?{}:(fallbackDays[key]||{});
+    const dayOut={};
+    sections.forEach(section=>{
+      dayOut[section.id]=normalizeFitnessItemList(raw?.[section.id],section.id);
+    });
+    days[key]=dayOut;
   });
-  return {version:1,updatedAt:String(src.updatedAt||""),days};
+  return {version:2,updatedAt:String(src.updatedAt||""),sections,days};
 }
 
 function buildDefaultConfig(){
