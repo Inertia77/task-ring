@@ -170,24 +170,46 @@
     const el=document.getElementById("fitnessEditorLog");
     if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${message}\n`+el.textContent.slice(0,2500);
   }
-  function fitnessEditorItemRowHtml(item={},kind="training"){
-    const id=String(item.id||`fitness-${kind}-${Date.now().toString(36)}-${++editorItemCounter}`);
-    const kindName=kind==="training"?"训练":"饮食";
-    return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${kind}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${kindName}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${kindName}项目">删除</button><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="动作要求、份量、阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
+  function fitnessAccentOptions(selected="blue"){
+    const options=[["green","绿"],["amber","金"],["blue","蓝"],["violet","紫"],["rose","粉"],["cyan","青"],["slate","灰"]];
+    return options.map(([value,label])=>`<option value="${value}" ${selected===value?"selected":""}>${label}</option>`).join("");
   }
-  function fitnessEditorGroupHtml(kind,title,items){
-    const kindName=kind==="training"?"TRAINING":"NUTRITION";
-    return `<section class="fitnessEditorGroup" data-fitness-editor-group="${kind}"><header><div><span>${kindName}</span><b>${title}</b></div><button type="button" data-fitness-add-item="${kind}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${kind}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,kind)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
+  function lifeSectionMetaRowHtml(section,idx,total){
+    const locked=section.locked===true;
+    return `<div class="lifeSectionMetaRow" data-life-section-row data-life-section-id="${escapeHtml(section.id)}">
+      <span class="lifeSectionMetaIcon" aria-hidden="true">${escapeHtml(section.icon||"＋")}</span>
+      <label><span>分区名称</span><input class="lifeSectionName" value="${escapeHtml(section.name||"")}" placeholder="例如：睡眠"></label>
+      <label><span>英文短标</span><input class="lifeSectionShort" value="${escapeHtml(section.short||"")}" maxlength="18" placeholder="SLEEP"></label>
+      <label><span>图标</span><input class="lifeSectionIcon" value="${escapeHtml(section.icon||"")}" maxlength="4" placeholder="眠"></label>
+      <label><span>强调色</span><select class="lifeSectionAccent">${fitnessAccentOptions(section.accent)}</select></label>
+      <div class="lifeSectionMetaOps">
+        <button type="button" data-life-section-move="up" data-life-section-id="${escapeHtml(section.id)}" ${idx<=0?"disabled":""} aria-label="上移">↑</button>
+        <button type="button" data-life-section-move="down" data-life-section-id="${escapeHtml(section.id)}" ${idx>=total-1?"disabled":""} aria-label="下移">↓</button>
+        ${locked?`<span class="lifeSectionLocked">基础</span>`:`<button type="button" class="danger" data-life-section-delete="${escapeHtml(section.id)}">删除</button>`}
+      </div>
+    </div>`;
+  }
+  function fitnessEditorItemRowHtml(item={},section){
+    const kind=section.id;
+    const id=String(item.id||`fitness-${kind}-${Date.now().toString(36)}-${++editorItemCounter}`);
+    return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${escapeHtml(kind)}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${escapeHtml(section.name)}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${escapeHtml(section.name)}项目">删除</button><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="具体要求、份量、步骤或阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
+  }
+  function fitnessEditorGroupHtml(section,items){
+    return `<section class="fitnessEditorGroup lifeEditorGroup" data-fitness-editor-group="${escapeHtml(section.id)}" data-life-accent="${escapeHtml(section.accent||"blue")}"><header><div class="lifeEditorGroupTitle"><span class="lifeEditorGroupIcon">${escapeHtml(section.icon||"＋")}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><button type="button" data-fitness-add-item="${escapeHtml(section.id)}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${escapeHtml(section.id)}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,section)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
   }
   function updateFitnessEditorDayCount(card){
     if(!card)return;
-    const training=card.querySelectorAll('[data-fitness-editor-item="training"]').length;
-    const nutrition=card.querySelectorAll('[data-fitness-editor-item="nutrition"]').length;
+    const parts=[...card.querySelectorAll("[data-fitness-editor-group]")].map(group=>{
+      const id=group.dataset.fitnessEditorGroup;
+      const section=(draftConfig?.sections||[]).find(s=>s.id===id);
+      const count=group.querySelectorAll(`[data-fitness-editor-item="${safeCssEscape(id)}"]`).length;
+      return count?`${count} ${section?.name||id}`:"";
+    }).filter(Boolean);
     const count=card.querySelector("[data-fitness-editor-day-count]");
-    if(count)count.textContent=`${training} 训练 · ${nutrition} 饮食`;
+    if(count)count.textContent=parts.join(" · ")||"暂无项目";
   }
   function collectFitnessEditorItems(card,kind){
-    const entries=[...card.querySelectorAll(`[data-fitness-editor-item="${kind}"]`)].map(row=>({
+    const entries=[...card.querySelectorAll(`[data-fitness-editor-item="${safeCssEscape(kind)}"]`)].map(row=>({
       id:row.dataset.fitnessItemId||"",
       title:row.querySelector("[data-fitness-item-title]")?.value||"",
       note:row.querySelector("[data-fitness-item-note]")?.value||"",
@@ -200,23 +222,41 @@
     const list=document.getElementById("fitnessEditorList");
     if(!list)return;
     const cfg=normalizeFitnessConfig(draftConfig||fitnessConfig||defaultFitnessConfig);
-    list.innerHTML=`<div class="fitnessEditorGrid">${[1,2,3,4,5,6,0].map(day=>{
-      const data=cfg.days[String(day)]||{training:[],nutrition:[]};
-      return `<details class="fitnessDayEditor ${day===today?"today":""}" data-fitness-editor-day="${day}" ${day===today?"open":""}><summary class="fitnessDayEditorHead"><b>${escapeHtml(dayName(day))}</b><span data-fitness-editor-day-count>${data.training.length} 训练 · ${data.nutrition.length} 饮食</span></summary><div class="fitnessEditorFields">${fitnessEditorGroupHtml("training","训练项目",data.training)}${fitnessEditorGroupHtml("nutrition","饮食项目",data.nutrition)}</div></details>`;
-    }).join("")}</div>`;
-    editorLog("已加载结构化训练饮食计划。名称、备注和链接可分别维护；只有真实链接才会显示打开按钮。");
+    draftConfig=deepClone(cfg);
+    const sections=cfg.sections.filter(section=>section.enabled!==false);
+    const sectionManager=`<section class="lifeSectionManager"><header><div><span>LIFE AREAS</span><b>改善分区管理</b><em>训练和饮食是基础分区；以后可继续添加睡眠、护肤、姿势、恢复、环境等。</em></div><button type="button" data-life-section-add>＋ 新增改善分区</button></header><div class="lifeSectionMetaList">${sections.map((section,idx)=>lifeSectionMetaRowHtml(section,idx,sections.length)).join("")}</div></section>`;
+    const dayEditors=[1,2,3,4,5,6,0].map(day=>{
+      const data=cfg.days[String(day)]||{};
+      const summary=sections.map(section=>{const n=(data[section.id]||[]).length;return n?`${n} ${section.name}`:""}).filter(Boolean).join(" · ")||"暂无项目";
+      return `<details class="fitnessDayEditor ${day===today?"today":""}" data-fitness-editor-day="${day}" ${day===today?"open":""}><summary class="fitnessDayEditorHead"><b>${escapeHtml(dayName(day))}</b><span data-fitness-editor-day-count>${escapeHtml(summary)}</span></summary><div class="fitnessEditorFields lifeEditorFields">${sections.map(section=>fitnessEditorGroupHtml(section,data[section.id]||[])).join("")}</div></details>`;
+    }).join("");
+    list.innerHTML=`${sectionManager}<div class="fitnessEditorGrid">${dayEditors}</div>`;
+    editorLog("已加载生活改善计划。训练与饮食原样保留；可在顶部新增改善分区，再按星期安排具体项目。");
   }
   function collectFitnessEditor(){
     if(!draftConfig)draftConfig=normalizeFitnessConfig(fitnessConfig||defaultFitnessConfig);
+    const previous=new Map((draftConfig.sections||[]).map(section=>[section.id,section]));
+    const sections=[...document.querySelectorAll("[data-life-section-row]")].map((row,idx)=>{
+      const id=row.dataset.lifeSectionId;
+      const old=previous.get(id)||{};
+      return {
+        id,
+        name:row.querySelector(".lifeSectionName")?.value.trim()||old.name||`改善分区 ${idx+1}`,
+        short:row.querySelector(".lifeSectionShort")?.value.trim()||old.short||"LIFE",
+        icon:row.querySelector(".lifeSectionIcon")?.value.trim()||old.icon||"＋",
+        accent:row.querySelector(".lifeSectionAccent")?.value||old.accent||"blue",
+        locked:old.locked===true,
+        enabled:true
+      };
+    });
     const days={};
     document.querySelectorAll("[data-fitness-editor-day]").forEach(card=>{
       const day=String(Number(card.dataset.fitnessEditorDay));
-      days[day]={
-        training:collectFitnessEditorItems(card,"training"),
-        nutrition:collectFitnessEditorItems(card,"nutrition")
-      };
+      const dayData={};
+      sections.forEach(section=>{dayData[section.id]=collectFitnessEditorItems(card,section.id)});
+      days[day]=dayData;
     });
-    draftConfig=normalizeFitnessConfig({...draftConfig,days,updatedAt:new Date().toISOString()});
+    draftConfig=normalizeFitnessConfig({...draftConfig,sections,days,updatedAt:new Date().toISOString()});
     return draftConfig;
   }
   function openFitnessEditor(){
