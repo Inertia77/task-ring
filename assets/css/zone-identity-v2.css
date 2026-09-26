@@ -95,7 +95,7 @@
     repeating-linear-gradient(90deg, transparent 0 39px, rgba(72, 82, 164, .028) 39px 40px);
 }
 
-/* BODY // bio telemetry --------------------------------------------------- */
+/* LIFE // improvement telemetry ------------------------------------------- */
 .fitnessPanel {
   border-color: color-mix(in srgb, var(--identity-body) 28%, var(--color-line));
   box-shadow: 0 10px 30px rgba(37, 104, 79, .055);
@@ -116,7 +116,7 @@
     color-mix(in srgb, var(--zone-fitness) 68%, white);
 }
 .fitnessLaneHead::after {
-  content: "BIO TELEMETRY";
+  content: "LIFE UPGRADE";
   position: absolute;
   right: 12px;
   bottom: 4px;
