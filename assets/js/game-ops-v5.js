@@ -328,7 +328,9 @@
     return String(task&&task._instanceKey||task&&task.reset_key||"current");
   }
   function taskKey(board,gid,task){
-    return GH_PREFIX+"gqv5_"+board+"_"+resetScope(board,task)+"_"+gid+"_"+task.id;
+    // Daily/weekly keep the v4 namespace so upgrading to v5 does not wipe today's/week's checks.
+    const ns=(board==="daily"||board==="weekly")?"gqv4_":"gqv5_";
+    return GH_PREFIX+ns+board+"_"+resetScope(board,task)+"_"+gid+"_"+task.id;
   }
   function taskDone(board,gid,task){return localStorage.getItem(taskKey(board,gid,task))==="1"}
   function setTaskDone(board,gid,task,val,el){
