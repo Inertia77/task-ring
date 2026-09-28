@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20260928-5";
+const CACHE_NAME = "taskring-shell-20260928-6";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -32,10 +32,9 @@ const APP_SHELL = [
   "./assets/css/userfriend-polish.css",
   "./assets/css/library-density-polish.css",
   "./assets/css/game-note-density.css",
-  "./assets/css/game-ops-v5.css",
+  "./assets/css/game-ops-v6.css",
   "./assets/css/daily-density.css",
   "./assets/css/lane-density.css",
-  "./assets/data/game-ops-manifest.json",
   "./assets/js/data/default-data.js",
   "./assets/js/app.js",
   "./assets/js/data/integrity-core.js",
@@ -46,7 +45,7 @@ const APP_SHELL = [
   "./assets/js/views/fitness-view.js",
   "./assets/js/views/product-ui.js",
   "./assets/js/game-disclosure.js",
-  "./assets/js/game-ops-v5.js",
+  "./assets/js/game-ops-v6.js",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
   "./assets/js/pwa.js"
