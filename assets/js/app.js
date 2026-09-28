@@ -259,6 +259,15 @@ function gameQuestTaskStoreList(value,context="scheduled"){
 function normalizeGameQuestConfig(config){
   const fallback=deepClone(typeof defaultGameQuestConfig!=="undefined"?defaultGameQuestConfig:{version:1,games:[],schedule:{},weekly:{}});
   const src=config&&typeof config==="object"?config:fallback;
+  // GameQuest v4 is normalized by game-ops-v4.js after core boot. Preserve the four-board
+  // payload here instead of destructively downgrading it to the legacy schedule/weekly shape.
+  if(src&&Number(src.version)>=4&&src.boards&&typeof src.boards==="object"&&!Array.isArray(src.boards)){
+    const expected=["daily","weekly","cycle","version"];
+    const hasBoards=expected.every(key=>src.boards[key]&&typeof src.boards[key]==="object"&&!Array.isArray(src.boards[key]));
+    if(hasBoards&&Array.isArray(src.games)){
+      return deepClone(src);
+    }
+  }
   const used=new Set();
   const games=(Array.isArray(src.games)?src.games:fallback.games||[]).map((g,idx)=>{
     const name=String(g.name||g.short||`游戏 ${idx+1}`).trim()||`游戏 ${idx+1}`;
@@ -3389,23 +3398,31 @@ function exportGameQuestConfig(){
 function gameQuestEditorImportConfig(value){
   const imported=value&&typeof value==="object"&&!Array.isArray(value)&&Object.prototype.hasOwnProperty.call(value,"gameQuest")?value.gameQuest:value;
   const isRecord=v=>!!v&&typeof v==="object"&&!Array.isArray(v);
-  if(!isRecord(imported)||!Array.isArray(imported.games)||!isRecord(imported.schedule)||!isRecord(imported.weekly)){
-    throw new Error("游戏 JSON 必须包含 games 数组以及 schedule、weekly 对象");
+  if(!isRecord(imported))throw new Error("游戏 JSON 顶层必须是对象");
+  if(!Array.isArray(imported.games))throw new Error("游戏 JSON 缺少 games 数组");
+  const hasV4Boards=isRecord(imported.boards)&&["daily","weekly","cycle","version"].every(key=>isRecord(imported.boards[key]));
+  const hasLegacy=isRecord(imported.schedule)||isRecord(imported.weekly)||isRecord(imported.interest);
+  if(!hasV4Boards&&!hasLegacy){
+    throw new Error("游戏 JSON 必须包含 v4 boards.daily/weekly/cycle/version，或可迁移的旧版 schedule/weekly/interest");
   }
-  // 兼容旧版完整 taskring-config.json，但只读取其中的 gameQuest 分区。
+  // v4 的规范化器在后加载模块里注册；旧版仍走核心兼容迁移。
+  if(hasV4Boards&&window.TaskRingGameOpsV4&&typeof window.TaskRingGameOpsV4.normalizeConfig==="function"){
+    return window.TaskRingGameOpsV4.normalizeConfig(imported);
+  }
   return normalizeGameQuestConfig(imported);
 }
 function importGameQuestConfig(){
-  const raw=prompt("粘贴游戏 JSON：支持独立 gameQuest JSON 或旧版完整 taskring-config.json；只会导入游戏配置。");
+  const raw=prompt("粘贴游戏 JSON：支持 GameQuest v4（boards: 日常/周常/周期/版本）、旧版 gameQuest JSON 或完整 taskring-config.json；只会导入游戏配置。");
   if(!raw)return;
   try{
     gameQuestDraftConfig=gameQuestEditorImportConfig(JSON.parse(raw));
-    gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
+    if(!gameQuestDraftConfig?.boards)gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
     renderGameQuestEditor();
     gameQuestEditorLog("已导入游戏配置，保存后生效。");
   }catch(err){
-    gameQuestEditorLog("导入失败："+String(err.message||err));
-    showToast("游戏配置 JSON 不合法","err");
+    const detail=String(err&&err.message||err||"未知错误");
+    gameQuestEditorLog("导入失败："+detail);
+    showToast("游戏配置导入失败："+detail,"err",4200);
   }
 }
 function initGameQuestUI(){

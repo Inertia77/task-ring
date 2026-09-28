@@ -173,54 +173,35 @@ const defaultRefGroups=[
 ];
 
 const defaultGameQuestConfig={
-  version:1,
+  version:4,
   updatedAt:"",
+  priorityOrder:["demo-game-a","demo-game-b","demo-game-c"],
   games:[
-    {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true},
-    {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true},
-    {id:"demo-game-c",name:"示例游戏 C",short:"游戏 C",icon:"C",accent:"violet",enabled:true}
+    {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true,priority:1},
+    {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true,priority:2},
+    {id:"demo-game-c",name:"示例游戏 C",short:"游戏 C",icon:"C",accent:"violet",enabled:true,priority:3}
   ],
-  schedule:{
-    "1":{
-      "demo-game-a":[{id:"demo-daily-link",title:"每日签到",url:"https://example.com/",plan_mode:"daily"},"体力清理"],
-      "demo-game-b":["每日任务"],
-      "demo-game-c":["资源收集"]
+  boards:{
+    daily:{
+      "demo-game-a":[{id:"demo-daily-a",title:"每日签到",url:"https://example.com/",enabled:true}],
+      "demo-game-b":[{id:"demo-daily-b",title:"每日任务",url:"",enabled:true}],
+      "demo-game-c":[{id:"demo-daily-c",title:"资源收集",url:"",enabled:true}]
     },
-    "2":{
-      "demo-game-a":["每日签到"],
-      "demo-game-b":["每日任务","活动检查"],
-      "demo-game-c":["资源收集"]
+    weekly:{
+      "demo-game-a":[{id:"demo-weekly-a",title:"周常任务",url:"",enabled:true}],
+      "demo-game-b":[],
+      "demo-game-c":[]
     },
-    "3":{
-      "demo-game-a":["体力清理"],
-      "demo-game-b":["每日任务"],
-      "demo-game-c":["资源收集","周中检查"]
+    cycle:{
+      "demo-game-a":[],
+      "demo-game-b":[{id:"demo-cycle-b",title:"周期挑战",url:"",enabled:true,reset_key:"demo-cycle-1"}],
+      "demo-game-c":[]
     },
-    "4":{
-      "demo-game-a":["每日签到"],
-      "demo-game-b":["每日任务"],
-      "demo-game-c":["资源收集"]
-    },
-    "5":{
-      "demo-game-a":["体力清理"],
-      "demo-game-b":["每日任务","活动检查"],
-      "demo-game-c":["资源收集"]
-    },
-    "6":{
-      "demo-game-a":["每日签到","周任务整理"],
-      "demo-game-b":["每日任务"],
-      "demo-game-c":["资源收集"]
-    },
-    "0":{
-      "demo-game-a":["体力清理"],
-      "demo-game-b":["每日任务","周任务整理"],
-      "demo-game-c":["资源收集","下周准备"]
+    version:{
+      "demo-game-a":[],
+      "demo-game-b":[],
+      "demo-game-c":[{id:"demo-version-c",title:"版本任务",url:"",enabled:true,reset_key:"demo-v1"}]
     }
-  },
-  weekly:{
-    "demo-game-a":[{id:"demo-weekly-link",title:"完成一个周挑战",url:"https://example.com/",plan_mode:"weekly"},"检查活动期限"],
-    "demo-game-b":["完成周任务"],
-    "demo-game-c":["整理本周资源"]
   }
 };
 
