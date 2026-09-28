@@ -13,14 +13,14 @@
   const PRIORITY=new Map(PRIORITY_ORDER.map(function(id,i){return [id,i+1]}));
   const LEGACY_CYCLE_TITLES=new Set([
     "式舆防卫战·剧变节点","危局强袭战",
-    "末日幻影","虚构叙事","混沌回忆",
+    "末日幻影","虚构叙事","混沌回忆","异相仲裁",
     "逆境深塔","冥歌海墟","终焉矩阵",
     "轨外之境","大亨计划激励金","战争回响（轮换周期）"
   ]);
   const LEGACY_VERSION_TITLES=new Set([
     "丽都城募","迷宫诡域赛季进度",
     "先约电台",
-    "无名勋礼","异相仲裁",
+    "无名勋礼",
     "协议通行证",
     "影拓丰碑（内容更新时）","蚀像寻遗（内容更新时）"
   ]);
