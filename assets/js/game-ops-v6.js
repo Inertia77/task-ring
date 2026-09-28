@@ -373,8 +373,12 @@
   document.addEventListener("click",function(e){
     const refresh=e.target.closest&&e.target.closest("[data-gqv5-refresh]");
     if(refresh){e.preventDefault();e.stopImmediatePropagation();Promise.resolve(null);return}
-    const tab=e.target.closest&&e.target.closest("[data-gqv5-board]");
-    if(tab){e.preventDefault();e.stopImmediatePropagation();setCurrentBoard(tab.dataset.gqv5Board);return}
+    const tab=e.target.closest&&e.target.closest("[data-gqv6-board],[data-gqv5-board]");
+    if(tab){
+      e.preventDefault();e.stopImmediatePropagation();
+      setCurrentBoard(tab.dataset.gqv6Board||tab.dataset.gqv5Board);
+      return;
+    }
     const taskBtn=e.target.closest&&e.target.closest("[data-gqv5-task]");
     if(taskBtn){
       e.preventDefault();e.stopImmediatePropagation();
