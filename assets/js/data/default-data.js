@@ -173,10 +173,15 @@ const defaultRefGroups=[
 ];
 
 const defaultGameQuestConfig={
-  version:5,
+  version:6,
   updatedAt:"",
   priorityOrder:["demo-game-a","demo-game-b","demo-game-c"],
-  manifest:{url:"assets/data/game-ops-manifest.json",refresh_minutes:60},
+  cycleVersionSheet:{
+    url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=762385468#gid=762385468",
+    spreadsheet:"INERTIA【３】Game＆Create",
+    sheet:"GameVersionContents（V）",
+    gid:"762385468"
+  },
   games:[
     {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true,priority:1},
     {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true,priority:2},
@@ -193,18 +198,10 @@ const defaultGameQuestConfig={
       "demo-game-b":[],
       "demo-game-c":[]
     },
-    cycle:{
-      "demo-game-a":[],
-      "demo-game-b":[{id:"demo-cycle-b",title:"周期挑战",url:"",enabled:true,dynamic:true,rotation:{type:"interval",anchor_date:"2026-01-01",interval_days:14}}],
-      "demo-game-c":[]
-    },
-    version:{
-      "demo-game-a":[],
-      "demo-game-b":[],
-      "demo-game-c":[{id:"demo-version-c",title:"版本任务",url:"",enabled:true,dynamic:true,rotation:{type:"manifest"}}]
-    }
+    cycle:{"demo-game-a":[],"demo-game-b":[],"demo-game-c":[]},
+    version:{"demo-game-a":[],"demo-game-b":[],"demo-game-c":[]}
   }
-};
+}
 
 // 生活改善分区的公开演示配置。训练与饮食作为默认基础分区；以后可继续添加睡眠、恢复、护肤等自定义分区。
 const defaultFitnessConfig={
