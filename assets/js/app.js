@@ -3411,19 +3411,45 @@ function gameQuestEditorImportConfig(value){
   }
   return normalizeGameQuestConfig(imported);
 }
-function importGameQuestConfig(){
-  const raw=prompt("粘贴游戏 JSON：支持 GameQuest v4（boards: 日常/周常/周期/版本）、旧版 gameQuest JSON 或完整 taskring-config.json；只会导入游戏配置。");
-  if(!raw)return;
-  try{
-    gameQuestDraftConfig=gameQuestEditorImportConfig(JSON.parse(raw));
-    if(!gameQuestDraftConfig?.boards)gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
-    renderGameQuestEditor();
-    gameQuestEditorLog("已导入游戏配置，保存后生效。");
-  }catch(err){
-    const detail=String(err&&err.message||err||"未知错误");
-    gameQuestEditorLog("导入失败："+detail);
-    showToast("游戏配置导入失败："+detail,"err",4200);
+async function importGameQuestConfig(){
+  const parseAndLoad=raw=>{
+    if(!String(raw||"").trim())return;
+    try{
+      gameQuestDraftConfig=gameQuestEditorImportConfig(JSON.parse(String(raw).replace(/^\uFEFF/,"")));
+      if(!gameQuestDraftConfig?.boards)gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
+      renderGameQuestEditor();
+      gameQuestEditorLog("已导入游戏配置，保存后生效。");
+      showToast("游戏配置已载入，确认后点保存游戏任务","ok",3200);
+    }catch(err){
+      const detail=String(err&&err.message||err||"未知错误");
+      gameQuestEditorLog("导入失败："+detail);
+      showToast("游戏配置导入失败："+detail,"err",5200);
+      throw err;
+    }
+  };
+  if(typeof document!=="undefined"&&typeof FileReader!=="undefined"){
+    const input=document.createElement("input");
+    input.type="file";
+    input.accept=".json,.txt,application/json,text/plain";
+    input.hidden=true;
+    document.body.appendChild(input);
+    input.addEventListener("change",async()=>{
+      try{
+        const file=input.files&&input.files[0];
+        if(!file)return;
+        const raw=await file.text();
+        parseAndLoad(raw);
+      }catch(err){
+        console.error("game config file import failed",err);
+      }finally{
+        input.remove();
+      }
+    },{once:true});
+    input.click();
+    return;
   }
+  const raw=prompt("粘贴游戏 JSON：支持 GameQuest v4、旧版 gameQuest JSON 或完整 taskring-config.json。");
+  if(raw)parseAndLoad(raw);
 }
 function initGameQuestUI(){
   document.getElementById("gameQuestEditorCloseBtn")?.addEventListener("click",closeGameQuestEditor);

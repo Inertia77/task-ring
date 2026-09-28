@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20260928-2";
+const CACHE_NAME = "taskring-shell-20260928-3";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -52,7 +52,11 @@ const APP_SHELL = [
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", event => {
@@ -79,6 +83,11 @@ self.addEventListener("fetch", event => {
     return;
   }
 
+  if(/\.(?:js|css)$/.test(url.pathname)){
+    event.respondWith(networkFirstAsset(request));
+    return;
+  }
+
   event.respondWith(staleWhileRevalidate(event, request));
 });
 
@@ -90,6 +99,18 @@ async function networkFirstPage(request){
     return response;
   }catch(_){
     return (await cache.match("./index.html")) || Response.error();
+  }
+}
+
+async function networkFirstAsset(request){
+  const cache = await caches.open(CACHE_NAME);
+  const cacheKey = new Request(new URL(request.url).origin + new URL(request.url).pathname);
+  try{
+    const response = await fetch(request, {cache:"no-store"});
+    if(response.ok && response.type === "basic") await cache.put(cacheKey, response.clone());
+    return response;
+  }catch(_){
+    return (await cache.match(cacheKey)) || Response.error();
   }
 }
 
