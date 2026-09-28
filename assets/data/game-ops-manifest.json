@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-28T12:20:00+09:00",
+  "sourcePolicy": "official-first",
+  "games": {
+    "zzz": {
+      "versionInfo": {
+        "id": "3.2",
+        "label": "3.2",
+        "active": true
+      },
+      "instances": {
+        "cycle": {
+          "cycle-shiyu": {
+            "instanceKey": "ZZZ-3.2-SHIYU-CURRENT",
+            "suffix": "3.2当前期",
+            "active": true
+          },
+          "cycle-deadly-assault": {
+            "instanceKey": "ZZZ-3.2-DA-CURRENT",
+            "suffix": "3.2当前期",
+            "active": true
+          }
+        },
+        "version": {
+          "version-city-fund": {
+            "instanceKey": "ZZZ-3.2-CITY-FUND",
+            "suffix": "3.2",
+            "active": true,
+            "activeUntil": "2026-10-19"
+          },
+          "version-bagel": {
+            "instanceKey": "ZZZ-3.2-BAGEL-II",
+            "suffix": "3.2 贝果计划 II",
+            "active": true
+          },
+          "version-events": {
+            "instanceKey": "ZZZ-3.2-EVENTS",
+            "suffix": "3.2",
+            "active": true,
+            "activeUntil": "2026-10-20"
+          }
+        }
+      }
+    },
+    "nte": {
+      "versionInfo": {
+        "id": "1.4",
+        "label": "1.4「祷歌为谁而诵」",
+        "active": true,
+        "activeFrom": "2026-09-24"
+      },
+      "instances": {
+        "cycle": {
+          "cycle-offtrack": {
+            "instanceKey": "NTE-OFFTRACK-20260918",
+            "suffix": "夕照环线",
+            "active": true,
+            "activeFrom": "2026-09-18"
+          }
+        },
+        "version": {
+          "version-pass": {
+            "instanceKey": "NTE-1.4-PASS",
+            "suffix": "1.4",
+            "active": true,
+            "activeUntil": "2026-11-04"
+          },
+          "version-puka-plan": {
+            "instanceKey": "NTE-1.4-PUKA-PLAN",
+            "suffix": "1.4",
+            "active": true
+          },
+          "version-events": {
+            "instanceKey": "NTE-1.4-EVENTS",
+            "suffix": "1.4",
+            "active": true
+          }
+        }
+      }
+    },
+    "wuwa": {
+      "versionInfo": {
+        "id": "3.6",
+        "label": "3.6",
+        "active": true,
+        "activeUntil": "2026-09-29",
+        "next": {
+          "id": "3.7",
+          "label": "3.7",
+          "activeFrom": "2026-09-30"
+        }
+      },
+      "instances": {
+        "cycle": {
+          "cycle-tower": {
+            "instanceKey": "WW-TOA-20260914",
+            "suffix": "第40期",
+            "active": true,
+            "activeFrom": "2026-09-14",
+            "activeUntil": "2026-10-12"
+          },
+          "cycle-sea": {
+            "instanceKey": "WW-SEA-20260928",
+            "suffix": "当前期",
+            "active": true,
+            "activeFrom": "2026-09-28"
+          },
+          "cycle-matrix": {
+            "instanceKey": "WW-MATRIX-CURRENT",
+            "suffix": "当前阶段",
+            "active": true
+          }
+        },
+        "version": {
+          "version-pass": {
+            "instanceKey": "WW-3.6-PASS",
+            "suffix": "3.6",
+            "active": true,
+            "activeUntil": "2026-09-29"
+          },
+          "version-events": {
+            "instanceKey": "WW-3.6-EVENTS",
+            "suffix": "3.6收尾",
+            "active": true,
+            "activeUntil": "2026-09-29"
+          }
+        }
+      }
+    },
+    "hsr": {
+      "versionInfo": {
+        "id": "4.6",
+        "label": "4.6",
+        "active": true,
+        "activeFrom": "2026-09-28"
+      },
+      "instances": {
+        "cycle": {
+          "cycle-apocalyptic": {
+            "instanceKey": "HSR-AS-20260831",
+            "suffix": "仙客天狼",
+            "active": true,
+            "activeUntil": "2026-10-05"
+          },
+          "cycle-fiction": {
+            "instanceKey": "HSR-PF-20260914",
+            "suffix": "立界开篇",
+            "active": true,
+            "activeUntil": "2026-10-19"
+          },
+          "cycle-moc": {
+            "instanceKey": "HSR-MOC-4.6",
+            "suffix": "4.6当前期",
+            "active": true,
+            "activeFrom": "2026-09-28"
+          },
+          "cycle-arbitration": {
+            "instanceKey": "HSR-AA-4.6",
+            "suffix": "4.6当前期",
+            "active": true
+          }
+        },
+        "version": {
+          "version-pass": {
+            "instanceKey": "HSR-4.6-PASS",
+            "suffix": "4.6",
+            "active": true,
+            "activeUntil": "2026-11-09"
+          },
+          "version-events": {
+            "instanceKey": "HSR-4.6-EVENTS",
+            "suffix": "4.6",
+            "active": true
+          }
+        }
+      }
+    },
+    "onmyoji": {
+      "versionInfo": {
+        "id": "2026-10th",
+        "label": "十周年版本",
+        "active": true
+      },
+      "instances": {
+        "cycle": {},
+        "version": {
+          "version-major-event": {
+            "instanceKey": "ONMYOJI-2026-10TH",
+            "title": "十周年版本活动｜拾光永恒",
+            "active": true,
+            "activeUntil": "2026-09-29"
+          },
+          "version-seasonal-event": {
+            "instanceKey": "ONMYOJI-2026-MID-AUTUMN",
+            "title": "月映千灯｜中秋活动",
+            "active": true,
+            "activeUntil": "2026-09-29"
+          }
+        }
+      }
+    },
+    "endfield": {
+      "versionInfo": {
+        "id": "snow-dream",
+        "label": "雪凇幽梦",
+        "active": true,
+        "activeFrom": "2026-09-02"
+      },
+      "instances": {
+        "cycle": {
+          "cycle-war-echo": {
+            "instanceKey": "ENDFIELD-WAR-ECHO-MISVIEW",
+            "suffix": "错视赛季",
+            "active": true,
+            "activeFrom": "2026-09-24"
+          }
+        },
+        "version": {
+          "version-pass": {
+            "instanceKey": "ENDFIELD-SNOW-PASS",
+            "suffix": "雪凇幽梦",
+            "active": true
+          },
+          "version-monument": {
+            "instanceKey": "ENDFIELD-SNOW-MONUMENT",
+            "suffix": "幽影刻形",
+            "active": true,
+            "activeFrom": "2026-10-05",
+            "activeUntil": "2026-10-19"
+          }
+        }
+      }
+    }
+  }
+}
