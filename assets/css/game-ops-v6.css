@@ -486,3 +486,57 @@
   .gqV6EditorSheetLink{grid-template-columns:minmax(0,1fr)}
   .gqV6EditorSheetLink>strong{justify-self:start}
 }
+
+/* Mobile containment: v6 is loaded after responsive.css, so own the final
+   GameQuest command-deck layout here instead of inheriting the old horizontal
+   scroller. Keep all four controls inside the panel on phones/small tablets. */
+@media(max-width:820px){
+  .gameQuestV6,
+  .gqV6Top.gameQuestTopBar,
+  .gqV6Top .gameQuestHeroSide{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  .gqV6Top .gameQuestHeroSide{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    overflow:visible;
+    padding-bottom:0;
+  }
+  .gqV6Top .gameQuestHeroSide > *{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    flex:initial;
+  }
+  .gqV6Top .gameQuestTopMeter,
+  .gqV6Top .gameQuestTopTimer,
+  .gqV6Top .gameQuestTopManual,
+  .gqV6Top .gameQuestEditQuick{
+    flex-basis:auto;
+  }
+}
+@media(max-width:420px){
+  .gqV6Top .gameQuestHeroSide{
+    gap:5px;
+  }
+  .gqV6Top .gameQuestTopMeter,
+  .gqV6Top .gameQuestTopTimer,
+  .gqV6Top .gameQuestTopManual,
+  .gqV6Top .gameQuestEditQuick{
+    min-height:54px;
+    padding:6px;
+  }
+  .gqV6Top .gameCommandIcon{
+    width:26px;
+    height:26px;
+  }
+  .gqV6Top .gameCommandCopy b{
+    font-size:11px;
+  }
+  .gqV6Top .gameCommandCopy em{
+    font-size:8px;
+  }
+}
