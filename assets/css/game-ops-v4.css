@@ -1,0 +1,249 @@
+
+/* GameQuest v4 — 日常 / 周常 / 周期 / 版本 */
+.gameQuestV4{display:grid;gap:10px}
+.gqV4Top.gameQuestTopBar{grid-template-columns:minmax(300px,.8fr) minmax(520px,1.2fr)}
+.gqV4Top .gameQuestHeroSide{grid-template-columns:minmax(140px,.9fr) minmax(140px,.9fr) repeat(2,minmax(112px,.8fr))}
+.gqV4BoardTabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+  padding:6px;
+  border:1px solid var(--color-line);
+  border-radius:12px;
+  background:var(--color-panel);
+}
+.gqV4BoardTab{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;
+  gap:1px 8px;
+  align-items:center;
+  min-height:52px;
+  padding:8px 10px;
+  border:1px solid transparent;
+  border-radius:9px;
+  background:var(--color-panel-soft);
+  color:var(--color-ink);
+  text-align:left;
+}
+.gqV4BoardTab span{font-size:14px;font-weight:900}
+.gqV4BoardTab b{grid-row:1/3;grid-column:2;font-size:13px;font-variant-numeric:tabular-nums}
+.gqV4BoardTab em{color:var(--color-muted);font-size:8px;font-style:normal;font-weight:900;letter-spacing:.12em}
+.gqV4BoardTab.active{border-color:var(--color-ink);background:var(--color-ink);color:#fff}
+.gqV4BoardTab.active em{color:var(--color-primary)}
+.gqV4BoardIntro{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:10px 12px;
+  border:1px solid var(--color-line);
+  border-left:5px solid var(--gqv4-accent,#64748b);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--gqv4-accent,#64748b) 7%,white);
+}
+.gqV4BoardIntro.daily{--gqv4-accent:#258b68}
+.gqV4BoardIntro.weekly{--gqv4-accent:#4f78a8}
+.gqV4BoardIntro.cycle{--gqv4-accent:#7459a6}
+.gqV4BoardIntro.version{--gqv4-accent:#b27625}
+.gqV4BoardIntro>div{display:grid;gap:1px;min-width:0}
+.gqV4BoardIntro span{color:var(--gqv4-accent);font-size:9px;font-weight:950;letter-spacing:.14em}
+.gqV4BoardIntro b{font-size:16px}
+.gqV4BoardIntro em{color:var(--color-muted);font-size:11px;font-style:normal}
+.gqV4BoardIntro>strong{font-size:18px;font-variant-numeric:tabular-nums}
+.gqV4Grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+}
+.gqV4GameCard{position:relative}
+.gqV4GameCard .gameQuestCardTop{
+  grid-template-columns:44px 32px 42px minmax(0,1fr) auto;
+}
+.gqV4Priority{
+  display:grid;
+  place-items:center;
+  min-width:28px;
+  height:26px;
+  padding:0 5px;
+  border:1px solid var(--color-line-strong);
+  border-radius:7px;
+  background:var(--color-panel-soft);
+  color:var(--color-muted);
+  font-size:9px;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.08em;
+}
+.gqV4TaskList .gameQuestMiniCheckBtn{
+  grid-template-columns:26px 20px minmax(0,1fr) auto;
+}
+.gqV4ResetTag{
+  justify-self:end;
+  max-width:120px;
+  overflow:hidden;
+  padding:3px 6px;
+  border:1px solid var(--color-line);
+  border-radius:999px;
+  background:var(--color-panel-soft);
+  color:var(--color-muted);
+  font-size:9px;
+  font-style:normal;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.gqV4EmptyTask{
+  padding:18px 10px;
+  color:var(--color-muted);
+  text-align:center;
+  font-size:11px;
+}
+
+/* editor */
+.gqV4PriorityRule{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px 12px;
+  margin-bottom:10px;
+  padding:10px 12px;
+  border:1px solid var(--color-line);
+  border-left:5px solid var(--color-primary);
+  border-radius:10px;
+  background:var(--color-panel-soft);
+}
+.gqV4PriorityRule span{color:var(--color-warning);font-size:9px;font-weight:950;letter-spacing:.14em}
+.gqV4PriorityRule b{font-size:14px}
+.gqV4PriorityRule em{color:var(--color-muted);font-size:11px;font-style:normal}
+.gqV4EditorBoard>summary em{
+  color:var(--color-muted);
+  font-size:9px;
+  font-style:normal;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.gqV4EditorGames{display:grid;gap:8px;padding:8px}
+.gqV4EditorGame{
+  overflow:hidden;
+  border:1px solid var(--color-line);
+  border-left:4px solid var(--color-line-strong);
+  border-radius:10px;
+  background:var(--color-panel);
+}
+.gqV4EditorGame>header{
+  display:grid;
+  grid-template-columns:30px 38px minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  min-height:52px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--color-line);
+  background:var(--color-panel-soft);
+}
+.gqV4EditorGame>header .gameQuestIcon{width:34px;height:34px}
+.gqV4EditorGame>header>div{display:grid;min-width:0}
+.gqV4EditorGame>header b{font-size:13px}
+.gqV4EditorGame>header em{color:var(--color-muted);font-size:10px;font-style:normal}
+.gqV4EditorGame>header button{
+  min-height:34px;
+  padding:5px 9px;
+  border:1px dashed var(--color-line-strong);
+  border-radius:7px;
+  background:var(--color-primary);
+  font-size:11px;
+  font-weight:900;
+}
+.gqV4EditorRows{display:grid;gap:7px;padding:8px}
+.gqV4EditorTask{
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) minmax(160px,1fr) minmax(130px,.7fr) auto;
+  gap:7px;
+  align-items:end;
+  padding:8px;
+  border:1px solid var(--color-line);
+  border-radius:8px;
+  background:var(--color-panel-soft);
+}
+.gqV4EditorTask label>span{
+  display:block;
+  margin-bottom:4px;
+  color:var(--color-muted);
+  font-size:9px;
+  font-weight:800;
+}
+.gqV4EditorTask input,.gqV4EditorTask textarea{
+  width:100%;
+  min-width:0;
+  padding:7px 8px;
+  border:1px solid var(--color-line);
+  border-radius:7px;
+  background:#fff;
+  color:var(--color-ink);
+  font:inherit;
+  font-size:11px;
+}
+.gqV4EditorTask input{min-height:36px}
+.gqV4EditorTask textarea{min-height:54px;resize:vertical}
+.gqV4EditorNote{grid-column:1/-2}
+.gqV4EditorOps{
+  grid-column:-2/-1;
+  display:grid;
+  grid-template-columns:repeat(3,36px);
+  gap:4px;
+  align-self:end;
+}
+.gqV4EditorOps button{
+  min-width:36px;
+  min-height:36px;
+  border:1px solid var(--color-line);
+  border-radius:7px;
+  background:var(--color-panel);
+  font-size:11px;
+  font-weight:900;
+}
+.gqV4EditorOps button.danger{
+  color:var(--color-danger);
+  background:var(--color-danger-soft);
+  border-color:color-mix(in srgb,var(--color-danger) 30%,var(--color-line));
+}
+.gqV4EditorOps button:disabled{opacity:.35}
+
+@media(max-width:1100px){
+  .gqV4Top.gameQuestTopBar{grid-template-columns:minmax(0,1fr)}
+  .gqV4Grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:700px){
+  .gqV4BoardTabs{
+    display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding:5px;
+  }
+  .gqV4BoardTabs::-webkit-scrollbar{display:none}
+  .gqV4BoardTab{flex:0 0 112px;min-height:48px;padding:6px 8px}
+  .gqV4BoardIntro{padding:8px 9px}
+  .gqV4BoardIntro em{font-size:10px}
+  .gqV4GameCard .gameQuestCardTop{
+    grid-template-columns:40px 28px 36px minmax(0,1fr) auto;
+    gap:6px;
+  }
+  .gqV4TaskList .gameQuestMiniCheckBtn{
+    grid-template-columns:24px 20px minmax(0,1fr);
+  }
+  .gqV4TaskList .gqV4ResetTag{
+    grid-column:3;
+    justify-self:start;
+  }
+  .gqV4EditorGame>header{
+    grid-template-columns:28px 34px minmax(0,1fr);
+  }
+  .gqV4EditorGame>header>button{
+    grid-column:1/-1;
+    width:100%;
+  }
+  .gqV4EditorTask{
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+  .gqV4EditorTask label{grid-column:1}
+  .gqV4EditorNote{grid-column:1}
+  .gqV4EditorOps{grid-column:2;grid-row:1/5;align-content:start}
+}
