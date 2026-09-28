@@ -66,8 +66,14 @@
   }
   function legacyBucket(task,source){
     const title=cleanTitle(task&&task.title||task);
-    if(LEGACY_VERSION_TITLES.has(title))return "version";
-    if(LEGACY_CYCLE_TITLES.has(title))return "cycle";
+    if(
+      LEGACY_VERSION_TITLES.has(title)||
+      /(?:版本|通行证|城募|赏令|勋礼|先约电台|赛季进度|版本启动|版本收尾|版本活动|限时活动|十周年|中秋活动|拾光永恒|月映千灯|贝果计划|噗卡计划)/.test(title)
+    )return "version";
+    if(
+      LEGACY_CYCLE_TITLES.has(title)||
+      /(?:剧变节点|危局强袭战|逆境深塔|冥歌海墟|终焉矩阵|末日幻影|虚构叙事|混沌回忆|异相仲裁|战争回响|轮换周期)/.test(title)
+    )return "cycle";
     if(LEGACY_DAILY_TITLES.has(title))return "daily";
     return source==="daily"?"daily":"weekly";
   }
