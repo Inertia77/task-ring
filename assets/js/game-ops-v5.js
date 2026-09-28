@@ -286,8 +286,16 @@
   function resolveTask(board,gid,task){
     if(board!=="cycle"&&board!=="version")return taskIsActive(task)?task:null;
     const base={...task};
-    let instance=task.dynamic===false?null:manifestInstance(board,gid,task);
-    if(!instance&&board==="cycle")instance=intervalFallback(task);
+    const manifest=task.dynamic===false?null:manifestInstance(board,gid,task);
+    const interval=board==="cycle"?intervalFallback(task):null;
+    let instance=manifest;
+    // Fixed-interval rules own the reset key/date window even if the manifest is late.
+    // Manifest data may still supply the human-readable route name and notes.
+    if(interval&&interval.active!==false){
+      instance={...interval,...(manifest||{}),instanceKey:interval.instanceKey,activeFrom:interval.activeFrom,activeUntil:interval.activeUntil};
+    }else if(interval&&interval.active===false&&!manifest){
+      instance=interval;
+    }
     if(!instance&&board==="version"){
       const vi=manifestGame(gid).versionInfo;
       if(record(vi))instance={instanceKey:String(vi.id||vi.label||"current"),suffix:String(vi.label||vi.id||""),active:vi.active!==false,activeFrom:vi.activeFrom,activeUntil:vi.activeUntil};
