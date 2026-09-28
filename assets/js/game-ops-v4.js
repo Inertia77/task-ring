@@ -13,12 +13,16 @@
   const PRIORITY=new Map(PRIORITY_ORDER.map(function(id,i){return [id,i+1]}));
   const LEGACY_CYCLE_TITLES=new Set([
     "式舆防卫战·剧变节点","危局强袭战",
-    "末日幻影","虚构叙事","混沌回忆","异相仲裁",
+    "末日幻影","虚构叙事","混沌回忆",
     "逆境深塔","冥歌海墟","终焉矩阵",
-    "轨外之境","战争回响（轮换周期）"
+    "轨外之境","大亨计划激励金","战争回响（轮换周期）"
   ]);
   const LEGACY_VERSION_TITLES=new Set([
-    "迷宫诡域赛季进度","影拓丰碑（内容更新时）","蚀像寻遗（内容更新时）"
+    "丽都城募","迷宫诡域赛季进度",
+    "先约电台",
+    "无名勋礼","异相仲裁",
+    "协议通行证",
+    "影拓丰碑（内容更新时）","蚀像寻遗（内容更新时）"
   ]);
   const LEGACY_DAILY_TITLES=new Set(["环境监测站（每2日）"]);
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v4";
@@ -41,6 +45,10 @@
     if((board==="cycle"||board==="version")&&String(obj.reset_key||obj.period_key||obj.version_key||"").trim()){
       out.reset_key=String(obj.reset_key||obj.period_key||obj.version_key).trim();
     }
+    const from=String(obj.active_from||obj.activeFrom||"").trim();
+    const until=String(obj.active_until||obj.activeUntil||"").trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(from))out.active_from=from;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(until))out.active_until=until;
     return out;
   }
   function normList(value,board){
@@ -166,9 +174,20 @@
   }
   enabledGameQuestGames=function(cfg){return sortedGames(cfg||gameQuestConfig)};
 
-  function boardTasks(board,gid,cfg){
+  function operationalDate(){
+    try{return typeof ymd==="function"?ymd(operationalNow):new Date().toISOString().slice(0,10)}catch(_){return new Date().toISOString().slice(0,10)}
+  }
+  function taskIsActive(task,date=operationalDate()){
+    if(task?.active_from&&date<task.active_from)return false;
+    if(task?.active_until&&date>task.active_until)return false;
+    return true;
+  }
+  function boardTasksAll(board,gid,cfg){
     const source=cfg||gameQuestConfig;
     return normList(source&&source.boards&&source.boards[board]&&source.boards[board][gid]||[],board);
+  }
+  function boardTasks(board,gid,cfg){
+    return boardTasksAll(board,gid,cfg).filter(function(task){return taskIsActive(task)});
   }
   function resetScope(board,task){
     if(board==="daily")return typeof ymd==="function"?ymd(operationalNow):new Date().toISOString().slice(0,10);
@@ -269,10 +288,11 @@
 
   function editorTaskRow(board,gid,t,idx,total){
     const resetField=(board==="cycle"||board==="version")?'<label class="gqV4EditorReset"><span>'+(board==="cycle"?"本期标识":"版本标识")+'</span><input class="gqV4ResetInput" value="'+esc(t.reset_key||"")+'" placeholder="如 2026-09-A / 4.2"></label>':"";
-    return '<div class="gqV4EditorTask" data-gqv4-editor-task data-task-id="'+esc(t.id||"")+'"><label class="gqV4EditorTitle"><span>任务名</span><input class="gqV4TitleInput" value="'+esc(t.title||"")+'" placeholder="任务名称"></label><label class="gqV4EditorUrl"><span>链接（选填）</span><input class="gqV4UrlInput" value="'+esc(t.url||"")+'" placeholder="https://..."></label>'+resetField+'<label class="gqV4EditorNote"><span>备注（选填）</span><textarea class="gqV4NoteInput" rows="2">'+esc(t.note||"")+'</textarea></label><div class="gqV4EditorOps"><button type="button" data-gqv4-move="up" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx<=0?"disabled":"")+'>↑</button><button type="button" data-gqv4-move="down" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx>=total-1?"disabled":"")+'>↓</button><button type="button" class="danger" data-gqv4-delete="1" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'">删除</button></div></div>';
+    const windowField=(board==="cycle"||board==="version")?'<div class="gqV4EditorWindow"><label><span>开始日期（选填）</span><input type="date" class="gqV4ActiveFrom" value="'+esc(t.active_from||"")+'"></label><label><span>结束日期（选填）</span><input type="date" class="gqV4ActiveUntil" value="'+esc(t.active_until||"")+'"></label></div>':"";
+    return '<div class="gqV4EditorTask" data-gqv4-editor-task data-task-id="'+esc(t.id||"")+'"><label class="gqV4EditorTitle"><span>任务名</span><input class="gqV4TitleInput" value="'+esc(t.title||"")+'" placeholder="任务名称"></label><label class="gqV4EditorUrl"><span>链接（选填）</span><input class="gqV4UrlInput" value="'+esc(t.url||"")+'" placeholder="https://..."></label>'+resetField+windowField+'<label class="gqV4EditorNote"><span>备注（选填）</span><textarea class="gqV4NoteInput" rows="2">'+esc(t.note||"")+'</textarea></label><div class="gqV4EditorOps"><button type="button" data-gqv4-move="up" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx<=0?"disabled":"")+'>↑</button><button type="button" data-gqv4-move="down" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx>=total-1?"disabled":"")+'>↓</button><button type="button" class="danger" data-gqv4-delete="1" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'">删除</button></div></div>';
   }
   function editorGameCard(board,g,cfg){
-    const tasks=boardTasks(board,g.id,cfg);
+    const tasks=boardTasksAll(board,g.id,cfg);
     const rows=tasks.length?tasks.map(function(t,i){return editorTaskRow(board,g.id,t,i,tasks.length)}).join(""):'<div class="gqDailyEmpty">暂无任务。该游戏仍保留在本板块中。</div>';
     return '<section class="gqV4EditorGame accent-'+esc(g.accent)+'" data-gqv4-editor-game="'+esc(g.id)+'"><header><span class="gqV4Priority">0'+priorityOf(g,0)+'</span><span class="gameQuestIcon">'+esc(g.icon)+'</span><div><b>'+esc(g.name)+'</b><em>'+tasks.length+' 项</em></div><button type="button" data-gqv4-add="1" data-board="'+board+'" data-game="'+esc(g.id)+'">＋ 任务</button></header><div class="gqV4EditorRows">'+rows+'</div></section>';
   }
@@ -307,6 +327,10 @@
           };
           const reset=row.querySelector(".gqV4ResetInput");
           if(reset&&reset.value.trim())task.reset_key=reset.value.trim();
+          const activeFrom=row.querySelector(".gqV4ActiveFrom");
+          const activeUntil=row.querySelector(".gqV4ActiveUntil");
+          if(activeFrom&&activeFrom.value)task.active_from=activeFrom.value;
+          if(activeUntil&&activeUntil.value)task.active_until=activeUntil.value;
           return task;
         });
         boards[board][gid]=normList(raw,board);
