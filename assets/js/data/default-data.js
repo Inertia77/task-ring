@@ -173,9 +173,10 @@ const defaultRefGroups=[
 ];
 
 const defaultGameQuestConfig={
-  version:4,
+  version:5,
   updatedAt:"",
   priorityOrder:["demo-game-a","demo-game-b","demo-game-c"],
+  manifest:{url:"assets/data/game-ops-manifest.json",refresh_minutes:60},
   games:[
     {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true,priority:1},
     {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true,priority:2},
@@ -194,13 +195,13 @@ const defaultGameQuestConfig={
     },
     cycle:{
       "demo-game-a":[],
-      "demo-game-b":[{id:"demo-cycle-b",title:"周期挑战",url:"",enabled:true,reset_key:"demo-cycle-1"}],
+      "demo-game-b":[{id:"demo-cycle-b",title:"周期挑战",url:"",enabled:true,dynamic:true,rotation:{type:"interval",anchor_date:"2026-01-01",interval_days:14}}],
       "demo-game-c":[]
     },
     version:{
       "demo-game-a":[],
       "demo-game-b":[],
-      "demo-game-c":[{id:"demo-version-c",title:"版本任务",url:"",enabled:true,reset_key:"demo-v1"}]
+      "demo-game-c":[{id:"demo-version-c",title:"版本任务",url:"",enabled:true,dynamic:true,rotation:{type:"manifest"}}]
     }
   }
 };

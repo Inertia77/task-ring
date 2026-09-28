@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-four-board-v4 data-build="20260928.4">
+<html lang="zh-CN" data-gamequest-auto-v5 data-build="20260928.5">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260928.2"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20260928.5"/>
 </head>
 <body class="nx locked">
 
@@ -277,7 +277,7 @@
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle" id="gameQuestEditorTitle">游戏作战区编辑器</div>
-        <div class="taskEditorSub">按日常、周常、周期、版本四个板块维护六个游戏。保存后会合并进 taskring-config.json，和任务配置一起加密同步。</div>
+        <div class="taskEditorSub">日常与周常维护长期模板；周期和版本只维护玩法模板，当前期数、版本号和活动窗口由动态情报自动解析。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -292,7 +292,7 @@
       <button id="gameQuestEditorSectionToggleBtn" class="editorSectionToggleBtn" type="button" aria-expanded="true">全部收起</button>
     </div>
     <div class="taskEditorHint">
-      导入/导出只处理游戏分区，不包含也不会覆盖其他模块。点“导入游戏 JSON”会直接选择 .json / .txt 文件；四个板块固定显示六个游戏，并按 绝区零 → 异环 → 鸣潮 → 崩铁 → 阴阳师 → 终末地 排序；任务暂不区分必做和选做。
+      导入/导出只处理游戏分区，不包含也不会覆盖其他模块。点“导入游戏 JSON”直接选择 .json / .txt 文件。周期/版本无需手工维护期数与日期；TaskRing 会读取动态情报并自动生成当前实例。六游戏固定按 绝区零 → 异环 → 鸣潮 → 崩铁 → 阴阳师 → 终末地 排序。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
@@ -397,8 +397,8 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260928.2"></script>
-<script src="assets/js/app.js?v=20260928.4"></script>
+<script src="assets/js/data/default-data.js?v=20260928.5"></script>
+<script src="assets/js/app.js?v=20260928.5"></script>
 <script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
 <script src="assets/js/data-integrity.js?v=20260923.2"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
@@ -407,7 +407,7 @@
 <script src="assets/js/views/fitness-view.js?v=20260926.1"></script>
 <script src="assets/js/views/product-ui.js?v=20260926.2"></script>
 <script src="assets/js/game-disclosure.js?v=20260921.1"></script>
-  <script src="assets/js/game-ops-v4.js?v=20260928.4"></script>
+  <script src="assets/js/game-ops-v5.js?v=20260928.5"></script>
 <script src="assets/js/pwa.js?v=20260928.1"></script>
 </body>
 </html>

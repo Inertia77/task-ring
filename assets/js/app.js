@@ -3405,7 +3405,10 @@ function gameQuestEditorImportConfig(value){
   if(!hasV4Boards&&!hasLegacy){
     throw new Error("游戏 JSON 必须包含 v4 boards.daily/weekly/cycle/version，或可迁移的旧版 schedule/weekly/interest");
   }
-  // v4 的规范化器在后加载模块里注册；旧版仍走核心兼容迁移。
+  // v5/v4 的规范化器在后加载模块里注册；旧版仍走核心兼容迁移。
+  if(hasV4Boards&&window.TaskRingGameOpsV5&&typeof window.TaskRingGameOpsV5.normalizeConfig==="function"){
+    return window.TaskRingGameOpsV5.normalizeConfig(imported);
+  }
   if(hasV4Boards&&window.TaskRingGameOpsV4&&typeof window.TaskRingGameOpsV4.normalizeConfig==="function"){
     return window.TaskRingGameOpsV4.normalizeConfig(imported);
   }
