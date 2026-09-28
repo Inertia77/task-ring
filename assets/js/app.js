@@ -259,6 +259,15 @@ function gameQuestTaskStoreList(value,context="scheduled"){
 function normalizeGameQuestConfig(config){
   const fallback=deepClone(typeof defaultGameQuestConfig!=="undefined"?defaultGameQuestConfig:{version:1,games:[],schedule:{},weekly:{}});
   const src=config&&typeof config==="object"?config:fallback;
+  // GameQuest v4 is normalized by game-ops-v4.js after core boot. Preserve the four-board
+  // payload here instead of destructively downgrading it to the legacy schedule/weekly shape.
+  if(src&&Number(src.version)>=4&&src.boards&&typeof src.boards==="object"&&!Array.isArray(src.boards)){
+    const expected=["daily","weekly","cycle","version"];
+    const hasBoards=expected.every(key=>src.boards[key]&&typeof src.boards[key]==="object"&&!Array.isArray(src.boards[key]));
+    if(hasBoards&&Array.isArray(src.games)){
+      return deepClone(src);
+    }
+  }
   const used=new Set();
   const games=(Array.isArray(src.games)?src.games:fallback.games||[]).map((g,idx)=>{
     const name=String(g.name||g.short||`游戏 ${idx+1}`).trim()||`游戏 ${idx+1}`;
