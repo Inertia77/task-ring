@@ -152,6 +152,8 @@
     };
   };
 
+  window.TaskRingGameOpsV4.normalizeConfig=function(config){return normalizeGameQuestConfig(config)};
+
   gameQuestTaskStoreList=function(value,context){
     const board=BOARD_ORDER.includes(context)?context:(context==="weekly"?"weekly":"daily");
     return normList(value,board);
