@@ -20,6 +20,7 @@
   const LEGACY_VERSION_TITLES=new Set([
     "迷宫诡域赛季进度","影拓丰碑（内容更新时）","蚀像寻遗（内容更新时）"
   ]);
+  const LEGACY_DAILY_TITLES=new Set(["环境监测站（每2日）"]);
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v4";
 
   window.TaskRingGameOpsV4={version:VERSION,boards:BOARD_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
@@ -59,6 +60,7 @@
     const title=cleanTitle(task&&task.title||task);
     if(LEGACY_VERSION_TITLES.has(title))return "version";
     if(LEGACY_CYCLE_TITLES.has(title))return "cycle";
+    if(LEGACY_DAILY_TITLES.has(title))return "daily";
     return source==="daily"?"daily":"weekly";
   }
   function priorityOf(game,idx){
