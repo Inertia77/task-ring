@@ -19,6 +19,7 @@ const uxCss=read("assets/css/ux-efficiency.css");
 const visualCss=read("assets/css/visual-polish.css");
 const appJs=read("assets/js/app.js");
 const dataIntegrityJs=read("assets/js/data-integrity.js");
+const gameOpsV6Js=read("assets/js/game-ops-v6.js");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -67,6 +68,8 @@ assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cl
 assert(dataIntegrityJs.includes("preferRemote&&cfgResult.config"),"data-integrity layer must support explicit cloud-wins config resolution");
 assert(dataIntegrityJs.includes('pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")'),"manual cloud-wins resolution must back up the replaced local config");
 assert(dataIntegrityJs.includes("recordConfigBaseline(configToUse,gist)"),"manual cloud-wins resolution must reset the shared config baseline");
+assert(gameOpsV6Js.includes('data-gqv6-complete-daily="1"'),"GameQuest daily board must expose the one-tap complete-all action");
+assert(gameOpsV6Js.includes("function completeDailyBoard"),"GameQuest daily complete-all handler is missing");
 
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
