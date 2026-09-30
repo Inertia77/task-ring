@@ -293,7 +293,9 @@
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
     const meter=isHub?'<div class="gameQuestTopMeter gqV6SheetMeter"><span class="gqV6SheetMini">V</span><span class="gameCommandCopy"><small>MASTER</small><b>Sheet</b><em>周期・版本统一入口</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
     const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong>游戏作战区</strong><em>TaskRing 专注日常与周常；周期・版本统一交给 GameVersionContents（V）维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+(gqActive?(active.paused?"Ⅱ":"◷"):"◷")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
-    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>SHEET</span><b>周期・版本</b><em>唯一维护源：GameVersionContents（V）</em></div><strong>外部管理 ↗</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div><strong>'+stats.done+'/'+stats.total+'</strong></div><div class="gameQuestGrid gqV6Grid">'+entries.map(function(e){return gameCard(board,e)}).join("")+'</div>';
+    const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
+    const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong>'+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"已全部完成":"一键完成全部")+'</b></button></div>':'<strong>'+stats.done+'/'+stats.total+'</strong>';
+    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>SHEET</span><b>周期・版本</b><em>唯一维护源：GameVersionContents（V）</em></div><strong>外部管理 ↗</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div><div class="gameQuestGrid gqV6Grid">'+entries.map(function(e){return gameCard(board,e)}).join("")+'</div>';
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+body+'</div>';
   };
 
@@ -305,6 +307,23 @@
       playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+BOARD_META[board].label+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
     }
     renderAll();
+  }
+
+  function completeDailyBoard(el){
+    let changed=0,total=0;
+    entriesFor("daily").forEach(function(entry){
+      entry.tasks.forEach(function(task){
+        total++;
+        if(taskDone("daily",entry.game.id,task))return;
+        syncSetItem(taskKey("daily",entry.game.id,task),true);
+        changed++;
+      });
+    });
+    if(changed&&el&&typeof playCompletionEffect==="function"){
+      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:"今日日常全部完成",eventId:"gqv6-daily-all:"+operationalDate()+":"+Date.now()});
+    }
+    renderAll();
+    return {changed:changed,total:total};
   }
 
   function editorTaskRow(board,gid,t,idx,total){
@@ -377,6 +396,12 @@
     if(tab){
       e.preventDefault();e.stopImmediatePropagation();
       setCurrentBoard(tab.dataset.gqv6Board||tab.dataset.gqv5Board);
+      return;
+    }
+    const completeAll=e.target.closest&&e.target.closest("[data-gqv6-complete-daily]");
+    if(completeAll){
+      e.preventDefault();e.stopImmediatePropagation();
+      completeDailyBoard(completeAll);
       return;
     }
     const taskBtn=e.target.closest&&e.target.closest("[data-gqv5-task]");
