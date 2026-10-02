@@ -149,7 +149,7 @@
 
     const cardCopy={
       controlTaskEditorBtn:["TASKS","任务与周计划","编辑每日任务、指定日和周计划池"],
-      controlFitnessEditorBtn:["BODY","训练与饮食","维护每周训练与饮食安排"],
+      controlFitnessEditorBtn:["LIFE","生活改善","训练、饮食、起居与护理等每日习惯"],
       controlGameQuestEditorBtn:["GAME","游戏作战区","维护游戏、日常与周常任务"],
       controlRefEditorBtn:["LIBRARY","资料库","维护长期入口、链接与备注"]
     };
