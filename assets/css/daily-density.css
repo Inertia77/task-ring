@@ -36,8 +36,9 @@
     padding: 7px 150px 7px 10px;
   }
 
+  /* A single card should not be marooned in the left half of its category. */
   .dailyGroupBody:has(> .dailyCard:only-child) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -65,6 +66,28 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
     padding: 6px;
+  }
+
+  /* The category grid has two tracks, but an odd last category should never
+     be stranded in the left half of the page. In particular, one category
+     with two tasks gets two balanced cards across the full content width. */
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* A one-task trailing group is centered and sized as a readable single
+     dossier, instead of becoming an over-wide strip or half-empty grid. */
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child:has(> .dailyGroupBody > .dailyCard:only-child) {
+    justify-self: center;
+    width: min(100%, 860px);
+  }
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody:has(> .dailyCard:only-child) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
