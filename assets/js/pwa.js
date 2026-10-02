@@ -384,7 +384,7 @@
   // Keep the base UI modules stable and load optional UX refinements after the main renderer has booted.
   if(!document.querySelector('script[data-taskring-ux-efficiency]')){
     const uxScript = document.createElement("script");
-    uxScript.src = "assets/js/ux-efficiency.js?v=20260825.2";
+    uxScript.src = "assets/js/ux-efficiency.js?v=20261002.1";
     uxScript.dataset.taskringUxEfficiency = "1";
     document.body.appendChild(uxScript);
   }
