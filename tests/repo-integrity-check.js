@@ -67,6 +67,9 @@ assert(visualCss.includes("@media (prefers-contrast: more)"),"visual polish must
 assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cloud pull buttons must explicitly request cloud-wins conflict resolution");
 assert(appJs.includes('ghReadOnlyFallback=false'),"Gist sync must track authenticated vs read-only fallback mode");
 assert(appJs.includes('request(false)'),"Gist read must retry anonymously after token auth failure");
+assert(appJs.includes('ghHydrateGistFile(gist,GITHUB_STATE_FILE,{alwaysRaw:true})'),"large Gist state files must be hydrated from raw_url before parsing");
+assert(appJs.includes('taskring-state.json 解析失败'),"state parse errors must include file diagnostics");
+assert(dataIntegrityJs.includes('配置已读取·状态异常'),"a malformed state file must not prevent an accepted cloud config from remaining applied");
 assert(appJs.includes('Token 已失效、被撤销或缺少 Gist 写权限'),"Gist writes must surface actionable token failures");
 assert(dataIntegrityJs.includes('const readOnlyPull=ghReadOnlyFallback===true||!ghToken()'),"manual pull must recognize read-only Gist fallback");
 assert(dataIntegrityJs.includes('stateNeedsPush&&!readOnlyPull'),"read-only pulls must never write merged state back to Gist");
