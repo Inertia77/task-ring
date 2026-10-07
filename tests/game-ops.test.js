@@ -8,7 +8,7 @@ test('opening and urgency use actual instants rather than stale lifecycle',()=>{
   assert.equal(C.state(row('opened',{lifecycle_status:'UPCOMING',open_at:'2026-10-06T07:00:00Z'}),now),'ACTIVE');
   assert.equal(C.state(row('near',{deadline_at:'2026-10-07T12:00:00Z'}),now),'ENDING_SOON');
   assert.equal(C.state(row('claim',{claim_end_at:'2026-10-09T06:00:00Z'}),now),'ENDING_SOON');
-  assert.equal(C.state(row('expired',{deadline_at:'2026-10-07T06:00:00Z'}),now),'EXPIRED');
+  assert.equal(C.state(row('expired',{deadline_at:'2026-10-07T06:00:00Z',verification:'CONFIRMED'}),now),'EXPIRED');
   assert.equal(C.state(row('archived',{archived_at:'2026-10-07T06:00:00Z'}),now),'ARCHIVED');
 });
 test('group deadline ordering includes date-only deadlines',()=>{

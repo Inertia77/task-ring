@@ -395,32 +395,46 @@
         await patchConfigSafely(cfgResult.config,{interactive:false,preloadedGist:gist});
       }
 
-      const remoteState=ghParseState(gist);
-      const remoteStates=normalizeRemoteStates(remoteState.states||{});
-      const remoteMeta=normalizeRemoteMeta(remoteState.state_meta||remoteState.stateMeta||{});
-      const beforeSignature=stateSignature(remoteStates,remoteMeta);
-      const merged=mergeWithRemoteState(remoteState);
-      applyMergedState(merged);
-      // 完成状态到齐后再检查一次，换设备时也能识别任务 code 的历史继承问题。
-      applyTaskConfig(taskConfig,false);
-      const deletedResult=mergeGhTimeLogDeletes(remoteState.time_logs_deleted||remoteState.deleted_time_logs||{});
-      const timeResult=mergeGhTimeLogs(remoteState.time_logs||[]);
-      const afterSignature=stateSignature(merged.states,merged.stateMeta);
+      let stateReadError=null;
+      let merged=null;
+      let timeResult={count:collectGhTimeLogs().length,changed:false};
+      let deletedResult={count:0,changed:false};
+      let stateNeedsPush=false;
+      try{
+        const remoteState=ghParseState(gist);
+        const remoteStates=normalizeRemoteStates(remoteState.states||{});
+        const remoteMeta=normalizeRemoteMeta(remoteState.state_meta||remoteState.stateMeta||{});
+        const beforeSignature=stateSignature(remoteStates,remoteMeta);
+        merged=mergeWithRemoteState(remoteState);
+        applyMergedState(merged);
+        // 完成状态到齐后再检查一次，换设备时也能识别任务 code 的历史继承问题。
+        applyTaskConfig(taskConfig,false);
+        deletedResult=mergeGhTimeLogDeletes(remoteState.time_logs_deleted||remoteState.deleted_time_logs||{});
+        timeResult=mergeGhTimeLogs(remoteState.time_logs||[]);
+        const afterSignature=stateSignature(merged.states,merged.stateMeta);
+        stateNeedsPush=beforeSignature!==afterSignature||timeResult.changed||deletedResult.changed||!remoteState.state_meta;
+      }catch(err){
+        stateReadError=err;
+        ghLog("云端配置已读取，但状态文件不可解析；已保留本机完成状态/时间记录："+String(err.message||err));
+      }
 
       if(pushLocalConfig&&!configConflict&&!remotePreferenceFailed&&!readOnlyPull){
         await patchConfigSafely(configToUse,{interactive:false,preloadedGist:gist});
       }
 
-      const stateNeedsPush=beforeSignature!==afterSignature||timeResult.changed||deletedResult.changed||!remoteState.state_meta;
-      if(stateNeedsPush&&!readOnlyPull)await ghPush(true);
+      if(stateNeedsPush&&!readOnlyPull&&!stateReadError)await ghPush(true);
 
       if(remotePreferenceFailed)setGhStatus("GitHub：云端配置不可用","err");
       else if(configConflict)setGhStatus("GitHub：配置冲突","err");
-      else if(readOnlyPull){
+      else if(stateReadError){
+        setGhStatus("GitHub：配置已读取·状态异常","err");
+        showToast("云端配置已读取；状态文件异常，已保留本机完成状态","warn",4400);
+      }else if(readOnlyPull){
         setGhStatus("GitHub：只读已读取","sync");
         if(preferRemote)showToast("云端读取成功；当前 Token 不可写，上传需在同步设置更新 Token","warn",4200);
       }else setGhStatus("GitHub：已同步","on");
-      ghLog(`安全读取完成：状态 ${Object.keys(merged.states).length} 项；状态迁移 ${merged.stats.migrated} 项；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
+      if(merged)ghLog(`安全读取完成：状态 ${Object.keys(merged.states).length} 项；状态迁移 ${merged.stats.migrated} 项；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
+      else ghLog("安全读取完成：配置已应用；云端状态未应用，本机状态保持不变。");
       unlockApp();renderAll();
     }catch(err){
       console.error(err);
@@ -440,7 +454,7 @@
   }catch(err){console.warn("integrity startup normalization skipped",err)}
 
   window.TaskRingIntegrity={
-    version:"1.3.0",
+    version:"1.4.0",
     categorySchema:"time_category-only",
     core:Core,
     stateMetaKey:STATE_META_KEY,

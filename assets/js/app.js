@@ -990,14 +990,50 @@ async function decryptConfigObject(payload){
   const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(payload.iv)},key,b64ToBytes(payload.data));
   return JSON.parse(new TextDecoder().decode(plain));
 }
+async function ghFetchGistRawFile(file,name){
+  if(!file?.raw_url)throw new Error(`${name} 缺少 raw_url，无法读取完整内容`);
+  const rawRequest=includeAuth=>{
+    const headers={Accept:"text/plain"};
+    const token=ghToken();
+    if(includeAuth&&token)headers.Authorization=`Bearer ${token}`;
+    return fetch(file.raw_url,{headers,cache:"no-store"});
+  };
+  let res=await rawRequest(false);
+  if(!res.ok&&ghToken()&&(res.status===401||res.status===403||res.status===404))res=await rawRequest(true);
+  if(!res.ok)throw new Error(`${name} 完整内容读取失败（HTTP ${res.status}）：${(await res.text()).slice(0,260)}`);
+  return await res.text();
+}
+async function ghHydrateGistFile(gist,name,{alwaysRaw=false}={}){
+  const file=gist?.files?.[name];
+  if(!file)return;
+  const mustUseRaw=file.truncated===true||!file.content;
+  if(!alwaysRaw&&!mustUseRaw)return;
+  try{
+    const raw=await ghFetchGistRawFile(file,name);
+    file.content=raw;
+    file.truncated=false;
+    ghLog(mustUseRaw?`${name} 在 Gist API 中被截断，已通过 raw_url 读取完整内容。`:`${name} 已通过 raw_url 校验并读取完整内容。`);
+  }catch(err){
+    if(mustUseRaw)throw err;
+    ghLog(`${name} raw_url 读取失败，继续使用 API 内联内容：${String(err.message||err)}`);
+  }
+}
 async function ghFetchGist(){
   const url=`https://api.github.com/gists/${GITHUB_GIST_ID}`;
   const token=ghToken();
   ghReadOnlyFallback=false;
   ghReadOnlyReason="";
   const request=includeAuth=>fetch(url,{headers:ghHeaders(includeAuth),cache:"no-store"});
+  const finalize=async res=>{
+    const gist=await res.json();
+    // taskring-state.json 会持续增长；Gist API 对大文件的 content 可能截断。
+    // 状态文件始终从 raw_url 取完整内容，避免 JSON.parse 误把“截断”当“损坏”。
+    await ghHydrateGistFile(gist,GITHUB_STATE_FILE,{alwaysRaw:true});
+    await ghHydrateGistFile(gist,CONFIG_FILE,{alwaysRaw:false});
+    return gist;
+  };
   let res=await request(!!token);
-  if(res.ok)return await res.json();
+  if(res.ok)return await finalize(res);
 
   const firstStatus=res.status;
   const firstBody=await res.text();
@@ -1009,14 +1045,14 @@ async function ghFetchGist(){
         ?"本机 GitHub Token 已失效或被撤销；已改用匿名只读方式读取 Gist。"
         :"本机 GitHub Token 当前无法完成鉴权；已改用匿名只读方式读取 Gist。";
       ghLog(ghReadOnlyReason);
-      return await anonymous.json();
+      return await finalize(anonymous);
     }
     const anonymousBody=await anonymous.text();
     throw new Error(`Gist 读取失败：Token 鉴权 HTTP ${firstStatus}；匿名重试 HTTP ${anonymous.status}。Token 可能已失效，或该 Gist 已不可匿名读取。鉴权响应：${firstBody.slice(0,240)}；匿名响应：${anonymousBody.slice(0,240)}`);
   }
   throw new Error(`Gist 读取失败（HTTP ${firstStatus}）：${firstBody.slice(0,420)}`);
 }
-function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:2,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error("taskring-state.json 不是合法 JSON")}}
+function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:2,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error(`taskring-state.json 解析失败（size=${file.size||"?"}，content=${String(file.content||"").length} chars，truncated=${file.truncated===true?"yes":"no"}）：${e.message}`)}}
 async function ghParseConfig(gist){
   const file=gist.files&&gist.files[CONFIG_FILE];
   if(!file||!file.content)return {config:null, mode:"missing"};
