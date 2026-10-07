@@ -884,9 +884,20 @@ async function handleSoftUnlock(){
 function softLockNow(msg="已手动上锁。输入本机解锁码才能重新进入。"){forceSoftLock();closeGhModal();closeControlCenter();const input=document.getElementById("lockCodeInput");if(input)input.value="";setGhStatus("GitHub：已手动上锁","off");lockApp(msg);showToast("TASK RING 已上锁，下次需密码","ok",2200)}
 function ghLog(msg){const el=document.getElementById("ghLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus");if(!el)return;const short=String(text||"").replace(/^GitHub：?/,"")||"未设置";el.className=`githubInlineState ${cls||"off"}`;el.setAttribute("title",String(text||"GitHub：未设置"));const label=el.querySelector(".ghInlineText");if(label)label.textContent=short;else el.textContent=short;}
+let ghReadOnlyFallback=false;
+let ghReadOnlyReason="";
 function ghToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
-function setGhToken(v){if(v)localStorage.setItem(GH_TOKEN_KEY,v.trim());else localStorage.removeItem(GH_TOKEN_KEY)}
-function ghHeaders(){const h={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};const t=ghToken();if(t)h.Authorization=`Bearer ${t}`;return h}
+function setGhToken(v){
+  if(v)localStorage.setItem(GH_TOKEN_KEY,v.trim());else localStorage.removeItem(GH_TOKEN_KEY);
+  ghReadOnlyFallback=false;
+  ghReadOnlyReason="";
+}
+function ghHeaders(includeAuth=true){
+  const h={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};
+  const t=ghToken();
+  if(includeAuth&&t)h.Authorization=`Bearer ${t}`;
+  return h;
+}
 function collectGhLocalStates(){const states={};Object.keys(localStorage).forEach(k=>{if(k.startsWith(GH_PREFIX)&&localStorage.getItem(k)==="1")states[k]="1"});return states}
 function clearGhLocalStates(){Object.keys(localStorage).forEach(k=>{if(k.startsWith(GH_PREFIX))localStorage.removeItem(k)})}
 function clearGhLocalCycle(cycle=cycleYmd){Object.keys(localStorage).forEach(k=>{if(k.startsWith(`${GH_PREFIX}${cycle}_`))localStorage.removeItem(k)})}
@@ -979,7 +990,32 @@ async function decryptConfigObject(payload){
   const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(payload.iv)},key,b64ToBytes(payload.data));
   return JSON.parse(new TextDecoder().decode(plain));
 }
-async function ghFetchGist(){const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{headers:ghHeaders(),cache:"no-store"});if(!res.ok)throw new Error(`GET gist failed ${res.status}: ${await res.text()}`);return await res.json()}
+async function ghFetchGist(){
+  const url=`https://api.github.com/gists/${GITHUB_GIST_ID}`;
+  const token=ghToken();
+  ghReadOnlyFallback=false;
+  ghReadOnlyReason="";
+  const request=includeAuth=>fetch(url,{headers:ghHeaders(includeAuth),cache:"no-store"});
+  let res=await request(!!token);
+  if(res.ok)return await res.json();
+
+  const firstStatus=res.status;
+  const firstBody=await res.text();
+  if(token&&(firstStatus===401||firstStatus===403)){
+    const anonymous=await request(false);
+    if(anonymous.ok){
+      ghReadOnlyFallback=true;
+      ghReadOnlyReason=firstStatus===401
+        ?"本机 GitHub Token 已失效或被撤销；已改用匿名只读方式读取 Gist。"
+        :"本机 GitHub Token 当前无法完成鉴权；已改用匿名只读方式读取 Gist。";
+      ghLog(ghReadOnlyReason);
+      return await anonymous.json();
+    }
+    const anonymousBody=await anonymous.text();
+    throw new Error(`Gist 读取失败：Token 鉴权 HTTP ${firstStatus}；匿名重试 HTTP ${anonymous.status}。Token 可能已失效，或该 Gist 已不可匿名读取。鉴权响应：${firstBody.slice(0,240)}；匿名响应：${anonymousBody.slice(0,240)}`);
+  }
+  throw new Error(`Gist 读取失败（HTTP ${firstStatus}）：${firstBody.slice(0,420)}`);
+}
 function ghParseState(gist){const file=gist.files&&gist.files[GITHUB_STATE_FILE];if(!file||!file.content)return {version:2,updatedAt:"",states:{}};try{const obj=JSON.parse(file.content);if(!obj.states)obj.states={};return obj}catch(e){throw new Error("taskring-state.json 不是合法 JSON")}}
 async function ghParseConfig(gist){
   const file=gist.files&&gist.files[CONFIG_FILE];
@@ -996,7 +1032,22 @@ async function ghParseConfig(gist){
     return {config:null, mode:"error", error:e};
   }
 }
-async function ghPatchFiles(files){if(!ghToken())throw new Error("未设置 GitHub Token");const body={files:{}};Object.keys(files).forEach(name=>{body.files[name]={content:files[name]}});const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(),"Content-Type":"application/json"},body:JSON.stringify(body)});if(!res.ok)throw new Error(`PATCH gist failed ${res.status}: ${await res.text()}`);return await res.json()}
+async function ghPatchFiles(files){
+  if(!ghToken())throw new Error("未设置 GitHub Token；当前只能读取云端，不能上传。");
+  const body={files:{}};
+  Object.keys(files).forEach(name=>{body.files[name]={content:files[name]}});
+  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(true),"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!res.ok){
+    const responseText=await res.text();
+    if(res.status===401||res.status===403){
+      throw new Error(`Gist 上传失败（HTTP ${res.status}）：GitHub Token 已失效、被撤销或缺少 Gist 写权限。请在「同步设置」更新 Token。本机数据未丢失。响应：${responseText.slice(0,280)}`);
+    }
+    throw new Error(`Gist 上传失败（HTTP ${res.status}）：${responseText.slice(0,420)}`);
+  }
+  ghReadOnlyFallback=false;
+  ghReadOnlyReason="";
+  return await res.json();
+}
 async function ghPatchState(data){return await ghPatchFiles({[GITHUB_STATE_FILE]:JSON.stringify(data,null,2)})}
 async function ghPatchConfig(config){
   const encrypted=await encryptConfigObject(config);
