@@ -42,7 +42,7 @@ test('cloud tasks, Done/Skip persist, archive filtering is paged, daily/weekly s
   const db=[task('UPCOMING',{open_at:new Date(Date.now()+2*86400000).toISOString()}),task('URGENT',{deadline_at:new Date(Date.now()+3600000).toISOString()}),task('ACTIVE'),task('SKIP_ME')];
   const s=await boot(db);try{
     assert.deepEqual(s.errors,[]);assert.match(s.w.document.querySelector('#gameOpsCloud').textContent,/即将结束.*进行中.*即将开放/s);
-    assert.equal(s.w.document.querySelectorAll('.opsCard.urgent').length,1);
+    assert.equal(s.w.document.querySelectorAll('.opsCard.urgency-red').length,1);
     assert(!s.w.document.querySelector('#gameQuestPanel').textContent.includes('Sheet'));
     await s.click('[data-ops-action="DONE"][data-id="ACTIVE"]');assert.equal(db.find(r=>r.id==='ACTIVE').user_action,'DONE');assert(!s.w.document.querySelector('[data-ops-card="ACTIVE"]'));
     await s.click('[data-ops-action="SKIP"][data-id="SKIP_ME"]');assert.equal(db.find(r=>r.id==='SKIP_ME').user_action,'SKIP');
