@@ -250,6 +250,7 @@
   };
   scheduleGhSave=function(){
     if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}
+    if(ghReadOnlyFallback){setGhStatus("GitHub：只读模式","sync");return}
     setGhStatus("GitHub：等待保存","sync");
     clearTimeout(ghSaveTimer);
     ghSaveTimer=setTimeout(()=>ghPush(true),900);
@@ -320,13 +321,16 @@
   ghPull=async function(options={}){
     const preferRemote=options?.preferRemote===true;
     const interactive=options?.interactive===true;
-    if(!ghToken()){
+    const allowReadOnly=preferRemote===true;
+    if(!ghToken()&&!allowReadOnly){
       enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
       return;
     }
     try{
       unlockApp();setGhStatus("GitHub：安全读取中","sync");migrateLegacyLocalStates();
       const gist=await ghFetchGist();
+      const readOnlyPull=ghReadOnlyFallback===true||!ghToken();
+      if(readOnlyPull)ghLog(ghReadOnlyReason||"未设置可写 GitHub Token：本次只读取云端，不会写回 Gist。");
       const cfgResult=await ghParseConfig(gist);
       const localCfg=loadLocalTaskConfig();
       const baseFingerprint=configBaseFingerprint();
@@ -385,7 +389,7 @@
       }
 
       applyTaskConfig(configToUse,false);
-      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&!remotePreferenceFailed&&cfgResult.config){
+      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&!remotePreferenceFailed&&!readOnlyPull&&cfgResult.config){
         if(cfgResult.legacyCategory)ghLog("检测到旧三分类字段，正在迁移为唯一分类字段并安全写回云端…");
         else ghLog("检测到旧版明文配置，正在安全迁移为加密配置…");
         await patchConfigSafely(cfgResult.config,{interactive:false,preloadedGist:gist});
@@ -403,22 +407,29 @@
       const timeResult=mergeGhTimeLogs(remoteState.time_logs||[]);
       const afterSignature=stateSignature(merged.states,merged.stateMeta);
 
-      if(pushLocalConfig&&!configConflict&&!remotePreferenceFailed){
+      if(pushLocalConfig&&!configConflict&&!remotePreferenceFailed&&!readOnlyPull){
         await patchConfigSafely(configToUse,{interactive:false,preloadedGist:gist});
       }
 
       const stateNeedsPush=beforeSignature!==afterSignature||timeResult.changed||deletedResult.changed||!remoteState.state_meta;
-      if(stateNeedsPush)await ghPush(true);
+      if(stateNeedsPush&&!readOnlyPull)await ghPush(true);
 
       if(remotePreferenceFailed)setGhStatus("GitHub：云端配置不可用","err");
       else if(configConflict)setGhStatus("GitHub：配置冲突","err");
-      else setGhStatus("GitHub：已同步","on");
+      else if(readOnlyPull){
+        setGhStatus("GitHub：只读已读取","sync");
+        if(preferRemote)showToast("云端读取成功；当前 Token 不可写，上传需在同步设置更新 Token","warn",4200);
+      }else setGhStatus("GitHub：已同步","on");
       ghLog(`安全读取完成：状态 ${Object.keys(merged.states).length} 项；状态迁移 ${merged.stats.migrated} 项；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
       unlockApp();renderAll();
     }catch(err){
-      console.error(err);setGhStatus("GitHub：读取失败","err");ghLog(String(err.message||err));
+      console.error(err);
+      const detail=String(err.message||err);
+      setGhStatus("GitHub：读取失败","err");
+      ghLog(detail);
       enterLocalMode(false,"Gist 安全同步失败，已继续使用本机/内置数据；不会用失败或旧云端清空本机数据。");
-      showToast("Gist 同步失败；本机数据已保留","warn",3000);
+      const authProblem=/HTTP (401|403)|Token|鉴权|写权限/.test(detail);
+      showToast(authProblem?"Gist 读取失败：GitHub Token 可能已失效，请打开「同步设置」更新 Token":"Gist 读取失败；本机数据已保留。打开「同步设置」可查看具体错误","warn",4200);
     }
   };
 
@@ -429,7 +440,7 @@
   }catch(err){console.warn("integrity startup normalization skipped",err)}
 
   window.TaskRingIntegrity={
-    version:"1.2.0",
+    version:"1.3.0",
     categorySchema:"time_category-only",
     core:Core,
     stateMetaKey:STATE_META_KEY,
