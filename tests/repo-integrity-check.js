@@ -65,6 +65,12 @@ assert(visualCss.includes(".viewDockBtn[data-view-target=\"tasks\"]:not(.active)
 assert(visualCss.includes("@media (prefers-contrast: more)"),"visual polish must retain a higher-contrast fallback");
 
 assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cloud pull buttons must explicitly request cloud-wins conflict resolution");
+assert(appJs.includes('ghReadOnlyFallback=false'),"Gist sync must track authenticated vs read-only fallback mode");
+assert(appJs.includes('request(false)'),"Gist read must retry anonymously after token auth failure");
+assert(appJs.includes('Token 已失效、被撤销或缺少 Gist 写权限'),"Gist writes must surface actionable token failures");
+assert(dataIntegrityJs.includes('const readOnlyPull=ghReadOnlyFallback===true||!ghToken()'),"manual pull must recognize read-only Gist fallback");
+assert(dataIntegrityJs.includes('stateNeedsPush&&!readOnlyPull'),"read-only pulls must never write merged state back to Gist");
+
 assert(dataIntegrityJs.includes("preferRemote&&cfgResult.config"),"data-integrity layer must support explicit cloud-wins config resolution");
 assert(dataIntegrityJs.includes('pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")'),"manual cloud-wins resolution must back up the replaced local config");
 assert(dataIntegrityJs.includes("recordConfigBaseline(configToUse,gist)"),"manual cloud-wins resolution must reset the shared config baseline");
