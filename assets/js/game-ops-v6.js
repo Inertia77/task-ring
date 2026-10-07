@@ -8,13 +8,7 @@
   const BOARD_META={
     daily:{label:"日常",short:"DAILY",sub:"每天或高频重复处理的基础事项。"},
     weekly:{label:"周常",short:"WEEKLY",sub:"按自然周重置或结算的固定事项。"},
-    hub:{label:"周期・版本",short:"SHEET",sub:"周期玩法、版本内容与活动窗口统一在 GameVersionContents（V）维护。"}
-  };
-  const CYCLE_VERSION_SHEET={
-    url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=762385468#gid=762385468",
-    spreadsheet:"INERTIA【３】Game＆Create",
-    sheet:"GameVersionContents（V）",
-    gid:"762385468"
+    hub:{label:"限时・周期",short:"LIMITED / RECURRING",sub:"限时奖励与周期玩法统一在 TaskRing 查看和操作。"}
   };
   const PRIORITY_ORDER=["zzz","nte","wuwa","hsr","onmyoji","endfield"];
   const PRIORITY=new Map(PRIORITY_ORDER.map(function(id,i){return [id,i+1]}));
@@ -35,7 +29,7 @@
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v6";
   const LEGACY_BOARD_STORAGE_KEY="taskring_gamequest_board_v5";
 
-  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice(),cycleVersionSheet:{...CYCLE_VERSION_SHEET}};
+  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
 
   function record(v){return !!v&&typeof v==="object"&&!Array.isArray(v)}
   function cleanTitle(v){return String(v||"").replace(/^(?:必|必做|选|选做|MUST|OPTIONAL)\s*[｜|:：]\s*/i,"").trim()}
@@ -181,7 +175,7 @@
       EDIT_BOARD_ORDER.forEach(function(board){games.forEach(function(g){boards[board][g.id]=normList(migrated[board][g.id]||[],board)})});
     }
     games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
-    return {version:VERSION,updatedAt:String(src.updatedAt||""),priorityOrder:PRIORITY_ORDER.slice(),cycleVersionSheet:{...CYCLE_VERSION_SHEET},games:games,boards:boards};
+    return {version:VERSION,updatedAt:String(src.updatedAt||""),priorityOrder:PRIORITY_ORDER.slice(),games:games,boards:boards};
   };
 
   window.TaskRingGameOpsV6.normalizeConfig=function(config){return normalizeGameQuestConfig(config)};
@@ -278,24 +272,23 @@
   }
   function boardTabs(active){
     return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+VIEW_ORDER.map(function(view){
-      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span>周期・版本</span><b>↗</b><em>SHEET</em></button>';
+      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span>限时・周期</span><b>◷</b><em>LIMITED / RECURRING</em></button>';
       const s=boardStats(view);
       return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'"><span>'+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>'+BOARD_META[view].short+'</em></button>';
     }).join("")+'</nav>';
   }
   function cycleVersionHub(){
-    const s=CYCLE_VERSION_SHEET;
-    return '<section class="gqV6SheetHub"><div class="gqV6SheetNoise" aria-hidden="true"></div><div class="gqV6SheetBadge"><span>EXTERNAL SOURCE</span><b>V</b></div><div class="gqV6SheetCopy"><small>GAME VERSION CONTENTS</small><h3>周期・版本内容总表</h3><p>周期玩法、版本进度、活动窗口统一在 Sheet 维护。TaskRing 不再复制这些任务，日常和周常留在这里专注执行。</p><div class="gqV6SheetMeta"><span>'+esc(s.spreadsheet)+'</span><i>/</i><strong>'+esc(s.sheet)+'</strong></div></div><div class="gqV6SheetRail"><span>01</span><i></i><span>V</span></div><a class="gqV6SheetOpen" href="'+esc(s.url)+'" target="_blank" rel="noopener noreferrer"><span><small>OPEN MASTER SHEET</small><b>打开 GameVersionContents（V）</b></span><em>↗</em></a></section>';
+    return '<section id="gameOpsCloud" class="gameOpsCloud">'+(window.TaskRingGameOpsCloud?window.TaskRingGameOpsCloud.html():'正在加载任务…')+'</section>';
   }
   renderGameQuestPanel=function(){
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
     const board=currentBoard(),isHub=board==="hub",stats=isHub?{done:0,total:0,pct:0}:boardStats(board),meta=BOARD_META[board]||BOARD_META.daily,entries=isHub?[]:entriesFor(board);
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
-    const meter=isHub?'<div class="gameQuestTopMeter gqV6SheetMeter"><span class="gqV6SheetMini">V</span><span class="gameCommandCopy"><small>MASTER</small><b>Sheet</b><em>周期・版本统一入口</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
-    const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong>游戏作战区</strong><em>TaskRing 专注日常与周常；周期・版本统一交给 GameVersionContents（V）维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+(gqActive?(active.paused?"Ⅱ":"◷"):"◷")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
+    const meter=isHub?'<div class="gameQuestTopMeter"><span class="gameCommandIcon">◷</span><span class="gameCommandCopy"><small>LIVE OPS</small><b>限时・周期</b><em>云端任务 · 本机缓存</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
+    const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong>游戏作战区</strong><em>TaskRing 统一管理日常、周常与限时・周期任务；版本 / 前瞻 / 卡池排期由 Calendar 独立维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+(gqActive?(active.paused?"Ⅱ":"◷"):"◷")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
     const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
     const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong>'+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"已全部完成":"一键完成全部")+'</b></button></div>':'<strong>'+stats.done+'/'+stats.total+'</strong>';
-    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>SHEET</span><b>周期・版本</b><em>唯一维护源：GameVersionContents（V）</em></div><strong>外部管理 ↗</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div><div class="gameQuestGrid gqV6Grid">'+entries.map(function(e){return gameCard(board,e)}).join("")+'</div>';
+    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div><div class="gameQuestGrid gqV6Grid">'+entries.map(function(e){return gameCard(board,e)}).join("")+'</div>';
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+body+'</div>';
   };
 
@@ -340,14 +333,14 @@
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
     const order='<div class="gqV6PriorityRule"><span>PRIORITY</span><b>固定游戏顺序</b><em>01 绝区零 → 02 异环 → 03 鸣潮 → 04 崩铁 → 05 阴阳师 → 06 终末地</em></div>';
-    const sheetHint='<a class="gqV6EditorSheetLink" href="'+esc(CYCLE_VERSION_SHEET.url)+'" target="_blank" rel="noopener noreferrer"><span>SHEET / V</span><div><b>周期・版本已迁出 TaskRing</b><em>统一维护 '+esc(CYCLE_VERSION_SHEET.sheet)+'；这里仅编辑日常与周常。</em></div><strong>打开总表 ↗</strong></a>';
+    const cloudHint='<div class="gqV6PriorityRule"><span>LIVE OPS</span><em>此处编辑日常与周常；限时・周期请在对应板块点击「补任务」。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];
       return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
     }).join("");
-    list.innerHTML=order+sheetHint+sections;
+    list.innerHTML=order+cloudHint+sections;
     if(typeof syncEditorSectionToggle==="function")syncEditorSectionToggle("game");
-    gameQuestEditorLog("GameQuest v6：TaskRing 只维护日常 / 周常；周期・版本统一在 GameVersionContents（V）维护。");
+    gameQuestEditorLog("游戏编辑器：日常 / 周常；限时・周期在对应板块管理。");
   };
 
   collectGameQuestEditorState=function(){
@@ -357,7 +350,7 @@
       const board=section.dataset.gqv5EditorBoard;
       section.querySelectorAll("[data-gqv5-editor-game]").forEach(function(card){
         const gid=card.dataset.gqv5EditorGame;
-        const raw=[].slice.call(card.querySelectorAll("[data-gqv5-editor-task]")).map(function(row,i){
+        const raw=[].slice.call(card.querySelectorAll("[data-gqv6-editor-task]")).map(function(row,i){
           const task={
             id:row.dataset.taskId||"",
             title:(row.querySelector(".gqV6TitleInput")&&row.querySelector(".gqV6TitleInput").value||"").trim(),
@@ -370,7 +363,7 @@
       });
     });
     cfg.games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
-    gameQuestDraftConfig={version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),cycleVersionSheet:{...CYCLE_VERSION_SHEET},games:cfg.games,boards:boards};
+    gameQuestDraftConfig={version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),games:cfg.games,boards:boards};
   };
 
   gameQuestEditorImportConfig=function(value){
@@ -422,12 +415,12 @@
       if(section)section.open=true;
       return;
     }
-    const del=e.target.closest&&e.target.closest("[data-gqv5-delete]");
+    const del=e.target.closest&&e.target.closest("[data-gqv6-delete]");
     if(del){e.preventDefault();e.stopImmediatePropagation();editorMutate(del.dataset.board,del.dataset.game,function(list){list.splice(Number(del.dataset.index),1)});return}
-    const move=e.target.closest&&e.target.closest("[data-gqv5-move]");
+    const move=e.target.closest&&e.target.closest("[data-gqv6-move]");
     if(move){
       e.preventDefault();e.stopImmediatePropagation();
-      const offset=move.dataset.gqv5Move==="up"?-1:1;
+      const offset=move.dataset.gqv6Move==="up"?-1:1;
       editorMutate(move.dataset.board,move.dataset.game,function(list){
         const i=Number(move.dataset.index),n=i+offset;
         if(i>=0&&n>=0&&n<list.length){const tmp=list[i];list[i]=list[n];list[n]=tmp}

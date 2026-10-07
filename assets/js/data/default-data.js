@@ -176,12 +176,6 @@ const defaultGameQuestConfig={
   version:6,
   updatedAt:"",
   priorityOrder:["demo-game-a","demo-game-b","demo-game-c"],
-  cycleVersionSheet:{
-    url:"https://docs.google.com/spreadsheets/d/1n--FtlOewF6sqbYrXm3pxvVAiOljOWGM3vuDBL78s3c/edit?gid=762385468#gid=762385468",
-    spreadsheet:"INERTIA【３】Game＆Create",
-    sheet:"GameVersionContents（V）",
-    gid:"762385468"
-  },
   games:[
     {id:"demo-game-a",name:"示例游戏 A",short:"游戏 A",icon:"A",accent:"cyan",enabled:true,priority:1},
     {id:"demo-game-b",name:"示例游戏 B",short:"游戏 B",icon:"B",accent:"amber",enabled:true,priority:2},

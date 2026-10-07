@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20260930.1"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20261007.1"/>
 </head>
 <body class="nx locked">
 
@@ -277,7 +277,7 @@
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle" id="gameQuestEditorTitle">游戏作战区编辑器</div>
-        <div class="taskEditorSub">TaskRing 只维护日常与周常任务；周期・版本统一在 GameVersionContents（V）Sheet 管理。</div>
+        <div class="taskEditorSub">这里维护日常与周常任务；限时・周期在游戏作战区直接查看和操作。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -292,7 +292,7 @@
       <button id="gameQuestEditorSectionToggleBtn" class="editorSectionToggleBtn" type="button" aria-expanded="true">全部收起</button>
     </div>
     <div class="taskEditorHint">
-      导入/导出只处理游戏分区，不包含也不会覆盖其他模块。点“导入游戏 JSON”直接选择 .json / .txt 文件；这里只维护日常与周常。周期・版本请使用 GameVersionContents（V）总表。六游戏固定按 绝区零 → 异环 → 鸣潮 → 崩铁 → 阴阳师 → 终末地 排序。
+      导入/导出只处理游戏分区，不包含也不会覆盖其他模块。点“导入游戏 JSON”直接选择 .json / .txt 文件；这里只维护日常与周常。限时・周期请在对应板块补充任务。六游戏固定按 绝区零 → 异环 → 鸣潮 → 崩铁 → 阴阳师 → 终末地 排序。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
@@ -397,7 +397,7 @@
   </div>
 </div>
 
-<script src="assets/js/data/default-data.js?v=20260928.6"></script>
+<script src="assets/js/data/default-data.js?v=20261007.1"></script>
 <script src="assets/js/app.js?v=20260928.6"></script>
 <script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
 <script src="assets/js/data-integrity.js?v=20260923.2"></script>
@@ -407,7 +407,11 @@
 <script src="assets/js/views/fitness-view.js?v=20260926.1"></script>
 <script src="assets/js/views/product-ui.js?v=20260926.2"></script>
 <script src="assets/js/game-disclosure.js?v=20260921.1"></script>
-  <script src="assets/js/game-ops-v6.js?v=20260930.1"></script>
+  <script src="assets/js/vendor/supabase-2.117.2.js"></script>
+<script src="assets/js/game-ops-config.js?v=20261007.1"></script>
+<script src="assets/js/game-ops-core.js?v=20261007.1"></script>
+<script src="assets/js/game-ops-cloud.js?v=20261007.1"></script>
+<script src="assets/js/game-ops-v6.js?v=20261007.1"></script>
 <script src="assets/js/pwa.js?v=20261002.1"></script>
 </body>
 </html>

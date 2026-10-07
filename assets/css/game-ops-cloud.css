@@ -1,0 +1,27 @@
+.gameOpsCloud{min-width:0;padding:4px 0 16px;color:var(--color-ink,#24231f)}
+.opsToolbar,.opsTools,.opsFilters,.opsActions,.opsCardHead,.opsMeta,.opsArchiveFilter,.opsPagination{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.opsToolbar{justify-content:space-between;margin-bottom:14px;gap:12px}
+.opsSync{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:700}
+.opsSync small{color:var(--color-muted,#797568);font-size:10px;font-weight:400}
+.opsSync i{width:7px;height:7px;background:#c4a253;border-radius:50%}.opsSync i.ok{background:#78956d}.opsSync i.fail{background:#ba6651}
+.gameOpsCloud button,.gameOpsCloud select,.gameOpsCloud input,.gameOpsCloud textarea{font:inherit}
+.gameOpsCloud button{min-height:36px;border:1px solid var(--color-line,#ded8c9);background:#fffdf6;color:inherit;padding:6px 12px;border-radius:9px;cursor:pointer;font-size:12px;font-weight:700}
+.gameOpsCloud button:disabled{opacity:.5;cursor:default}.gameOpsCloud button:focus-visible,.gameOpsCloud input:focus-visible,.gameOpsCloud select:focus-visible,.gameOpsCloud summary:focus-visible{outline:2px solid #a77818;outline-offset:3px}
+.opsFilters{margin:0 0 18px;gap:6px}.opsFilters button{border-radius:20px;min-height:34px;padding:6px 13px}.opsFilters button.active{background:#28251d;color:#fff7d8;border-color:#28251d}
+.opsGroup{margin-bottom:24px}.opsGroup h2{font-size:14px;margin:0 0 10px;display:flex;gap:8px;align-items:center}.opsGroup h2 small{background:#eae4d5;border-radius:20px;padding:2px 7px;font-size:10px}
+.opsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;align-items:start}
+.opsCard{min-width:0;border:1px solid var(--color-line,#ddd7c8);background:#fffdf7;border-radius:15px;padding:16px;box-shadow:0 3px 10px #42371705}.opsCard.urgent{border-color:#c99545;background:#fff8e6}
+.opsGame{font-size:10px;font-weight:900;letter-spacing:.03em;color:#857046}.opsTag{font-size:9px;border-radius:5px;background:#efe6c9;padding:3px 6px}.opsTag.uncertain{background:#f4e6b7;color:#79612f}
+.opsCard h3{font-size:15px;line-height:1.5;margin:9px 0 6px;overflow-wrap:anywhere}
+.opsMeta{font-size:10px;color:var(--color-muted,#7d796e);gap:6px}.opsMeta b{color:#58594a;font-weight:700}.urgent .opsMeta b{color:#99621d}
+.opsDeadline{font-size:12px;font-weight:700;margin:12px 0 4px;font-variant-numeric:tabular-nums}.opsWindow{font-size:10px;margin:4px 0;color:var(--color-muted,#7d796e)}
+.opsDetails{font-size:11px;margin-top:12px;overflow-wrap:anywhere}.opsDetails summary{cursor:pointer;color:#8a8069;font-size:10px;min-height:28px}.opsDetails>div{border-top:1px dashed #ddd4bf;padding-top:8px;line-height:1.6}.opsDetails a{color:#876322}.opsNotes{white-space:pre-wrap}.opsPriority{display:flex;align-items:center;gap:10px;margin-top:10px}
+.opsActions{margin-top:10px}.opsActions button:first-child{background:#efca64;border-color:#d6b052;flex:1}.opsActions button:nth-child(2){flex:1}.opsActions small{width:100%;font-size:10px;color:#8a8069}
+.opsEmpty{border:1px dashed #d9cead;padding:32px 18px;text-align:center;font-size:13px;color:#82765c;border-radius:15px}
+.opsError{font-size:12px;line-height:1.5;color:#975039;background:#fbefe8;border:1px solid #ebd7c9;padding:10px;border-radius:8px;overflow-wrap:anywhere}
+.opsLogin{background:#fffdf7;border:1px solid var(--color-line,#ded8c9);border-radius:15px;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:20px}.opsLogin h3{font-size:18px;margin:10px 0}.opsLogin p{font-size:12px;color:#827a67;line-height:1.8}.opsEyebrow{font-size:9px;letter-spacing:.15em;color:#977f47}.opsLogin form{display:grid;gap:10px}.opsLogin .opsError{grid-column:1/-1}
+.gameOpsCloud label{display:grid;gap:5px;font-size:11px;color:#7f7661}.gameOpsCloud input,.gameOpsCloud textarea,.gameOpsCloud select{box-sizing:border-box;min-width:0;width:100%;min-height:38px;border:1px solid #dcd4c3;border-radius:7px;padding:7px 9px;background:#fffdf7;color:#373228;font-size:13px}.opsPriority select,.opsArchiveFilter select{width:auto;max-width:100%}
+.opsForm{padding:18px;background:#f8f3e6;border:1px solid #d7c69a;border-radius:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}.opsForm h3,.opsFormWide{grid-column:1/-1}.opsForm h3{margin:0 0 4px;font-size:16px}.opsForm small{font-size:10px;color:#867d67}
+.opsArchiveFilter{justify-content:space-between;margin-bottom:15px;font-size:11px;color:#827a67}.opsPagination{justify-content:center;margin-top:18px}
+.gqV6HubTab em{font-size:8px!important;letter-spacing:.03em!important}
+@media(max-width:600px){.opsGrid{grid-template-columns:minmax(0,1fr)}.opsToolbar{align-items:flex-start}.opsTools{gap:5px}.opsTools button{padding:6px 10px}.opsCard{padding:14px}.opsFilters{gap:5px}.opsFilters button{padding:6px 11px}.opsLogin{grid-template-columns:minmax(0,1fr);padding:17px}.opsForm{grid-template-columns:minmax(0,1fr);padding:14px}.opsForm label,.opsFormWide{grid-column:1}.opsSync small{flex-basis:100%}.gqV6HubTab em{font-size:7px!important}}
