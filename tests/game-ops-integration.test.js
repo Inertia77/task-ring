@@ -26,6 +26,7 @@ async function boot(db,cache={},online=true,owner=uid){
         found=found.slice();found.sort((a,b)=>{for(const [k,o] of this.orders){if(a[k]===b[k])continue;if(a[k]==null)return o.nullsFirst? -1:1;if(b[k]==null)return o.nullsFirst?1:-1;return String(a[k]).localeCompare(String(b[k]))*(o.ascending?1:-1);}return 0;});
         result={data:JSON.parse(JSON.stringify(this.one?found[0]:found.slice(this.start,this.end+1))),error:null};
       }
+      if(client.holdNextRead&&this.mode==='read'){client.holdNextRead=false;return new Promise(resolve=>{client.releaseRead=()=>resolve(result);}).then(ok,fail);}
       return Promise.resolve(result).then(ok,fail);
     }};return q;
   }};
@@ -66,5 +67,26 @@ test('failed mutation keeps row and error; offline cache recovers without false 
     const offline=await boot(db,s.cache(),false);try{assert(offline.w.document.querySelector('[data-ops-card="SAFE"]'));assert.match(offline.w.document.querySelector('.opsSync').textContent,/离线缓存/);}finally{offline.dom.window.close();}
     db.push(task('NEW'));await s.online();assert(s.w.document.querySelector('[data-ops-card="NEW"]'));
     const stranger=await boot(db,s.cache(),false,'other-owner');try{assert.equal(stranger.w.document.querySelectorAll('.opsCard').length,0);}finally{stranger.dom.window.close();}
+  }finally{s.dom.window.close();}
+});
+test('manual draft survives sync, failed submit can be corrected, JST and priority persist',async()=>{
+  const db=[],s=await boot(db);try{
+    await s.click('[data-ops-toggle-manual]');
+    const fill=(name,value)=>{const field=s.w.document.querySelector('[data-ops-manual] [name="'+name+'"]');field.value=value;field.dispatchEvent(new s.w.Event('input',{bubbles:true}));field.dispatchEvent(new s.w.Event('change',{bubbles:true}));};
+    fill('game','NTE');fill('task_name','手动补充');fill('task_type','RECURRING');fill('period','第1期');fill('open_at','2030-10-07T06:00');fill('deadline_at','2030-10-06T06:00');fill('notes','备注 <&>');
+    await s.w.TaskRingGameOpsCloud.refresh();
+    assert.equal(s.w.document.querySelector('[name="task_name"]').value,'手动补充');assert.equal(s.w.document.querySelector('[name="game"]').value,'NTE');
+    await s.click('[data-ops-manual] button');assert.equal(db.length,0);assert.match(s.w.document.querySelector('.opsError').textContent,/截止时间须晚于/);
+    fill('deadline_at','2030-10-08T06:00');await s.click('[data-ops-manual] button');
+    assert.equal(db.length,1);assert.match(db[0].task_key,/^MANUAL\|NTE\|/);assert.equal(db[0].server,'CN');assert.equal(db[0].open_at,'2030-10-06T21:00:00.000Z');assert.equal(db[0].notes,'备注 <&>');assert.equal(db[0].source_level,'MANUAL');assert.equal(db[0].verification,'TO_VERIFY');
+    const priority=s.w.document.querySelector('[data-ops-priority]');priority.value='HIGH';priority.dispatchEvent(new s.w.Event('change',{bubbles:true}));await tick();assert.equal(db[0].priority,'HIGH');
+    const reloaded=await boot(db,s.cache());try{assert.equal(reloaded.w.document.querySelector('[data-ops-priority]').value,'HIGH');}finally{reloaded.dom.window.close();}
+  }finally{s.dom.window.close();}
+});
+test('an older in-flight read cannot restore a task archived by a confirmed write',async()=>{
+  const db=[task('RACE')],s=await boot(db);try{
+    s.client.holdNextRead=true;const stale=s.w.TaskRingGameOpsCloud.refresh();await tick();assert(s.client.releaseRead);
+    await s.click('[data-ops-action="DONE"][data-id="RACE"]');assert.equal(db[0].user_action,'DONE');assert(!s.w.document.querySelector('[data-ops-card="RACE"]'));
+    s.client.releaseRead();await stale;assert(!s.w.document.querySelector('[data-ops-card="RACE"]'));
   }finally{s.dom.window.close();}
 });

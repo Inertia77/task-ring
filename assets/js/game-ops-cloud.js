@@ -5,6 +5,7 @@
   const PAGE=25,PREFIX='taskring-gameops-cache-v1:';
   let user=null,rows=[],archive=[],filter='',reason='',history=false,page=0,hasMore=false;
   let status='同步中',error='',busy=false,authReady=false,manualOpen=false,mutationId=null,loaded=false,request=0,lastSync=null;
+  let manualDraft={};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels={UPCOMING:'即将开放',ACTIVE:'进行中',ENDING_SOON:'即将结束',EXPIRED:'已截止 · 待归档',DONE:'已完成',SKIP:'不做',EXPIRED_REASON:'已过期',REPLACED:'已替代',INVALID:'无效',TO_VERIFY:'待核验',ESTIMATED:'估算时间',CONFIRMED:'已确认'};
   const date=v=>v?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(v))+' JST':'待核验';
@@ -19,14 +20,16 @@
   }
   function render(){const el=document.getElementById('gameOpsCloud');if(el)el.innerHTML=html();}
   function selected(k,v){return k===v?' selected':'';}
-  function options(){return Object.entries(C.games).map(([id,name])=>'<option value="'+id+'">'+name+'</option>').join('');}
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
     const verify=t.verification!=='CONFIRMED'?'<span class="opsTag uncertain">'+esc(labels[t.verification])+'</span>':'';
     const source=/^https?:\/\//i.test(t.source_url||'')?'<a href="'+esc(t.source_url)+'" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>':'来源尚未确认';
     return '<article class="opsCard '+(s==='ENDING_SOON'||s==='EXPIRED'?'urgent':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
   }
-  function manualForm(){return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+options()+'</select></label><label>任务名<input name="task_name" maxlength="240" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME">限时</option><option value="RECURRING">周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次"></label><label>开始（JST）<input name="open_at" type="datetime-local"></label><label>截止（JST）<input name="deadline_at" type="datetime-local"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000"></textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';}
+  function manualForm(){
+    const val=k=>esc(manualDraft[k]||'');
+    return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+Object.entries(C.games).map(([id,name])=>'<option value="'+id+'"'+selected(manualDraft.game||'ZZZ',id)+'>'+name+'</option>').join('')+'</select></label><label>任务名<input name="task_name" maxlength="240" value="'+val('task_name')+'" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME"'+selected(manualDraft.task_type,'LIMITED_TIME')+'>限时</option><option value="RECURRING"'+selected(manualDraft.task_type,'RECURRING')+'>周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次" value="'+val('period')+'"></label><label>开始（JST）<input name="open_at" type="datetime-local" value="'+val('open_at')+'"></label><label>截止（JST）<input name="deadline_at" type="datetime-local" value="'+val('deadline_at')+'"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000">'+val('notes')+'</textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';
+  }
   function html(){
     if(!authReady)return '<div class="opsEmpty" role="status">正在恢复登录会话…</div>';
     if(!user)return '<div class="opsLogin"><div><span class="opsEyebrow">LIMITED / RECURRING</span><h3>登录后查看限时・周期任务</h3><p>使用已有 Supabase 账号。登录会话会保存在这台设备。</p></div><form data-ops-login><label>邮箱<input name="email" type="email" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button '+(busy?'disabled':'')+'>登录</button></form>'+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+'</div>';
@@ -38,7 +41,7 @@
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
   }
   async function fetchTasks(){
-    if(!user||busy||!navigator.onLine){if(!navigator.onLine){status='离线缓存';render();}return;}
+    if(!user||busy||mutationId||!navigator.onLine){if(!navigator.onLine){status='离线缓存';render();}return;}
     busy=true;status='同步中';error='';const token=++request,uid=user.id;render();
     try{
       let fetched=[],offset=0;
@@ -55,6 +58,8 @@
   async function mutate(id,patch){
     if(!navigator.onLine){status='离线缓存';error='当前离线，操作未提交；联网后请重试。';render();return;}
     if(mutationId)return;
+    // A fetch started before this write must never restore its stale active row.
+    request++;busy=false;
     mutationId=id;error='';let confirmed=false;render();
     try{
       const {data,error:e}=await client.from('game_ops_tasks').update(patch).eq('id',id).eq('user_id',user.id).select('*').single();if(e)throw e;
@@ -72,30 +77,32 @@
     const b=e.target.closest('[data-ops-action],[data-ops-filter],[data-ops-history],[data-ops-page],[data-ops-refresh],[data-ops-toggle-manual],[data-ops-logout]');if(!b)return;
     e.preventDefault();
     if(b.hasAttribute('data-ops-action')){await mutate(b.dataset.id,{user_action:b.dataset.opsAction,archive_reason:b.dataset.opsAction,lifecycle_status:'ARCHIVED'});return;}
-    if(b.hasAttribute('data-ops-toggle-manual')){manualOpen=!manualOpen;render();return;}
+    if(b.hasAttribute('data-ops-toggle-manual')){manualOpen=!manualOpen;if(!manualOpen)manualDraft={};render();return;}
     if(b.hasAttribute('data-ops-logout')){const uid=user?.id;const {error:e}=await client.auth.signOut({scope:'local'});if(e){error=e.message;render();return;}for(const key of Object.keys(localStorage))if(key.startsWith(PREFIX+uid+':'))localStorage.removeItem(key);return;}
     if(b.hasAttribute('data-ops-filter')){filter=b.dataset.opsFilter;page=0;}
-    if(b.hasAttribute('data-ops-history')){history=!history;page=0;manualOpen=false;}
+    if(b.hasAttribute('data-ops-history')){history=!history;page=0;manualOpen=false;manualDraft={};}
     if(b.hasAttribute('data-ops-page'))page+=Number(b.dataset.opsPage);
     request++;busy=false;restore();render();await fetchTasks();
   });
   document.addEventListener('change',async e=>{
+    if(e.target.closest('[data-ops-manual]')&&e.target.name)manualDraft[e.target.name]=e.target.value;
     if(e.target.matches('[data-ops-priority]'))await mutate(e.target.dataset.opsPriority,{priority:e.target.value});
     if(e.target.matches('[data-ops-reason]')){reason=e.target.value;page=0;request++;busy=false;restore();render();await fetchTasks();}
   });
+  document.addEventListener('input',e=>{if(e.target.closest('[data-ops-manual]')&&e.target.name)manualDraft[e.target.name]=e.target.value;});
   document.addEventListener('submit',async e=>{
     const f=e.target;if(!f.matches('[data-ops-login],[data-ops-manual]'))return;e.preventDefault();if(busy)return;
     const values=Object.fromEntries(new FormData(f));busy=true;error='';f.querySelector('button').disabled=true;
     try{
       if(f.matches('[data-ops-login]')){const {error:e}=await client.auth.signInWithPassword({email:values.email,password:values.password});if(e)throw e;f.reset();}
-      else{if(!navigator.onLine)throw new Error('离线时无法提交任务');const payload=C.manual(values,user.id,crypto.randomUUID());const {data,error:e}=await client.from('game_ops_tasks').insert(payload).select('*').single();if(e)throw e;if(data.task_key!==payload.task_key)throw new Error('服务器回读不一致');manualOpen=false;rows.push(data);cachePut(PREFIX+user.id+':active',{rows,at:new Date().toISOString()});}
+      else{if(!navigator.onLine)throw new Error('离线时无法提交任务');const payload=C.manual(values,user.id,crypto.randomUUID());const {data,error:e}=await client.from('game_ops_tasks').insert(payload).select('*').single();if(e)throw e;if(data.task_key!==payload.task_key)throw new Error('服务器回读不一致');manualOpen=false;manualDraft={};rows.push(data);cachePut(PREFIX+user.id+':active',{rows,at:new Date().toISOString()});}
     }catch(e){error=e.message||String(e);status='同步失败';}
     finally{busy=false;if(error){f.querySelector('button').disabled=false;let err=f.parentElement.querySelector('.opsError');if(!err){err=document.createElement('p');err.className='opsError';err.setAttribute('role','alert');f.after(err);}err.textContent=error;}else{render();await fetchTasks();}}
   });
   client.auth.onAuthStateChange((_event,session)=>{
     const next=session?.user||null,changed=next?.id!==user?.id;
     user=next;authReady=true;
-    if(changed){request++;busy=false;rows=[];archive=[];loaded=false;page=0;lastSync=null;if(user)restore();}
+    if(changed){request++;busy=false;rows=[];archive=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
     if(user)setTimeout(fetchTasks,0);
