@@ -80,14 +80,58 @@
     align-items: start;
   }
 
-  /* A one-task trailing group is centered and sized as a readable single
-     dossier, instead of becoming an over-wide strip or half-empty grid. */
+  /* A lone category must share the same horizontal boundaries as the
+     overview/header. Do not center it inside an arbitrary fixed-width island. */
   .dailyGroups > .dailyGroup:nth-child(odd):last-child:has(> .dailyGroupBody > .dailyCard:only-child) {
-    justify-self: center;
-    width: min(100%, 860px);
+    justify-self: stretch;
+    width: 100%;
+    max-width: none;
   }
+
   .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody:has(> .dailyCard:only-child) {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* One task within a full-width category is an execution row, not an
+     oversized tile: task/metadata on the left and high-frequency actions on
+     the right. The HTML, disclosure, keyboard and state handlers stay intact. */
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 440px);
+    column-gap: 18px;
+    row-gap: 6px;
+    align-items: center;
+    padding: 12px 14px;
+    min-height: 76px;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child::after {
+    display: none;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyMain {
+    min-width: 0;
+    align-items: center;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions {
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 0 16px;
+    border-top: 0;
+    border-left: 1px solid color-mix(in srgb, var(--card-art-daily) 22%, var(--color-line));
+    align-self: center;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions > button,
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions > a,
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .uxActionMore > summary {
+    min-height: 40px;
+  }
+
+  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child > .subtaskInline {
+    grid-column: 1 / -1;
+    margin: 2px 0 0;
+    padding-left: calc(var(--tap-size) + 8px);
   }
 }
 
