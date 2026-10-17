@@ -81,6 +81,43 @@ function taskCategoryGlyph(key){
   return `<span class="taskCategoryGlyph" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg></span>`;
 }
 
+/* System-wide UI glyphs. Semantic task states have distinct shapes, while
+   all SVG share one 24px grid, rounded strokes and accessible parent labels. */
+const TASK_UI_ICON_PATHS=Object.freeze({
+  "check-square":'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.6 2.6L16 9"/>',
+  "calendar-days":'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18m-13 4h3m3 0h3m-9 4h3"/>',
+  "sprout":'<path d="M12 21V11"/><path d="M12 14c-4.5 0-7-2.6-7-7 4.4 0 7 2.6 7 7Zm0-4c0-4.4 2.6-7 7-7 0 4.4-2.6 7-7 7Z"/>',
+  "sparkles":'<path d="m12 3 1.7 6.3L20 11l-6.3 1.7L12 19l-1.7-6.3L4 11l6.3-1.7L12 3Zm7 13 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/>',
+  "clock":'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  "files":'<rect x="8" y="4" width="12" height="16" rx="2"/><path d="M5 8H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-1M11 9h6m-6 4h6"/>',
+  "check-circle":'<circle cx="12" cy="12" r="9"/><path d="m8 12 2.7 2.7 5.5-5.6"/>',
+  "bell":'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+  "zap":'<path d="m13 2-9 12h7l-1 8 10-13h-7l.5-7Z"/>',
+  "clock-3":'<circle cx="12" cy="12" r="9"/><path d="M12 7v5h5"/>',
+  "circle-dashed":'<path d="M5.6 5.6a9 9 0 0 1 2.8-1.8M12 3a9 9 0 0 1 3.5.7M18.6 5.4a9 9 0 0 1 1.8 3M21 12a9 9 0 0 1-.7 3.6M18.5 18.6a9 9 0 0 1-3 1.8M12 21a9 9 0 0 1-3.6-.7M5.4 18.5a9 9 0 0 1-1.8-3M3 12a9 9 0 0 1 .7-3.6"/>',
+  "triangle-alert":'<path d="m10.3 3.8-8.1 14a2.2 2.2 0 0 0 1.9 3.3h15.8a2.2 2.2 0 0 0 1.9-3.3l-8.1-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4m0 4h.01"/>',
+  "pause-circle":'<circle cx="12" cy="12" r="9"/><path d="M9 9v6m6-6v6"/>',
+  "play":'<path d="m8 5 11 7-11 7V5Z"/>',
+  "diamond":'<path d="m12 3 9 9-9 9-9-9 9-9Z"/>',
+  "target":'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  "external-link":'<path d="M13 5h6v6m0-6-9 9"/><path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/>',
+  "ellipsis":'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+  "list-check":'<path d="m3 6 1.6 1.6L7.4 5M3 14l1.6 1.6 2.8-2.6M11 6h10M11 14h10M3 21h18"/>',
+  "hourglass":'<path d="M5 3h14M5 21h14M7 3v4c0 3 5 5 5 5s5-2 5-5V3M7 21v-4c0-3 5-5 5-5s5 2 5 5v4"/>',
+  "rotate-ccw":'<path d="M3 12a9 9 0 1 0 3-6.8L3 8"/><path d="M3 3v5h5"/>',
+  "folder-open":'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v3"/><path d="M3 11h19l-3 9H5l-2-9Z"/>',
+  "minus":'<path d="M5 12h14"/>',
+  "arrow-up-right":'<path d="M7 17 17 7M8 7h9v9"/>'
+});
+function taskUiIcon(name){
+  const paths=TASK_UI_ICON_PATHS[name]||TASK_UI_ICON_PATHS.circle_dashed||TASK_UI_ICON_PATHS["circle-dashed"];
+  return `<svg class="trUiIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">${paths}</svg>`;
+}
+document.querySelectorAll("[data-task-ui-icon]").forEach(el=>{
+  el.innerHTML=taskUiIcon(el.dataset.taskUiIcon);
+});
+
+
 function normalizeTimeCategory(v,fallback="life"){
   const key=String(v||"").trim();
   return timeCategoryDefs[key]?key:fallback;
