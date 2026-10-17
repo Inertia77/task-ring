@@ -561,6 +561,12 @@ function normalizeTaskConfig(config){
     return {
       id, code, cat, title, days,
       url:String(raw.url||"").trim(),
+      note:String(raw.note??raw.ai_prompt??"").trim(),
+      ai_enabled:raw.ai_enabled===true,
+      ai_chat_url:String(raw.ai_chat_url||"").trim(),
+      ai_archive_url:String(raw.ai_archive_url||"").trim(),
+      ai_period:["weekly","monthly","on_demand"].includes(raw.ai_period)?raw.ai_period:"weekly",
+      ai_target:Math.max(0,Math.min(7,Math.round(Number(raw.ai_target)||0))),
       core:normalizeBool(raw.core),
       optional:normalizeBool(raw.optional),
       important:normalizeBool(raw.important),
@@ -592,6 +598,7 @@ function applyTaskConfig(config, shouldRender=false){
   fitnessConfig=taskConfig.fitness||normalizeFitnessConfig(defaultFitnessConfig);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
     id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
+    note:t.note||"", ai_enabled:t.ai_enabled===true, ai_chat_url:t.ai_chat_url||"", ai_archive_url:t.ai_archive_url||"", ai_period:t.ai_period||"weekly", ai_target:t.ai_target||0,
     core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false,
     time_category:t.time_category||inferTaskTimeCategory(t), estimated_minutes:t.estimated_minutes||inferEstimatedMinutes(t), weekly_minutes:taskWeeklyMinutes(t), plan_mode:taskPlanningMode(t)
   }));
@@ -1501,6 +1508,12 @@ function editorRowToTask(row,idx){
     title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
     days,
     url:row.querySelector(".cfgUrl").value.trim(),
+    note:row.querySelector(".cfgNote")?.value.trim()||"",
+    ai_enabled:row.querySelector(".cfgAiEnabled")?.checked===true,
+    ai_chat_url:row.querySelector(".cfgAiChatUrl")?.value.trim()||"",
+    ai_archive_url:row.querySelector(".cfgAiArchiveUrl")?.value.trim()||"",
+    ai_period:row.querySelector(".cfgAiPeriod")?.value||"weekly",
+    ai_target:Number(row.querySelector(".cfgAiTarget")?.value)||0,
     plan_mode:normalizeTaskPlanMode(row.querySelector(".cfgPlanMode")?.value,inferTaskPlanMode({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value,days})),
     time_category:normalizeTimeCategory(row.querySelector(".cfgTimeCategory")?.value,inferTaskTimeCategory({cat:row.querySelector(".cfgCat").value,title:row.querySelector(".cfgTitle").value})),
     estimated_minutes:Math.min(480,Math.max(1,Math.round(Number(row.querySelector(".cfgEstimatedMinutes")?.value)||30))),

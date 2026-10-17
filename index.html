@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20261017.5"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20261017.6"/>
 </head>
 <body class="nx locked">
 
@@ -349,6 +349,8 @@
       <button id="saveConfigBtn">保存配置（有 Token 时同步）</button>
       <button id="exportConfigBtn">导出任务 JSON</button>
       <button id="importConfigBtn">导入任务 JSON</button>
+      <button id="importTaskFileBtn" type="button">从文件导入 JSON</button>
+      <input id="importTaskFileInput" type="file" accept=".json,application/json" hidden>
       <button id="reloadSavedConfigBtn">重载已保存配置</button>
       <button id="restoreLocalBackupBtn">恢复本机备份</button>
       <button id="restoreCloudPreviousBtn">恢复云端上一版</button>
@@ -398,14 +400,15 @@
 </div>
 
 <script src="assets/js/data/default-data.js?v=20261007.1"></script>
-<script src="assets/js/app.js?v=20261017.4"></script>
+<script src="assets/js/app.js?v=20261017.5"></script>
 <script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
 <script src="assets/js/data-integrity.js?v=20261007.3"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20261017.3"></script>
-<script src="assets/js/views/editor-ux.js?v=20261017.2"></script>
+<script src="assets/js/views/editor-ux.js?v=20261017.3"></script>
 <script src="assets/js/views/fitness-view.js?v=20260926.1"></script>
 <script src="assets/js/views/product-ui.js?v=20261017.6"></script>
+<script src="assets/js/ai-tasks.js?v=20261017.1"></script>
 <script src="assets/js/game-disclosure.js?v=20260921.1"></script>
   <script src="assets/js/vendor/supabase-2.117.2.js"></script>
 <script src="assets/js/game-ops-config.js?v=20261007.1"></script>

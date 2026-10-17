@@ -1,0 +1,60 @@
+/* AI assistant missions live in WEEK; they do not affect time-ledger completion. */
+.aiMissionSection{min-width:0}
+.aiMissionGroup{border:1px solid var(--color-line);border-radius:var(--radius-lg);background:var(--color-panel);box-shadow:var(--shadow-panel);overflow:hidden}
+.aiMissionGroup>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;padding:13px 16px;list-style:none;background:color-mix(in srgb,var(--zone-weekly) 50%,white)}
+.aiMissionGroup>summary::-webkit-details-marker{display:none}
+.aiMissionGroup[open]>summary{border-bottom:1px solid var(--color-line)}
+.aiMissionGroupTitle{display:flex;align-items:center;gap:10px;min-width:0}
+.aiMissionGroupTitle>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.aiMissionGroupTitle b{font-size:15px;color:var(--color-ink)}
+.aiMissionGroupTitle small{font-size:11px;font-weight:400;color:var(--color-muted);line-height:1.5}
+.aiMissionGroupIcon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:var(--color-ink);color:white;font-size:20px;flex:none}
+.aiMissionGroupStats{flex:none;font-size:12px;color:var(--color-muted);white-space:nowrap}
+.aiMissionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;background:color-mix(in srgb,var(--color-panel-soft) 65%,white)}
+.aiMissionCard{display:flex;flex-direction:column;min-width:0;gap:10px;padding:13px;background:var(--color-card);border:1px solid var(--color-card-line);border-left:3px solid var(--color-info);border-radius:var(--radius-md);box-shadow:var(--shadow-card)}
+.aiMissionCard.achieved{border-left-color:var(--color-success)}
+.aiMissionCardHead{display:flex;align-items:flex-start;gap:9px;min-width:0}
+.aiMissionGlyph{display:grid;place-items:center;flex:none;width:27px;height:27px;background:color-mix(in srgb,var(--zone-weekly) 75%,white);border-radius:8px;font-size:17px;color:var(--color-ink)}
+.aiMissionTitle{min-width:0;display:flex;flex:1;flex-direction:column;gap:3px}
+.aiMissionTitle>b{font-size:13px;line-height:1.45;color:var(--color-ink);overflow-wrap:anywhere}
+.aiMissionTitle>span{font-size:11px;color:var(--color-muted)}
+.aiMissionCount{font-size:11px;font-weight:650;white-space:nowrap;color:var(--color-ink);background:var(--color-panel-soft);border:1px solid var(--color-line);padding:4px 6px;border-radius:6px}
+.aiMissionCount.achieved{color:var(--color-success)}
+.aiMissionMeter{height:5px;border-radius:100px;background:var(--color-line);overflow:hidden}
+.aiMissionMeter>i{display:block;height:100%;border-radius:inherit;background:var(--color-ink);max-width:100%}
+.aiMissionActions,.aiMissionVerify{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.aiMissionActions>*{border:1px solid var(--color-line);border-radius:8px;padding:7px 10px;background:var(--color-card);color:var(--color-ink);font-size:12px;font-weight:550;text-decoration:none;cursor:pointer;min-height:32px}
+.aiMissionActions>.aiMissionPrimary{background:var(--color-ink);color:white;border-color:var(--color-ink);font-weight:700}
+.aiMissionVerify{border-top:1px dashed var(--color-line);padding-top:9px;margin-top:auto}
+.aiMissionVerify button{font-size:11px;cursor:pointer;border:0;background:transparent;color:var(--color-muted);padding:4px 0}
+.aiMissionVerify button:hover{color:var(--color-ink)}
+.aiMissionVerify .aiMissionUndo{margin-left:auto}
+.cfgAiSettings{border:1px solid var(--color-line);border-radius:10px;padding:0;background:var(--color-panel-soft)}
+.cfgAiSettings>summary{cursor:pointer;padding:10px 12px;font-size:12px;font-weight:700}
+.cfgAiSettings[open]>summary{border-bottom:1px solid var(--color-line)}
+.cfgAiSettingsBody{display:grid;gap:10px;padding:12px}
+.cfgAiSettingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfgAiSettings .cfgNote{width:100%;min-height:150px;resize:vertical;line-height:1.55;font-family:inherit}
+.cfgAiToggle{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650}
+.cfgAiHint{margin:0;color:var(--color-muted);font-size:11px;line-height:1.55}
+.aiPromptDialog{width:min(92vw,820px);max-height:88dvh;padding:16px;border:1px solid var(--color-line);border-radius:14px;background:var(--color-panel);color:var(--color-ink);box-shadow:0 22px 60px #0003}
+.aiPromptDialog::backdrop{background:#080f1d99}
+.aiPromptHeader,.aiPromptFooter{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.aiPromptHeader strong{font-size:16px}
+.aiPromptHeader button{font-size:20px;border:0;background:transparent;cursor:pointer}
+.aiPromptDialog p{color:var(--color-muted);font-size:12px}
+.aiPromptDialog textarea{width:100%;min-height:260px;height:min(54vh,520px);padding:12px;border:1px solid var(--color-line);border-radius:10px;background:var(--color-card);color:var(--color-ink);font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}
+.aiPromptFooter{justify-content:flex-end;padding-top:10px}
+.aiPromptFooter button{cursor:pointer;border:1px solid var(--color-line);border-radius:8px;padding:8px 12px;color:var(--color-ink);background:var(--color-card)}
+.aiPromptFooter button:first-child{background:var(--color-ink);color:white}
+@media(max-width:700px){
+ .aiMissionGroup>summary{align-items:flex-start;padding:11px;gap:6px}
+ .aiMissionGroupStats{font-size:10px;padding-top:3px}
+ .aiMissionGroupTitle small{font-size:10px}
+ .aiMissionGrid{grid-template-columns:1fr;padding:8px;gap:8px}
+ .aiMissionCard{padding:11px}
+ .aiMissionCount{font-size:10px}
+ .cfgAiSettingsGrid{grid-template-columns:1fr}
+ .aiPromptDialog{width:95vw;padding:12px}
+ .aiPromptDialog textarea{height:48dvh}
+}
