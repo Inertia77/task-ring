@@ -59,20 +59,28 @@
     });
     return stats;
   }
+  function dailyVisualChip(icon,label,variant="",value=""){
+    const readable=escapeHtml(label);
+    return `<span class="dailyVisualChip ${variant}" role="img" title="${readable}" aria-label="${readable}">${taskUiIcon(icon)}${value!==""?`<span class="dailyVisualValue">${escapeHtml(String(value))}</span>`:""}</span>`;
+  }
   function dailyStatusBadges(t,st,running,paused){
     const bits=[];
-    bits.push(`<span class="dailyMetaChip">${escapeHtml((cats[t.cat]||{}).name||t.cat)}</span>`);
-    if(t.important)bits.push('<span class="dailyMetaChip importantFlag">! 高优先级</span>');
-    else if(t.core)bits.push('<span class="dailyMetaChip">◆ 核心</span>');
-    else if(t.optional)bits.push('<span class="dailyMetaChip">可选</span>');
-    if(st.done)bits.push('<span class="statusBadge completed">✓ 已完成</span>');
-    else if(st.failed)bits.push('<span class="statusBadge overdue">× 已过期锁定</span>');
-    else if(st.overdue)bits.push('<span class="statusBadge overdue">! 已逾期</span>');
-    else if(st.warn)bits.push('<span class="statusBadge overdue">! 前次未完成</span>');
-    else bits.push('<span class="statusBadge">待执行</span>');
-    if(running)bits.push(`<span class="statusBadge ${paused?"paused":"running"}">${paused?"Ⅱ 已暂停":"◷ 计时中"}</span>`);
-    bits.push(`<span class="dailyMetaChip">预计 ${taskEstimatedMinutes(t)}m</span>`);
-    if(hasSteps(t.id)){const p=stepProgress(t,st.dayId||today,st.cycle||cycleYmd);bits.push(`<span class="dailyMetaChip">子任务 ${p.done}/${p.total}</span>`)}
+    const categoryName=(cats[t.cat]||{}).name||String(t.cat||"生活");
+    bits.push(`<span class="dailyVisualChip category" data-task-category="${escapeHtml(t.cat)}" title="分类：${escapeHtml(categoryName)}" role="img" aria-label="分类：${escapeHtml(categoryName)}">${taskCategoryGlyph(t.cat)}</span>`);
+    if(t.important)bits.push(dailyVisualChip("zap","高优先级","priority"));
+    else if(t.core)bits.push(dailyVisualChip("diamond","保底任务","core"));
+    else if(t.optional)bits.push(dailyVisualChip("circle-dashed","可选任务","optional"));
+    if(st.done)bits.push(dailyVisualChip("check-circle","已完成","complete"));
+    else if(st.failed)bits.push(`<span class="dailyVisualChip attention" title="已过期锁定" aria-label="已过期锁定">${taskUiIcon("triangle-alert")}<span class="dailyVisualValue">已锁定</span></span>`);
+    else if(st.overdue)bits.push(`<span class="dailyVisualChip attention" title="已逾期" aria-label="已逾期">${taskUiIcon("triangle-alert")}<span class="dailyVisualValue">已逾期</span></span>`);
+    else if(st.warn)bits.push(`<span class="dailyVisualChip attention" title="前次未完成" aria-label="前次未完成">${taskUiIcon("triangle-alert")}<span class="dailyVisualValue">前次未完成</span></span>`);
+    else bits.push(dailyVisualChip("circle-dashed","待执行","pending"));
+    if(running)bits.push(dailyVisualChip(paused?"pause-circle":"clock",paused?"计时已暂停":"正在计时",paused?"paused":"running"));
+    bits.push(dailyVisualChip("clock-3",`预计 ${taskEstimatedMinutes(t)} 分钟`,"duration",`${taskEstimatedMinutes(t)}m`));
+    if(hasSteps(t.id)){
+      const p=stepProgress(t,st.dayId||today,st.cycle||cycleYmd);
+      bits.push(dailyVisualChip("list-check",`子任务 ${p.done}/${p.total}`,"steps",`${p.done}/${p.total}`));
+    }
     return bits.join("");
   }
   function dailySubtasks(t,dayId,cycle){
@@ -93,23 +101,24 @@
     const c=cats[t.cat]||cats.life;
     const title=escapeHtml(t.title);
     const url=safeUrl(t.url);
-    const status=st.failed?"已过期":st.overdue?"已逾期":st.done?"已完成":dayId===today?"今日":"计划日";
+    
     const completeDisabled=(st.failed||st.ignored)?" disabled data-locked=\"1\"":"";
     return `<article class="dailyCard ${st.done?"done completed":""} ${st.overdue||st.failed?"overdue":""} ${st.warn?"carryover":""} ${t.important?"highPriority":""} ${running?"running":""}" style="--daily-accent:${c.color||"var(--color-line-strong)"}" data-daily-task="${escapeHtml(t.id)}">
+      ${t.important?`<span class="dailyCornerStatus" role="img" title="高优先级" aria-label="高优先级">${taskUiIcon("zap")}</span>`:""}
       <div class="dailyMain">
         <label class="dailyComplete" title="${title}：${st.done?"取消完成":"标记完成"}" aria-label="${title}：${st.done?"取消完成":"标记完成"}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${escapeHtml(cycle)}" ${st.done?"checked":""}${completeDisabled}><span></span></label>
         <div class="dailyCopy">
           <h3 class="dailyTitle" title="${title}">${url?`<a class="taskLink" href="${url}" target="_blank" rel="noopener noreferrer"><span class="taskText">${title}</span><span aria-hidden="true">↗</span></a>`:`<span class="taskText">${title}</span>`}</h3>
           <div class="dailyMeta">${dailyStatusBadges(t,st,running,active?.paused)}</div>
-          <div class="dailyMeta"><span class="dailyMetaChip">${escapeHtml(dayName(dayId))}${dayId===today?" · 今日":""}</span><span class="dailyMetaChip">${escapeHtml(status)}</span><span class="dailyMetaChip">本周 ${fmtMinutes(taskWeekMinutesUsed(t.id))}</span></div>
+          <div class="dailyMeta dailyMetaSecondary"><span class="dailyMetaChip calendar" title="执行日期">${taskUiIcon("calendar-days")}${escapeHtml(dayName(dayId))}${dayId===today?" · 今日":""}</span><span class="dailyMetaChip weeklyTime" title="本周已投入时间" aria-label="本周已投入 ${fmtMinutes(taskWeekMinutesUsed(t.id))}">${taskUiIcon("clock")}${fmtMinutes(taskWeekMinutesUsed(t.id))}</span></div>
         </div>
       </div>
       <div class="dailyActions">
         ${running?`<button type="button" class="timerNowChip" data-view-target="time" title="打开正在计时的任务">${active?.paused?"已暂停":"计时中"} <span data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</span></button>`:`<button type="button" class="timerStartTiny" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${dayId}" data-timer-cycle="${escapeHtml(cycle)}" title="开始计时：${title}">开始计时</button>`}
-        <button type="button" class="manualTimeTiny" data-manual-time-entry="task" data-manual-task-id="${escapeHtml(t.id)}" title="补记忘记开始的时间">+补记</button>
-        <button type="button" data-time-task-detail="${escapeHtml(t.id)}" title="查看时间账本">账本</button>
-        ${url?`<a href="${url}" target="_blank" rel="noopener noreferrer" title="快速打开：${title}">打开 ↗</a>`:`<button type="button" data-open-task-editor="${escapeHtml(t.id)}" title="打开更多操作">更多</button>`}
-        <button type="button" data-edit-weekly-target="${escapeHtml(t.id)}" title="编辑每周目标">目标 ${fmtMinutes(taskWeeklyMinutes(t))}</button>
+        <button type="button" class="manualTimeTiny" data-manual-time-entry="task" data-manual-task-id="${escapeHtml(t.id)}" title="补记时间" aria-label="补记时间">${taskUiIcon("clock")}</button>
+        <button type="button" data-time-task-detail="${escapeHtml(t.id)}" title="查看时间账本" aria-label="查看时间账本">${taskUiIcon("files")}</button>
+        ${url?`<a class="dailyQuickOpen" href="${url}" target="_blank" rel="noopener noreferrer" title="快速打开：${title}" aria-label="快速打开：${title}">${taskUiIcon("external-link")}</a>`:`<button type="button" data-open-task-editor="${escapeHtml(t.id)}" title="编辑任务" aria-label="编辑任务">${taskUiIcon("ellipsis")}</button>`}
+        <button type="button" data-edit-weekly-target="${escapeHtml(t.id)}" title="编辑每周目标" aria-label="编辑每周目标">${taskUiIcon("target")}<span>${fmtMinutes(taskWeeklyMinutes(t))}</span></button>
       </div>
       ${dailySubtasks(t,dayId,cycle)}
     </article>`;
@@ -157,7 +166,7 @@
       const key=detailKey("daily-group",cat,viewMode);
       const fallback=hasAttention||(!allDone&&index===0);
       return `<details class="dailyGroup ${hasAttention?"hasAttention":""} ${allDone?"completed":""}" data-ui-details-key="${escapeHtml(key)}"${openAttr(key,fallback)}>
-        <summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(def.name)}</b><span>${stats.total} 项 · 预计 ${fmtMinutes(stats.minutes)}${stats.running?` · ${stats.running} 项计时中`:""}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${stats.done}/${stats.total}</span>${stats.overdue?`<span class="statusBadge overdue">! 关注 ${stats.overdue}</span>`:""}${stats.important?`<span class="dailyMetaChip importantFlag">高优先 ${stats.important}</span>`:""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary>
+        <summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(def.name)}</b><span>${stats.total} 项 · 预计 ${fmtMinutes(stats.minutes)}${stats.running?` · ${stats.running} 项计时中`:""}</span></div><div class="sectionSummaryMetrics"><span class="dailyGroupMetric" role="img" title="完成 ${stats.done}/${stats.total}" aria-label="完成 ${stats.done}/${stats.total}">${taskUiIcon("check-circle")}<b>${stats.done}/${stats.total}</b></span>${stats.overdue?`<span class="dailyGroupMetric attention" role="img" title="需关注 ${stats.overdue} 项" aria-label="需关注 ${stats.overdue} 项">${taskUiIcon("triangle-alert")}<b>${stats.overdue}</b></span>`:""}${stats.important?`<span class="dailyGroupMetric priority" role="img" title="高优先 ${stats.important} 项" aria-label="高优先 ${stats.important} 项">${taskUiIcon("zap")}<b>${stats.important}</b></span>`:""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary>
         <div class="dailyGroupBody">${list.map(dailyCard).join("")}</div>
       </details>`;
     }).join("");
