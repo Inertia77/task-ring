@@ -146,3 +146,15 @@
 @media (max-width:700px) {
   .controlAreaIcon .trUiIcon {width:23px;height:23px;}
 }
+
+/* Remove purely decorative English dossier stamps in the other task areas too.
+   Their parent sections already identify the mode. Keep the colored edge rails. */
+.fitnessItem::after,
+.gameQuestCard::after,
+.timeTaskRow::after,
+.timeBudgetRow::after,
+.timeLogItem::after,
+.refItem::after { display:none!important; }
+.fitnessItem { padding-top:13px; }
+.gameQuestCard { padding-top:14px; }
+.refItem { padding-top:12px; }
