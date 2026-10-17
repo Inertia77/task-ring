@@ -45,6 +45,20 @@
           <div class="cfgField"><label>预计分钟/次</label><input class="cfgEstimatedMinutes" type="number" min="1" max="480" step="5" value="${taskEstimatedMinutes(t)}"></div>
           <div class="cfgField"><label>每周目标分钟</label><input class="cfgWeeklyMinutes" type="number" min="0" max="10080" step="5" value="${taskWeeklyMinutes(t)}" title="用于任务行显示 本周已用 / 每周目标；填 0 表示不设目标"></div>
           <div class="cfgField wide"><label>链接 URL</label><input class="cfgUrl" value="${cfgEsc(t.url||"")}" placeholder="https://..."></div>
+          <details class="cfgAiSettings cfgField wide" ${t.ai_enabled?"open":""}>
+            <summary>🤖 AI 执行 / 备注 ${t.ai_enabled?"｜已启用":""}</summary>
+            <div class="cfgAiSettingsBody">
+              <label class="cfgAiToggle"><input type="checkbox" class="cfgAiEnabled" ${t.ai_enabled?"checked":""}>此任务使用 ChatGPT Prompt 执行</label>
+              <div class="cfgField"><label>备注 / 完整执行 Prompt（仅保存在私有配置）</label><textarea class="cfgNote" rows="7" placeholder="填写完整执行指令；点击「AI 执行」会将这里的文字传入 ChatGPT。">${cfgEsc(t.note||"")}</textarea></div>
+              <div class="cfgAiSettingsGrid">
+                <div class="cfgField"><label>频率模式</label><select class="cfgAiPeriod"><option value="weekly" ${t.ai_period==="weekly"?"selected":""}>每周</option><option value="monthly" ${t.ai_period==="monthly"?"selected":""}>每月</option><option value="on_demand" ${t.ai_period==="on_demand"?"selected":""}>按需（不设目标）</option></select></div>
+                <div class="cfgField"><label>周期执行目标次数</label><input type="number" class="cfgAiTarget" min="0" max="7" value="${Number(t.ai_target)||0}"></div>
+              </div>
+              <div class="cfgField"><label>原有 Chat 对话链接（查看历史用）</label><input class="cfgAiChatUrl" value="${cfgEsc(t.ai_chat_url||"")}" placeholder="https://chatgpt.com/c/..."></div>
+              <div class="cfgField"><label>Notion 归档入口</label><input class="cfgAiArchiveUrl" value="${cfgEsc(t.ai_archive_url||"")}" placeholder="https://www.notion.so/..."></div>
+              <p class="cfgAiHint">AI 执行仅打开预填指令的新 ChatGPT 页面，仍须点击发送；执行成功后手动核验记次。</p>
+            </div>
+          </details>
           <div><div class="cfgDaysLabel">执行星期</div><div class="cfgDays">${dayBoxesHtml(t)}</div></div>
           <div><div class="cfgDaysLabel">标记</div><div class="cfgFlags"><label><input type="checkbox" class="cfgEnabled" ${t.enabled!==false?"checked":""}>启用</label><label><input type="checkbox" class="cfgCore" ${t.core?"checked":""}>保底</label><label><input type="checkbox" class="cfgOptional" ${t.optional?"checked":""}>可选</label><label><input type="checkbox" class="cfgImportant" ${t.important?"checked":""}>重要</label></div></div>
           <div class="cfgField wide"><label>子任务（一行一个）</label><textarea class="cfgSteps" placeholder="APP签到&#10;鸣潮&#10;绝区零">${cfgEsc(stepTitles)}</textarea></div>
