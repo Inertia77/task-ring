@@ -53,7 +53,7 @@ function slugifyId(s, fallback="custom"){
 /* === v11.0 Time Budget / Focus Timer helpers === */
 const timeCategoryDefs={
   game:{name:"游戏",short:"游戏",icon:"游",budget:720},
-  language:{name:"语言",short:"语言",icon:"语",budget:360},
+  language:{name:"语言和音乐",short:"语乐",icon:"语",budget:360},
   it_ai:{name:"IT / AI",short:"IT",icon:"IT",budget:360},
   science:{name:"自然科学",short:"科学",icon:"科",budget:180},
   creator:{name:"创作 / 数据库",short:"创作",icon:"创",budget:240},
@@ -115,7 +115,7 @@ function taskWeeklyMinutes(task){return inferWeeklyMinutes(task||{})}
 const taskPlanModeDefs={
   daily:{name:"每日",short:"每日",hint:"真每日/保底：进入「每日」模块，计入今日完成度。"},
   scheduled:{name:"指定日",short:"指定日",hint:"必须安排在某些星期：到日出现，错过后按遗留处理。"},
-  weekly:{name:"周计划",short:"周计划",hint:"不占每日模块；按本周目标时间推进，适合语言、IT、科学、创作等弹性任务。"}
+  weekly:{name:"周计划",short:"周计划",hint:"不占每日模块；按本周目标时间推进，适合语言、音乐、IT、科学、创作等弹性任务。"}
 };
 const taskPlanModeOrder=["daily","scheduled","weekly"];
 function normalizeTaskPlanMode(v,fallback="weekly"){
@@ -721,8 +721,8 @@ function repairReusedTaskCodes(config){
   return {config:cfg,changes};
 }
 applyTaskConfig(loadLocalTaskConfig()||buildDefaultConfig(),false);
-const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言&学习",color:"var(--language)",cls:"language",icon:"§"}};
-const mobileCatNames={life:"生活",gamecreate:"创作",language:"学习"};
+const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"},gamecreate:{name:"游戏&创作",color:"var(--gamecreate)",cls:"gamecreate",icon:"✦"},language:{name:"语言和音乐",color:"var(--language)",cls:"language",icon:"§"}};
+const mobileCatNames={life:"生活",gamecreate:"创作",language:"语言和音乐"};
 function catMobileName(catKey,c){return mobileCatNames[catKey]||c?.name||catKey||"任务"}
 const ROLLOVER_HOUR=4;
 function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}
@@ -1390,7 +1390,7 @@ function taskEditorRowHtml(t){
       <div class="cfgField"><label>分类</label><select class="cfgCat">
         <option value="life" ${t.cat==="life"?"selected":""}>生活&经济</option>
         <option value="gamecreate" ${t.cat==="gamecreate"?"selected":""}>游戏&创作</option>
-        <option value="language" ${t.cat==="language"?"selected":""}>语言&学习</option>
+        <option value="language" ${t.cat==="language"?"selected":""}>语言和音乐</option>
       </select></div>
       <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务进入「每日」模块，还是进入「周计划」按本周时间推进">
         ${taskPlanModeOrder.map(k=>`<option value="${k}" ${taskPlanningMode(t)===k?"selected":""}>${taskPlanModeDefs[k].name}</option>`).join("")}
