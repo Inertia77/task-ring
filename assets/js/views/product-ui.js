@@ -99,6 +99,7 @@
     </details>`;
   }
   function dailyCard(o){
+    if(o.t.ai_enabled===true && window.TaskRingAI)return window.TaskRingAI.dailyCard(o);
     const t=o.t,dayId=o.dayId,cycle=o.cycle||cycleYmd;
     const st={...occurrenceState(t,dayId,cycle),dayId,cycle};
     const active=readActiveTimer();
@@ -144,7 +145,7 @@
     const rows=tasks.map(t=>{
       const c=cats[t.cat]||cats.life;
       const progress=hasSteps(t.id)?stepProgress(t,stepContextDay(t),cycleYmd):null;
-      return `<tr style="--matrix-accent:${c.color||"var(--color-line-strong)"}"><th scope="row" class="weekMatrixTask"><span>${escapeHtml(c.name||t.cat)}</span><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><em>预计 ${taskEstimatedMinutes(t)}m${progress?` · 子任务 ${progress.done}/${progress.total}`:""}</em></th>${days.map(day=>weekMatrixCell(t,day)).join("")}</tr>`;
+      return `<tr style="--matrix-accent:${c.color||"var(--color-line-strong)"}"><th scope="row" class="weekMatrixTask"><span>${escapeHtml(c.name||t.cat)}</span><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><em>${t.ai_enabled?"AI 执行":`预计 ${taskEstimatedMinutes(t)}m`}${progress?` · 子任务 ${progress.done}/${progress.total}`:""}</em></th>${days.map(day=>weekMatrixCell(t,day)).join("")}</tr>`;
     }).join("");
     return `<section class="weekMatrixPanel" aria-label="全周任务矩阵"><header class="weekMatrixHeader"><div><span>WEEK MATRIX</span><b>任务 × 星期面板</b><em>纵向看任务，横向看一周排程；单元格可直接完成或取消完成。</em></div><div class="weekMatrixSummary"><span><b>${tasks.length}</b> 个任务</span><span><b>${done}/${occurrences.length}</b> 已完成</span><span class="${attention?"attention":""}"><b>${attention}</b> 需关注</span></div></header><div class="weekMatrixScroll" tabindex="0" aria-label="可横向滚动查看完整星期"><table class="weekMatrixTable"><thead><tr><th scope="col">任务 / 分类</th>${days.map(day=>`<th scope="col" class="${day.id===today?"isToday":""}"><span>${escapeHtml(day.name)}</span>${day.id===today?"<em>今日</em>":""}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div><div class="weekMatrixLegend"><span>✓ 已完成</span><span>! 逾期 / 遗留</span><span>× 已锁定</span><span>— 当日无排程</span></div></section>`;
   }
@@ -160,11 +161,11 @@
       box.innerHTML='<div class="emptyState"><strong>「每日」里的今日任务已经清空</strong><span>今天的硬任务已完成；可以休息，或切到「周计划」推进长期主线。</span><button type="button" data-view-target="weekly">打开周计划</button></div>';
       return;
     }
-    const grouped=groupBy(occurrences,o=>o.t.cat||"life");
+    const grouped=groupBy(occurrences,o=>o.t.ai_enabled===true?taskTimeCategory(o.t):(o.t.cat||"life"));
     const order=["life","gamecreate","language",...grouped.keys()].filter((v,i,a)=>a.indexOf(v)===i&&grouped.has(v));
     const html=order.map((cat,index)=>{
       const list=(grouped.get(cat)||[]).slice().sort(dailyPriority);
-      const def=cats[cat]||{name:cat,icon:"•"};
+      const def=cats[cat]||timeCategoryDefs[cat]||{name:cat,icon:"•"};
       const stats=dailyGroupStats(list);
       const allDone=stats.total>0&&stats.done===stats.total;
       const hasAttention=list.some(occurrenceAttention);
@@ -221,10 +222,11 @@
   function weeklyCategoryTabs(rows,active,tasks){
     const totalDone=tasks.filter(t=>weeklyTaskStatus(t).state==="done").length;
     const buttons=[`<button type="button" class="weeklyCategoryTab ${active==="all"?"active":""}" data-weekly-category-tab="all"><span>全部</span><b>${tasks.length} 项</b><em>完成 ${totalDone}</em></button>`];
-    rows.forEach(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;buttons.push(`<button type="button" class="weeklyCategoryTab ${active===row.cat?"active":""}" data-weekly-category-tab="${escapeHtml(row.cat)}"><span class="weeklyCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(categoryDisplayName(row.cat,def.name))}</span></span><b>${row.count} 项</b><em>${fmtMinutes(row.used)} / ${fmtMinutes(row.target)}</em></button>`)});
+    rows.forEach(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;buttons.push(`<button type="button" class="weeklyCategoryTab ${active===row.cat?"active":""}" data-weekly-category-tab="${escapeHtml(row.cat)}"><span class="weeklyCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(categoryDisplayName(row.cat,def.name))}</span></span><b>${row.count} 项</b><em>${row.target?`${fmtMinutes(row.used)} / ${fmtMinutes(row.target)}`:`执行 ${row.done}/${row.count}`}</em></button>`)});
     return `<nav class="weeklyCategoryTabs" aria-label="周计划分类">${buttons.join("")}</nav>`;
   }
   function weeklyCard(t){
+    if(t.ai_enabled===true && window.TaskRingAI)return window.TaskRingAI.weeklyCard(t);
     const st=weeklyTaskStatus(t);
     const pct=st.target?Math.min(100,st.pct):0;
     const def=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
@@ -263,7 +265,7 @@
       const running=list.some(t=>active?.kind==="task"&&String(active.task_id)===String(t.id));
       const near=list.some(t=>{const st=weeklyTaskStatus(t);return st.target&&st.used<st.target&&st.used/st.target>=.7});
       const key=detailKey("weekly-group",cat);
-      return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${list.length} 项 · 投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
+      return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${list.length} 项 · ${target?`投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}`:`完成 ${done}/${list.length} 项`}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
     }).join("");
     el.innerHTML=`<div class="weeklyShell"><div class="weeklyCommandHero taskAreaHeader"><div class="taskAreaHeaderCopy"><span class="taskAreaEyebrow">WEEKLY ALLOCATION</span><b class="taskAreaTitle">周计划</b><em class="taskAreaDescription">按分类收纳长期主线，优先展示正在计时和接近目标的任务。</em></div><div class="weeklyHeroStats taskAreaHeaderSide"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}${weeklyCategoryTabs(rows,activeCategory,tasks)}${overview}<div class="weeklyTaskGroups">${groups||'<div class="weeklyEmpty"><b>周计划为空</b><span>从任务编辑器把任务模式设为「周计划」。</span><button type="button" data-open-task-editor>打开任务编辑器</button></div>'}</div></div>`;
   };
