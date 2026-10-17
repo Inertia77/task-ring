@@ -196,9 +196,10 @@
 
     const details=document.createElement("details");
     details.className="uxActionMore";
-    details.innerHTML='<summary aria-label="展开低频操作"><span aria-hidden="true">•••</span><b>更多</b></summary><div class="uxActionMenu"></div>';
+    details.innerHTML='<summary aria-label="更多操作" title="更多操作">'+taskUiIcon("ellipsis")+'</summary><div class="uxActionMenu"></div>';
     const menu=details.querySelector(".uxActionMenu");
     secondary.forEach(el=>{
+      if(el.matches(".manualTimeTiny"))el.textContent="补记时间";
       if(el.matches("[data-open-task-editor]"))el.textContent="编辑任务";
       if(el.matches("[data-time-task-detail]"))el.textContent="时间账本";
       if(el.matches("[data-edit-weekly-target]")){
