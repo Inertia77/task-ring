@@ -116,7 +116,7 @@
       const used=week[k]||0;
       const sharePct=totalWeek?used/totalWeek*100:0;
       const over=used>def.budget;
-      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel"><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
+      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel taskCategoryGraphic" data-task-category="${escapeHtml(k)}" role="img" title="${escapeHtml(def.name)}" aria-label="${escapeHtml(def.name)}">${taskCategoryGlyph(k)}</div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
     }).join("");
     const q=String(timeTaskSearch||"").trim().toLowerCase();
     const showGameRow=gameQuestSearchMatched(q);
@@ -157,7 +157,7 @@
     const historyToolbar=`<div class="timeHistoryToolbar"><div class="timeHistorySummary"><span>HISTORY / ARCHIVE</span><b>${allLogs.length} 条 · ${availableWeeks.length} 周</b><em>本机最多保留 ${TIME_LOG_LIMIT} 条；云端同步最近 ${TIME_GH_LOG_LIMIT} 条。</em></div><label class="timeHistoryWeekPicker"><span>查看周次</span><select id="timeLogWeekSelect">${historyOptions}</select></label><button type="button" class="timeHistoryExportBtn" data-export-time-history><span>↓</span><b>导出备份</b></button></div>`;
     const historyFoot=scopedLogs.length>visibleLogs.length?`<div class="timeHistoryFoot">当前周次共 ${scopedLogs.length} 条，这里显示最近 ${visibleLogs.length} 条；完整内容可导出备份。</div>`:`<div class="timeHistoryFoot">当前显示 ${visibleLogs.length} 条记录。删除操作会同步到其他设备。</div>`;
     const historyBody=`${historyToolbar}<ul class="timeLogList">${logRows}</ul>${historyFoot}`;
-    const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
+    const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span class="timeCategoryTodayChip" title="${escapeHtml(timeCategoryDefs[k].name)}" aria-label="${escapeHtml(timeCategoryDefs[k].name)}：${fmtMinutes(todayTotals[k])}">${taskCategoryGlyph(k)} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
     const taskRanks=weekTaskTotals().slice(0,6).map(row=>{
       const task=taskById(row.task_id);
       const target=task?taskWeeklyMinutes(task):0;
