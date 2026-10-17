@@ -441,7 +441,8 @@ function normalizeFitnessSections(value,rawDays={}){
       id,
       name:baseName,
       short:String(raw.short||defaultMeta?.short||baseName).trim().slice(0,18)||baseName,
-      icon:String(raw.icon||defaultMeta?.icon||baseName.slice(0,1)||"＋").trim().slice(0,4)||"＋",
+      icon:String(raw.icon||defaultMeta?.icon||baseName.slice(0,1)||"＋").trim().slice(0,20)||"＋",
+      guide:typeof raw.guide==="string"?raw.guide.trim().slice(0,5000):"",
       accent,
       locked:defaultMeta?true:raw.locked===true,
       enabled:raw.enabled!==false
