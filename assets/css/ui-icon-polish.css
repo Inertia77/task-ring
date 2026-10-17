@@ -131,3 +131,18 @@
 @media (prefers-reduced-motion:reduce) {
   .trUiIcon {transition:none!important;}
 }
+
+/* Control center shares exactly the same icon family as the main navigation. */
+.controlAreaIcon .trUiIcon { width:25px;height:25px; }
+.controlAreaAction i[data-task-ui-icon] {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:17px;
+  height:17px;
+  vertical-align:middle;
+}
+.controlAreaAction i[data-task-ui-icon] .trUiIcon {width:16px;height:16px;}
+@media (max-width:700px) {
+  .controlAreaIcon .trUiIcon {width:23px;height:23px;}
+}
