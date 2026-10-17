@@ -412,7 +412,7 @@ function normalizeFitnessItemList(value,kind="training"){
     used.add(id);
     const note=String(obj?.note||obj?.detail||"").trim();
     const url=normalizeFitnessUrl(obj?.url||obj?.link||"",note);
-    return {id,title,note,url,enabled:obj?.enabled!==false};
+    return {id,title,note,url,optional:obj?.optional===true,enabled:obj?.enabled!==false};
   }).filter(item=>item&&item.enabled!==false).slice(0,30);
 }
 const FITNESS_SECTION_DEFAULTS=[
