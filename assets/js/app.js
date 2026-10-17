@@ -62,6 +62,25 @@ const timeCategoryDefs={
   life:{name:"生活杂务",short:"生活",icon:"生",budget:180}
 };
 const timeCategoryOrder=["game","language","it_ai","science","creator","body","economy","life"];
+
+/* A single stable, label-independent SVG pictogram set for task categories.
+   User-specific Gist category names never affect the card's visual identifier. */
+const TASK_CATEGORY_GLYPH_PATHS=Object.freeze({
+  game:'<path d="M6 12h4m-2-2v4"/><path d="M15.5 11h.01M18 13h.01"/><path d="M7.1 5.5h9.8a4 4 0 0 1 3.9 3.1l1.1 6a3.6 3.6 0 0 1-5.7 3.5L14 16.5h-4l-2.2 1.6A3.6 3.6 0 0 1 2.1 14.6l1.1-6a4 4 0 0 1 3.9-3.1Z"/>',
+  language:'<path d="M12 6.2C9.5 4.7 6.5 4.5 3 5.7v13.5c3.5-1.2 6.5-1 9 1 2.5-2 5.5-2.2 9-1V5.7c-3.5-1.2-6.5-1-9 .5Z"/><path d="M12 6.2v14"/><path d="M17.7 8.4v5.2a1.5 1.5 0 1 1-1.3-1.5V9l2.7-.6"/>',
+  it_ai:'<rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx=".5"/><path d="M9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"/>',
+  science:'<path d="M9 3h6m-5 0v7l-5.6 8.3A2.2 2.2 0 0 0 6.3 21h11.4a2.2 2.2 0 0 0 1.9-2.7L14 10V3"/><path d="M8 15h8"/>',
+  creator:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8V5.7a2 2 0 0 1 1.5-2L18 1l2 6"/><path d="m8 4-2 4m8-5-2 5m8-5-2 5"/><path d="m10 12 5 3-5 3Z"/>',
+  gamecreate:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8V5.7a2 2 0 0 1 1.5-2L18 1l2 6"/><path d="m8 4-2 4m8-5-2 5m8-5-2 5"/><path d="m10 12 5 3-5 3Z"/>',
+  body:'<path d="M20.8 8.2c0 5.3-8.8 11.1-8.8 11.1S3.2 13.5 3.2 8.2A4.6 4.6 0 0 1 12 6.3a4.6 4.6 0 0 1 8.8 1.9Z"/><path d="M5.5 12h3l1.5-2.4 3 5 1.5-2.6h4"/>',
+  economy:'<path d="M4 20V11m5 9v-6m5 6v-9m5 9V7"/><path d="m4 8 5-4 5 3 6-4"/><path d="M16.5 3H20v3.5"/>',
+  life:'<path d="M12 21V11"/><path d="M12 14c-4.5 0-7-2.6-7-7 4.4 0 7 2.6 7 7Zm0-4c0-4.4 2.6-7 7-7 0 4.4-2.6 7-7 7Z"/><path d="M7 21h10"/>'
+});
+function taskCategoryGlyph(key){
+  const paths=TASK_CATEGORY_GLYPH_PATHS[String(key)]||TASK_CATEGORY_GLYPH_PATHS.life;
+  return `<span class="taskCategoryGlyph" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg></span>`;
+}
+
 function normalizeTimeCategory(v,fallback="life"){
   const key=String(v||"").trim();
   return timeCategoryDefs[key]?key:fallback;
@@ -2813,7 +2832,7 @@ function compactTaskMeta(t,st=null,meta=""){
   return bits.join("")||`<span class="metaSpacer">&nbsp;</span>`;
 }
 function taskRowHtml(t,c,metaHtml,stepHtml="",frontCheck="",dayId=stepContextDay(t),cycle=cycleYmd){
-  return `<div class="taskRowInner"><div class="taskMainLine">${frontCheck}${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="taskMetaLine">${metaHtml}${timerControlsHtml(t,dayId,cycle)}</div>${stepHtml||""}</div>`;
+  return `<div class="taskRowInner"><div class="taskMainLine">${frontCheck}${taskMiniRingHtml(t,dayId,cycle)}<span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon taskCategoryGraphic" data-task-category="${escapeHtml(t.cat)}" role="img" aria-label="分类：${escapeHtml(catMobileName(t.cat,c))}">${taskCategoryGlyph(t.cat)}</span>${titleHtml(t)}</div><div class="taskMetaLine">${metaHtml}${timerControlsHtml(t,dayId,cycle)}</div>${stepHtml||""}</div>`;
 }
 function catCellHtml(c){return `<div class="catInner">${escapeHtml(c.name)}</div>`}
 function renderTable(){const table=document.getElementById("taskTable");const isAll=viewMode==="all";const vDays=visibleDaysForMode();let html=`<thead><tr><th class="catHead">区分</th><th class="taskHead">任务</th>${isAll?vDays.map(d=>`<th class="dayHead ${d.id===today?"todayHead":""}">${d.name}${d.id===today?"｜今日":""}</th>`).join(""):""}</tr></thead><tbody>`;if(isAll){for(const t of ringBlocks()){const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const ctxDay=stepContextDay(t);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t),stepPanelHtml(t,ctxDay,c.cls,cycleYmd),"",ctxDay,cycleYmd)}</td>`;for(const d of vDays){if(t.days.includes(d.id)){html+=cellHtml(t,d.id,cycleYmd,d.id===today?"activeTodayCell":"")}else{html+=`<td class="dayCell blank"></td>`}}html+=`</tr>`}}else{const occs=todayOccurrences(viewMode==="today");if(!occs.length){html+=`<tr><td class="category" style="background:#f4f7fb"><div class="catInner">完成</div></td><td class="taskName"><div class="taskRowInner emptyRow"><div class="taskMainLine">「每日」里的今日任务已经清空。长期主线请切到「周计划」继续推进。</div><div class="taskMetaLine"><span class="metaSpacer">&nbsp;</span></div></div></td></tr>`}else{for(const o of occs){const t=o.t;const c=cats[t.cat]||{name:t.cat,color:"#eef2f7",cls:"",icon:"•"};const st=occurrenceState(t,o.dayId,o.cycle);const meta=occurrenceMeta(t,o.dayId,o.cycle);html+=`<tr><td class="category ${c.cls}" style="background:${c.color}">${catCellHtml(c)}</td><td class="taskName ${c.cls}Task" style="border-left:5px solid ${c.color}">${taskRowHtml(t,c,compactTaskMeta(t,st,meta),stepPanelHtml(t,o.dayId,c.cls,o.cycle),frontCheckHtml(t,o.dayId,o.cycle),o.dayId,o.cycle)}</td></tr>`}}}table.innerHTML=html+`</tbody>`}
@@ -2830,8 +2849,8 @@ function renderMobileCards(){
     const meta=occurrenceMeta(t,dayId,cycle);
     const metaMain=meta?`<span class="mobileMetaText">${meta}</span>`:`<span class="mobileMetaText metaSpacer">&nbsp;</span>`;
     const stepSlot=steps?`<span class="mobileStepSlot">${steps}</span>`:"";
-    const topLine=`<div class="mTagLine"><span class="badge" style="background:${c.color}">${escapeHtml(catMobileName(t.cat,c))}</span>${taskMiniRingHtml(t,dayId,cycle)}${tagHtml(t)}${statusBadges(st)}</div>`;
-    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody">${topLine}<div class="mTitle mTaskTitleLine ${c.cls}Task"><span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon">${escapeHtml(c.icon||"•")}</span>${titleHtml(t)}</div><div class="mMeta">${metaMain}${timerControlsHtml(t,dayId,cycle)}</div>${stepSlot}</div></div>`;
+    const topLine=`<div class="mTagLine"><span class="badge taskCategoryMobileBadge" data-task-category="${escapeHtml(t.cat)}" title="分类：${escapeHtml(catMobileName(t.cat,c))}" role="img" aria-label="分类：${escapeHtml(catMobileName(t.cat,c))}">${taskCategoryGlyph(t.cat)}</span>${taskMiniRingHtml(t,dayId,cycle)}${tagHtml(t)}${statusBadges(st)}</div>`;
+    return `<div class="mTask ${dayId===today&&cycle===cycleYmd?"today":""} ${done?"done":""} ${st.ignored?"ignored":""} ${st.overdue?"overdue":""} ${st.failed?"failed":""} ${st.warn?"warnMiss":""}"><input type="checkbox" data-task="${escapeHtml(t.id)}" data-day="${dayId}" data-cycle="${cycle}" ${done?"checked":""} ${disabled}><div class="mTaskBody">${topLine}<div class="mTitle mTaskTitleLine ${c.cls}Task"><span class="taskIndexBar" aria-hidden="true"></span><span class="taskIcon taskCategoryGraphic" data-task-category="${escapeHtml(t.cat)}" role="img" aria-label="分类：${escapeHtml(catMobileName(t.cat,c))}">${taskCategoryGlyph(t.cat)}</span>${titleHtml(t)}</div><div class="mMeta">${metaMain}${timerControlsHtml(t,dayId,cycle)}</div>${stepSlot}</div></div>`;
   };
   const renderGroup=(label,list,extraCls="",dayId=null)=>{
     const stats=mobileGroupSummary(list,dayId);
