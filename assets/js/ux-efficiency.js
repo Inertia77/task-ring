@@ -203,9 +203,8 @@
       if(el.matches("[data-open-task-editor]"))el.textContent="编辑任务";
       if(el.matches("[data-time-task-detail]"))el.textContent="时间账本";
       if(el.matches("[data-edit-weekly-target]")){
-        const label=el.querySelector("span")?.textContent||"周目标";
-        const value=el.querySelector("b")?.textContent||el.textContent.trim();
-        el.textContent=`${label} · ${value}`;
+        const value=el.querySelector("b")?.textContent||el.querySelector("span")?.textContent||"未设";
+        el.textContent=`周目标 · ${value}`;
       }
       menu.appendChild(el);
     });
