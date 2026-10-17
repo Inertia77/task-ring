@@ -154,6 +154,26 @@
     else if(action==="verify")verify(t);
     else if(action==="undo")undo(t);
   },true);
+  const importBtn=document.getElementById("importTaskFileBtn");
+  const importInput=document.getElementById("importTaskFileInput");
+  if(importBtn&&importInput){
+    importBtn.addEventListener("click",()=>importInput.click());
+    importInput.addEventListener("change",async()=>{
+      const file=importInput.files?.[0];
+      importInput.value="";
+      if(!file)return;
+      if(file.size>2000000){showToast("JSON 文件超过 2MB，已取消导入","warn");return}
+      try{
+        const json=JSON.parse(await file.text());
+        const config=taskEditorImportConfig(json);
+        const oldCount=taskConfig?.tasks?.length||0;
+        taskConfig=config;
+        renderTaskEditor(true);
+        taskEditorLog("已载入本地任务 JSON（"+oldCount+" → "+config.tasks.length+" 项），未保存；请核对后按「保存配置」完成同步。");
+        showToast("AI 任务 JSON 已载入，核对后点击保存配置","ok",4500);
+      }catch(err){showToast("导入 JSON 失败："+String(err.message||err),"err",5000)}
+    });
+  }
   if(document.readyState!=="loading")window.renderWeeklyPlanPanel();
   else document.addEventListener("DOMContentLoaded",()=>window.renderWeeklyPlanPanel(),{once:true});
 })();
