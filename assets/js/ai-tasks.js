@@ -21,7 +21,7 @@
   }
   function weeklyStatus(t){
     const done=verifiedCount(t),goal=Math.max(0,Number(t.ai_target)||0);
-    const achieved=t.ai_period!=="on_demand"&&goal>0&&done>=goal;
+    const achieved=goal>0?done>=goal:(t.ai_period==="on_demand"&&done>0);
     return {used:0,target:0,pct:goal?Math.min(100,Math.round(done/goal*100)):0,state:achieved?"done":done>0?"active":"idle",over:false,ai_done:done,ai_target:goal};
   }
   function launchButtons(t){
@@ -41,13 +41,14 @@
     const id=escapeHtml(t.id),cat=taskTimeCategory(t);
     const category=(timeCategoryDefs[cat]||timeCategoryDefs.life);
     const isDone=st.state==="done",dailyDone=weeklyEntries(t).filter(e=>e.day===currentDay(t)).length;
+    const doneLabel=t.ai_period==="on_demand"?"已执行":"本周期已达成";
     return '<article class="weeklyMissionCard aiEmbeddedCard '+(isDone?'done achieved':'')+'" style="--w:'+progress+'%">'+
       '<header class="missionHead"><div class="missionIcon taskCategoryGraphic" data-task-category="'+escapeHtml(cat)+'" aria-hidden="true">'+taskCategoryGlyph(cat)+'</div>'+
       '<div class="missionTitleBlock"><b title="'+escapeHtml(t.title)+'">'+escapeHtml(t.title)+'</b><span>'+escapeHtml(taskDayHint(t))+' · '+escapeHtml(description)+'</span></div>'+
-      '<div class="missionScore"><strong>'+done+(goal?' / '+goal:' 次')+'</strong><em>'+(isDone?'本周期已达成':period+(goal?'待完成':'执行记录'))+'</em></div></header>'+
+      '<div class="missionScore"><strong>'+done+(goal?' / '+goal:' 次')+'</strong><em>'+(isDone?doneLabel:period+(goal?'待完成':'执行记录'))+'</em></div></header>'+
       (goal?'<div class="missionMeter" aria-label="'+period+'执行进度 '+progress+'%"><i></i></div>':'')+
       '<footer class="missionActions aiInlineActions">'+launchButtons(t)+'</footer>'+
-      '<div class="missionBadges aiEmbeddedFoot"><span class="statusBadge weeklyPace '+(isDone?'achieved':'idle')+'">'+(isDone?'✓ 已达成':'✦ AI 任务')+'</span>'+
+      '<div class="missionBadges aiEmbeddedFoot"><span class="statusBadge weeklyPace '+(isDone?'achieved':'idle')+'">'+(isDone?(t.ai_period==='on_demand'?'✓ 已执行':'✓ 已达成'):'✦ AI 任务')+'</span>'+
       '<span class="planModeBadge weekly">周计划</span><span class="taskCategoryIconBadge" data-task-category="'+escapeHtml(cat)+'" title="'+escapeHtml(category.name)+'">'+taskCategoryGlyph(cat)+'</span>'+
       '<button type="button" class="aiVerifyInline" data-ai-action="verify-weekly" data-ai-task="'+id+'">✓ 核验并记次</button>'+
       (dailyDone?'<button type="button" class="aiUndoInline" data-ai-action="undo-weekly" data-ai-task="'+id+'">撤销今日一次</button>':'')+
