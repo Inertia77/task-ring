@@ -47,6 +47,12 @@
     ringBlocks().forEach(t=>sortWeekDays(t.days).forEach(dayId=>out.push({t,dayId,cycle:cycleYmd,current:dayId===today})));
     return out;
   }
+  // "学习" was a stale weekly alias. The stable category key is "language";
+  // render the explicit language/music label in both the daily and weekly UI.
+  function categoryDisplayName(key, fallback=""){
+    if(key==="language")return "语言和音乐";
+    return fallback||timeCategoryDefs[key]?.name||cats[key]?.name||String(key||"任务");
+  }
   function dailyGroupStats(list){
     const stats={total:list.length,done:0,running:0,overdue:0,important:0,minutes:0};
     list.forEach(o=>{
@@ -65,7 +71,7 @@
   }
   function dailyStatusBadges(t,st,running,paused){
     const bits=[];
-    const categoryName=(cats[t.cat]||{}).name||String(t.cat||"生活");
+    const categoryName=categoryDisplayName(t.cat,(cats[t.cat]||{}).name||String(t.cat||"生活"));
     bits.push(`<span class="dailyVisualChip category" data-task-category="${escapeHtml(t.cat)}" title="分类：${escapeHtml(categoryName)}" role="img" aria-label="分类：${escapeHtml(categoryName)}">${taskCategoryGlyph(t.cat)}</span>`);
     if(t.core)bits.push(dailyVisualChip("diamond","保底任务","core"));
     else if(t.optional)bits.push(dailyVisualChip("circle-dashed","可选任务","optional"));
@@ -165,7 +171,7 @@
       const key=detailKey("daily-group",cat,viewMode);
       const fallback=hasAttention||(!allDone&&index===0);
       return `<details class="dailyGroup ${hasAttention?"hasAttention":""} ${allDone?"completed":""}" data-ui-details-key="${escapeHtml(key)}"${openAttr(key,fallback)}>
-        <summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(def.name)}</b><span>${stats.total} 项 · 预计 ${fmtMinutes(stats.minutes)}${stats.running?` · ${stats.running} 项计时中`:""}</span></div><div class="sectionSummaryMetrics"><span class="dailyGroupMetric" role="img" title="完成 ${stats.done}/${stats.total}" aria-label="完成 ${stats.done}/${stats.total}">${taskUiIcon("check-circle")}<b>${stats.done}/${stats.total}</b></span>${stats.overdue?`<span class="dailyGroupMetric attention" role="img" title="需关注 ${stats.overdue} 项" aria-label="需关注 ${stats.overdue} 项">${taskUiIcon("triangle-alert")}<b>${stats.overdue}</b></span>`:""}${stats.important?`<span class="dailyGroupMetric priority" role="img" title="高优先 ${stats.important} 项" aria-label="高优先 ${stats.important} 项">${taskUiIcon("zap")}<b>${stats.important}</b></span>`:""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary>
+        <summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${stats.total} 项 · 预计 ${fmtMinutes(stats.minutes)}${stats.running?` · ${stats.running} 项计时中`:""}</span></div><div class="sectionSummaryMetrics"><span class="dailyGroupMetric" role="img" title="完成 ${stats.done}/${stats.total}" aria-label="完成 ${stats.done}/${stats.total}">${taskUiIcon("check-circle")}<b>${stats.done}/${stats.total}</b></span>${stats.overdue?`<span class="dailyGroupMetric attention" role="img" title="需关注 ${stats.overdue} 项" aria-label="需关注 ${stats.overdue} 项">${taskUiIcon("triangle-alert")}<b>${stats.overdue}</b></span>`:""}${stats.important?`<span class="dailyGroupMetric priority" role="img" title="高优先 ${stats.important} 项" aria-label="高优先 ${stats.important} 项">${taskUiIcon("zap")}<b>${stats.important}</b></span>`:""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary>
         <div class="dailyGroupBody">${list.map(dailyCard).join("")}</div>
       </details>`;
     }).join("");
@@ -215,7 +221,7 @@
   function weeklyCategoryTabs(rows,active,tasks){
     const totalDone=tasks.filter(t=>weeklyTaskStatus(t).state==="done").length;
     const buttons=[`<button type="button" class="weeklyCategoryTab ${active==="all"?"active":""}" data-weekly-category-tab="all"><span>全部</span><b>${tasks.length} 项</b><em>完成 ${totalDone}</em></button>`];
-    rows.forEach(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;buttons.push(`<button type="button" class="weeklyCategoryTab ${active===row.cat?"active":""}" data-weekly-category-tab="${escapeHtml(row.cat)}"><span class="weeklyCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(def.name)}</span></span><b>${row.count} 项</b><em>${fmtMinutes(row.used)} / ${fmtMinutes(row.target)}</em></button>`)});
+    rows.forEach(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;buttons.push(`<button type="button" class="weeklyCategoryTab ${active===row.cat?"active":""}" data-weekly-category-tab="${escapeHtml(row.cat)}"><span class="weeklyCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(categoryDisplayName(row.cat,def.name))}</span></span><b>${row.count} 项</b><em>${fmtMinutes(row.used)} / ${fmtMinutes(row.target)}</em></button>`)});
     return `<nav class="weeklyCategoryTabs" aria-label="周计划分类">${buttons.join("")}</nav>`;
   }
   function weeklyCard(t){
@@ -233,7 +239,7 @@
       <div class="missionMeter" aria-label="周目标进度 ${pct}%"><i></i></div>
       <footer class="missionActions"><button type="button" class="missionPrimary ${running?"active":""}" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${today}" data-timer-cycle="${escapeHtml(cycleYmd)}">${running?`${active.paused?"继续计时":"计时中"} ${fmtTimer(activeTimerElapsedSeconds(active))}`:"开始计时"}</button><button type="button" class="missionGhost manualTimeTiny" data-manual-time-entry="task" data-manual-task-id="${escapeHtml(t.id)}">+补记</button><button type="button" class="missionGhost" data-time-task-detail="${escapeHtml(t.id)}">查看账本</button><button type="button" class="missionGhost safeTargetEdit" data-edit-weekly-target="${escapeHtml(t.id)}"><span>周目标</span><b>${st.target?fmtMinutes(st.target):"未设"}</b></button>${url?`<a class="missionLink" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</footer>
       ${weeklySubtasks(t)}
-      <div class="missionBadges"><span class="statusBadge weeklyPace ${pace}">${paceLabel}</span>${planModeBadgeHtml(t)}<span class="taskCategoryIconBadge missionCategoryBadge" data-task-category="${escapeHtml(taskTimeCategory(t))}" role="img" title="分类：${escapeHtml(def.name)}" aria-label="分类：${escapeHtml(def.name)}">${taskCategoryGlyph(taskTimeCategory(t))}</span>${t.important?'<span class="hot">! 高优先级</span>':""}${running?`<span class="statusBadge ${active.paused?"paused":"running"}">${active.paused?"已暂停":"计时中"}</span>`:""}</div>
+      <div class="missionBadges"><span class="statusBadge weeklyPace ${pace}">${paceLabel}</span>${planModeBadgeHtml(t)}<span class="taskCategoryIconBadge missionCategoryBadge" data-task-category="${escapeHtml(taskTimeCategory(t))}" role="img" title="分类：${escapeHtml(categoryDisplayName(taskTimeCategory(t),def.name))}" aria-label="分类：${escapeHtml(categoryDisplayName(taskTimeCategory(t),def.name))}">${taskCategoryGlyph(taskTimeCategory(t))}</span>${t.important?'<span class="hot">! 高优先级</span>':""}${running?`<span class="statusBadge ${active.paused?"paused":"running"}">${active.paused?"已暂停":"计时中"}</span>`:""}</div>
     </article>`;
   }
   window.renderWeeklyPlanPanel=function(){
@@ -246,7 +252,7 @@
     const doneCount=tasks.filter(t=>weeklyTaskStatus(t).state==="done").length;
     const active=readActiveTimer();
     const activeHint=active?.kind==="task"?`<div class="weeklyActiveHint"><span>${active.paused?"PAUSED":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</em></div>`:"";
-    const summaries=rows.map(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;return `<div class="allocationChip" data-weekly-category="${escapeHtml(row.cat)}" style="--w:${pct}%"><div><b class="allocationCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(def.name)}</span></b></div><em>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""} · 完成 ${row.done}/${row.count}</em><i></i></div>`}).join("");
+    const summaries=rows.map(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;return `<div class="allocationChip" data-weekly-category="${escapeHtml(row.cat)}" style="--w:${pct}%"><div><b class="allocationCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(categoryDisplayName(row.cat,def.name))}</span></b></div><em>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""} · 完成 ${row.done}/${row.count}</em><i></i></div>`}).join("");
     const overviewKey=detailKey("weekly-overview",cycleYmd);
     const overview=activeCategory==="all"&&summaries?`<details class="weeklyOverview" data-ui-details-key="${escapeHtml(overviewKey)}"${openAttr(overviewKey,true)}><summary><div class="sectionSummary"><div class="sectionSummaryMain weeklyOverviewTitle"><b>全部任务完成概览</b><span>${rows.length} 个分类 · 投入 ${fmtMinutes(totalUsed)}${totalTarget?` / ${fmtMinutes(totalTarget)}`:""} · 完成 ${doneCount}/${tasks.length}</span></div><div class="weeklyOverviewToggle" aria-hidden="true"><span class="weeklyOverviewClosedLabel">展开</span><span class="weeklyOverviewOpenLabel">收起</span><span class="summaryChevron">⌄</span></div></div></summary><div class="weeklyOverviewBody"><div class="allocationRibbon">${summaries}</div></div></details>`:"";
     const groupCats=activeCategory==="all"?timeCategoryOrder:[activeCategory];
@@ -257,7 +263,7 @@
       const running=list.some(t=>active?.kind==="task"&&String(active.task_id)===String(t.id));
       const near=list.some(t=>{const st=weeklyTaskStatus(t);return st.target&&st.used<st.target&&st.used/st.target>=.7});
       const key=detailKey("weekly-group",cat);
-      return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(def.name)}</b><span>${list.length} 项 · 投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
+      return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${list.length} 项 · 投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
     }).join("");
     el.innerHTML=`<div class="weeklyShell"><div class="weeklyCommandHero taskAreaHeader"><div class="taskAreaHeaderCopy"><span class="taskAreaEyebrow">WEEKLY ALLOCATION</span><b class="taskAreaTitle">周计划</b><em class="taskAreaDescription">按分类收纳长期主线，优先展示正在计时和接近目标的任务。</em></div><div class="weeklyHeroStats taskAreaHeaderSide"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}${weeklyCategoryTabs(rows,activeCategory,tasks)}${overview}<div class="weeklyTaskGroups">${groups||'<div class="weeklyEmpty"><b>周计划为空</b><span>从任务编辑器把任务模式设为「周计划」。</span><button type="button" data-open-task-editor>打开任务编辑器</button></div>'}</div></div>`;
   };
