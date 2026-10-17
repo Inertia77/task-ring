@@ -1,0 +1,82 @@
+/* A coherent icon language for all TaskRing task categories.
+   Compact task chips show icons only; choice/navigation surfaces retain full text. */
+.taskCategoryGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  vertical-align: middle;
+  color: currentColor;
+}
+.taskCategoryGlyph svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+[data-task-category="game"] { --task-category-ink: #6550a1; --task-category-wash: #f0ecfb; }
+[data-task-category="language"] { --task-category-ink: #874da0; --task-category-wash: #f4ebf8; }
+[data-task-category="it_ai"] { --task-category-ink: #326799; --task-category-wash: #eaf3fc; }
+[data-task-category="science"] { --task-category-ink: #267780; --task-category-wash: #e8f7f5; }
+[data-task-category="creator"],
+[data-task-category="gamecreate"] { --task-category-ink: #90502c; --task-category-wash: #fbefe6; }
+[data-task-category="body"] { --task-category-ink: #2e765c; --task-category-wash: #e8f5ef; }
+[data-task-category="economy"] { --task-category-ink: #886a29; --task-category-wash: #fbf3dc; }
+[data-task-category="life"] { --task-category-ink: #526e56; --task-category-wash: #edf5ed; }
+
+/* Editor badge: no abbreviations, consistent 28-pixel symbol with an accessible name. */
+.editorBadge.taskCategoryIconBadge {
+  width: 29px;
+  height: 27px;
+  min-height: 27px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--task-category-ink, var(--color-ink));
+  background: var(--task-category-wash, var(--color-panel-soft));
+  border-color: color-mix(in srgb, var(--task-category-ink, var(--color-line)) 24%, var(--color-line));
+}
+.taskCategoryIconBadge .taskCategoryGlyph { width: 16px; height: 16px; }
+
+/* Icons beside task names use the same vector artwork at different sizes. */
+.cfgSummaryIcon.taskCategoryGraphic,
+.taskIcon.taskCategoryGraphic,
+.missionIcon.taskCategoryGraphic {
+  color: var(--task-category-ink, var(--color-ink));
+  background: var(--task-category-wash, var(--color-panel-soft));
+}
+.cfgSummaryIcon.taskCategoryGraphic .taskCategoryGlyph { width: 22px; height: 22px; }
+.taskIcon.taskCategoryGraphic .taskCategoryGlyph { width: 19px; height: 19px; }
+.missionIcon.taskCategoryGraphic .taskCategoryGlyph { width: 23px; height: 23px; }
+
+/* Narrow daily card chip: icon only, with full category name in title/aria-label. */
+.mTagLine .badge.taskCategoryMobileBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--task-category-ink, var(--color-line)) 22%, var(--color-line));
+  border-radius: 8px;
+  color: var(--task-category-ink, var(--color-ink));
+  background: var(--task-category-wash, var(--color-panel-soft));
+}
+.mTagLine .badge.taskCategoryMobileBadge .taskCategoryGlyph { width: 16px; height: 16px; }
+
+/* Navigation never relies on an unexplained glyph: show icon + full category name. */
+.weeklyCategoryLabel,
+.allocationCategoryLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.weeklyCategoryLabel .taskCategoryGlyph { width: 16px; height: 16px; }
+.allocationCategoryLabel .taskCategoryGlyph { width: 16px; height: 16px; }
+.weeklyCategoryLabel > span:last-child,
+.allocationCategoryLabel > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .cfgSummaryIcon.taskCategoryGraphic .taskCategoryGlyph { width: 21px; height: 21px; }
+  .missionIcon.taskCategoryGraphic .taskCategoryGlyph { width: 21px; height: 21px; }
+}
