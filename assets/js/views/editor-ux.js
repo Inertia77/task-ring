@@ -20,8 +20,9 @@
   function dayBoxesHtml(t){return [1,2,3,4,5,6,0].map(d=>`<label><input type="checkbox" class="cfgDay" value="${d}" ${t.days?.includes(d)?"checked":""}>${dayName(d)}</label>`).join("")}
   function rowStatus(t){
     const mode=taskPlanningMode(t);
-    const cat=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
-    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge">${escapeHtml(editorCategoryShort(taskTimeCategory(t)))}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
+    const key=taskTimeCategory(t);
+    const categoryName=escapeHtml(editorCategoryName(key));
+    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge taskCategoryIconBadge" data-task-category="${escapeHtml(key)}" role="img" title="分类：${categoryName}" aria-label="分类：${categoryName}">${taskCategoryGlyph(key)}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
   }
   window.taskEditorRowHtml=function(t){
     const stepCodes=(t.steps||[]).map(s=>s.code||"");
@@ -31,7 +32,7 @@
     const matches=editorMatches(t);
     return `<details class="cfgTask cfgTaskV20 ${t.enabled===false?"disabled":""} ${matches?"":"filteredOut"}" data-id="${cfgEsc(t.id)}" data-code="${cfgEsc(t.code)}" data-stepcodes="${cfgEsc(JSON.stringify(stepCodes))}" data-enabled="${t.enabled!==false?"1":"0"}">
       <summary class="cfgSummaryV20">
-        <div class="cfgSummaryIcon">${c.icon}</div>
+        <div class="cfgSummaryIcon taskCategoryGraphic" data-task-category="${escapeHtml(taskTimeCategory(t))}" aria-hidden="true">${taskCategoryGlyph(taskTimeCategory(t))}</div>
         <div class="cfgSummaryMain"><b>${cfgEsc(t.title)}</b><span>${taskPlanModeDefs[mode]?.name||mode} · ${taskDayHint(t)} · 周目标 ${fmtMinutes(taskWeeklyMinutes(t))}</span></div>
         <div class="cfgSummaryBadges">${rowStatus(t)}</div>
         <div class="cfgOps cfgSummaryOps"><button type="button" data-op="up">↑</button><button type="button" data-op="down">↓</button><button type="button" data-op="copy">复制</button><button type="button" data-op="remove" class="ghDangerBtn">删除</button></div>
