@@ -5,19 +5,23 @@
   let editorUiState={scope:"active",query:""};
   function loadEditorState(){try{editorUiState=Object.assign(editorUiState,JSON.parse(localStorage.getItem(EDITOR_FILTER_KEY)||"{}")||{})}catch(e){}}
   function saveEditorState(){try{localStorage.setItem(EDITOR_FILTER_KEY,JSON.stringify(editorUiState))}catch(e){}}
+  // The legacy language category also contains music study. Keep its stable key (language)
+  // while showing the new editorial name even when a saved weekly alias says 学习.
+  function editorCategoryName(key){return key==="language"?"语言和音乐":timeCategoryDefs[key]?.name||key}
+  function editorCategoryShort(key){return key==="language"?"语乐":timeCategoryDefs[key]?.short||key}
   function editorMatches(t){
     const q=String(editorUiState.query||"").trim().toLowerCase();
     if(!q)return true;
     const category=taskTimeCategory(t);
     const categoryDef=timeCategoryDefs[category]||timeCategoryDefs.life;
-    const hay=[t.title,t.id,t.code,category,categoryDef.name,categoryDef.short,taskPlanningMode(t),(t.steps||[]).map(s=>s.title).join(" ")].join(" ").toLowerCase();
+    const hay=[t.title,t.id,t.code,category,categoryDef.name,categoryDef.short,editorCategoryName(category),editorCategoryShort(category),taskPlanningMode(t),(t.steps||[]).map(s=>s.title).join(" ")].join(" ").toLowerCase();
     return hay.includes(q);
   }
   function dayBoxesHtml(t){return [1,2,3,4,5,6,0].map(d=>`<label><input type="checkbox" class="cfgDay" value="${d}" ${t.days?.includes(d)?"checked":""}>${dayName(d)}</label>`).join("")}
   function rowStatus(t){
     const mode=taskPlanningMode(t);
     const cat=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
-    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge">${escapeHtml(cat.short)}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
+    return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge">${escapeHtml(editorCategoryShort(taskTimeCategory(t)))}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
   }
   window.taskEditorRowHtml=function(t){
     const stepCodes=(t.steps||[]).map(s=>s.code||"");
@@ -35,7 +39,7 @@
       <div class="cfgBodyV20">
         <div class="cfgGrid">
           <div class="cfgField wide"><label>任务名</label><input class="cfgTitle" value="${cfgEsc(t.title)}"></div>
-          <div class="cfgField"><label>分类</label><select class="cfgCat cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].icon} ${timeCategoryDefs[k].name}</option>`).join("")}</select></div>
+          <div class="cfgField"><label>分类</label><select class="cfgCat cfgTimeCategory">${timeCategoryOrder.map(k=>`<option value="${k}" ${taskTimeCategory(t)===k?"selected":""}>${timeCategoryDefs[k].icon} ${editorCategoryName(k)}</option>`).join("")}</select></div>
           <div class="cfgField"><label>任务模式</label><select class="cfgPlanMode" title="决定任务是否进入今日执行环，还是只在周计划池按时间推进">${taskPlanModeOrder.map(k=>`<option value="${k}" ${taskPlanningMode(t)===k?"selected":""}>${taskPlanModeDefs[k].name}</option>`).join("")}</select></div>
           <div class="cfgField"><label>预计分钟/次</label><input class="cfgEstimatedMinutes" type="number" min="1" max="480" step="5" value="${taskEstimatedMinutes(t)}"></div>
           <div class="cfgField"><label>每周目标分钟</label><input class="cfgWeeklyMinutes" type="number" min="0" max="10080" step="5" value="${taskWeeklyMinutes(t)}" title="用于任务行显示 本周已用 / 每周目标；填 0 表示不设目标"></div>
