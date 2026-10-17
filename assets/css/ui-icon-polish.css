@@ -1,0 +1,133 @@
+/* TaskRing Icon-first UI · consistent 24px line art; semantic labels remain accessible.
+   Loaded after existing design layers to keep icon components visually stable. */
+.trUiIcon { display:inline-block; width:18px; height:18px; flex:0 0 auto; vertical-align:middle; stroke:currentColor; }
+.viewDockBtn {
+  grid-template-columns: 40px minmax(0,1fr);
+  grid-template-rows: minmax(36px,auto);
+  column-gap: 9px;
+  min-height: 56px;
+  padding: 7px 10px;
+}
+.viewDockBtn > span { display:none; }
+.viewDockBtn .dockGlyph {
+  grid-row:1;
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  background:color-mix(in srgb,var(--dock-zone,var(--color-panel-soft)) 78%,white);
+}
+.viewDockBtn .dockGlyph .trUiIcon { width:22px;height:22px; }
+.viewDockBtn b { grid-row:1; grid-column:2; align-self:center; font-size:14px; font-weight:760; line-height:1.2; }
+.viewDockBtn.active::after { left:48px; }
+.viewDockBtn:focus-visible, .dailyActions :is(a,button):focus-visible,
+.dailyGroup > summary:focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+
+/* Category summaries — icon + number; no redundant prose. */
+.dailyGroup > summary::after { display:none !important; }
+.dailyGroup > summary { padding:9px 12px !important; }
+.dailyGroup > summary .sectionSummaryMetrics { display:flex;gap:5px;align-items:center;flex-wrap:wrap; }
+.dailyGroupMetric {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  min-height:28px; padding:3px 8px;
+  border:1px solid var(--color-line);border-radius:8px;
+  color:var(--color-muted); background:color-mix(in srgb,var(--color-panel) 88%,transparent);
+  font-size:12px;line-height:1.1;
+}
+.dailyGroupMetric .trUiIcon { width:15px;height:15px; }
+.dailyGroupMetric b { font-variant-numeric:tabular-nums; font-weight:800; }
+.dailyGroupMetric.attention {color:var(--color-danger);border-color:color-mix(in srgb,var(--color-danger) 34%,var(--color-line));background:var(--color-danger-soft);}
+.dailyGroupMetric.priority {color:#a66a17;border-color:color-mix(in srgb,#b27d1e 27%,var(--color-line));background:#fff7dc;}
+
+/* Remove dossier codes; a single status symbol is enough for priority cards. */
+.dailyCard::after, .weeklyMissionCard::after { display:none !important; }
+.dailyCard { padding-top:12px; }
+.weeklyMissionCard { padding-top:12px; }
+.dailyCard.highPriority .dailyMain { padding-right:22px; }
+.dailyCornerStatus {
+  position:absolute!important; z-index:4!important;
+  top:7px;right:8px;
+  display:inline-grid;place-items:center;
+  width:25px;height:25px;
+  border:1px solid color-mix(in srgb,var(--color-danger) 30%,var(--color-line));
+  border-radius:7px;
+  background:var(--color-danger-soft);
+  color:var(--color-danger);
+  pointer-events:none;
+}
+.dailyCornerStatus .trUiIcon { width:15px;height:15px; }
+
+.dailyCard .dailyMeta { display:flex;gap:4px 5px;align-items:center;min-height:22px; }
+.dailyVisualChip {
+  display:inline-flex; align-items:center;justify-content:center;gap:4px;
+  min-width:25px;min-height:23px; padding:3px 5px;
+  border:1px solid transparent;border-radius:7px;
+  color:var(--color-muted);
+  background:color-mix(in srgb,var(--color-panel-soft) 70%,white);
+  font-size:11px;line-height:1;white-space:nowrap;
+}
+.dailyVisualChip .trUiIcon, .dailyVisualChip .taskCategoryGlyph { width:15px;height:15px; }
+.dailyVisualChip.category {color:var(--task-category-ink,var(--color-ink));background:var(--task-category-wash,var(--color-panel-soft));border-color:color-mix(in srgb,var(--task-category-ink,var(--color-line)) 18%,var(--color-line));}
+.dailyVisualChip.duration,.dailyVisualChip.steps {color:var(--color-ink);}
+.dailyVisualChip.complete {color:var(--color-success);background:var(--color-success-soft);}
+.dailyVisualChip.running {color:var(--color-ink);background:var(--color-primary);}
+.dailyVisualChip.paused {color:var(--color-warning);}
+.dailyVisualChip.core {color:var(--color-success);}
+.dailyVisualChip.attention {
+  color:var(--color-danger);font-weight:790;background:var(--color-danger-soft);
+  border-color:color-mix(in srgb,var(--color-danger) 24%,var(--color-line));
+}
+.dailyVisualValue {font-weight:780;font-variant-numeric:tabular-nums;}
+.dailyMetaSecondary {color:var(--color-muted);}
+.dailyCard .dailyMetaSecondary .dailyMetaChip {
+  display:inline-flex;align-items:center;gap:4px;
+  border:0;background:transparent;padding:1px 2px;min-height:20px;
+}
+.dailyCard .dailyMetaSecondary .dailyMetaChip + .dailyMetaChip::before { content:none; }
+.dailyMetaSecondary .trUiIcon { width:13px;height:13px; }
+
+/* Primary action remains explicit; tertiary controls become self-explanatory glyphs. */
+.dailyActions .trUiIcon { width:17px;height:17px; }
+.dailyActions button:not(.timerStartTiny):not(.timerNowChip),
+.dailyActions .dailyQuickOpen { gap:5px; }
+.dailyActions button:not(.timerStartTiny):not(.timerNowChip):has(> .trUiIcon):not(:has(> span)),
+.dailyActions a.dailyQuickOpen { min-width:40px; }
+.dailyActions .uxActionMore > summary {
+  display:flex;justify-content:center;align-items:center;
+  min-height:36px;gap:0;
+}
+.dailyActions .uxActionMore > summary .trUiIcon { width:19px;height:19px; }
+.missionActions .uxActionMore > summary {display:flex;justify-content:center;align-items:center;}
+.missionActions .uxActionMore > summary .trUiIcon { width:19px;height:19px; }
+.dailyActions .uxActionMenu button,.dailyActions .uxActionMenu a {justify-content:flex-start;text-align:left;}
+.dailyCard .subtaskInline > summary .trUiIcon { width:15px;height:15px; }
+
+@media (max-width:700px) {
+  .viewDockBtn {
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:30px 19px;
+    justify-items:center;
+    min-height:57px;
+    padding:4px 1px;
+    gap:1px;
+  }
+  .viewDockBtn .dockGlyph { grid-row:1; grid-column:1; width:29px;height:29px;border-radius:9px; }
+  .viewDockBtn .dockGlyph .trUiIcon {width:19px;height:19px;}
+  .viewDockBtn b {grid-row:2;grid-column:1; font-size:11px;align-self:center; }
+  .viewDockBtn[data-view-target="fitness"] b {font-size:10.5px;}
+  .viewDockBtn.active::after {left:18%;right:18%;}
+  .dailyGroup > summary {padding:8px 10px!important;}
+  .dailyGroupMetric {min-height:26px;padding:2px 5px;gap:3px;font-size:11px;}
+  .dailyGroupMetric .trUiIcon {width:14px;height:14px;}
+  .dailyCard {padding-top:10px;}
+  .dailyCard.highPriority .dailyMain {padding-right:20px;}
+  .dailyCornerStatus {top:5px;right:5px;width:23px;height:23px;}
+  .dailyActions .dailyQuickOpen .trUiIcon {width:19px;height:19px;}
+}
+@media (max-width:359px) {
+  .dailyGroupMetric {padding:2px 3px;}
+  .dailyGroupMetric .trUiIcon {width:13px;height:13px;}
+  .viewDockBtn b {font-size:10px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .trUiIcon {transition:none!important;}
+}
