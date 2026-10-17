@@ -67,8 +67,7 @@
     const bits=[];
     const categoryName=(cats[t.cat]||{}).name||String(t.cat||"生活");
     bits.push(`<span class="dailyVisualChip category" data-task-category="${escapeHtml(t.cat)}" title="分类：${escapeHtml(categoryName)}" role="img" aria-label="分类：${escapeHtml(categoryName)}">${taskCategoryGlyph(t.cat)}</span>`);
-    if(t.important)bits.push(dailyVisualChip("zap","高优先级","priority"));
-    else if(t.core)bits.push(dailyVisualChip("diamond","保底任务","core"));
+    if(t.core)bits.push(dailyVisualChip("diamond","保底任务","core"));
     else if(t.optional)bits.push(dailyVisualChip("circle-dashed","可选任务","optional"));
     if(st.done)bits.push(dailyVisualChip("check-circle","已完成","complete"));
     else if(st.failed)bits.push(`<span class="dailyVisualChip attention" title="已过期锁定" aria-label="已过期锁定">${taskUiIcon("triangle-alert")}<span class="dailyVisualValue">已锁定</span></span>`);
