@@ -25,6 +25,12 @@
         const text=String(value[field]||"").trim();
         if(text)patch[field]=text.slice(0,24);
       });
+      // Migrate the earlier three-module label "学习" to the user's current
+      // category name. Preserve the stable 'language' key and all other aliases.
+      if(key==="language"){
+        patch.name="语言和音乐";
+        patch.short="语乐";
+      }
       if(Object.keys(patch).length)out[key]=patch;
     });
     return out;
@@ -116,7 +122,7 @@
     if(!consolidatedModuleSignature())return;
 
     const labels={
-      language:{name:"学习",short:"学习",icon:"学"},
+      language:{name:"语言和音乐",short:"语乐",icon:"语"},
       creator:{name:"经营",short:"经营",icon:"营"},
       body:{name:"身体",short:"身体",icon:"身"}
     };
