@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261017-9";
+const CACHE_NAME = "taskring-shell-20261018-1";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -19,6 +19,7 @@ const APP_SHELL = [
   "./assets/css/weekly.css",
   "./assets/css/ai-tasks.css",
   "./assets/css/fitness.css",
+  "./assets/css/life-guide.css",
   "./assets/css/game.css",
   "./assets/css/time.css",
   "./assets/css/library.css",
