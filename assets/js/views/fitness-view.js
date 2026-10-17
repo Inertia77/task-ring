@@ -21,20 +21,23 @@
   }
   function dayStats(dayId,cfg=fitnessConfig){
     const items=itemsForDay(dayId,cfg);
-    const done=items.filter(item=>isItemDone(dayId,item.kind,item.id)).length;
-    return {done,total:items.length,pct:items.length?Math.round(done/items.length*100):0};
+    const required=items.filter(item=>item.optional!==true);
+    const done=required.filter(item=>isItemDone(dayId,item.kind,item.id)).length;
+    return {done,total:required.length,pct:required.length?Math.round(done/required.length*100):0};
   }
   function setItemDone(dayId,kind,itemId,value,sourceEl){
     syncSetItem(doneKey(dayId,kind,itemId),value);
     if(value&&sourceEl&&typeof playCompletionEffect==="function"){
       const stats=dayStats(dayId);
       const section=sectionFor(kind);
-      playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"micro",category:"life",anchor:sourceEl,title:stats.total&&stats.done===stats.total?"今日生活改善完成":`${section.name}项目完成`,eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
+      const item=(dayConfig(dayId)?.[kind]||[]).find(row=>row.id===itemId);
+      const complete=item?.optional!==true&&stats.total>0&&stats.done===stats.total;
+      playCompletionEffect({level:complete?"parent":"micro",category:"life",anchor:sourceEl,title:complete?"今日生活改善完成":`${section.name}${item?.optional===true?"选做":""}项目完成`,eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
     }
     renderAll();
   }
   function setLaneDone(dayId,kind,value,sourceEl){
-    const items=dayConfig(dayId)?.[kind]||[];
+    const items=(dayConfig(dayId)?.[kind]||[]).filter(item=>item.optional!==true);
     const section=sectionFor(kind);
     items.forEach(item=>syncSetItem(doneKey(dayId,kind,item.id),value));
     if(value&&sourceEl&&items.length&&typeof playCompletionEffect==="function"){
@@ -129,16 +132,17 @@
     const url=normalizeFitnessUrl(item.url,item.note);
     const actions=note||url?`<div class="fitnessItemActions">${note?`<button type="button" class="fitnessItemMetaBtn" data-fitness-toggle-note aria-expanded="false" aria-label="查看备注：${escapeHtml(item.title)}"><span>备注</span><b>i</b></button>`:""}${url?`<button type="button" class="fitnessItemLink" data-fitness-open-url="${escapeHtml(url)}" aria-label="打开链接：${escapeHtml(item.title)}" title="打开链接：${escapeHtml(item.title)}"><span>打开</span> ↗</button>`:""}</div>`:"";
     const notePanel=note?`<div class="fitnessItemNote" data-fitness-note-panel hidden><span>NOTE / 备注</span><p>${escapeHtml(note)}</p></div>`:"";
-    return `<article class="fitnessItem ${done?"done":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${escapeHtml(section.id)}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span><em>${escapeHtml(section.name)}</em></button>${actions}${notePanel}</article>`;
+    return `<article class="fitnessItem ${done?"done":""} ${item.optional===true?"optional":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${escapeHtml(section.id)}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span>${item.optional===true?'<span class="fitnessItemOptionalBadge" title="选做，不计入每日完成率">选做</span>':""}</button>${actions}${notePanel}</article>`;
   }
 
   function laneHtml(section,items,dayId){
-    const done=items.filter(item=>isItemDone(dayId,section.id,item.id)).length;
-    const allDone=items.length>0&&done===items.length;
+    const required=items.filter(item=>item.optional!==true);
+    const done=required.filter(item=>isItemDone(dayId,section.id,item.id)).length;
+    const allDone=required.length>0&&done===required.length;
     const isGuideOnly=!!String(section.guide||"").trim()&&items.length===0;
     const counters=isGuideOnly
       ? '<span class="fitnessLaneGuideStatus">规范参考 · 无须打卡</span>'
-      : `<em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${escapeHtml(section.id)}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button>`;
+      : `<em>${done}/${required.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${escapeHtml(section.id)}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${required.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"必做已完成":"全部完成"}</b></button>`;
     return `<section class="fitnessLane lifeLane ${isGuideOnly?"fitnessGuideOnly":""}" data-life-accent="${escapeHtml(section.accent||"blue")}" data-life-section="${escapeHtml(section.id)}"><header class="fitnessLaneHead"><div class="fitnessLaneIdentity"><span class="fitnessLaneIcon" aria-hidden="true">${fitnessSectionGlyph(section)}</span><div><b>${escapeHtml(section.name)}</b></div></div><div class="fitnessLaneActions">${counters}</div></header><div class="fitnessItems">${fitnessGuideHtml(section)}${items.length?items.map(item=>itemHtml(item,section,dayId)).join(""):String(section.guide||"").trim()?"":`<div class="fitnessEmpty">当天没有安排${escapeHtml(section.name)}项目</div>`}</div></section>`;
   }
   function revealSelectedDay(tabsEl,smooth=false){
@@ -221,7 +225,7 @@
   function fitnessEditorItemRowHtml(item={},section){
     const kind=section.id;
     const id=String(item.id||`fitness-${kind}-${Date.now().toString(36)}-${++editorItemCounter}`);
-    return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${escapeHtml(kind)}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${escapeHtml(section.name)}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${escapeHtml(section.name)}项目">删除</button><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="具体要求、份量、步骤或阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
+    return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${escapeHtml(kind)}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${escapeHtml(section.name)}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${escapeHtml(section.name)}项目">删除</button><label class="fitnessEditorOptional"><input type="checkbox" data-fitness-item-optional ${item.optional===true?"checked":""}><span>可选 · 不计入完成率</span></label><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="具体要求、份量、步骤或阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
   }
   function fitnessEditorGroupHtml(section,items){
     return `<section class="fitnessEditorGroup lifeEditorGroup" data-fitness-editor-group="${escapeHtml(section.id)}" data-life-accent="${escapeHtml(section.accent||"blue")}"><header><div class="lifeEditorGroupTitle"><span class="lifeEditorGroupIcon">${fitnessSectionGlyph(section)}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><button type="button" data-fitness-add-item="${escapeHtml(section.id)}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${escapeHtml(section.id)}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,section)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
@@ -243,6 +247,7 @@
       title:row.querySelector("[data-fitness-item-title]")?.value||"",
       note:row.querySelector("[data-fitness-item-note]")?.value||"",
       url:row.querySelector("[data-fitness-item-url]")?.value||"",
+      optional:row.querySelector("[data-fitness-item-optional]")?.checked===true,
       enabled:true
     }));
     return normalizeFitnessItemList(entries,kind);
