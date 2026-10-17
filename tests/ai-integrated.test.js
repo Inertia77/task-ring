@@ -27,6 +27,7 @@ function setup(){
     taskTimeCategory:t=>t.time_category,
     taskDayHint:t=>t.days.join("・"),
     taskCategoryGlyph:()=>"<svg></svg>",
+    taskUiIcon:()=>"<svg></svg>",
     timeCategoryDefs:{game:{name:"游戏"},science:{name:"自然科学"},life:{name:"生活"}},
     escapeHtml:str=>String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll('"',"&quot;"),
     safeUrl:()=>"",
