@@ -99,6 +99,30 @@
     const body=`<button type="button" class="timeDetailAddButton" data-manual-time-entry="fitness">+ 手动补记生活改善时间</button><div class="timeDetailStats"><div><span>今日</span><b>${fmtMinutes(todayUsed)}</b></div><div><span>本周</span><b>${fmtMinutes(used)}</b></div><div><span>累计</span><b>${fmtMinutes(allUsed)}</b></div></div><div class="timeDetailProgress" style="--w:${used?100:0}%"><div><span>统计方式</span><b>生活改善整体计时${activeMinutes?` · 当前 ${fmtMinutes(activeMinutes)}`:""}</b></div><i></i></div><ul class="timeDetailLogs">${lines}</ul>`;
     openTimeDetailModal("生活改善",body);
   }
+
+  /* Shared section glyph language; render SVG by stable section ID, never emoji/text.
+     Unknown custom sections retain their original icon as a fallback. */
+  function fitnessSectionGlyph(section){
+    const shape={
+      training:'<path d="M6.5 8.5v7m-3-9v11m14-9v7m3-9v11M6.5 12h11"/><path d="M3.5 7H2v10h1.5m17-10H22v10h-1.5"/>',
+      nutrition:'<path d="M4 3v6a3 3 0 0 0 6 0V3M7 3v18"/><path d="M17 21V3c-4 2.1-5 7-5 11h5m0 0v7"/>',
+      routine:'<path d="M20.7 14.5A8.5 8.5 0 0 1 9.5 3.3 8.6 8.6 0 1 0 20.7 14.5Z"/><path d="M18.5 3.5v4m-2-2h4M21 9v2m-1-1h2"/>'
+    }[section.id];
+    if(!shape)return escapeHtml(section.icon||"＋");
+    return `<svg class="lifeAreaGlyph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">${shape}</svg>`;
+  }
+  function fitnessGuideHtml(section){
+    const guide=String(section.guide||"").trim();
+    if(!guide)return "";
+    const rows=guide.split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
+      const match=line.match(/^【([^】]+)】\s*(.*)$/);
+      return match
+        ? `<div class="fitnessGuideRow"><strong>${escapeHtml(match[1])}</strong><span>${escapeHtml(match[2])}</span></div>`
+        : `<p class="fitnessGuideParagraph">${escapeHtml(line)}</p>`;
+    }).join("");
+    return `<details class="fitnessGuideDetails" open><summary><span>饮食规范 / 自由选择</span><small>可折叠查看 · 不计入每日打卡</small></summary><div class="fitnessGuideContent">${rows}</div></details>`;
+  }
+
   function itemHtml(item,section,dayId){
     const done=isItemDone(dayId,section.id,item.id);
     const note=String(item.note||"").trim();
@@ -107,10 +131,15 @@
     const notePanel=note?`<div class="fitnessItemNote" data-fitness-note-panel hidden><span>NOTE / 备注</span><p>${escapeHtml(note)}</p></div>`:"";
     return `<article class="fitnessItem ${done?"done":""}"><button type="button" class="fitnessItemToggle" data-fitness-item="${escapeHtml(item.id)}" data-fitness-kind="${escapeHtml(section.id)}" data-fitness-item-day="${dayId}" aria-pressed="${done?"true":"false"}"><span class="fitnessCheck">${done?"✓":""}</span><span class="fitnessItemCopy"><strong>${escapeHtml(item.title)}</strong></span><em>${escapeHtml(section.name)}</em></button>${actions}${notePanel}</article>`;
   }
+
   function laneHtml(section,items,dayId){
     const done=items.filter(item=>isItemDone(dayId,section.id,item.id)).length;
     const allDone=items.length>0&&done===items.length;
-    return `<section class="fitnessLane lifeLane" data-life-accent="${escapeHtml(section.accent||"blue")}"><header class="fitnessLaneHead"><div class="fitnessLaneIdentity"><span class="fitnessLaneIcon" aria-hidden="true">${escapeHtml(section.icon||"＋")}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><div class="fitnessLaneActions"><em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${escapeHtml(section.id)}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button></div></header><div class="fitnessItems">${items.length?items.map(item=>itemHtml(item,section,dayId)).join(""):`<div class="fitnessEmpty">当天没有安排${escapeHtml(section.name)}项目</div>`}</div></section>`;
+    const isGuideOnly=!!String(section.guide||"").trim()&&items.length===0;
+    const counters=isGuideOnly
+      ? '<span class="fitnessLaneGuideStatus">规范参考 · 无须打卡</span>'
+      : `<em>${done}/${items.length}</em><button type="button" class="fitnessLaneAllBtn ${allDone?"done":""}" data-fitness-lane-all="${escapeHtml(section.id)}" data-fitness-lane-day="${dayId}" aria-pressed="${allDone?"true":"false"}" ${items.length?"":"disabled"}><span>${allDone?"✓":""}</span><b>${allDone?"全部已完成":"全部完成"}</b></button>`;
+    return `<section class="fitnessLane lifeLane ${isGuideOnly?"fitnessGuideOnly":""}" data-life-accent="${escapeHtml(section.accent||"blue")}"><header class="fitnessLaneHead"><div class="fitnessLaneIdentity"><span class="fitnessLaneIcon" aria-hidden="true">${fitnessSectionGlyph(section)}</span><div><b>${escapeHtml(section.name)}</b></div></div><div class="fitnessLaneActions">${counters}</div></header><div class="fitnessItems">${fitnessGuideHtml(section)}${items.length?items.map(item=>itemHtml(item,section,dayId)).join(""):String(section.guide||"").trim()?"":`<div class="fitnessEmpty">当天没有安排${escapeHtml(section.name)}项目</div>`}</div></section>`;
   }
   function revealSelectedDay(tabsEl,smooth=false){
     const activeTab=tabsEl?.querySelector(".fitnessDayTab.active");
@@ -177,11 +206,11 @@
   function lifeSectionMetaRowHtml(section,idx,total){
     const locked=section.locked===true;
     return `<div class="lifeSectionMetaRow" data-life-section-row data-life-section-id="${escapeHtml(section.id)}">
-      <span class="lifeSectionMetaIcon" aria-hidden="true">${escapeHtml(section.icon||"＋")}</span>
+      <span class="lifeSectionMetaIcon" aria-hidden="true">${fitnessSectionGlyph(section)}</span>
       <label><span>分区名称</span><input class="lifeSectionName" value="${escapeHtml(section.name||"")}" placeholder="例如：睡眠"></label>
       <label><span>英文短标</span><input class="lifeSectionShort" value="${escapeHtml(section.short||"")}" maxlength="18" placeholder="SLEEP"></label>
-      <label><span>图标</span><input class="lifeSectionIcon" value="${escapeHtml(section.icon||"")}" maxlength="4" placeholder="眠"></label>
-      <label><span>强调色</span><select class="lifeSectionAccent">${fitnessAccentOptions(section.accent)}</select></label>
+      <label><span>图标标识</span><input class="lifeSectionIcon" value="${escapeHtml(section.icon||"")}" maxlength="20" placeholder="如 moon"></label>
+      <label><span>强调色</span><select class="lifeSectionAccent">${fitnessAccentOptions(section.accent)}</select></label><label class="lifeSectionGuideField"><span>分区规范 / 阅读指南（不计入打卡）</span><textarea class="lifeSectionGuide" rows="6" placeholder="每行写一条规范，可用【标签】开头。">${escapeHtml(section.guide||"")}</textarea></label>
       <div class="lifeSectionMetaOps">
         <button type="button" data-life-section-move="up" data-life-section-id="${escapeHtml(section.id)}" ${idx<=0?"disabled":""} aria-label="上移">↑</button>
         <button type="button" data-life-section-move="down" data-life-section-id="${escapeHtml(section.id)}" ${idx>=total-1?"disabled":""} aria-label="下移">↓</button>
@@ -195,7 +224,7 @@
     return `<div class="fitnessEditorItemRow" data-fitness-editor-item="${escapeHtml(kind)}" data-fitness-item-id="${escapeHtml(id)}"><label class="fitnessEditorItemTitle"><span>项目名称</span><input type="text" data-fitness-item-title value="${escapeHtml(item.title||"")}" placeholder="${escapeHtml(section.name)}项目名称"></label><label class="fitnessEditorItemUrl"><span>链接（选填）</span><input type="text" inputmode="url" data-fitness-item-url value="${escapeHtml(item.url||"")}" placeholder="https://..."></label><button type="button" class="fitnessEditorItemDelete" data-fitness-remove-item aria-label="删除${escapeHtml(section.name)}项目">删除</button><label class="fitnessEditorItemNote"><span>备注 / 说明（选填）</span><textarea rows="2" data-fitness-item-note placeholder="具体要求、份量、步骤或阶段提示等">${escapeHtml(item.note||"")}</textarea></label></div>`;
   }
   function fitnessEditorGroupHtml(section,items){
-    return `<section class="fitnessEditorGroup lifeEditorGroup" data-fitness-editor-group="${escapeHtml(section.id)}" data-life-accent="${escapeHtml(section.accent||"blue")}"><header><div class="lifeEditorGroupTitle"><span class="lifeEditorGroupIcon">${escapeHtml(section.icon||"＋")}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><button type="button" data-fitness-add-item="${escapeHtml(section.id)}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${escapeHtml(section.id)}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,section)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
+    return `<section class="fitnessEditorGroup lifeEditorGroup" data-fitness-editor-group="${escapeHtml(section.id)}" data-life-accent="${escapeHtml(section.accent||"blue")}"><header><div class="lifeEditorGroupTitle"><span class="lifeEditorGroupIcon">${fitnessSectionGlyph(section)}</span><div><span>${escapeHtml(section.short||section.name)}</span><b>${escapeHtml(section.name)}</b></div></div><button type="button" data-fitness-add-item="${escapeHtml(section.id)}">＋ 新增项目</button></header><div class="fitnessEditorItemList" data-fitness-editor-list="${escapeHtml(section.id)}">${items.length?items.map(item=>fitnessEditorItemRowHtml(item,section)).join(""):`<div class="fitnessEditorGroupEmpty" data-fitness-editor-empty>暂无项目，点击右上角新增。</div>`}</div></section>`;
   }
   function updateFitnessEditorDayCount(card){
     if(!card)return;
@@ -244,6 +273,7 @@
         name:row.querySelector(".lifeSectionName")?.value.trim()||old.name||`改善分区 ${idx+1}`,
         short:row.querySelector(".lifeSectionShort")?.value.trim()||old.short||"LIFE",
         icon:row.querySelector(".lifeSectionIcon")?.value.trim()||old.icon||"＋",
+        guide:row.querySelector(".lifeSectionGuide")?.value??old.guide??"",
         accent:row.querySelector(".lifeSectionAccent")?.value||old.accent||"blue",
         locked:old.locked===true,
         enabled:true
