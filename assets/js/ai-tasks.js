@@ -50,17 +50,17 @@
       '<footer class="missionActions aiInlineActions">'+launchButtons(t)+'</footer>'+
       '<div class="missionBadges aiEmbeddedFoot"><span class="statusBadge weeklyPace '+(isDone?'achieved':'idle')+'">'+(isDone?(t.ai_period==='on_demand'?'✓ 已执行':'✓ 已达成'):'✦ AI 任务')+'</span>'+
       '<span class="planModeBadge weekly">周计划</span><span class="taskCategoryIconBadge" data-task-category="'+escapeHtml(cat)+'" title="'+escapeHtml(category.name)+'">'+taskCategoryGlyph(cat)+'</span>'+
-      '<button type="button" class="aiVerifyInline" data-ai-action="verify-weekly" data-ai-task="'+id+'">✓ 核验并记次</button>'+
-      (dailyDone?'<button type="button" class="aiUndoInline" data-ai-action="undo-weekly" data-ai-task="'+id+'">撤销今日一次</button>':'')+
+      '<button type="button" class="aiVerifyInline" data-ai-action="verify-weekly" data-ai-task="'+id+'">✓ 完成一次</button>'+
+      (dailyDone?'<button type="button" class="aiUndoInline" data-ai-action="undo-weekly" data-ai-task="'+id+'">撤销一次</button>':'')+
       '</div></article>';
   }
   function dailyCard(o){
     const t=o.t,dayId=o.dayId,cycle=o.cycle||cycleYmd,st=occurrenceState(t,dayId,cycle);
     const done=st.done,title=escapeHtml(t.title),id=escapeHtml(t.id);
     const cat=taskTimeCategory(t),def=timeCategoryDefs[cat]||timeCategoryDefs.life;
-    const status=done?"✓ 已核验":st.prev?"上周遗留":st.overdue?"可补执行":"待执行";
+    const status=done?"✓ 已完成":st.prev?"上周遗留":st.overdue?"可补执行":"待执行";
     return '<article class="dailyCard aiEmbeddedCard '+(done?'done completed':'')+'" data-daily-task="'+id+'" style="--daily-accent:var(--color-line-strong)">'+
-      '<div class="dailyMain"><label class="dailyComplete" title="'+title+'：'+(done?'撤销执行记录':'核验本次执行')+'">'+
+      '<div class="dailyMain"><label class="dailyComplete" title="'+title+'：'+(done?'撤销执行记录':'标记完成')+'">'+
       '<input type="checkbox" data-ai-check-task="'+id+'" data-ai-check-day="'+dayId+'" data-ai-check-cycle="'+escapeHtml(cycle)+'" '+(done?'checked':'')+'><span></span></label>'+
       '<div class="dailyCopy"><h3 class="dailyTitle"><span class="taskText">'+title+'</span></h3>'+
       '<div class="dailyMeta"><span class="dailyVisualChip category" data-task-category="'+escapeHtml(cat)+'">'+taskCategoryGlyph(cat)+'</span>'+
@@ -100,21 +100,18 @@
     showToast(prefill?"已尝试预填指令，请检查后发送":"Prompt 较长：已尝试复制，必要时粘贴到 ChatGPT 后发送","ok",4300);
   }
   function verifyDaily(t,day,cycle,checked,el){
-    if(checked){
-      const ok=window.confirm("请确认「"+t.title+"」已实际执行，并核验相关 Notion 归档／业务结果。\n\n仅打开 ChatGPT 或发送 Prompt 不算完成。\n\n标记 "+dayName(day)+" 的任务已完成？");
-      if(!ok){renderAll();return}
-    }else if(!window.confirm("撤销「"+t.title+"」的执行完成记录？")){renderAll();return}
+    // One-click completion; the user can undo with the same checkbox.
     setDone(t.id,day,checked,el,false,cycle);
   }
   function verifyWeekly(t){
-    if(weeklyEntries(t).filter(v=>v.day===currentDay(t)).length>=SLOTS_PER_DAY){showToast("每天最多记 5 次，请核对已有记录","warn");return}
-    if(!window.confirm("请确认「"+t.title+"」已执行并核验业务结果与 Notion 归档。\n\n只打开 ChatGPT 不计次。是否记录一次成功执行？"))return;
+    if(weeklyEntries(t).filter(v=>v.day===currentDay(t)).length>=SLOTS_PER_DAY){
+      showToast("当天最多记录 5 次，可先撤销一次再重新记录","warn");return;
+    }
     for(let slot=1;slot<=SLOTS_PER_DAY;slot++){
       const key=slotKey(t,currentDay(t),slot);
       if(localStorage.getItem(key)!=="1"){
         syncSetItem(key,true);
         renderAll();
-        showToast("执行已核验并记入周期记录","ok");
         return;
       }
     }
@@ -123,8 +120,9 @@
     for(let slot=SLOTS_PER_DAY;slot>=1;slot--){
       const key=slotKey(t,currentDay(t),slot);
       if(localStorage.getItem(key)==="1"){
-        if(!window.confirm("撤销「"+t.title+"」今天的最后一次记录？"))return;
-        syncSetItem(key,false);renderAll();showToast("已撤销一次执行记录","ok");return;
+        syncSetItem(key,false);
+        renderAll();
+        return;
       }
     }
   }
