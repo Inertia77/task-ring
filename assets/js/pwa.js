@@ -33,9 +33,14 @@
     Object.entries(labels).forEach(([category, patch]) => {
       const def = timeCategoryDefs[category];
       if(!def || !patch || typeof patch !== "object") return;
+      // Older private weekly migrations stored "学习" locally. Keep their
+      // task/category keys, but never let the stale display label win again.
+      const displayPatch = category === "language"
+        ? {...patch, name:"语言和音乐", short:"语乐"}
+        : patch;
       ["name","short","icon"].forEach(key => {
-        if(typeof patch[key] !== "string" || !patch[key].trim()) return;
-        const value = patch[key].trim();
+        if(typeof displayPatch[key] !== "string" || !displayPatch[key].trim()) return;
+        const value = displayPatch[key].trim();
         if(def[key] !== value){ def[key] = value; changed = true; }
       });
     });
