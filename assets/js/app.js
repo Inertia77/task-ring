@@ -140,6 +140,7 @@ function inferTaskTimeCategory(raw){
   return "life";
 }
 function inferEstimatedMinutes(raw){
+  if(raw?.ai_enabled===true)return 0; // AI operations are executions, not timer minutes.
   const explicit=Number(raw.estimated_minutes??raw.estimatedMinutes??raw.estimateMinutes);
   if(Number.isFinite(explicit)&&explicit>0)return Math.min(480,Math.max(1,Math.round(explicit)));
   const cat=inferTaskTimeCategory(raw);
@@ -2107,7 +2108,7 @@ function isDone(taskId,dayId,cycle=cycleYmd){return localStorage.getItem(storage
 function ignoreStorageKey(taskId,dayId,cycle=cycleYmd){return `${GH_PREFIX}${cycle}_${taskCode(taskId)}_x${dayId}`}
 function isIgnoredOccurrence(t,dayId,cycle=cycleYmd){return localStorage.getItem(ignoreStorageKey(t.id,dayId,cycle))==="1"}
 function setIgnoredOccurrence(t,dayId,cycle=cycleYmd,val=true){const k=ignoreStorageKey(t.id,dayId,cycle);syncSetItem(k,val)}
-function isRawExpiredDaily(t,dayId,cycle=cycleYmd){if(cycle!==cycleYmd)return false;if(isDone(t.id,dayId,cycle))return false;if(isIgnoredOccurrence(t,dayId,cycle))return false;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return false;return !isLastScheduled(t,dayId)}
+function isRawExpiredDaily(t,dayId,cycle=cycleYmd){if(t.ai_enabled===true)return false;if(cycle!==cycleYmd)return false;if(isDone(t.id,dayId,cycle))return false;if(isIgnoredOccurrence(t,dayId,cycle))return false;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return false;return !isLastScheduled(t,dayId)}
 function isFailedOccurrence(t,dayId,cycle=cycleYmd){return isRawExpiredDaily(t,dayId,cycle)}
 function isOverdueOccurrence(t,dayId,cycle=cycleYmd){if(isIgnoredOccurrence(t,dayId,cycle))return false;if(isDone(t.id,dayId,cycle))return false;if(cycle!==cycleYmd)return true;if(weekPos(dayId)>=weekPos(today))return false;if(t.days.length<=1)return true;return isLastScheduled(t,dayId)}
 function isWarnOccurrence(t,dayId,cycle=cycleYmd){if(cycle!==cycleYmd||dayId!==today||!t.days.includes(today))return false;const prev=previousScheduledBeforeToday(t);if(prev==null)return false;return !isIgnoredOccurrence(t,prev,cycleYmd)&&!isDone(t.id,prev,cycleYmd)&&isFailedOccurrence(t,prev,cycleYmd)}
@@ -2608,6 +2609,7 @@ function timerControlsHtml(t,dayId,cycle=cycleYmd){
 
 
 function weeklyTaskStatus(task){
+  if(task.ai_enabled===true && window.TaskRingAI)return window.TaskRingAI.weeklyStatus(task);
   const used=taskWeekMinutesUsed(task.id);
   const target=taskWeeklyMinutes(task);
   const pct=target?Math.round(used/target*100):used?100:0;
@@ -2637,7 +2639,7 @@ function weeklyCategorySummary(){
     old.used+=st.used;
     old.target+=st.target;
     old.count++;
-    if(st.target&&st.used>=st.target)old.done++;
+    if(st.state==="done")old.done++;
     rows[cat]=old;
   });
   return timeCategoryOrder.filter(k=>rows[k]).map(k=>rows[k]);
