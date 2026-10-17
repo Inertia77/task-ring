@@ -58,3 +58,35 @@
  .aiPromptDialog{width:95vw;padding:12px}
  .aiPromptDialog textarea{height:48dvh}
 }
+
+
+/* v2 integrated cards: matches native task actions instead of a separate AI section. */
+.aiEmbeddedCard{--ai-accent:var(--color-ink);min-width:0}
+.weeklyMissionCard.aiEmbeddedCard{border-left-color:var(--category-accent,var(--color-ink))}
+.weeklyMissionCard.aiEmbeddedCard .missionScore strong{font-size:15px;letter-spacing:-.02em}
+.weeklyMissionCard.aiEmbeddedCard .missionMeter{height:5px;margin-top:10px;background:var(--color-line);border-radius:100px;overflow:hidden}
+.weeklyMissionCard.aiEmbeddedCard .missionMeter>i{display:block;height:100%;width:var(--w,0%);border-radius:inherit;background:var(--color-ink)}
+.aiInlineActions{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.weeklyMissionCard .aiInlineActions>*{flex:1 1 auto;min-width:80px;max-width:none;cursor:pointer}
+.aiInlineActions .aiInlineLaunch{color:var(--color-ink);background:var(--color-primary);border:1px solid var(--color-ink);font-weight:800}
+.aiInlineActions .aiInlineSecondary{background:var(--color-panel-soft);color:var(--color-ink);border:1px solid var(--color-line)}
+.aiEmbeddedFoot{align-items:center}
+.aiVerifyInline,.aiUndoInline{border:1px solid var(--color-line);border-radius:6px;background:var(--color-panel-soft);color:var(--color-ink);font-size:11px;font-weight:700;cursor:pointer;min-height:28px;padding:5px 9px}
+.aiVerifyInline{margin-left:auto}
+.aiUndoInline{color:var(--color-muted)}
+.dailyCard.aiEmbeddedCard{border-left-color:var(--color-ink)}
+.dailyCard.aiEmbeddedCard .dailyActions .aiInlineLaunch{background:var(--color-primary);color:var(--color-ink);border:1px solid var(--color-ink);font-weight:800}
+.dailyCard.aiEmbeddedCard .dailyActions>*{flex:1 1 auto;min-width:86px;white-space:nowrap;border-radius:8px;padding:8px;font-size:12px;display:flex;align-items:center;justify-content:center;text-decoration:none;min-height:34px}
+.dailyCard.aiEmbeddedCard .dailyMain{min-width:0}
+.dailyCard.aiEmbeddedCard .dailyCopy{min-width:0}
+.dailyCard.aiEmbeddedCard .dailyMeta{flex-wrap:wrap}
+@media(max-width:700px){
+ .weeklyMissionCard.aiEmbeddedCard .missionHead{grid-template-columns:32px minmax(0,1fr) auto;gap:7px}
+ .weeklyMissionCard.aiEmbeddedCard .missionIcon{width:32px;height:32px}
+ .weeklyMissionCard.aiEmbeddedCard .missionScore strong{font-size:13px}
+ .weeklyMissionCard.aiEmbeddedCard .missionTitleBlock b{font-size:13px}
+ .aiInlineActions{gap:5px}
+ .weeklyMissionCard.aiEmbeddedCard .aiInlineActions>*{min-width:calc(50% - 5px);font-size:11px}
+ .dailyCard.aiEmbeddedCard .dailyActions>*{min-width:calc(50% - 5px)}
+ .aiEmbeddedFoot .aiVerifyInline{margin-left:0}
+}
