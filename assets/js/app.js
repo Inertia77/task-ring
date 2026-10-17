@@ -2603,8 +2603,8 @@ function weeklyTaskCardHtml(t){
   const isActive=active&&active.kind==="task"&&String(active.task_id)===String(t.id);
   return `<article class="weeklyTaskCard ${st.state} ${st.over?"over":""} ${isActive?"running":""}" style="--w:${pct}%">
     <div class="weeklyTaskTop">
-      <div class="weeklyTaskTitle"><span>${c.icon}</span><b>${escapeHtml(t.title)}</b></div>
-      <div class="weeklyTaskBadges">${planModeBadgeHtml(t)}<span>${escapeHtml(c.short)}</span>${t.important?`<span class="hot">重</span>`:""}</div>
+      <div class="weeklyTaskTitle"><span class="taskCategoryGraphic" data-task-category="${escapeHtml(taskTimeCategory(t))}" aria-hidden="true">${taskCategoryGlyph(taskTimeCategory(t))}</span><b>${escapeHtml(t.title)}</b></div>
+      <div class="weeklyTaskBadges">${planModeBadgeHtml(t)}<span class="taskCategoryIconBadge" data-task-category="${escapeHtml(taskTimeCategory(t))}" title="分类：${escapeHtml(c.name)}" role="img" aria-label="分类：${escapeHtml(c.name)}">${taskCategoryGlyph(taskTimeCategory(t))}</span>${t.important?`<span class="hot">重</span>`:""}</div>
     </div>
     <div class="weeklyTaskMeta"><span>${escapeHtml(taskDayHint(t))}</span><span>单次 ${taskEstimatedMinutes(t)}m</span></div>
     <div class="weeklyTaskMeter"><i></i></div>
@@ -2628,7 +2628,7 @@ function renderWeeklyPlanPanel(){
   const summaries=weeklyCategorySummary().map(row=>{
     const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;
     const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;
-    return `<div class="weeklySummaryItem" style="--w:${pct}%"><div><span>${def.icon} ${escapeHtml(def.short)}</span><b>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""}</b></div><i></i></div>`;
+    return `<div class="weeklySummaryItem" style="--w:${pct}%"><div><span class="weeklyCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(def.name)}</span></span><b>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""}</b></div><i></i></div>`;
   }).join("");
   const grouped=timeCategoryOrder.map(cat=>{
     const def=timeCategoryDefs[cat]||timeCategoryDefs.life;
@@ -2636,7 +2636,7 @@ function renderWeeklyPlanPanel(){
     if(!catTasks.length)return "";
     const used=catTasks.reduce((sum,t)=>sum+weeklyTaskStatus(t).used,0);
     const target=catTasks.reduce((sum,t)=>sum+weeklyTaskStatus(t).target,0);
-    return `<section class="weeklyTaskGroup"><div class="weeklyTaskGroupHead"><div><span>${def.icon}</span><b>${escapeHtml(def.name)}</b></div><em>${fmtMinutes(used)}${target?` / ${fmtMinutes(target)}`:""}</em></div><div class="weeklyTaskGrid">${catTasks.map(weeklyTaskCardHtml).join("")}</div></section>`;
+    return `<section class="weeklyTaskGroup"><div class="weeklyTaskGroupHead"><div><span class="taskCategoryGraphic" data-task-category="${escapeHtml(cat)}" aria-hidden="true">${taskCategoryGlyph(cat)}</span><b>${escapeHtml(def.name)}</b></div><em>${fmtMinutes(used)}${target?` / ${fmtMinutes(target)}`:""}</em></div><div class="weeklyTaskGrid">${catTasks.map(weeklyTaskCardHtml).join("")}</div></section>`;
   }).join("");
   const cards=grouped||`<div class="weeklyEmpty"><b>周计划为空</b><span>在任务编辑器里把任务模式设为「周计划」，它就会出现在这里。</span></div>`;
   el.innerHTML=`<div class="weeklyShell v19"><div class="weeklyHero"><div><span>WEEKLY ALLOCATION</span><b>周计划</b><em>不用每天打卡的主线，按本周投入推进。</em></div><div class="weeklyHeroStats"><div><span>投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}<div class="weeklySummaryGrid">${summaries}</div><div class="weeklyTaskGroups">${cards}</div></div>`;
@@ -2663,7 +2663,7 @@ function renderTimePanel(){
     const used=week[k]||0;
     const sharePct=totalWeek?used/totalWeek*100:0;
     const over=used>def.budget;
-    return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel"><b>${escapeHtml(def.short)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
+    return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel taskCategoryGraphic" data-task-category="${escapeHtml(k)}" role="img" title="${escapeHtml(def.name)}" aria-label="${escapeHtml(def.name)}">${taskCategoryGlyph(k)}</div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
   }).join("");
   const taskRows=(taskConfig?.tasks||[]).filter(t=>t.enabled!==false).slice().sort((a,b)=>{
     const au=taskWeekMinutesUsed(a.id),bu=taskWeekMinutesUsed(b.id);
@@ -2677,7 +2677,7 @@ function renderTimePanel(){
     return `<div class="timeTaskRow ${over?"over":""}"><button type="button" class="timeTaskName" data-time-task-detail="${escapeHtml(t.id)}"><span>${timeCategoryLabel(taskTimeCategory(t))}</span>${planModeBadgeHtml(t)}<b>${escapeHtml(t.title)}</b></button><div class="timeTaskMeter" style="--w:${target?Math.min(100,pct):0}%"><i></i></div><div class="timeTaskValue"><b>${fmtMinutes(used)}</b><span>${target?`/ ${fmtMinutes(target)}`:"未设目标"}</span></div><label class="timeTargetEdit"><span>周目标</span><input type="number" min="0" max="10080" step="5" value="${target}" data-time-target-task="${escapeHtml(t.id)}"></label></div>`;
   }).join("");
   const logRows=readTimeLogs().slice().sort(timeLogSortDesc).slice(0,60).map(log=>`<li class="timeLogItem"><div><b>${escapeHtml(log.title)}</b><span>${fmtLogWhen(log)} · ${timeCategoryLabel(log.category)}</span></div><strong>${fmtMinutes(log.duration_minutes)}</strong><button type="button" data-time-log-delete="${escapeHtml(log.id)}">删除</button></li>`).join("")||`<li class="timeLogItem empty"><div><b>暂无时间记录</b><span>点任务或游戏作战区开始计时</span></div><strong>0m</strong></li>`;
-  const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span>${timeCategoryDefs[k].short} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
+  const todayChips=timeCategoryOrder.filter(k=>todayTotals[k]).map(k=>`<span title="${escapeHtml(timeCategoryDefs[k].name)}" aria-label="${escapeHtml(timeCategoryDefs[k].name)}：${fmtMinutes(todayTotals[k])}">${taskCategoryGlyph(k)} ${fmtMinutes(todayTotals[k])}</span>`).join("")||`<span>今天暂无计时</span>`;
   const taskRanks=weekTaskTotals().slice(0,6).map(row=>{
     const task=taskById(row.task_id);
     const target=task?taskWeeklyMinutes(task):0;
