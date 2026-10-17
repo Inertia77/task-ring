@@ -15,7 +15,7 @@ function setup(){
   const checks=new Set(),listeners={};
   const ctx={
     blocks:[scheduled,weekly,monthly,onDemand],
-    window:{confirm:()=>true,open:()=>{}},
+    window:{confirm:()=>{throw new Error("Confirmation modal should not appear")},open:()=>{}},
     document:{addEventListener:(event,fn)=>{(listeners[event]??=[]).push(fn)},getElementById:()=>null},
     navigator:{clipboard:{writeText:async()=>{}}},
     localStorage:{getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value),removeItem:key=>memory.delete(key)},
@@ -49,7 +49,7 @@ test("native task integration: weekly and scheduled cards without parallel secti
   const card=x.api.weeklyCard(x.weekly);
   assert.match(card,/weeklyMissionCard/);
   assert.match(card,/AI 执行/);
-  assert.match(card,/核验并记次/);
+  assert.match(card,/完成一次/);
   assert.doesNotMatch(card,/开始计时/);
   const daily=x.api.dailyCard({t:x.scheduled,dayId:6,cycle:"2026-10-12"});
   assert.match(daily,/dailyCard/);
@@ -75,4 +75,37 @@ test("scheduled AI completion reuses the native day-and-cycle key",()=>{
   x.checks.add("2026-10-12:study:4");
   assert.equal(x.api.verifiedCount(x.scheduled),2);
   assert.match(x.api.dailyCard({t:x.scheduled,dayId:4,cycle:"2026-10-12"}),/checked/);
+});
+
+
+test("daily AI checkbox toggles immediately without confirmation or extra prompts",()=>{
+  const x=setup();
+  const handlers=x.listeners.change;
+  assert.equal(handlers.length,1);
+  function toggle(checked){
+    const input={checked,dataset:{aiCheckTask:"study",aiCheckDay:"6",aiCheckCycle:"2026-10-12"}};
+    const event={target:{closest:selector=>selector==="[data-ai-check-task]"?input:null},preventDefault:()=>{},stopImmediatePropagation:()=>{}};
+    handlers[0](event);
+  }
+  toggle(true);
+  assert.equal(x.checks.has("2026-10-12:study:6"),true);
+  toggle(false);
+  assert.equal(x.checks.has("2026-10-12:study:6"),false);
+});
+test("weekly AI completion and undo are one click and reversible",()=>{
+  const x=setup();
+  const handler=x.listeners.click[0];
+  function click(action){
+    const button={dataset:{aiAction:action,aiTask:"calendar"}};
+    handler({target:{closest:sel=>sel==="[data-ai-action]"?button:null},preventDefault:()=>{},stopImmediatePropagation:()=>{}});
+  }
+  click("verify-weekly");
+  assert.equal(x.api.verifiedCount(x.weekly),1);
+  assert.equal(x.api.weeklyStatus(x.weekly).state,"done");
+  click("undo-weekly");
+  assert.equal(x.api.verifiedCount(x.weekly),0);
+  assert.equal(x.api.weeklyStatus(x.weekly).state,"idle");
+});
+test("AI launcher contains no confirmation dialogs",()=>{
+  assert.doesNotMatch(source,/window\.confirm\s*\(/);
 });
