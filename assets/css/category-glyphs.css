@@ -80,3 +80,42 @@
   .cfgSummaryIcon.taskCategoryGraphic .taskCategoryGlyph { width: 21px; height: 21px; }
   .missionIcon.taskCategoryGraphic .taskCategoryGlyph { width: 21px; height: 21px; }
 }
+
+/* The weekly card's metadata badge and the legacy fallback renderer also share
+   the icon-only vocabulary; status flags remain meaningful text. */
+.missionBadges .taskCategoryIconBadge,
+.weeklyTaskBadges .taskCategoryIconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  min-width: 29px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--task-category-ink, var(--color-line)) 24%, var(--color-line));
+  border-radius: 8px;
+  background: var(--task-category-wash, var(--color-panel-soft));
+  color: var(--task-category-ink, var(--color-ink));
+}
+.missionBadges .taskCategoryIconBadge .taskCategoryGlyph,
+.weeklyTaskBadges .taskCategoryIconBadge .taskCategoryGlyph { width: 16px; height: 16px; }
+.weeklyTaskTitle .taskCategoryGraphic,
+.weeklyTaskGroupHead .taskCategoryGraphic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--task-category-ink, var(--color-ink));
+}
+.weeklyTaskTitle .taskCategoryGraphic .taskCategoryGlyph,
+.weeklyTaskGroupHead .taskCategoryGraphic .taskCategoryGlyph { width: 20px; height: 20px; }
+
+/* Charts and brief time breakdowns stay compact without letter abbreviations. */
+.timeBudgetLabel.taskCategoryGraphic { color: var(--task-category-ink, var(--color-ink)); }
+.timeBudgetLabel.taskCategoryGraphic .taskCategoryGlyph { width: 19px; height: 19px; }
+.timeTodayChips .timeCategoryTodayChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.timeTodayChips .timeCategoryTodayChip .taskCategoryGlyph { width: 15px; height: 15px; }
