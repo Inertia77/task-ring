@@ -62,3 +62,23 @@
   .fitnessGuideDetails > summary {flex-wrap:wrap;}
   .lifeSectionMetaRow label.lifeSectionGuideField {grid-column:1/-1;}
 }
+
+/* Optional exercise stays visible as a separate task, but its check mark is
+   independent of the day's required progress and the Complete All control. */
+.fitnessItem.optional { border-style:dashed; background:color-mix(in srgb,var(--color-panel) 80%,var(--color-panel-soft)); }
+.fitnessItem.optional .fitnessCheck { border-style:dashed; }
+.fitnessItemOptionalBadge {
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:7px;border:1px solid #c5b69a;
+  background:#f8f2e5;color:#795c33;padding:4px 6px;
+  font-size:11px;font-weight:800;white-space:nowrap;
+}
+.fitnessEditorOptional {
+  display:flex;align-items:center;gap:7px;padding:8px 5px;
+  color:var(--color-muted);font-size:12px;font-weight:750;
+}
+.fitnessEditorOptional input {width:17px;height:17px;accent-color:#7b6a52;flex:0 0 auto;}
+.fitnessEditorOptional span {min-width:0;}
+@media(max-width:700px){
+  .fitnessItemOptionalBadge {padding:3px 5px;font-size:10px;}
+}
