@@ -40,7 +40,7 @@
         if(def[field]!==value){def[field]=value;changed=true}
       });
     });
-    document.querySelectorAll('select option[value="language"]').forEach(option=>{option.textContent=timeCategoryDefs.language?.name||"学习"});
+    document.querySelectorAll('.cfgTimeCategory option[value="language"]').forEach(option=>{option.textContent="语 语言和音乐"});
     document.querySelectorAll('select option[value="creator"]').forEach(option=>{option.textContent=timeCategoryDefs.creator?.name||"经营"});
     document.querySelectorAll('select option[value="body"]').forEach(option=>{option.textContent=timeCategoryDefs.body?.name||"身体"});
     return changed;
