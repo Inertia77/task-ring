@@ -1,0 +1,64 @@
+
+/* Life Improvement v2 — guide-only nutrition and consistent line icons.
+   Meal guidance is reference content and must not count as a recurring task. */
+.lifeLane .fitnessLaneIcon .lifeAreaGlyph,
+.lifeSectionMetaIcon .lifeAreaGlyph,
+.lifeEditorGroupIcon .lifeAreaGlyph {
+  display:block;width:21px;height:21px;overflow:visible;color:currentColor;
+}
+.lifeLane .fitnessLaneIdentity > div > b { display:block; font-weight:850; }
+.lifeBoard .lifeLane[data-life-section="training"] {order:1;}
+.lifeBoard .lifeLane[data-life-section="routine"] {order:2;}
+.lifeBoard .lifeLane.fitnessGuideOnly {order:3;grid-column:1/-1;}
+.fitnessBoard.lifeBoard { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.fitnessGuideOnly .fitnessLaneHead {background:color-mix(in srgb,var(--life-accent) 6%,white);}
+.fitnessLaneGuideStatus{
+  display:inline-flex!important;align-items:center;justify-content:center;
+  padding:6px 9px;border-radius:9px;
+  color:#77601f!important;border:1px solid #e2d49f;background:#fff9e5;
+  font-size:11px!important;font-weight:800;letter-spacing:0!important;
+}
+.fitnessGuideOnly .fitnessItems {padding:12px;}
+.fitnessGuideDetails {min-width:0;width:100%;border:1px solid #eadfbd;border-radius:12px;background:#fffdf8;overflow:hidden;}
+.fitnessGuideDetails > summary {
+  cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(100deg,#fff8e8,#fffdf8);
+  padding:11px 15px;min-height:40px;
+  font-weight:850;color:#543d20;
+}
+.fitnessGuideDetails > summary::marker {color:#b69030;}
+.fitnessGuideDetails > summary small {font-size:11px;font-weight:600;color:#977d4e;}
+.fitnessGuideContent {
+  padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;align-items:stretch;
+}
+.fitnessGuideRow,.fitnessGuideParagraph {
+  display:flex;align-items:flex-start;gap:8px;min-width:0;padding:11px 12px;
+  background:white;border:1px solid #ede7d9;border-radius:10px;
+  font-size:12px;line-height:1.65;overflow-wrap:anywhere;
+  color:#413d35;
+}
+.fitnessGuideRow strong {
+  display:inline-flex;white-space:nowrap;align-items:center;
+  border-radius:6px;background:#fff1cf;color:#8a5a12;
+  padding:2px 6px;font-size:11px;font-weight:850;
+}
+.fitnessGuideRow span {flex:1;min-width:0;}
+.lifeSectionMetaRow label.lifeSectionGuideField {
+  grid-column:2/-1;
+  width:100%;min-width:0;
+}
+.lifeSectionGuide {
+  display:block;width:100%;min-height:110px;resize:vertical;
+  padding:9px 10px;border:1px solid var(--color-line);border-radius:8px;
+  font-family:inherit;font-size:12px;line-height:1.6;background:white;color:var(--color-ink);
+}
+.lifeEditorGroupIcon .lifeAreaGlyph,.lifeSectionMetaIcon .lifeAreaGlyph {width:20px;height:20px;}
+@media(max-width:760px) {
+  .fitnessBoard.lifeBoard {grid-template-columns:minmax(0,1fr);padding:10px;gap:10px;}
+  .lifeBoard .lifeLane.fitnessGuideOnly {grid-column:1;}
+  .fitnessGuideContent {grid-template-columns:minmax(0,1fr);gap:7px;}
+  .fitnessGuideRow {padding:10px;}
+  .fitnessGuideDetails > summary {flex-wrap:wrap;}
+  .lifeSectionMetaRow label.lifeSectionGuideField {grid-column:1/-1;}
+}
