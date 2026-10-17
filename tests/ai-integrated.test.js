@@ -23,6 +23,7 @@ function setup(){
     ymd:()=> "2026-10-17",
     dayName:day=>String(day),
     isDone:(id,day,cycle)=>checks.has(cycle+":"+id+":"+day),
+    occurrenceState:(t,day,cycle)=>({done:checks.has(cycle+":"+t.id+":"+day),prev:false,overdue:false}),
     taskPlanningMode:t=>t.plan_mode,
     taskTimeCategory:t=>t.time_category,
     taskDayHint:t=>t.days.join("・"),
