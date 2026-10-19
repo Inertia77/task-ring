@@ -7,9 +7,38 @@
   const VIEW_ORDER=["daily","weekly","hub"];
   const BOARD_META={
     daily:{label:"日常",short:"DAILY",sub:"每天或高频重复处理的基础事项。"},
-    weekly:{label:"周常",short:"WEEKLY",sub:"按自然周重置或结算的固定事项。"},
+    weekly:{label:"周常",short:"WEEKLY",sub:"先清周一速攻，再处理周内中速；真正受时间约束的放在等待。"},
     hub:{label:"限时・周期",short:"LIMITED / RECURRING",sub:"限时奖励与周期玩法统一在 TaskRing 查看和操作。"}
   };
+  // Weekly flow is about execution readiness, not game priority or reward tier.
+  const WEEKLY_LANE_ORDER=["sprint","steady","wait"];
+  const WEEKLY_LANE_META={
+    sprint:{name:"速攻",hint:"周一就能清完 · 先拿确定收益",symbol:"zap"},
+    steady:{name:"中速",hint:"周内分批处理 · 不必周一硬清",symbol:"calendar-days"},
+    wait:{name:"等待",hint:"等待开放 / 累计条件 / 独立冷却",symbol:"hourglass"}
+  };
+  // Safe fallback for existing encrypted Gist configurations: no data migration
+  // required, and stable task IDs preserve weekly completion history.
+  const WEEKLY_LANE_BY_ID={
+    "weekly-ridu":"steady","weekly-bounty":"sprint","weekly-hunt":"sprint",
+    "weekly-pilgrimage":"sprint","weekly-city-vitality":"sprint",
+    "weekly-mammon":"sprint","weekly-auction":"sprint","weekly-butler":"wait",
+    "weekly-travel":"steady","weekly-boss":"sprint",
+    "weekly-universe":"sprint","weekly-echo":"sprint",
+    "weekly-orochi":"sprint","weekly-secret":"sprint",
+    "weekly-pvp":"steady","weekly-share":"sprint","weekly-shop":"sprint",
+    "weekly-guild":"wait","weekly-coop":"steady",
+    "weekly-six-realms":"steady","weekly-hero-contract":"steady",
+    "weekly-affairs":"steady"
+  };
+  const WEEKLY_WAIT_HINT_BY_ID={
+    "weekly-butler":"依个人的7天刷新冷却处理，周一没有刷新就继续等待。",
+    "weekly-guild":"按阴阳寮实际排班处理；麒麟、道馆、阴界之门可能在不同日开放。"
+  };
+  function weeklyLane(task){
+    const v=String(task&&task.weekly_lane||"").toLowerCase();
+    return WEEKLY_LANE_ORDER.includes(v)?v:(WEEKLY_LANE_BY_ID[String(task&&task.id||"")]||"steady");
+  }
   const PRIORITY_ORDER=["zzz","nte","wuwa","hsr","onmyoji","endfield"];
   const PRIORITY=new Map(PRIORITY_ORDER.map(function(id,i){return [id,i+1]}));
   const LEGACY_CYCLE_TITLES=new Set([
@@ -29,7 +58,7 @@
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v6";
   const LEGACY_BOARD_STORAGE_KEY="taskring_gamequest_board_v5";
 
-  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
+  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),weeklyLanes:WEEKLY_LANE_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
 
   function record(v){return !!v&&typeof v==="object"&&!Array.isArray(v)}
   function cleanTitle(v){return String(v||"").replace(/^(?:必|必做|选|选做|MUST|OPTIONAL)\s*[｜|:：]\s*/i,"").trim()}
@@ -44,6 +73,11 @@
     const out={id:id,title:title,url:normUrl(obj.url||obj.link||""),enabled:obj.enabled!==false};
     const note=String(obj.note||obj.detail||"").trim();
     if(note)out.note=note;
+    if(board==="weekly"){
+      out.weekly_lane=weeklyLane(obj.id?obj:{...obj,id:id});
+      const waitHint=String(obj.unlock_hint||obj.unlockHint||WEEKLY_WAIT_HINT_BY_ID[id]||"").trim();
+      if(waitHint)out.unlock_hint=waitHint.slice(0,220);
+    }
     if((board==="cycle"||board==="version")&&String(obj.reset_key||obj.period_key||obj.version_key||"").trim()){
       out.reset_key=String(obj.reset_key||obj.period_key||obj.version_key).trim();
     }
