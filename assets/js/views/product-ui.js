@@ -248,6 +248,8 @@
   }
   window.renderWeeklyPlanPanel=function(){
     const el=document.getElementById("weeklyPlanPanel");if(!el)return;
+    // Rebuilding the weekly tab strip must not jump back to its first category.
+    const previousTabScroll=el.querySelector(".weeklyCategoryTabs")?.scrollLeft;
     const tasks=weeklyPoolBlocks().slice().sort(weeklyPlanSort);
     const rows=weeklyCategoryRows();
     const activeCategory=selectedWeeklyCategory(rows,tasks);
@@ -270,6 +272,10 @@
       return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${list.length} 项 · ${target?`投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}`:`完成 ${done}/${list.length} 项`}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
     }).join("");
     el.innerHTML=`<div class="weeklyShell"><div class="weeklyCommandHero taskAreaHeader"><div class="taskAreaHeaderCopy"><span class="taskAreaEyebrow">WEEKLY ALLOCATION</span><b class="taskAreaTitle">周计划</b><em class="taskAreaDescription">按分类收纳长期主线，优先展示正在计时和接近目标的任务。</em></div><div class="weeklyHeroStats taskAreaHeaderSide"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}${weeklyCategoryTabs(rows,activeCategory,tasks)}${overview}<div class="weeklyTaskGroups">${groups||'<div class="weeklyEmpty"><b>周计划为空</b><span>从任务编辑器把任务模式设为「周计划」。</span><button type="button" data-open-task-editor>打开任务编辑器</button></div>'}</div></div>`;
+    if(previousTabScroll!==undefined){
+      const tabs=el.querySelector(".weeklyCategoryTabs");
+      if(tabs)tabs.scrollLeft=previousTabScroll;
+    }
   };
 
   function validGameDay(value){const n=Number(value);return [0,1,2,3,4,5,6].includes(n)?n:today}
