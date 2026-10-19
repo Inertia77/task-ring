@@ -53,6 +53,8 @@
   --shadow-card: 0 1px 0 rgba(23, 23, 20, 0.05), 0 5px 14px rgba(23, 23, 20, 0.03);
   --shadow-card-hover: 0 2px 0 rgba(23, 23, 20, 0.07), 0 9px 20px rgba(23, 23, 20, 0.06);
   --shadow-float: 0 16px 44px rgba(23, 23, 20, 0.16);
+  --ui-meta-size: 12px;
+  --ui-control-size: 44px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;

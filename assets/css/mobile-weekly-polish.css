@@ -165,3 +165,17 @@
   .missionActions .uxActionMenu button,
   .missionActions .uxActionMenu a { padding-inline: 4px; font-size: 10px; }
 }
+
+/* Current mission cards: compact summaries, readable controls. */
+@media (max-width:700px) {
+  .weeklyCommandHero .taskAreaDescription { display:none; }
+  .weeklyCommandHero .weeklyHeroStats { gap:5px; margin-top:4px; }
+  .weeklyCommandHero .weeklyHeroStats > div { padding:6px 9px; min-height:44px; }
+  .weeklyMissionGroup > summary { padding:9px 10px; }
+  .weeklyMissionGroup > summary .sectionSummary { min-height:44px; }
+  .weeklyMissionGroup .missionTitleBlock b { font-size:15px; line-height:1.4; }
+  .weeklyMissionCard .missionBadges > span { font-size:12px; }
+  .weeklyMissionCard .missionActions button, .weeklyMissionCard .missionActions a,
+  .weeklyMissionCard .uxActionMore > summary { min-height:44px; font-size:12px; }
+  .weeklyMissionCard .uxActionMenu button, .weeklyMissionCard .uxActionMenu a { font-size:12px; min-height:44px; }
+}

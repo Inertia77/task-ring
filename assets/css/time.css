@@ -83,3 +83,27 @@
 .timerFloatActions button { min-height: var(--tap-size); padding: 6px 10px; border: 1px solid #d8d3c8; border-radius: 7px; background: white; color: var(--color-ink); font-weight: 750; }
 .timerFloatActions button[data-timer-pause], .timerFloatActions button[data-timer-resume] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-ink); }
 .timerFloatActions .timerGhost { border-color: #6d6b64; background: transparent; color: white; }
+
+@media (min-width:1050px) {
+  .timeBudgetList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+}
+@media (min-width:701px) and (max-width:1049px) {
+  .timeTaskRow { grid-template-columns:minmax(0,1fr) 100px; }
+  .timeTaskName { grid-column:1; }
+  .timeTaskMeter { grid-column:1; grid-row:2; }
+  .timeTaskActions { grid-column:1/-1; }
+}
+@media (max-width:700px) {
+  .timePanel .timePanelHeader { padding:10px; gap:6px; }
+  .timePanel .timePanelHeader em { display:none; }
+  .timePanel .timeLedgerIdle { min-height:44px; padding:8px 10px; }
+  .timePanel .timeLedgerIdle em { display:none; }
+  .timePanel .timeTaskName b { white-space:normal; overflow-wrap:anywhere; }
+  .timePanel .timeTaskActions { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .timePanel .timeTaskActions button { min-height:44px; }
+  .timePanel .timeHistorySummary > em, .timePanel .timeHistoryWeekPicker > span { font-size:12px; }
+}
+
+.timeBudgetRow .timeBudgetLabel { gap:7px; }
+.timeBudgetRow .timeBudgetLabel b { font-size:13px; white-space:normal; overflow-wrap:anywhere; }
+@media(max-width:700px) { .timeBudgetRow { grid-template-columns:minmax(100px,.65fr) minmax(40px,1fr) 50px; padding-top:10px; } }

@@ -17,33 +17,16 @@
     min-width: 0;
   }
 
-  /* Weekly Pool: these are the live classes emitted by renderWeekly(). Keep
-     normal categories at two columns. If a category contains only one task,
-     make the whole category a compact half-width lane rather than a giant strip. */
-  .weeklyTaskGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
 
-  .weeklyTaskGroup:has(> .weeklyTaskGrid > .weeklyTaskCard:only-child) {
-    width: min(760px, calc(50% - 5px));
-    justify-self: start;
-  }
-
-  .weeklyTaskGroup:has(> .weeklyTaskGrid > .weeklyTaskCard:only-child) .weeklyTaskGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
-/* Narrower laptop/tablet widths stay single-column for readable titles and taps. */
-@media (max-width: 1049px) {
-  .gameQuestGrid:has(> .gameQuestCard:only-child) > .gameQuestCard .gameQuestTaskList,
-  .weeklyTaskGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .weeklyTaskGroup:has(> .weeklyTaskGrid > .weeklyTaskCard:only-child) {
-    width: 100%;
-    max-width: none;
-  }
+/* Current weekly renderer: group summaries and mission cards share a responsive grid. */
+@media (min-width: 1050px) {
+  .weeklyTaskGroups { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:12px; }
+  .weeklyMissionGroup .weeklyMissionGrid { grid-template-columns:minmax(0,1fr); }
+  .weeklyTaskGroups > .weeklyMissionGroup:only-child { grid-column:1/-1; }
+  .weeklyTaskGroups > .weeklyMissionGroup:only-child .weeklyMissionGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width: 1500px) {
+  .weeklyTaskGroups > .weeklyMissionGroup:only-child .weeklyMissionGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
