@@ -20,6 +20,7 @@ const visualCss=read("assets/css/visual-polish.css");
 const appJs=read("assets/js/app.js");
 const dataIntegrityJs=read("assets/js/data-integrity.js");
 const gameOpsV6Js=read("assets/js/game-ops-v6.js");
+const productUiJs=read("assets/js/views/product-ui.js");
 const gameWeeklyFlowCss=read("assets/css/game-weekly-flow.css");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
@@ -83,6 +84,8 @@ assert(gameOpsV6Js.includes("function completeDailyBoard"),"GameQuest daily comp
 assert(gameOpsV6Js.includes('role="tablist"'),"GameQuest lanes must render separate accessible tabs");
 assert(gameOpsV6Js.includes('data-gqv6-lane="'),"GameQuest lane tab selectors are missing");
 assert(gameOpsV6Js.includes("LANE_STORAGE_PREFIX"),"GameQuest lane selections must persist per board");
+assert(productUiJs.includes('const previousTabScroll=el.querySelector(".weeklyCategoryTabs")?.scrollLeft;'),"Weekly tab rerender must capture horizontal scroll");
+assert(productUiJs.includes("if(tabs)tabs.scrollLeft=previousTabScroll;"),"Weekly tab rerender must restore horizontal scroll");
 assert(gameOpsV6Js.includes("MOBILE_FOCUS_PREFIX"),"GameQuest mobile focus preferences should stay local");
 assert(gameOpsV6Js.includes("gqV6MobileCollapsed"),"GameQuest mobile accordion card state is missing");
 assert(gameOpsV6Js.includes('data-gqv6-expand-all="1"'),"GameQuest mobile expand-all control is missing");
