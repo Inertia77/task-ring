@@ -1,0 +1,90 @@
+/* GameQuest weekly flow: readiness first, game second.
+   A fixed weekly reset is distinct from "available now": wait entries remain
+   tappable until the player verifies the in-game gate or cooldown. */
+.gqWeeklyFlow {display:grid;gap:14px;min-width:0}
+.gqWeeklyLane {
+  --flow-ink:#3f6d4d;
+  --flow-wash:#eff8f1;
+  --flow-stroke:#aacfb0;
+  position:relative;display:grid;gap:0;min-width:0;
+  border:1px solid var(--flow-stroke);
+  border-radius:16px;overflow:hidden;background:var(--color-panel,#fff);
+}
+.gqWeeklyLane.steady {
+  --flow-ink:#526f9b;--flow-wash:#eff4fd;--flow-stroke:#b2c6e7;
+}
+.gqWeeklyLane.wait {
+  --flow-ink:#996e31;--flow-wash:#fff8e9;--flow-stroke:#dcc6a0;
+}
+.gqWeeklyLane.allDone {opacity:.84}
+.gqWeeklyLaneHeader {
+  display:flex;align-items:center;gap:11px;min-height:69px;
+  padding:12px 16px;background:var(--flow-wash);
+  border-bottom:1px solid var(--flow-stroke);
+}
+.gqWeeklyLaneIcon {
+  display:grid;place-items:center;
+  flex:0 0 40px;width:40px;height:40px;border-radius:11px;
+  color:var(--flow-ink);background:#fff;
+  border:1px solid var(--flow-stroke);
+}
+.gqWeeklyLaneIcon .trUiIcon {width:22px;height:22px}
+.gqWeeklyLaneHeading {min-width:0;flex:1}
+.gqWeeklyLaneHeading h3 {
+  margin:0;color:var(--color-ink,#242424);
+  font-size:17px;font-weight:900;line-height:1.4;
+}
+.gqWeeklyLaneHeading p {margin:3px 0 0;color:var(--color-muted,#777);font-size:11px;line-height:1.45}
+.gqWeeklyLaneCount {
+  display:inline-grid;place-items:center;min-width:53px;
+  padding:7px 9px;border:1px solid var(--flow-stroke);
+  border-radius:10px;background:white;color:var(--flow-ink);
+  font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;
+}
+.gqWeeklyLane .gqWeeklyGrid {padding:12px;gap:10px;min-width:0}
+.gqWeeklyLane .gqV6GameCard {min-width:0}
+.gqWeeklyLane .gameQuestCardTop {min-width:0}
+.gqWeeklyLane .gameQuestCardBody {min-width:0}
+.gqWeeklyLane .gameQuestTaskRow {min-width:0}
+.gqWeeklyUnlockHint {
+  display:flex;align-items:flex-start;gap:5px;margin:5px 4px 8px 45px;
+  padding:6px 9px;border-left:3px solid var(--flow-stroke);
+  background:var(--flow-wash);border-radius:0 7px 7px 0;
+  color:var(--flow-ink);font-size:11px;line-height:1.5;
+  overflow-wrap:anywhere;
+}
+.gqWeeklyUnlockHint::before {content:"⏳";font-size:12px;flex:0 0 auto}
+.gqWeeklyEmpty {margin:0;padding:18px;color:var(--color-muted);font-size:12px}
+
+/* Weekly editor: grouping is selectable and survives subsequent saves/imports. */
+.gqV6EditorTask .gqV6EditorLane,
+.gqV6EditorTask .gqV6EditorGate {min-width:0}
+.gqV6EditorTask .gqV6EditorLane select {
+  display:block;width:100%;min-width:0;min-height:36px;
+  padding:6px 8px;border-radius:7px;border:1px solid var(--color-line);
+  font:inherit;font-size:12px;color:var(--color-ink);background:#fff;
+}
+.gqV6EditorTask .gqV6EditorGate {grid-column:1/-1}
+.gqV6EditorTask .gqV6EditorNote {grid-column:1/-2}
+
+@media (max-width:1100px) {
+  .gqWeeklyLane .gqWeeklyGrid {grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:700px) {
+  .gqWeeklyFlow {gap:11px}
+  .gqWeeklyLane {border-radius:12px}
+  .gqWeeklyLaneHeader {min-height:61px;padding:10px;gap:8px}
+  .gqWeeklyLaneIcon {width:34px;height:34px;flex-basis:34px;border-radius:9px}
+  .gqWeeklyLaneIcon .trUiIcon {width:18px;height:18px}
+  .gqWeeklyLaneHeading h3 {font-size:15px}
+  .gqWeeklyLaneHeading p {font-size:10px}
+  .gqWeeklyLaneCount {min-width:46px;padding:6px}
+  .gqWeeklyLane .gqWeeklyGrid {padding:8px;gap:9px}
+  .gqWeeklyUnlockHint {margin-left:8px;margin-right:8px}
+  .gqV6EditorTask .gqV6EditorGate,
+  .gqV6EditorTask .gqV6EditorNote {grid-column:1/-1}
+  .gqV6EditorTask .gqV6EditorLane {grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce) {
+  .gqWeeklyLane * {transition:none!important}
+}
