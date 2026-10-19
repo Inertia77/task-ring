@@ -75,6 +75,7 @@
   const LEGACY_DAILY_TITLES=new Set(["环境监测站（每2日）"]);
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v6";
   const LEGACY_BOARD_STORAGE_KEY="taskring_gamequest_board_v5";
+  const LANE_STORAGE_PREFIX="taskring_gamequest_lane_v6_";
 
   window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),dailyLanes:DAILY_LANE_ORDER.slice(),weeklyLanes:WEEKLY_LANE_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
 
@@ -315,6 +316,17 @@
     setCurrentBoard(VIEW_ORDER.includes(mode)?mode:(map[mode]||"daily"));
   };
 
+  function currentLane(board){
+    const order=board==="daily"?DAILY_LANE_ORDER:WEEKLY_LANE_ORDER;
+    const saved=localStorage.getItem(LANE_STORAGE_PREFIX+board);
+    return order.includes(saved)?saved:order[0];
+  }
+  function setCurrentLane(board,lane){
+    const order=board==="daily"?DAILY_LANE_ORDER:board==="weekly"?WEEKLY_LANE_ORDER:[];
+    if(!order.includes(lane))return;
+    localStorage.setItem(LANE_STORAGE_PREFIX+board,lane);
+    renderGameQuestPanel();
+  }
   function esc(v){return escapeHtml(String(v==null?"":v))}
   function noteHtml(task){
     const note=String(task.note||"").trim();
@@ -334,29 +346,37 @@
     return '<article class="gameQuestCard gameQuestCardV2 gqV6GameCard accent-'+esc(g.accent)+' '+(entry.cardDone?"done":"")+'" style="--gq-p:'+pct+'%"><div class="gameQuestCardTop"><button type="button" class="gameQuestCheck '+(entry.cardDone?"done":"")+'" data-gqv5-card="1" data-board="'+esc(board)+'" data-game="'+esc(g.id)+'" data-task-lane="'+esc(lane)+'" aria-pressed="'+(entry.cardDone?"true":"false")+'" '+(entry.total?"":"disabled")+'><span></span></button><span class="gqV6Priority">0'+priority+'</span><span class="gameQuestIcon">'+esc(String(g.icon||g.name).slice(0,4))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+esc(g.name)+'</span><span class="gameQuestShort">优先度 #'+priority+' · '+entry.total+' 项</span></div><span class="gameQuestCount">'+entry.done+'/'+entry.total+'</span></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody">'+taskRows(board,entry)+'</div></article>';
   }
   function flowBoard(board,entries){
-    const lanes=board==="daily"?DAILY_LANE_ORDER:WEEKLY_LANE_ORDER;
-    const descriptions=board==="daily"?DAILY_LANE_META:WEEKLY_LANE_META;
     const isDaily=board==="daily";
-    return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+lanes.map(function(lane){
+    const lanes=isDaily?DAILY_LANE_ORDER:WEEKLY_LANE_ORDER;
+    const descriptions=isDaily?DAILY_LANE_META:WEEKLY_LANE_META;
+    const selected=currentLane(board);
+    const groups=lanes.map(function(lane){
       const meta=descriptions[lane];
       const grouped=entries.map(function(entry){
         const tasks=entry.tasks.filter(function(t){return (isDaily?dailyLane(t):weeklyLane(t))===lane});
         const done=tasks.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
         return {game:entry.game,tasks:tasks,done:done,total:tasks.length,cardDone:tasks.length>0&&done===tasks.length};
       }).filter(function(e){return e.total>0});
-      const total=grouped.reduce(function(s,e){return s+e.total},0);
-      const done=grouped.reduce(function(s,e){return s+e.done},0);
-      const icon=typeof taskUiIcon==="function"?taskUiIcon(meta.symbol):"";
-      const isComplete=total>0&&done>=total;
-      const optional=lane==="optional";
-      return '<section class="gqWeeklyLane '+lane+(isComplete?" allDone":"")+'" data-'+(isDaily?"daily":"weekly")+'-lane="'+lane+'">'+
-        '<header class="gqWeeklyLaneHeader"><span class="gqWeeklyLaneIcon" aria-hidden="true">'+icon+'</span>'+
-        '<div class="gqWeeklyLaneHeading"><h3>【'+meta.name+'】</h3><p>'+meta.hint+'</p></div>'+
-        '<span class="gqWeeklyLaneCount" aria-label="'+meta.name+'已完成'+done+'项，总共'+total+'项">'+done+'/'+total+'</span></header>'+
-        '<div class="gameQuestGrid gqV6Grid gqWeeklyGrid">'+
-        (grouped.length?grouped.map(function(e){return gameCard(board,e,lane)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
-        '</section>';
+      return {lane:lane,meta:meta,grouped:grouped,done:grouped.reduce(function(s,e){return s+e.done},0),total:grouped.reduce(function(s,e){return s+e.total},0)};
+    });
+    const tabs='<div class="gqV6LaneTabs" role="tablist" aria-label="'+(isDaily?"日常任务分类":"周常任务分类")+'">'+groups.map(function(group){
+      const active=group.lane===selected;
+      const icon=typeof taskUiIcon==="function"?taskUiIcon(group.meta.symbol):"";
+      return '<button type="button" class="gqV6LaneTab '+group.lane+(active?' active':'')+'" role="tab" data-gqv6-lane="'+group.lane+'" data-board="'+board+'" aria-selected="'+active+'" aria-controls="gqv6-lane-panel-'+board+'-'+group.lane+'" tabindex="'+(active?'0':'-1')+'"><span class="gqV6LaneTabName"><span aria-hidden="true">'+icon+'</span>'+group.meta.name+'</span><b class="gqV6LaneTabCount">'+group.done+'/'+group.total+'</b></button>';
     }).join("")+'</div>';
+    const panels=groups.map(function(group){
+      const active=group.lane===selected;
+      const isComplete=group.total>0&&group.done>=group.total;
+      const icon=typeof taskUiIcon==="function"?taskUiIcon(group.meta.symbol):"";
+      return '<section id="gqv6-lane-panel-'+board+'-'+group.lane+'" class="gqWeeklyLane '+group.lane+(isComplete?" allDone":"")+'" role="tabpanel" aria-label="'+group.meta.name+'" data-'+(isDaily?"daily":"weekly")+'-lane="'+group.lane+'"'+(active?'':' hidden')+'>'+
+        '<header class="gqWeeklyLaneHeader"><span class="gqWeeklyLaneIcon" aria-hidden="true">'+icon+'</span>'+
+        '<div class="gqWeeklyLaneHeading"><h3>【'+group.meta.name+'】</h3><p>'+group.meta.hint+'</p></div>'+
+        '<span class="gqWeeklyLaneCount" aria-label="'+group.meta.name+'已完成'+group.done+'项，总共'+group.total+'项">'+group.done+'/'+group.total+'</span></header>'+
+        '<div class="gameQuestGrid gqV6Grid gqWeeklyGrid">'+
+        (group.grouped.length?group.grouped.map(function(e){return gameCard(board,e,group.lane)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
+        '</section>';
+    }).join("");
+    return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+tabs+panels+'</div>';
   }
   function boardTabs(active){
     return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+VIEW_ORDER.map(function(view){
@@ -496,6 +516,15 @@
       setCurrentBoard(tab.dataset.gqv6Board||tab.dataset.gqv5Board);
       return;
     }
+    const laneTab=e.target.closest&&e.target.closest("[data-gqv6-lane]");
+    if(laneTab){
+      e.preventDefault();e.stopImmediatePropagation();
+      const board=laneTab.dataset.board,lane=laneTab.dataset.gqv6Lane;
+      setCurrentLane(board,lane);
+      const selected=document.querySelector('[data-gqv6-lane="'+lane+'"][data-board="'+board+'"]');
+      if(selected)selected.focus({preventScroll:true});
+      return;
+    }
     const completeAll=e.target.closest&&e.target.closest("[data-gqv6-complete-daily]");
     if(completeAll){
       e.preventDefault();e.stopImmediatePropagation();
@@ -532,6 +561,19 @@
       });
       return;
     }
+  },true);
+
+  document.addEventListener("keydown",function(e){
+    const tab=e.target.closest&&e.target.closest("[data-gqv6-lane]");
+    if(!tab||!["ArrowLeft","ArrowRight","Home","End"].includes(e.key))return;
+    const board=tab.dataset.board,order=board==="daily"?DAILY_LANE_ORDER:board==="weekly"?WEEKLY_LANE_ORDER:[];
+    if(!order.length)return;
+    const i=order.indexOf(tab.dataset.gqv6Lane);
+    const next=e.key==="Home"?0:e.key==="End"?order.length-1:(i+(e.key==="ArrowRight"?1:-1)+order.length)%order.length;
+    e.preventDefault();
+    setCurrentLane(board,order[next]);
+    const selected=document.querySelector('[data-gqv6-lane="'+order[next]+'"][data-board="'+board+'"]');
+    if(selected)selected.focus({preventScroll:true});
   },true);
 
   try{

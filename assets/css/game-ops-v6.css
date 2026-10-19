@@ -408,3 +408,52 @@
     font-size:8px;
   }
 }
+
+/* Daily and weekly inner category tabs; selection stays local to each browser. */
+.gqV6LaneTabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  padding:7px;
+  border:1px solid var(--color-line);
+  border-radius:12px;
+  background:var(--color-panel);
+}
+.gqDailyFlow .gqV6LaneTabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gqV6LaneTab{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 13px;
+  min-height:46px;
+  border:1px solid var(--color-line);
+  border-radius:9px;
+  color:var(--color-ink);
+  background:var(--color-panel-soft);
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+}
+.gqV6LaneTabName{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.gqV6LaneTabName svg{width:15px;height:15px;flex:none}
+.gqV6LaneTabCount{font-variant-numeric:tabular-nums;font-size:11px;white-space:nowrap;color:var(--color-muted)}
+.gqV6LaneTab.active{color:#fff;background:var(--color-ink);border-color:var(--color-ink)}
+.gqV6LaneTab.active .gqV6LaneTabCount{color:#d5e2e8}
+.gqV6LaneTab:not(.active):hover{border-color:var(--color-line-strong)}
+.gqV6LaneTab:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
+.gqWeeklyLane[hidden]{display:none !important}
+@media(max-width:700px){
+  .gqV6LaneTabs,.gqDailyFlow .gqV6LaneTabs{
+    display:flex;
+    overflow-x:auto;
+    max-width:100%;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+    scrollbar-width:thin;
+  }
+  .gqV6LaneTab{flex:1 0 auto;min-width:116px;min-height:42px;padding:8px 10px;scroll-snap-align:start}
+  .gqDailyFlow .gqV6LaneTab{min-width:0;flex:1 1 50%}
+}

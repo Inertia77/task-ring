@@ -79,6 +79,9 @@ assert(dataIntegrityJs.includes('pushLocalConfigBackup(localCfg,"手动从云端
 assert(dataIntegrityJs.includes("recordConfigBaseline(configToUse,gist)"),"manual cloud-wins resolution must reset the shared config baseline");
 assert(gameOpsV6Js.includes('data-gqv6-complete-daily="1"'),"GameQuest daily board must expose the one-tap complete-all action");
 assert(gameOpsV6Js.includes("function completeDailyBoard"),"GameQuest daily complete-all handler is missing");
+assert(gameOpsV6Js.includes('role="tablist"'),"GameQuest lanes must render separate accessible tabs");
+assert(gameOpsV6Js.includes('data-gqv6-lane="'),"GameQuest lane tab selectors are missing");
+assert(gameOpsV6Js.includes("LANE_STORAGE_PREFIX"),"GameQuest lane selections must persist per board");
 
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
