@@ -375,7 +375,18 @@
   }
 
   function editorTaskRow(board,gid,t,idx,total){
-    return '<div class="gqV6EditorTask" data-gqv6-editor-task data-task-id="'+esc(t.id||"")+'"><label class="gqV6EditorTitle"><span>任务名</span><input class="gqV6TitleInput" value="'+esc(t.title||"")+'" placeholder="任务名称"></label><label class="gqV6EditorUrl"><span>链接（选填）</span><input class="gqV6UrlInput" value="'+esc(t.url||"")+'" placeholder="https://..."></label><label class="gqV6EditorNote"><span>备注（选填）</span><textarea class="gqV6NoteInput" rows="2">'+esc(t.note||"")+'</textarea></label><div class="gqV6EditorOps"><button type="button" data-gqv6-move="up" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx<=0?"disabled":"")+'>↑</button><button type="button" data-gqv6-move="down" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx>=total-1?"disabled":"")+'>↓</button><button type="button" class="danger" data-gqv6-delete="1" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'">删除</button></div></div>';
+    const lane=weeklyLane(t);
+    const weeklyOptions=board==="weekly"
+      ? '<label class="gqV6EditorLane"><span>完成节奏</span><select class="gqV6WeeklyLane">'+WEEKLY_LANE_ORDER.map(function(id){return '<option value="'+id+'"'+(lane===id?' selected':'')+'>'+WEEKLY_LANE_META[id].name+'</option>'}).join("")+'</select></label>'+
+        '<label class="gqV6EditorGate"><span>等待条件 / 提示（选填）</span><input class="gqV6UnlockHintInput" value="'+esc(t.unlock_hint||"")+'" maxlength="220" placeholder="例如：等本周五开放，或个人7天冷却"></label>'
+      : "";
+    return '<div class="gqV6EditorTask" data-gqv6-editor-task data-task-id="'+esc(t.id||"")+'">'+
+      '<label class="gqV6EditorTitle"><span>任务名</span><input class="gqV6TitleInput" value="'+esc(t.title||"")+'" placeholder="任务名称"></label>'+
+      '<label class="gqV6EditorUrl"><span>链接（选填）</span><input class="gqV6UrlInput" value="'+esc(t.url||"")+'" placeholder="https://..."></label>'+
+      weeklyOptions+
+      '<label class="gqV6EditorNote"><span>备注（选填）</span><textarea class="gqV6NoteInput" rows="2">'+esc(t.note||"")+'</textarea></label>'+
+      '<div class="gqV6EditorOps"><button type="button" data-gqv6-move="up" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx<=0?"disabled":"")+'>↑</button><button type="button" data-gqv6-move="down" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'" '+(idx>=total-1?"disabled":"")+'>↓</button><button type="button" class="danger" data-gqv6-delete="1" data-board="'+board+'" data-game="'+esc(gid)+'" data-index="'+idx+'">删除</button></div>'+
+      '</div>';
   }
   function editorGameCard(board,g,cfg){
     const tasks=boardTasksAll(board,g.id,cfg);
@@ -388,7 +399,7 @@
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
     const order='<div class="gqV6PriorityRule"><span>PRIORITY</span><b>固定游戏顺序</b><em>01 绝区零 → 02 异环 → 03 鸣潮 → 04 崩铁 → 05 阴阳师 → 06 终末地</em></div>';
-    const cloudHint='<div class="gqV6PriorityRule"><span>LIVE OPS</span><em>此处编辑日常与周常；限时・周期请在对应板块点击「补任务」。</em></div>';
+    const cloudHint='<div class="gqV6PriorityRule"><span>WEEKLY FLOW</span><em>周常可设置「速攻 / 中速 / 等待」。等待任务需按实际开放或个人冷却勾选；限时・周期仍由独立板块管理。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];
       return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
@@ -410,7 +421,11 @@
             id:row.dataset.taskId||"",
             title:(row.querySelector(".gqV6TitleInput")&&row.querySelector(".gqV6TitleInput").value||"").trim(),
             url:(row.querySelector(".gqV6UrlInput")&&row.querySelector(".gqV6UrlInput").value||"").trim(),
-            note:(row.querySelector(".gqV6NoteInput")&&row.querySelector(".gqV6NoteInput").value||"").trim()
+            note:(row.querySelector(".gqV6NoteInput")&&row.querySelector(".gqV6NoteInput").value||"").trim(),
+            ...(board==="weekly"?{
+              weekly_lane:row.querySelector(".gqV6WeeklyLane")?.value||"steady",
+              unlock_hint:(row.querySelector(".gqV6UnlockHintInput")?.value||"").trim()
+            }:{})
           };
           return task;
         });
@@ -435,7 +450,7 @@
     gameQuestDraftConfig.boards[board][gid]=list;
     renderGameQuestEditor();
   }
-  function newTask(){return {id:"",title:"",url:""}}
+  function newTask(board){return {id:"",title:"",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{})}}
 
   document.addEventListener("click",function(e){
     const refresh=e.target.closest&&e.target.closest("[data-gqv5-refresh]");
