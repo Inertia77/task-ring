@@ -20,6 +20,7 @@ const visualCss=read("assets/css/visual-polish.css");
 const appJs=read("assets/js/app.js");
 const dataIntegrityJs=read("assets/js/data-integrity.js");
 const gameOpsV6Js=read("assets/js/game-ops-v6.js");
+const gameWeeklyFlowCss=read("assets/css/game-weekly-flow.css");
 
 const localScripts=[...html.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/g)]
   .map(match=>stripQuery(match[1]))
@@ -82,6 +83,13 @@ assert(gameOpsV6Js.includes("function completeDailyBoard"),"GameQuest daily comp
 assert(gameOpsV6Js.includes('role="tablist"'),"GameQuest lanes must render separate accessible tabs");
 assert(gameOpsV6Js.includes('data-gqv6-lane="'),"GameQuest lane tab selectors are missing");
 assert(gameOpsV6Js.includes("LANE_STORAGE_PREFIX"),"GameQuest lane selections must persist per board");
+assert(gameOpsV6Js.includes("MOBILE_FOCUS_PREFIX"),"GameQuest mobile focus preferences should stay local");
+assert(gameOpsV6Js.includes("gqV6MobileCollapsed"),"GameQuest mobile accordion card state is missing");
+assert(gameOpsV6Js.includes('data-gqv6-expand-all="1"'),"GameQuest mobile expand-all control is missing");
+assert(gameOpsV6Js.includes('data-gqv6-game-toggle="1"'),"GameQuest mobile per-game toggle is missing");
+assert(gameWeeklyFlowCss.includes(".gqV6MobileCollapsed .gameQuestCardBody{display:none}"),"GameQuest collapsed cards must hide body only on mobile");
+assert(gameWeeklyFlowCss.includes("@media (max-width:700px)"),"GameQuest compact mode must be mobile-scoped");
+assert(mainCss.lastIndexOf("game-weekly-flow.css")>mainCss.indexOf("game-ops-v6.css"),"GameQuest compact override must load after v6 styles");
 
 assert(!exists("assets/images/css"),"obsolete legacy theme asset directory assets/images/css must stay removed");
 assert(!exists("docs/REFACTOR_REPORT.md"),"obsolete REFACTOR_REPORT.md should not return to the current docs tree");
