@@ -87,7 +87,7 @@ assert(gameOpsV6Js.includes("MOBILE_FOCUS_PREFIX"),"GameQuest mobile focus prefe
 assert(gameOpsV6Js.includes("gqV6MobileCollapsed"),"GameQuest mobile accordion card state is missing");
 assert(gameOpsV6Js.includes('data-gqv6-expand-all="1"'),"GameQuest mobile expand-all control is missing");
 assert(gameOpsV6Js.includes('data-gqv6-game-toggle="1"'),"GameQuest mobile per-game toggle is missing");
-assert(gameWeeklyFlowCss.includes(".gqV6MobileCollapsed .gameQuestCardBody{display:none}"),"GameQuest collapsed cards must hide body only on mobile");
+assert(gameWeeklyFlowCss.includes(".gqV6MobileCollapsed .gameQuestCardBody,") && gameWeeklyFlowCss.includes(".gqV6MobileCollapsed .gameQuestProgressRail{display:none}"),"GameQuest collapsed cards must hide body and rail only on mobile");
 assert(gameWeeklyFlowCss.includes("@media (max-width:700px)"),"GameQuest compact mode must be mobile-scoped");
 assert(mainCss.lastIndexOf("game-weekly-flow.css")>mainCss.indexOf("game-ops-v6.css"),"GameQuest compact override must load after v6 styles");
 
