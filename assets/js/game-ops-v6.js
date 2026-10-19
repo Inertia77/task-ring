@@ -522,14 +522,36 @@
     return normalizeGameQuestConfig(imported);
   };
 
-  function editorMutate(board,gid,fn){
+  function editorMutate(board,gid,fn,focusNew=false){
+    // An editor re-render must keep the user's opened board and every existing
+    // unsaved field. Never turn an empty new row into a disappearing no-op.
+    const openBoards=new Set([].slice.call(document.querySelectorAll("#gameQuestEditorList [data-gqv5-editor-board]"))
+      .filter(function(section){return section.open})
+      .map(function(section){return section.dataset.gqv5EditorBoard}));
     collectGameQuestEditorState();
     const list=gameQuestDraftConfig.boards[board][gid]||[];
     fn(list);
     gameQuestDraftConfig.boards[board][gid]=list;
     renderGameQuestEditor();
+    document.querySelectorAll("#gameQuestEditorList [data-gqv5-editor-board]").forEach(function(section){
+      section.open=openBoards.has(section.dataset.gqv5EditorBoard)||(focusNew&&section.dataset.gqv5EditorBoard===board);
+    });
+    if(focusNew){
+      const section=document.querySelector('#gameQuestEditorList [data-gqv5-editor-board="'+safeCssEscape(board)+'"]');
+      const card=[].slice.call(section?.querySelectorAll("[data-gqv5-editor-game]")||[])
+        .find(function(el){return el.dataset.gqv5EditorGame===gid});
+      const inputs=card?.querySelectorAll(".gqV6TitleInput");
+      const input=inputs&&inputs[inputs.length-1];
+      if(input){
+        input.focus({preventScroll:true});
+        input.select();
+        input.scrollIntoView({block:"nearest"});
+      }
+    }
   }
-  function newTask(board){return {id:"",title:"",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{daily_lane:"must"})}}
+  // The normalizer correctly drops blank task names. Use a valid editable
+  // draft title so "＋任务" survives the rerender until the user renames it.
+  function newTask(board){return {id:"",title:"新任务",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{daily_lane:"must"})}}
 
   document.addEventListener("click",function(e){
     const refresh=e.target.closest&&e.target.closest("[data-gqv5-refresh]");
@@ -594,9 +616,7 @@
     const add=e.target.closest&&e.target.closest("[data-gqv5-add]");
     if(add){
       e.preventDefault();e.stopImmediatePropagation();
-      editorMutate(add.dataset.board,add.dataset.game,function(list){list.push(newTask(add.dataset.board))});
-      const section=document.querySelector('[data-gqv5-editor-board="'+safeCssEscape(add.dataset.board)+'"]');
-      if(section)section.open=true;
+      editorMutate(add.dataset.board,add.dataset.game,function(list){list.push(newTask(add.dataset.board))},true);
       return;
     }
     const del=e.target.closest&&e.target.closest("[data-gqv6-delete]");
