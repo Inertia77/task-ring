@@ -275,11 +275,21 @@
   function entriesFor(board,cfg){
     return sortedGames(cfg||gameQuestConfig).map(function(g){return entryFor(board,g,cfg||gameQuestConfig)});
   }
+  function isOptionalTask(board,task){
+    return board==="daily"?dailyLane(task)==="optional":board==="weekly"?weeklyLane(task)==="optional":false;
+  }
+  // Only compulsory tasks contribute to the daily/weekly meter. Optional tasks
+  // remain individually visible and independently checkable.
   function boardStats(board,cfg){
     const entries=entriesFor(board,cfg);
-    const total=entries.reduce(function(s,e){return s+e.total},0);
-    const done=entries.reduce(function(s,e){return s+e.done},0);
-    return {done:done,total:total,pct:total?Math.round(done/total*100):0,cards:entries.length,cardsDone:entries.filter(function(e){return e.cardDone}).length};
+    let done=0,total=0,cardsDone=0;
+    entries.forEach(function(entry){
+      const required=entry.tasks.filter(function(t){return !isOptionalTask(board,t)});
+      const cardDone=required.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
+      total+=required.length;done+=cardDone;
+      if(required.length&&cardDone===required.length)cardsDone++;
+    });
+    return {done:done,total:total,pct:total?Math.round(done/total*100):0,cards:entries.length,cardsDone:cardsDone};
   }
 
   gameQuestStats=function(){return boardStats("daily")};
@@ -323,24 +333,28 @@
     const priority=priorityOf(g,0);
     return '<article class="gameQuestCard gameQuestCardV2 gqV6GameCard accent-'+esc(g.accent)+' '+(entry.cardDone?"done":"")+'" style="--gq-p:'+pct+'%"><div class="gameQuestCardTop"><button type="button" class="gameQuestCheck '+(entry.cardDone?"done":"")+'" data-gqv5-card="1" data-board="'+esc(board)+'" data-game="'+esc(g.id)+'" data-weekly-lane="'+esc(lane)+'" aria-pressed="'+(entry.cardDone?"true":"false")+'" '+(entry.total?"":"disabled")+'><span></span></button><span class="gqV6Priority">0'+priority+'</span><span class="gameQuestIcon">'+esc(String(g.icon||g.name).slice(0,4))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+esc(g.name)+'</span><span class="gameQuestShort">优先度 #'+priority+' · '+entry.total+' 项</span></div><span class="gameQuestCount">'+entry.done+'/'+entry.total+'</span></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody">'+taskRows(board,entry)+'</div></article>';
   }
-  function weeklyFlowBoard(entries){
-    return '<div class="gqWeeklyFlow">'+WEEKLY_LANE_ORDER.map(function(lane){
-      const meta=WEEKLY_LANE_META[lane];
+  function flowBoard(board,entries){
+    const lanes=board==="daily"?DAILY_LANE_ORDER:WEEKLY_LANE_ORDER;
+    const descriptions=board==="daily"?DAILY_LANE_META:WEEKLY_LANE_META;
+    const isDaily=board==="daily";
+    return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+lanes.map(function(lane){
+      const meta=descriptions[lane];
       const grouped=entries.map(function(entry){
-        const tasks=entry.tasks.filter(function(t){return weeklyLane(t)===lane});
-        const done=tasks.filter(function(t){return taskDone("weekly",entry.game.id,t)}).length;
+        const tasks=entry.tasks.filter(function(t){return (isDaily?dailyLane(t):weeklyLane(t))===lane});
+        const done=tasks.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
         return {game:entry.game,tasks:tasks,done:done,total:tasks.length,cardDone:tasks.length>0&&done===tasks.length};
       }).filter(function(e){return e.total>0});
       const total=grouped.reduce(function(s,e){return s+e.total},0);
       const done=grouped.reduce(function(s,e){return s+e.done},0);
       const icon=typeof taskUiIcon==="function"?taskUiIcon(meta.symbol):"";
       const isComplete=total>0&&done>=total;
-      return '<section class="gqWeeklyLane '+lane+(isComplete?" allDone":"")+'" data-weekly-lane="'+lane+'">'+
+      const optional=lane==="optional";
+      return '<section class="gqWeeklyLane '+lane+(isComplete?" allDone":"")+'" data-'+(isDaily?"daily":"weekly")+'-lane="'+lane+'">'+
         '<header class="gqWeeklyLaneHeader"><span class="gqWeeklyLaneIcon" aria-hidden="true">'+icon+'</span>'+
         '<div class="gqWeeklyLaneHeading"><h3>【'+meta.name+'】</h3><p>'+meta.hint+'</p></div>'+
         '<span class="gqWeeklyLaneCount" aria-label="'+meta.name+'已完成'+done+'项，总共'+total+'项">'+done+'/'+total+'</span></header>'+
         '<div class="gameQuestGrid gqV6Grid gqWeeklyGrid">'+
-        (grouped.length?grouped.map(function(e){return gameCard("weekly",e,lane)}).join(""):'<p class="gqWeeklyEmpty">本组暂无周常任务。</p>')+'</div>'+
+        (grouped.length?grouped.map(function(e){return gameCard(board,e,lane)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
         '</section>';
     }).join("")+'</div>';
   }
@@ -362,16 +376,18 @@
     const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong>游戏作战区</strong><em>TaskRing 统一管理日常、周常与限时・周期任务；版本 / 前瞻 / 卡池排期由 Calendar 独立维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+(gqActive?(active.paused?"Ⅱ":"◷"):"◷")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
     const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
     const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong>'+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"已全部完成":"一键完成全部")+'</b></button></div>':'<strong>'+stats.done+'/'+stats.total+'</strong>';
-    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+(board==="weekly"?weeklyFlowBoard(entries):'<div class="gameQuestGrid gqV6Grid">'+entries.map(function(e){return gameCard(board,e)}).join("")+'</div>') ;
+    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+body+'</div>';
   };
 
   function setCard(board,gid,val,el,lane=""){
     const game=sortedGames(gameQuestConfig).find(function(g){return g.id===gid});if(!game)return;
     const entry=entryFor(board,game);
-    entry.tasks.filter(function(t){return board!=="weekly"||!lane||weeklyLane(t)===lane}).forEach(function(t){syncSetItem(taskKey(board,gid,t),val)});
+    entry.tasks.filter(function(t){
+      return !lane||(board==="daily"?dailyLane(t)===lane:board==="weekly"?weeklyLane(t)===lane:true);
+    }).forEach(function(t){syncSetItem(taskKey(board,gid,t),val)});
     if(val&&el&&entry.tasks.length&&typeof playCompletionEffect==="function"){
-      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+(board==="weekly"&&lane?WEEKLY_LANE_META[lane]?.name||"周常":BOARD_META[board].label)+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
+      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+(lane?(board==="daily"?DAILY_LANE_META[lane]?.name:WEEKLY_LANE_META[lane]?.name)||BOARD_META[board].label:BOARD_META[board].label)+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
     }
     renderAll();
   }
@@ -379,7 +395,7 @@
   function completeDailyBoard(el){
     let changed=0,total=0;
     entriesFor("daily").forEach(function(entry){
-      entry.tasks.forEach(function(task){
+      entry.tasks.filter(function(t){return dailyLane(t)==="must"}).forEach(function(task){
         total++;
         if(taskDone("daily",entry.game.id,task))return;
         syncSetItem(taskKey("daily",entry.game.id,task),true);
