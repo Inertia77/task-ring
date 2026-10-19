@@ -403,7 +403,7 @@
       });
     });
     if(changed&&el&&typeof playCompletionEffect==="function"){
-      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:"今日日常全部完成",eventId:"gqv6-daily-all:"+operationalDate()+":"+Date.now()});
+      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:"今日游戏必做已完成",eventId:"gqv6-daily-all:"+operationalDate()+":"+Date.now()});
     }
     renderAll();
     return {changed:changed,total:total};
