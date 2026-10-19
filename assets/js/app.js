@@ -1395,7 +1395,7 @@ function initGithubSyncUI(){
 let editorCounter=0;
 function taskEditorLog(msg){const el=document.getElementById("taskEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 
-function openTaskEditor(){closeControlCenter();closeGhModal();renderTaskEditor(true);document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
+function openTaskEditor(){closeControlCenter();closeGhModal();if(!window.TaskRingEditorSessions?.resume("taskEditorModal")){renderTaskEditor(true);window.TaskRingEditorSessions?.begin("taskEditorModal")}document.getElementById("taskEditorModal")?.classList.remove("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","false")}
 function closeTaskEditor(){document.getElementById("taskEditorModal")?.classList.add("hidden");document.getElementById("taskEditorModal")?.setAttribute("aria-hidden","true")}
 function cfgEsc(v){return escapeHtml(String(v??""))}
 function editorDeletedTaskIds(list=document.getElementById("taskEditorList")){
@@ -1493,6 +1493,7 @@ function renderTaskEditor(resetDeleted=false){
   taskEditorLog(`已加载 ${cfg.tasks.length} 个任务。`)
 }
 function editorRowToTask(row,idx){
+  const original=taskConfig?.tasks?.find(t=>t.id===row.dataset.id);
   const oldCodes=(()=>{try{return JSON.parse(row.dataset.stepcodes||"[]")}catch(e){return []}})();
   const rawStepLines=(row.querySelector(".cfgSteps").value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
   const stepUsed=new Set();
@@ -1500,13 +1501,14 @@ function editorRowToTask(row,idx){
     let code=oldCodes[sidx]||makeStepCode(stepUsed);
     if(stepUsed.has(code)||!/^s\d{2,}$/.test(code))code=makeStepCode(stepUsed);
     stepUsed.add(code);
-    return {id:slugifyId(title,`step-${sidx+1}`),code,title,enabled:true}
+    const previous=original?.steps?.filter(step=>step.enabled!==false)[sidx];
+    return {id:previous?.id||slugifyId(title,`step-${sidx+1}`),code:previous?.code||code,title,enabled:true}
   });
   const days=[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value));
   return {
     id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
     code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
-    cat:row.querySelector(".cfgCat").value,
+    cat:original?.cat||row.querySelector(".cfgCat").value,
     title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
     days,
     url:row.querySelector(".cfgUrl").value.trim(),
@@ -1524,7 +1526,7 @@ function editorRowToTask(row,idx){
     optional:row.querySelector(".cfgOptional").checked,
     important:row.querySelector(".cfgImportant").checked,
     enabled:row.querySelector(".cfgEnabled").checked,
-    steps
+    steps:original?.steps?.length?(()=>{let index=0;return original.steps.map(step=>step.enabled===false?step:steps[index++]).filter(Boolean).concat(steps.slice(index))})():steps
   };
 }
 function collectEditorConfig(){
@@ -1553,7 +1555,7 @@ function collectEditorConfig(){
   if(!fullRender&&edited.length<base.tasks.length){
     taskEditorLog(`当前筛选只渲染 ${edited.length}/${base.tasks.length} 个任务；未显示的 ${remainingBaseTasks.length-entries.filter(isExistingEntry).length} 个已保留，明确删除 ${deletedIds.size} 个。`);
   }
-  return normalizeTaskConfig({version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,retired_task_codes:[...retiredTaskCodes],refs:refGroups,gameQuest:gameQuestConfig,fitness:fitnessConfig});
+  return normalizeTaskConfig({...base,version:4,privacy:"coded-state-keys",updatedAt:new Date().toISOString(),tasks,retired_task_codes:[...retiredTaskCodes],refs:refGroups,gameQuest:gameQuestConfig,fitness:fitnessConfig});
 }
 async function saveEditorConfig(){
   const btn=document.getElementById("saveConfigBtn");
@@ -1576,6 +1578,7 @@ async function saveEditorConfig(){
     saveLocalTaskConfig(cfg,"任务编辑器保存前");
     applyTaskConfig(cfg,true);
     resetEditorDeletedTasks();
+    window.TaskRingEditorSessions?.saved("taskEditorModal");
     if(shouldSync){
       setGhStatus("GitHub：保存配置中","sync");
       await ghPatchConfig(cfg);
@@ -1865,7 +1868,7 @@ let refEditorCounter=0;
 function refEditorLog(msg){const el=document.getElementById("refEditorLog");if(el)el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+el.textContent.slice(0,2500)}
 function makeRefGroupId(){refEditorCounter++;return `ref-group-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(refEditorCounter).padStart(3,"0")}`}
 function makeRefItemId(title,idx){return slugifyId(title,`ref-item-${idx+1}`)}
-function openRefEditor(){closeControlCenter();closeGhModal();renderRefEditor();document.getElementById("refEditorModal")?.classList.remove("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","false")}
+function openRefEditor(){closeControlCenter();closeGhModal();if(!window.TaskRingEditorSessions?.resume("refEditorModal")){renderRefEditor();window.TaskRingEditorSessions?.begin("refEditorModal")}document.getElementById("refEditorModal")?.classList.remove("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","false")}
 function closeRefEditor(){document.getElementById("refEditorModal")?.classList.add("hidden");document.getElementById("refEditorModal")?.setAttribute("aria-hidden","true")}
 
 function refItemEditHtml(item,idx=0){
@@ -1950,6 +1953,7 @@ async function saveRefConfig(){
     const cfg=normalizeTaskConfig({...base,refs,updatedAt:new Date().toISOString()});
     saveLocalTaskConfig(cfg);
     applyTaskConfig(cfg,true);
+    window.TaskRingEditorSessions?.saved("refEditorModal");
     if(shouldSync){
       setGhStatus("GitHub：保存配置中","sync");
       await ghPatchConfig(cfg);
@@ -2787,7 +2791,7 @@ function dailyRingComplete(){
 }
 function setDone(taskId,dayId,val,sourceEl=null,syncSteps=true,cycle=cycleYmd){
   const task=blocks.find(t=>t.id===taskId);
-  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();return}
+  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll(["daily","weekly"]);return}
   const wasDone=isDone(taskId,dayId,cycle);
   const wasDailyClear=dailyRingComplete();
   syncSetItem(storageKey(taskId,dayId,cycle),val);
@@ -2796,11 +2800,11 @@ function setDone(taskId,dayId,val,sourceEl=null,syncSteps=true,cycle=cycleYmd){
     const dailyClear=!wasDailyClear&&dailyRingComplete();
     playCompletionEffect({level:dailyClear?"daily":"task",category:task?.cat||"",anchor:sourceEl,title:dailyClear?"DAILY RING CLEAR":task?.title||"任务完成",eventId:`task:${cycle}:${taskId}:d${dayId}`,date:ymd(operationalNow)});
   }
-  renderAll();
+  renderAll(["daily","weekly"]);
 }
 function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){
   const task=blocks.find(t=>t.id===taskId);
-  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll();refreshSubtaskPopover(taskId,dayId,cycle);return}
+  if(task&&isFailedOccurrence(task,dayId,cycle)){renderAll(["daily","weekly"]);refreshSubtaskPopover(taskId,dayId,cycle);return}
   const wasDailyClear=dailyRingComplete();
   const parentWasDone=isDone(taskId,dayId,cycle);
   setStepDoneRaw(taskId,stepId,dayId,val,cycle);
@@ -2811,7 +2815,7 @@ function setStepDone(taskId,stepId,dayId,val,sourceEl=null,cycle=cycleYmd){
     const dailyClear=parentCompleted&&!wasDailyClear&&dailyRingComplete();
     playCompletionEffect({level:dailyClear?"daily":parentCompleted?"parent":"micro",category:task?.cat||"",anchor:sourceEl,title:dailyClear?"DAILY RING CLEAR":parentCompleted?task?.title:"子任务完成",eventId:`step:${cycle}:${taskId}:${stepId}:d${dayId}`,date:ymd(operationalNow)});
   }
-  renderAll();refreshSubtaskPopover(taskId,dayId,cycle);
+  renderAll(["daily","weekly"]);refreshSubtaskPopover(taskId,dayId,cycle);
 }
 function carryoverOccurrences(){
   const out=[];
@@ -3212,11 +3216,13 @@ function openGameQuestEditor(){
   closeGhModal();
   const modal=document.getElementById("gameQuestEditorModal");
   try{
+    if(window.TaskRingEditorSessions?.resume("gameQuestEditorModal")){modal?.classList.remove("hidden");modal?.setAttribute("aria-hidden","false");return}
     gameQuestDraftConfig=deepClone(gameQuestConfig||normalizeGameQuestConfig(defaultGameQuestConfig));
     gameQuestDraftConfig.dailyByGame=buildGameQuestDailyByGame(gameQuestDraftConfig);
     gameQuestEditorDay=Number.isInteger(gameQuestSelectedDay)?gameQuestSelectedDay:today;
     if(modal){modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");}
     renderGameQuestEditor();
+    window.TaskRingEditorSessions?.begin("gameQuestEditorModal");
   }catch(err){
     console.error("openGameQuestEditor failed",err);
     if(modal){modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");}
@@ -3523,6 +3529,7 @@ async function saveGameQuestConfig(){
     gameQuestSelectedDay=gameQuestEditorDay;
     saveLocalTaskConfig(cfg);
     applyTaskConfig(cfg,true);
+    window.TaskRingEditorSessions?.saved("gameQuestEditorModal");
     if(ghToken()){
       setGhStatus("GitHub：保存配置中","sync");
       await ghPatchConfig(cfg);
@@ -3763,7 +3770,24 @@ function toggleAllRefGroups(){
   groups.forEach(group=>{group.open=shouldOpen});
   requestAnimationFrame(syncRefGroupToggleButton);
 }
-function renderAll(){const uiState=restoreUiScrollFromStorage?readUiScrollState():collectUiScrollState();renderGameQuestPanel();renderWeeklyPlanPanel();renderTimePanel();renderTable();renderMobileTabs();renderMobileCards();renderReferenceLibrary();renderOrbitPanel();updateProgress();renderTimerDock();applyActiveAppView();restoreUiScrollState(uiState);restoreUiScrollFromStorage=false}
+function renderAll(scopes=null){const should=name=>!Array.isArray(scopes)||scopes.includes(name);const focused=document.activeElement;
+  const focusId=focused?.id;
+  const focusData=focused?.dataset?Object.entries(focused.dataset).filter(([key])=>key!=="uxCompacted"):[];
+  const selection=focused&&typeof focused.selectionStart==="number"?[focused.selectionStart,focused.selectionEnd]:null;
+  const uiState=restoreUiScrollFromStorage?readUiScrollState():collectUiScrollState();
+  if(should("game"))renderGameQuestPanel();
+  if(should("weekly"))renderWeeklyPlanPanel();
+  if(should("time"))renderTimePanel();
+  if(should("daily")){renderTable();renderMobileTabs();renderMobileCards();renderOrbitPanel();updateProgress();}
+  if(should("library"))renderReferenceLibrary();
+  if(should("fitness"))window.renderFitnessPanel?.();
+  renderTimerDock();applyActiveAppView();restoreUiScrollState(uiState);restoreUiScrollFromStorage=false;
+  if(focused&&!focused.isConnected){
+    const candidates=focusId?[document.getElementById(focusId)]:focusData.length?[...document.querySelectorAll("button,input,summary,a")].filter(el=>el.tagName===focused.tagName&&focusData.every(([key,value])=>el.dataset[key]===value)):[];
+    const target=candidates.find(el=>el&&el.getClientRects().length);
+    target?.focus({preventScroll:true});if(selection&&target?.setSelectionRange)try{target.setSelectionRange(...selection)}catch(_){}
+  }
+}
 function closeEditorsByBackdrop(target){
   if(target.id==="taskEditorModal")closeTaskEditor();
   if(target.id==="refEditorModal")closeRefEditor();

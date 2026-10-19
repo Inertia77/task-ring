@@ -12,6 +12,8 @@
   let weeklyCategorySelection="all";
   let libraryQuery=localStorage.getItem(LIBRARY_SEARCH_KEY)||"";
   let lastModalTrigger=null;
+  let librarySearchSnapshot=null;
+  const libraryAutoToggles=new WeakMap();
 
   function readJson(key,fallback){
     try{return JSON.parse(localStorage.getItem(key)||"")||fallback}catch(_){return fallback}
@@ -107,7 +109,7 @@
     const c=cats[t.cat]||cats.life;
     const title=escapeHtml(t.title);
     const url=safeUrl(t.url);
-    
+
     const completeDisabled=(st.failed||st.ignored)?" disabled data-locked=\"1\"":"";
     return `<article class="dailyCard ${st.done?"done completed":""} ${st.overdue||st.failed?"overdue":""} ${st.warn?"carryover":""} ${t.important?"highPriority":""} ${running?"running":""}" style="--daily-accent:${c.color||"var(--color-line-strong)"}" data-daily-task="${escapeHtml(t.id)}">
       ${t.important?`<span class="dailyCornerStatus" role="img" title="高优先级" aria-label="高优先级">${taskUiIcon("zap")}</span>`:""}
@@ -147,7 +149,7 @@
       const progress=hasSteps(t.id)?stepProgress(t,stepContextDay(t),cycleYmd):null;
       return `<tr style="--matrix-accent:${c.color||"var(--color-line-strong)"}"><th scope="row" class="weekMatrixTask"><span>${escapeHtml(c.name||t.cat)}</span><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><em>${t.ai_enabled?"AI 执行":`预计 ${taskEstimatedMinutes(t)}m`}${progress?` · 子任务 ${progress.done}/${progress.total}`:""}</em></th>${days.map(day=>weekMatrixCell(t,day)).join("")}</tr>`;
     }).join("");
-    return `<section class="weekMatrixPanel" aria-label="全周任务矩阵"><header class="weekMatrixHeader"><div><span>WEEK MATRIX</span><b>任务 × 星期面板</b><em>纵向看任务，横向看一周排程；单元格可直接完成或取消完成。</em></div><div class="weekMatrixSummary"><span><b>${tasks.length}</b> 个任务</span><span><b>${done}/${occurrences.length}</b> 已完成</span><span class="${attention?"attention":""}"><b>${attention}</b> 需关注</span></div></header><div class="weekMatrixScroll" tabindex="0" aria-label="可横向滚动查看完整星期"><table class="weekMatrixTable"><thead><tr><th scope="col">任务 / 分类</th>${days.map(day=>`<th scope="col" class="${day.id===today?"isToday":""}"><span>${escapeHtml(day.name)}</span>${day.id===today?"<em>今日</em>":""}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div><div class="weekMatrixLegend"><span>✓ 已完成</span><span>! 逾期 / 遗留</span><span>× 已锁定</span><span>— 当日无排程</span></div></section>`;
+    return `<section class="weekMatrixPanel" aria-label="全周任务矩阵"><header class="weekMatrixHeader"><div><span>WEEK MATRIX</span><b>任务 × 星期面板</b><em>纵向看任务，横向看一周排程；单元格可直接完成或取消完成。</em></div><div class="weekMatrixSummary"><span><b>${tasks.length}</b> 个任务</span><span><b>${done}/${occurrences.length}</b> 已完成</span><span class="${attention?"attention":""}"><b>${attention}</b> 需关注</span></div></header><p class="weekMatrixScrollHint">↔ 横向滑动查看周一至周日，任务名固定在左侧。</p><div class="weekMatrixScroll" tabindex="0" aria-label="可横向滚动查看完整星期"><table class="weekMatrixTable"><thead><tr><th scope="col">任务 / 分类</th>${days.map(day=>`<th scope="col" class="${day.id===today?"isToday":""}"><span>${escapeHtml(day.name)}</span>${day.id===today?"<em>今日</em>":""}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div><div class="weekMatrixLegend"><span>✓ 已完成</span><span>! 逾期 / 遗留</span><span>× 已锁定</span><span>— 当日无排程</span></div></section>`;
   }
   function renderDailyGroups(){
     const box=document.getElementById("mobileCards");
@@ -256,8 +258,8 @@
     const activeHint=active?.kind==="task"?`<div class="weeklyActiveHint"><span>${active.paused?"PAUSED":"FOCUS"}</span><b>${escapeHtml(active.title)}</b><em data-live-timer>${fmtTimer(activeTimerElapsedSeconds(active))}</em></div>`:"";
     const summaries=rows.map(row=>{const def=timeCategoryDefs[row.cat]||timeCategoryDefs.life;const pct=row.target?Math.min(100,Math.round(row.used/row.target*100)):0;return `<div class="allocationChip" data-weekly-category="${escapeHtml(row.cat)}" style="--w:${pct}%"><div><b class="allocationCategoryLabel">${taskCategoryGlyph(row.cat)}<span>${escapeHtml(categoryDisplayName(row.cat,def.name))}</span></b></div><em>${fmtMinutes(row.used)}${row.target?` / ${fmtMinutes(row.target)}`:""} · 完成 ${row.done}/${row.count}</em><i></i></div>`}).join("");
     const overviewKey=detailKey("weekly-overview",cycleYmd);
-    const overview=activeCategory==="all"&&summaries?`<details class="weeklyOverview" data-ui-details-key="${escapeHtml(overviewKey)}"${openAttr(overviewKey,true)}><summary><div class="sectionSummary"><div class="sectionSummaryMain weeklyOverviewTitle"><b>全部任务完成概览</b><span>${rows.length} 个分类 · 投入 ${fmtMinutes(totalUsed)}${totalTarget?` / ${fmtMinutes(totalTarget)}`:""} · 完成 ${doneCount}/${tasks.length}</span></div><div class="weeklyOverviewToggle" aria-hidden="true"><span class="weeklyOverviewClosedLabel">展开</span><span class="weeklyOverviewOpenLabel">收起</span><span class="summaryChevron">⌄</span></div></div></summary><div class="weeklyOverviewBody"><div class="allocationRibbon">${summaries}</div></div></details>`:"";
-    const groupCats=activeCategory==="all"?timeCategoryOrder:[activeCategory];
+    const overview=activeCategory==="all"&&summaries?`<details class="weeklyOverview" data-ui-details-key="${escapeHtml(overviewKey)}"${openAttr(overviewKey,false)}><summary><div class="sectionSummary"><div class="sectionSummaryMain weeklyOverviewTitle"><b>全部任务完成概览</b><span>${rows.length} 个分类 · 投入 ${fmtMinutes(totalUsed)}${totalTarget?` / ${fmtMinutes(totalTarget)}`:""} · 完成 ${doneCount}/${tasks.length}</span></div><div class="weeklyOverviewToggle" aria-hidden="true"><span class="weeklyOverviewClosedLabel">展开</span><span class="weeklyOverviewOpenLabel">收起</span><span class="summaryChevron">⌄</span></div></div></summary><div class="weeklyOverviewBody"><div class="allocationRibbon">${summaries}</div></div></details>`:"";
+    const groupCats=(activeCategory==="all"?timeCategoryOrder:[activeCategory]).filter(cat=>tasks.some(t=>taskTimeCategory(t)===cat));
     const groups=groupCats.map((cat,index)=>{
       const list=tasks.filter(t=>taskTimeCategory(t)===cat);if(!list.length)return "";
       const def=timeCategoryDefs[cat]||timeCategoryDefs.life;
@@ -353,14 +355,22 @@
   function filterLibrary(query){
     const q=String(query||"").trim().toLowerCase();
     document.querySelectorAll("[data-library-card]").forEach(card=>{card.hidden=!!q&&!String(card.dataset.libraryText||"").includes(q)});
-    document.querySelectorAll("[data-library-group]").forEach(group=>{const visible=[...group.querySelectorAll("[data-library-card]")].some(card=>!card.hidden);group.hidden=!!q&&!visible;if(q&&visible)group.open=true});
+    const groups=[...document.querySelectorAll("[data-library-group]")];
+    if(q&&!librarySearchSnapshot)librarySearchSnapshot=new Map(groups.map(group=>[group.dataset.libraryGroup,group.open]));
+    groups.forEach(group=>{
+      const visible=[...group.querySelectorAll("[data-library-card]")].some(card=>!card.hidden);
+      group.hidden=!!q&&!visible;
+      const next=q&&visible?true:!q&&librarySearchSnapshot?librarySearchSnapshot.get(group.dataset.libraryGroup)===true:group.open;
+      if(group.open!==next){libraryAutoToggles.set(group,next);group.open=next}
+    });
+    if(!q)librarySearchSnapshot=null;
     window.syncRefGroupToggleButton?.();
   }
 
   function enhanceDetails(root=document){
     root.querySelectorAll("details").forEach(details=>{const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open))});
   }
-  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal")].find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
+  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal,#controlCenterMenu")].reverse().find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
   function focusableIn(modal){return [...modal.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null)}
   function enhanceFormLabels(root=document){
     root.querySelectorAll("input,select,textarea").forEach(control=>{
@@ -380,14 +390,19 @@
     requestAnimationFrame(()=>{const close=modal.querySelector('.ghCloseBtn,[data-time-modal-close],.weeklyTargetClose');(close||focusableIn(modal)[0])?.focus()});
   }
   function closeModalFocus(){document.body.classList.remove("modalOpen");requestAnimationFrame(()=>{if(lastModalTrigger?.isConnected)lastModalTrigger.focus();lastModalTrigger=null})}
-  window.addEventListener("taskring:modal-closed",()=>{if(!visibleModal())closeModalFocus()});
+
   function enhanceUi(){enhanceDetails();enhanceFormLabels();document.querySelectorAll(".viewDockBtn").forEach(btn=>btn.setAttribute("aria-current",btn.classList.contains("active")?"page":"false"))}
 
   document.addEventListener("toggle",event=>{
     const details=event.target;
-    if(!(details instanceof HTMLDetailsElement))return;
+    if(!(details instanceof HTMLDetailsElement)||!details.isConnected)return;
     const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open));
+    // toggle events are queued: track each programmatic result until its event arrives.
+    const automatic=libraryAutoToggles.has(details)&&libraryAutoToggles.get(details)===details.open;
+    libraryAutoToggles.delete(details);
+    if(automatic)return;
     const key=details.dataset.uiDetailsKey;
+    if(details.matches("[data-library-group]")&&librarySearchSnapshot)librarySearchSnapshot.set(details.dataset.libraryGroup,details.open);
     if(key){disclosureState[key]=details.open;saveDisclosure()}
     if(details.matches("[data-library-group]")){
       if(details.open)localStorage.setItem(LIBRARY_LAST_GROUP_KEY,details.dataset.libraryGroup||"");
@@ -395,17 +410,19 @@
     }
   },true);
   document.body.addEventListener("click",event=>{
+    const trigger=event.target.closest("button,a,summary");
+    if(trigger&&!visibleModal())lastModalTrigger=trigger;
     const weeklyTab=event.target.closest("[data-weekly-category-tab]");
-    if(weeklyTab){event.preventDefault();event.stopPropagation();weeklyCategorySelection=weeklyTab.dataset.weeklyCategoryTab||"all";renderAll();return}
+    if(weeklyTab){event.preventDefault();event.stopPropagation();weeklyCategorySelection=weeklyTab.dataset.weeklyCategoryTab||"all";renderWeeklyPlanPanel();enhanceUi();document.querySelector(`[data-weekly-category-tab="${weeklyCategorySelection}"]`)?.focus({preventScroll:true});return}
     const game=event.target.closest("[data-gq-game-select]");
     if(game){event.preventDefault();event.stopPropagation();selectedGameId=game.dataset.gqGameSelect||"";localStorage.setItem(GAME_SELECTED_GAME_KEY,selectedGameId);renderAll();return}
     const day=event.target.closest("[data-gamequest-day-select]");
     if(day)localStorage.setItem(GAME_SELECTED_DAY_KEY,String(validGameDay(day.dataset.gamequestDaySelect)));
     if(event.target.closest("#gameQuestTodayBtn"))localStorage.setItem(GAME_SELECTED_DAY_KEY,String(today));
     const modalTrigger=event.target.closest("#githubSetupBtn,#githubStatus,#controlGithubBtn,#controlTaskEditorBtn,#controlRefEditorBtn,#controlGameQuestEditorBtn,#controlFitnessEditorBtn,[data-open-task-editor],[data-open-ref-editor],[data-open-game-editor],[data-open-fitness-editor],[data-edit-weekly-target],[data-time-task-detail],[data-time-gamequest-detail],[data-time-fitness-detail],[data-manual-time-entry]");
-    if(modalTrigger){lastModalTrigger=modalTrigger;setTimeout(()=>openModalFocus(visibleModal()),0)}
+    if(modalTrigger)lastModalTrigger=modalTrigger;
     const modalClose=event.target.closest(".ghCloseBtn,.editorBottomBar button:first-child,[data-time-modal-close],[data-target-close]");
-    if(modalClose)setTimeout(closeModalFocus,0);
+
     if(event.target.closest("[data-open-task-editor]")){event.preventDefault();openTaskEditor();return}
     if(event.target.closest("[data-open-game-editor]")){event.preventDefault();openGameQuestEditor();return}
   });
@@ -414,14 +431,22 @@
     libraryQuery=event.target.value;localStorage.setItem(LIBRARY_SEARCH_KEY,libraryQuery);filterLibrary(libraryQuery);
   });
   document.addEventListener("keydown",event=>{
-    if(event.key==="Escape"){setTimeout(()=>{if(!visibleModal())closeModalFocus()},0);return}
+    if(event.key==="Escape"){
+      const modal=visibleModal();if(!modal)return;
+      event.preventDefault();event.stopImmediatePropagation();
+      if(modal.id==="controlCenterMenu")closeControlCenter();
+      else if(modal.id==="weeklyTargetModal")modal.querySelector("[data-target-close]")?.click();
+      else modal.querySelector(".ghCloseBtn,[data-time-modal-close],#fitnessEditorCloseBtn")?.click();
+      return;
+    }
     if(event.key!=="Tab")return;
     const modal=visibleModal();if(!modal)return;
     const focusable=focusableIn(modal);if(!focusable.length)return;
     const first=focusable[0],last=focusable[focusable.length-1];
-    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    if(!modal.contains(document.activeElement)){event.preventDefault();first.focus()}
+    else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
-  });
+  },true);
 
   document.body.addEventListener("change",event=>{
     const box=event.target.closest?.("[data-weekly-step]");if(!box)return;
@@ -429,6 +454,31 @@
     syncSetItem(weeklyStepKey(box.dataset.weeklyStepTask,box.dataset.weeklyStepId),box.checked);
     if(box.checked)window.TaskRingEffects?.play({level:"micro",category:"",anchor:box,title:"子任务完成",eventId:`weekly-step:${cycleYmd}:${box.dataset.weeklyStepTask}:${box.dataset.weeklyStepId}`});
     showToast(box.checked?"子任务已完成":"已取消子任务","ok",1100);renderAll();
+  },true);
+
+
+  let managedModal=null;
+  let modalReturnTarget=null;
+  function reconcileModal(){
+    const modal=visibleModal();if(modal===managedModal)return;
+    const previous=managedModal;managedModal=modal;
+    document.querySelector(".wrap")?.toggleAttribute("inert",!!modal);
+    if(modal){
+      if(!previous)modalReturnTarget=lastModalTrigger||document.activeElement;
+      openModalFocus(modal);
+    }else{
+      document.body.classList.remove("modalOpen");
+      const target=modalReturnTarget;
+      requestAnimationFrame(()=>{
+        const usable=target?.isConnected&&!target.closest(".hidden")&&target.getClientRects().length;
+        (usable?target:document.getElementById("controlCenterBtn"))?.focus({preventScroll:true});
+      });
+      modalReturnTarget=null;
+    }
+  }
+  new MutationObserver(reconcileModal).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+  document.addEventListener("click",event=>{
+    if(!visibleModal())lastModalTrigger=event.target.closest("button,a,summary")||lastModalTrigger;
   },true);
 
   const coreRenderAll=window.renderAll;
