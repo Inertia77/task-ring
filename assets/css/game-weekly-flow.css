@@ -418,3 +418,8 @@
   .gameQuestV6 .gqV6GameToggle, .gameQuestV6 [data-gqv6-expand-all],
   .gameQuestV6 .gameQuestTaskOpen { min-height:44px; }
 }
+
+@media(max-width:700px) {
+  .gameQuestV6 .gqV6TaskBtn { min-height:44px; }
+  .gameQuestV6 .gameQuestEditQuick .gameCommandCopy b { font-size:12px; white-space:normal; text-overflow:clip; }
+}

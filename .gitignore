@@ -23,3 +23,7 @@ taskring-library-*.json
 node_modules/
 dist/
 .claude/
+
+# Isolated browser artifacts (CI uploads them separately)
+test-results/
+playwright-report/

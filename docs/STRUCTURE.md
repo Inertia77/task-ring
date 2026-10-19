@@ -14,8 +14,16 @@
 8. `assets/js/views/editor-ux.js`
 9. `assets/js/views/fitness-view.js`
 10. `assets/js/views/product-ui.js`
-11. `assets/js/pwa.js`
-12. `assets/js/ux-efficiency.js`（由 `pwa.js` 在主 UI 完成后动态加载）
+11. `assets/js/ai-tasks.js`
+12. `assets/js/game-disclosure.js`
+13. `assets/js/vendor/supabase-2.117.2.js`
+14. `assets/js/game-ops-config.js`
+15. `assets/js/game-ops-core.js`
+16. `assets/js/game-ops-cloud.js`
+17. `assets/js/game-ops-v6.js`
+18. `assets/js/pwa.js`
+
+随后由 `pwa.js` 动态加载 `ux-efficiency.js`，后者再加载 `private-restructure.js`。
 
 `integrity-core.js` 提供可在浏览器和 Node 测试中复用的纯数据合并逻辑；`data-integrity.js` 必须在 `product-ui.js` 之前执行，用于安装冲突安全的 Gist 同步层。`product-ui.js` 最后安装正式渲染器并调用 `TaskRingCoreBoot()`，因此首次自动同步也会经过完整的数据完整性保护。`pwa.js` 在 UI 启动后注册 Service Worker 与安装/更新交互，同时加载只处理操作层级和界面效率的 `ux-efficiency.js` 后置增强层。
 
@@ -25,21 +33,38 @@
 
 | 顺序 | 文件 | 职责 |
 | --- | --- | --- |
-| 1 | `tokens.css` | 颜色、间距、字号、圆角、阴影、动效 Token |
-| 2 | `base.css` | reset、文档基线、软锁、辅助类 |
-| 3 | `layout.css` | Header、主导航、页面容器 |
-| 4 | `components.css` | 按钮、状态、标签、空态、控制菜单 |
-| 5 | `daily.css` | 今日分类、任务卡、子任务正常流 |
-| 6 | `weekly.css` | 周计划筛选、分组和任务卡 |
-| 7 | `fitness.css` | 训练饮食视图、项目卡和编辑器 |
-| 8 | `game.css` | 游戏模式、指标、游戏选择、任务详情和任务链接 |
-| 9 | `time.css` | 时间账本、计时状态和浮动操作 |
-| 10 | `library.css` | 资料分组、搜索和资料卡 |
-| 11 | `editors.css` | Dialog、编辑器、固定保存操作 |
-| 12 | `effects.css` | 完成反馈、Cut-in、粒子、队列视觉与 reduced-motion 降级 |
-| 13 | `responsive.css` | 1024/700/359px 响应式策略 |
-| 14 | `ux-efficiency.css` | 高频/低频操作层级、卡片动作收纳、移动端可发现性优化 |
-| 15 | `visual-polish.css` | 最终视觉层级：降低非选中色块噪音、统一标签几何、淡化背景分区、强化白色内容卡与移动底栏整体感 |
+| 1 | `tokens.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 2 | `base.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 3 | `layout.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 4 | `components.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 5 | `daily.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 6 | `weekly.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 7 | `fitness.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 8 | `game.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 9 | `time.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 10 | `library.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 11 | `editors.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 12 | `effects.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 13 | `responsive.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 14 | `ux-efficiency.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 15 | `visual-polish.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 16 | `weekly-polish.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 17 | `mobile-weekly-polish.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 18 | `game-mode-contrast.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 19 | `zone-card-art.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 20 | `zone-identity-v2.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 21 | `userfriend-polish.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 22 | `library-density-polish.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 23 | `game-note-density.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 24 | `game-ops-v6.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 25 | `daily-density.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 26 | `lane-density.css` | 现行 weeklyMission 分类分栏及游戏宽屏任务列 |
+| 27 | `game-ops-cloud.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 28 | `category-glyphs.css` | 对应模块基础/兼容或视觉增强规则，按此顺序覆盖 |
+| 29 | `ui-icon-polish.css` | 图标优先的组件与导航 |
+| 30 | `ai-tasks.css` | AI 日常与周计划卡片 |
+| 31 | `life-guide.css` | 生活改善当前视图与编辑器 |
+| 32 | `game-weekly-flow.css` | v6 分类 Tab、手机聚焦与周常流（最终游戏样式） |
 
 后置 UX / Visual 样式层不新增 `!important`；历史组件层仍保留少量既有优先级声明，后续只在必要维护时逐步清理。
 
@@ -50,7 +75,7 @@
 - `integrity-core.js`：纯函数数据完整性层；负责配置指纹、三方配置判定、旧 `time_category` 别名以及带时间戳状态/tombstone 合并，可直接由 Node 测试加载。
 - `data-integrity.js`：浏览器同步保护层；在核心业务启动前接管配置拉取/推送、状态写入和周期重置，避免旧云端静默覆盖新本机。
 - `completion-effects.js`：分级完成演出、角色预加载、随机去重、队列节流与 DOM 清理。
-- `product-ui.js`：今日、周计划、游戏、资料库渲染；展开状态；筛选恢复；Dialog 和表单可访问性。
+- `product-ui.js`：正式每日、周计划与资料库渲染；历史游戏渲染随后由 v6 覆盖；展开状态、搜索快照和统一弹窗焦点协调。
 - `time-ledger-view.js`：时间账本正式渲染。
 - `editor-ux.js`：任务编辑器筛选、折叠任务配置和周目标编辑。
 - `fitness-view.js`：训练饮食渲染、链接打开和编辑器交互。
@@ -110,3 +135,11 @@ index.html
 ```
 
 运行时只动态预加载 `assets/images/cutins/` 下由默认角色池声明的本地图片；不请求外部演出资源。Service Worker 的 `APP_SHELL` 必须覆盖 `index.html` 引用的全部本地 JavaScript、`pwa.js` 动态加载的 UX efficiency 资源以及最终视觉层 `visual-polish.css`；CI 会阻止漏缓存的新运行时模块进入主分支。
+
+## vNext 验收与状态边界
+
+详见 [vnext/AUDIT.md](vnext/AUDIT.md)。`renderAll(scopes)` 的范围参数仅用于已核验的高频 UI 操作；未指定时仍执行全量刷新。游戏完成只绘游戏；每日绘每日和周计划；生活改善绘自身与账本。全绘保留稳定控件焦点，计时每秒仅更新已有文本。
+
+任务编辑器的每条任务始终存在于同一个 DOM 草稿；范围/搜索只改变 hidden，不替换保存配置。四编辑器 session 仅存于当前页面，关闭可恢复，浏览器刷新会触发未保存保护。没有新增私人配置明文存储。
+
+`npm test` 运行既有 Node 及完整性测试；`npm run check:syntax` 做运行时 JS 语法检查；`npm run test:browser` 运行 Chromium/WebKit 隔离测试、截图与真实 Service Worker 升级验证。测试环境无生产 Token，外部 HTTPS 被拦截。CI 独立上传浏览器截图/报告；截图不写入产品运行目录。

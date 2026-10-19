@@ -9,7 +9,15 @@
   }
   window.TaskRingEditorSessions={
     resume(id){const session=sessions.get(id);return !!(session&&session.baseline!==formSnapshot(id))},
-    begin(id){sessions.set(id,{baseline:formSnapshot(id)});},
+    begin(id){
+      sessions.set(id,{baseline:formSnapshot(id)});
+      const modal=document.getElementById(id);
+      if(modal&&!modal.querySelector(".editorDraftHint")){
+        const hint=document.createElement("p");hint.className="editorDraftHint";
+        hint.textContent="未保存内容会保留在当前页面，关闭后可继续编辑；刷新前请保存。";
+        modal.querySelector(".taskEditorHead,.ghModalHead")?.after(hint);
+      }
+    },
     saved(id){this.begin(id)},
     dirty(){return [...sessions].some(([id,s])=>s.baseline!==formSnapshot(id))}
   };

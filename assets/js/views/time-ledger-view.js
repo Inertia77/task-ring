@@ -116,7 +116,7 @@
       const used=week[k]||0;
       const sharePct=totalWeek?used/totalWeek*100:0;
       const over=used>def.budget;
-      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel taskCategoryGraphic" data-task-category="${escapeHtml(k)}" title="${escapeHtml(def.name)}">${taskCategoryGlyph(k)}<b>${escapeHtml(def.name)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
+      return `<div class="timeBudgetRow ${over?"over":""}" title="${escapeHtml(def.name)}：${fmtMinutes(used)} · 占本周 ${Math.round(sharePct)}%"><div class="timeBudgetLabel" data-task-category="${escapeHtml(k)}" title="${escapeHtml(def.name)}"><span class="taskCategoryGraphic" data-task-category="${escapeHtml(k)}">${taskCategoryGlyph(k)}</span><b>${escapeHtml(def.name)}</b></div><div class="timeBudgetBar" style="--w:${sharePct.toFixed(2)}%"><span></span></div><div class="timeBudgetValue">${fmtMinutes(used)}</div></div>`;
     }).join("");
     const q=String(timeTaskSearch||"").trim().toLowerCase();
     const showGameRow=gameQuestSearchMatched(q);
