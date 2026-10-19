@@ -414,7 +414,7 @@
     const weeklyOptions=board==="weekly"
       ? '<label class="gqV6EditorLane"><span>完成节奏</span><select class="gqV6WeeklyLane">'+WEEKLY_LANE_ORDER.map(function(id){return '<option value="'+id+'"'+(lane===id?' selected':'')+'>'+WEEKLY_LANE_META[id].name+'</option>'}).join("")+'</select></label>'+
         '<label class="gqV6EditorGate"><span>等待条件 / 提示（选填）</span><input class="gqV6UnlockHintInput" value="'+esc(t.unlock_hint||"")+'" maxlength="220" placeholder="例如：等本周五开放，或个人7天冷却"></label>'
-      : "";
+      : '<label class="gqV6EditorLane"><span>日常层级</span><select class="gqV6DailyLane">'+DAILY_LANE_ORDER.map(function(id){return '<option value="'+id+'"'+(dailyLane(t)===id?' selected':'')+'>'+DAILY_LANE_META[id].name+'</option>'}).join("")+'</select></label>';
     return '<div class="gqV6EditorTask" data-gqv6-editor-task data-task-id="'+esc(t.id||"")+'">'+
       '<label class="gqV6EditorTitle"><span>任务名</span><input class="gqV6TitleInput" value="'+esc(t.title||"")+'" placeholder="任务名称"></label>'+
       '<label class="gqV6EditorUrl"><span>链接（选填）</span><input class="gqV6UrlInput" value="'+esc(t.url||"")+'" placeholder="https://..."></label>'+
@@ -434,7 +434,7 @@
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
     const order='<div class="gqV6PriorityRule"><span>PRIORITY</span><b>固定游戏顺序</b><em>01 绝区零 → 02 异环 → 03 鸣潮 → 04 崩铁 → 05 阴阳师 → 06 终末地</em></div>';
-    const cloudHint='<div class="gqV6PriorityRule"><span>WEEKLY FLOW</span><em>周常可设置「速攻 / 中速 / 等待」。等待任务需按实际开放或个人冷却勾选；限时・周期仍由独立板块管理。</em></div>';
+    const cloudHint='<div class="gqV6PriorityRule"><span>GAME FLOW</span><em>日常：必做 / 可选。周常：速攻 / 中速 / 等待 / 可选。可选不计入完成率；限时・周期仍由独立板块管理。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];
       return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
@@ -460,7 +460,7 @@
             ...(board==="weekly"?{
               weekly_lane:row.querySelector(".gqV6WeeklyLane")?.value||"steady",
               unlock_hint:(row.querySelector(".gqV6UnlockHintInput")?.value||"").trim()
-            }:{})
+            }:{daily_lane:row.querySelector(".gqV6DailyLane")?.value||"must"})
           };
           return task;
         });
@@ -485,7 +485,7 @@
     gameQuestDraftConfig.boards[board][gid]=list;
     renderGameQuestEditor();
   }
-  function newTask(board){return {id:"",title:"",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{})}}
+  function newTask(board){return {id:"",title:"",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{daily_lane:"must"})}}
 
   document.addEventListener("click",function(e){
     const refresh=e.target.closest&&e.target.closest("[data-gqv5-refresh]");
