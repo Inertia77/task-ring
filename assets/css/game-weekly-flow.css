@@ -89,3 +89,26 @@
 @media (prefers-reduced-motion:reduce) {
   .gqWeeklyLane * {transition:none!important}
 }
+
+
+/* Daily: only the "must" lane counts toward the main daily meter.
+   The optional lane is deliberately visually quiet. */
+.gqDailyFlow .gqWeeklyLane.must {
+  --flow-ink:#2c7958;
+  --flow-wash:#edf8ef;
+  --flow-stroke:#a5d0b4;
+}
+.gqTaskFlow .gqWeeklyLane.optional {
+  --flow-ink:#626978;
+  --flow-wash:#f2f3f6;
+  --flow-stroke:#d5d9e0;
+}
+.gqTaskFlow .gqWeeklyLane.optional .gqV6GameCard {
+  box-shadow:none;
+}
+.gqTaskFlow .gqWeeklyLane.optional .gqWeeklyLaneHeading p {
+  color:#616a77;
+}
+.gqWeeklyLane.optional .gqWeeklyLaneCount {
+  background:#fafbfc;
+}
