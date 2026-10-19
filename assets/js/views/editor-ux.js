@@ -1,6 +1,28 @@
 // v21 Editor UX
 // 独立管理任务编辑器：停用任务收纳、搜索/筛选、折叠卡片、周目标确认弹窗。
 (function(){
+
+  const sessions=new Map();
+  function formSnapshot(id){
+    const modal=document.getElementById(id);
+    return JSON.stringify([...modal.querySelectorAll("input,select,textarea")].filter(el=>el.id!=="taskEditorSearchInput").map(el=>[el.className,el.closest("[data-id]")?.dataset.id,el.type==="checkbox"?el.checked:el.value]));
+  }
+  window.TaskRingEditorSessions={
+    resume(id){const session=sessions.get(id);return !!(session&&session.baseline!==formSnapshot(id))},
+    begin(id){
+      sessions.set(id,{baseline:formSnapshot(id)});
+      const modal=document.getElementById(id);
+      if(modal&&!modal.querySelector(".editorDraftHint")){
+        const hint=document.createElement("p");hint.className="editorDraftHint";
+        hint.textContent="未保存内容会保留在当前页面，关闭后可继续编辑；刷新前请保存。";
+        modal.querySelector(".taskEditorHead,.ghModalHead")?.after(hint);
+      }
+    },
+    saved(id){this.begin(id)},
+    dirty(){return [...sessions].some(([id,s])=>s.baseline!==formSnapshot(id))}
+  };
+  window.addEventListener("beforeunload",event=>{if(window.TaskRingEditorSessions.dirty()){event.preventDefault();event.returnValue=""}});
+
   const EDITOR_FILTER_KEY="taskring_editor_filter_v20";
   let editorUiState={scope:"active",query:""};
   function loadEditorState(){try{editorUiState=Object.assign(editorUiState,JSON.parse(localStorage.getItem(EDITOR_FILTER_KEY)||"{}")||{})}catch(e){}}
@@ -25,7 +47,7 @@
     return `<span class="editorBadge ${mode}">${taskPlanModeDefs[mode]?.short||mode}</span><span class="editorBadge taskCategoryIconBadge" data-task-category="${escapeHtml(key)}" role="img" title="分类：${categoryName}" aria-label="分类：${categoryName}">${taskCategoryGlyph(key)}</span>${t.enabled===false?`<span class="editorBadge off">停用</span>`:""}${t.important?`<span class="editorBadge hot">重</span>`:""}`;
   }
   window.taskEditorRowHtml=function(t){
-    const stepCodes=(t.steps||[]).map(s=>s.code||"");
+    const stepCodes=(t.steps||[]).filter(s=>s.enabled!==false).map(s=>s.code||"");
     const stepTitles=(t.steps||[]).filter(s=>s.enabled!==false).map(s=>s.title).join("\n");
     const mode=taskPlanningMode(t);
     const c=timeCategoryDefs[taskTimeCategory(t)]||timeCategoryDefs.life;
@@ -94,14 +116,11 @@
       weekly:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)==='weekly').length,
       daily:tasks.filter(t=>t.enabled!==false&&taskPlanningMode(t)!=='weekly').length
     };
-    const activeTasks=tasks.filter(t=>scopePass(t));
-    const disabledTasks=tasks.filter(t=>t.enabled===false&&!scopePass(t));
-    const renderedTasks=[...activeTasks,...disabledTasks];
-    const activeRows=activeTasks.map(taskEditorRowHtml).join("");
-    const disabledRows=disabledTasks.map(taskEditorRowHtml).join("");
-    const empty=`<div class="editorEmptyState"><b>没有匹配任务</b><span>换个筛选或清空搜索。别让编辑器变成迷宫。</span></div>`;
-    list.innerHTML=`${editorToolbarHtml(counts)}<div class="taskEditorActiveList">${activeRows||empty}</div>${disabledRows?`<details class="disabledTaskVault"><summary><span>🗄️ 停用任务库</span><b>${counts.disabled} 项</b><em>已停用但保留配置，保存时不会丢。</em></summary><div class="disabledTaskVaultBody">${disabledRows}</div></details>`:""}`;
-    list.dataset.fullRender=renderedTasks.length===tasks.length?"1":"0";
+    // Keep every task in the same DOM draft. Filtering changes visibility only;
+    // hidden tasks, additions, order and uncommitted field values stay intact.
+    list.innerHTML=`${editorToolbarHtml(counts)}<div class="taskEditorActiveList">${tasks.map(taskEditorRowHtml).join("")}</div><div class="editorEmptyState" hidden>没有匹配任务，试试其他筛选。</div>`;
+    list.dataset.fullRender="1";
+    applyEditorSearchFilter();
     taskEditorLog(`已加载 ${tasks.length} 个任务。启用 ${counts.active}，停用 ${counts.disabled}${deletedIds.size?`，待删除 ${deletedIds.size}`:""}。`);
   };
   window.addEditorTask=function(){
@@ -110,11 +129,11 @@
     const t={id:makeTaskId(),code:makeTaskCode(),title:"新任务",days:[today],url:"",time_category:"life",estimated_minutes:30,weekly_minutes:120,plan_mode:planMode,enabled:true,core:false,optional:false,important:false,steps:[]};
     host.insertAdjacentHTML("afterbegin",taskEditorRowHtml(t));
     const row=host.querySelector(".cfgTask");
-    if(row){row.dataset.editorNew="1";row.open=true;row.classList.add("newFocus");row.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>row.querySelector(".cfgTitle")?.focus(),260)}
+    if(row){row.hidden=false;row.classList.remove("filteredOut");row.dataset.editorNew="1";row.open=true;row.classList.add("newFocus");row.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>row.querySelector(".cfgTitle")?.focus(),260)}
     taskEditorLog("已新增任务，并跳转到编辑位置。");
     showToast("已新增任务，直接编辑即可","ok");
   };
-  function closeTargetModal(){document.getElementById("weeklyTargetModal")?.remove()}
+  function closeTargetModal(){document.getElementById("weeklyTargetModal")?.remove();window.dispatchEvent(new CustomEvent("taskring:modal-closed"))}
   window.openWeeklyTargetEditor=function(taskId){
     const task=taskById(taskId);
     if(!task){showToast("找不到任务","err");return}
@@ -134,7 +153,7 @@
     const summaryBtn=e.target.closest(".cfgSummaryOps button");
     if(summaryBtn)e.preventDefault();
     const scope=e.target.closest("[data-editor-scope]");
-    if(scope){e.preventDefault();editorUiState.scope=scope.dataset.editorScope;saveEditorState();renderTaskEditor();return}
+    if(scope){e.preventDefault();editorUiState.scope=scope.dataset.editorScope;saveEditorState();applyEditorSearchFilter();return}
     const editTarget=e.target.closest("[data-edit-weekly-target]");
     if(editTarget){e.preventDefault();e.stopPropagation();openWeeklyTargetEditor(editTarget.dataset.editWeeklyTarget);return}
     if(e.target.closest("[data-target-close]")||e.target.id==="weeklyTargetModal"){e.preventDefault();closeTargetModal();return}
@@ -144,12 +163,19 @@
     if(save){e.preventDefault();const input=document.querySelector("#weeklyTargetModal [data-target-value]");const val=input?input.value:0;updateTaskWeeklyTarget(save.dataset.targetSave,val);closeTargetModal();return}
   },true);
   function applyEditorSearchFilter(){
-    const q=String(editorUiState.query||"").trim().toLowerCase();
+    document.querySelectorAll("[data-editor-scope]").forEach(button=>button.classList.toggle("active",button.dataset.editorScope===editorUiState.scope));
+    let visible=0;
     document.querySelectorAll("#taskEditorList .cfgTask").forEach(row=>{
-      const hay=(row.innerText||"").toLowerCase();
-      row.classList.toggle("filteredOut",!!q&&!hay.includes(q));
+      const task=editorRowToTask(row,0);
+      const matches=scopePass(task)&&editorMatches(task);
+      row.hidden=!matches;
+      row.classList.toggle("filteredOut",!matches);
+      if(matches)visible++;
     });
+    const empty=document.querySelector("#taskEditorList .editorEmptyState");
+    if(empty)empty.hidden=visible>0;
   }
+
   document.body.addEventListener("input",e=>{
     if(e.target?.id==="taskEditorSearchInput"){editorUiState.query=e.target.value;saveEditorState();applyEditorSearchFilter();}
   });

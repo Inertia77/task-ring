@@ -405,6 +405,7 @@
   let installPrompt = null;
   let updateRegistration = null;
   let reloadingForUpdate = false;
+  let pendingControllerReload = false;
 
   function toast(message, type = "ok", duration = 2600){
     if(typeof window.showToast === "function"){
@@ -438,7 +439,7 @@
   function offerUpdate(registration){
     updateRegistration = registration;
     setInstallAction("update");
-    toast("TaskRing 有新版本，可在“总控”中更新。", "ok", 4200);
+    toast(window.TaskRingEditorSessions?.dirty()?"新版本已就绪，请先保存草稿，再从总控更新。":"TaskRing 有新版本，可在“总控”中更新。", "ok", 4200);
   }
 
   window.addEventListener("beforeinstallprompt", event => {
@@ -454,6 +455,10 @@
   });
 
   installButton?.addEventListener("click", async () => {
+    if(pendingControllerReload){
+      if(window.TaskRingEditorSessions?.dirty()){toast("请先保存编辑器草稿，再更新页面。", "warn", 4200);return;}
+      location.reload();return;
+    }
     if(updateRegistration?.waiting){
       updateRegistration.waiting.postMessage({type:"SKIP_WAITING"});
       return;
@@ -493,6 +498,7 @@
 
   window.addEventListener("load", async () => {
     try{
+      let hadController=!!navigator.serviceWorker.controller;
       const registration = await navigator.serviceWorker.register("./service-worker.js");
 
       if(registration.waiting && navigator.serviceWorker.controller){
@@ -509,7 +515,14 @@
       });
 
       navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if(reloadingForUpdate) return;
+        if(reloadingForUpdate)return;
+        if(!hadController){hadController=true;return;}
+        if(window.TaskRingEditorSessions?.dirty()){
+          pendingControllerReload=true;
+          setInstallAction("update");
+          toast("新版本已就绪。请先保存草稿，再从总控更新页面。", "warn", 5200);
+          return;
+        }
         reloadingForUpdate = true;
         location.reload();
       });

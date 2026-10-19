@@ -201,3 +201,15 @@
   .fitnessPanel .fitnessItemCopy strong {font-size:12.5px;}
   .fitnessPanel .fitnessLaneHead {padding:8px;}
 }
+
+/* Readable touch controls without taller decorative section headers. */
+.fitnessDayTabs { scrollbar-width:thin; }
+@media (max-width:700px) {
+  .fitnessPanel .fitnessHero .taskAreaDescription { display:none; }
+  .fitnessPanel .fitnessHeroSide { margin-top:4px; }
+  .fitnessPanel .fitnessLaneAllBtn { min-height:44px; }
+  .fitnessPanel .fitnessLaneAllBtn b { font-size:12px; }
+  .fitnessPanel .fitnessItem { min-height:56px; }
+  .fitnessPanel .fitnessItemCopy strong { font-size:14px; }
+  .fitnessPanel .fitnessItemMetaBtn, .fitnessPanel .fitnessItemLink { width:44px; min-width:44px; flex-basis:44px; }
+}

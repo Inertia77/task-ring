@@ -295,3 +295,32 @@
   .summaryChevron, .refGroupCaret { transition: none; }
   .dailyCard.running { animation: none; }
 }
+
+/* Shared mobile density: reduce chrome, preserve 44px interaction areas. */
+@media (max-width:700px) {
+  .inertiaHeader .inertiaSubtitle { display:none; }
+  .inertiaHeader { padding:8px; gap:6px; }
+  .inertiaHeader .inertiaHeroTitle { font-size:20px; }
+  .inertiaHeader .inertiaToolbar > button { min-height:44px; }
+  .taskRingControlPanel .taskAreaEyebrow { display:none; }
+  .taskRingControlPanel .taskRingControlHead { padding:0; }
+  .taskRingControlPanel .taskAreaTitle { display:inline; }
+  .taskRingControlPanel .taskRingModeText { display:inline; background:none; }
+  .taskRingControlPanel .taskRingActionRow button { min-height:44px; font-size:13px; }
+  .dailyStatusStrip .dailyStatusItem { padding:6px; }
+  .dailyStatusStrip .dailyStatusItem span { font-size:12px; }
+  .wrap:has(.timerFloatDock:not(.hidden)) { padding-bottom:240px; }
+  body.modalOpen .timerFloatDock { visibility:hidden; }
+  body.modalOpen .toastBox { bottom:max(76px,calc(64px + env(safe-area-inset-bottom))); }
+}
+@media (max-width:360px) {
+  .viewDock .viewDockBtn b { font-size:11px; }
+  .dailyStatusStrip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:700px) {
+  .inertiaHeader { grid-template-columns:minmax(0,1fr) auto; align-items:center; }
+  .inertiaHeader .inertiaToolbar { display:flex; width:auto; gap:5px; }
+  .inertiaHeader .inertiaToolbar .githubInlineState { display:inline-flex; min-width:0; max-width:100px; padding:4px 6px; font-size:12px; }
+  .inertiaHeader .inertiaToolbar .todayPill, .inertiaHeader .inertiaToolbar .cyclePill { display:none; }
+}

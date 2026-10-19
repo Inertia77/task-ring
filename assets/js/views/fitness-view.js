@@ -34,7 +34,7 @@
       const complete=item?.optional!==true&&stats.total>0&&stats.done===stats.total;
       playCompletionEffect({level:complete?"parent":"micro",category:"life",anchor:sourceEl,title:complete?"今日生活改善完成":`${section.name}${item?.optional===true?"选做":""}项目完成`,eventId:`fitness:${cycleYmd}:${dayId}:${kind}:${itemId}`});
     }
-    renderAll();
+    renderAll(["fitness","time"]);
   }
   function setLaneDone(dayId,kind,value,sourceEl){
     const items=(dayConfig(dayId)?.[kind]||[]).filter(item=>item.optional!==true);
@@ -45,7 +45,7 @@
       playCompletionEffect({level:stats.total&&stats.done===stats.total?"parent":"task",category:"life",anchor:sourceEl,title:`${section.name}计划全部完成`,eventId:`fitness-lane:${cycleYmd}:${dayId}:${kind}`});
     }
     showToast(value?`${section.name}项目已全部完成`:`已取消全部${section.name}完成状态`,value?"ok":"warn",1300);
-    renderAll();
+    renderAll(["fitness","time"]);
   }
   function openFitnessItemUrl(value){
     const url=normalizeFitnessUrl(value);
@@ -297,8 +297,11 @@
   function openFitnessEditor(){
     closeControlCenter();
     closeGhModal();
-    draftConfig=deepClone(fitnessConfig||normalizeFitnessConfig(defaultFitnessConfig));
-    renderFitnessEditor();
+    if(!window.TaskRingEditorSessions?.resume("fitnessEditorModal")){
+      draftConfig=deepClone(fitnessConfig||normalizeFitnessConfig(defaultFitnessConfig));
+      renderFitnessEditor();
+      window.TaskRingEditorSessions?.begin("fitnessEditorModal");
+    }
     const modal=document.getElementById("fitnessEditorModal");
     modal?.classList.remove("hidden");
     modal?.setAttribute("aria-hidden","false");
@@ -322,6 +325,7 @@
       applyTaskConfig(cfg,true);
       draftConfig=deepClone(fitnessConfig);
       renderFitnessEditor();
+      window.TaskRingEditorSessions?.saved("fitnessEditorModal");
       if(shouldSync){
         setGhStatus("GitHub：保存配置中","sync");
         await ghPatchConfig(cfg);
@@ -469,8 +473,6 @@
     },true);
   }
 
-  const coreRenderAll=window.renderAll;
-  window.renderAll=function(){const result=coreRenderAll.apply(this,arguments);renderFitnessPanel();return result};
   const coreBoot=window.TaskRingCoreBoot;
   window.TaskRingCoreBoot=function(){const result=coreBoot.apply(this,arguments);initFitnessUI();renderFitnessPanel();return result};
   window.renderFitnessPanel=renderFitnessPanel;

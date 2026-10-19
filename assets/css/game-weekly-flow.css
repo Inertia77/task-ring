@@ -34,7 +34,7 @@
   margin:0;color:var(--color-ink,#242424);
   font-size:17px;font-weight:900;line-height:1.4;
 }
-.gqWeeklyLaneHeading p {margin:3px 0 0;color:var(--color-muted,#777);font-size:11px;line-height:1.45}
+.gqWeeklyLaneHeading p {margin:3px 0 0;color:var(--color-muted,#777);font-size:12px;line-height:1.45}
 .gqWeeklyLaneCount {
   display:inline-grid;place-items:center;min-width:53px;
   padding:7px 9px;border:1px solid var(--flow-stroke);
@@ -50,7 +50,7 @@
   display:flex;align-items:flex-start;gap:5px;margin:5px 4px 8px 45px;
   padding:6px 9px;border-left:3px solid var(--flow-stroke);
   background:var(--flow-wash);border-radius:0 7px 7px 0;
-  color:var(--flow-ink);font-size:11px;line-height:1.5;
+  color:var(--flow-ink);font-size:12px;line-height:1.5;
   overflow-wrap:anywhere;
 }
 .gqWeeklyGateIcon {display:inline-flex;flex:0 0 auto;align-items:center;margin-top:1px}
@@ -78,7 +78,7 @@
   .gqWeeklyLaneIcon {width:34px;height:34px;flex-basis:34px;border-radius:9px}
   .gqWeeklyLaneIcon .trUiIcon {width:18px;height:18px}
   .gqWeeklyLaneHeading h3 {font-size:15px}
-  .gqWeeklyLaneHeading p {font-size:10px}
+  .gqWeeklyLaneHeading p {font-size:12px}
   .gqWeeklyLaneCount {min-width:46px;padding:6px}
   .gqWeeklyLane .gqWeeklyGrid {padding:8px;gap:9px}
   .gqWeeklyUnlockHint {margin-left:8px;margin-right:8px}
@@ -185,10 +185,10 @@
     width:100%;
     white-space:nowrap;
     text-overflow:ellipsis;
-    font-size:10px;
+    font-size:12px;
     line-height:1.1;
   }
-  .gameQuestV6 .gqV6Top .gameQuestTopTimer .gameCommandCopy b{font-size:9px}
+  .gameQuestV6 .gqV6Top .gameQuestTopTimer .gameCommandCopy b{font-size:12px}
   .gameQuestV6 .gqV6BoardTabs{
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
@@ -214,7 +214,7 @@
   .gameQuestV6 .gqV6BoardTab b{
     grid-row:auto;
     grid-column:auto;
-    font-size:10px;
+    font-size:12px;
     white-space:nowrap;
   }
   .gameQuestV6 .gqV6BoardTab em,
@@ -238,7 +238,7 @@
     width:100%;
     min-height:34px;
     padding:5px 9px;
-    font-size:11px;
+    font-size:12px;
     border-radius:8px;
     box-shadow:none;
   }
@@ -274,7 +274,7 @@
   }
   .gameQuestV6 .gqV6LaneTabName{gap:0;font-size:12px;font-weight:850}
   .gameQuestV6 .gqV6LaneTabName > span{display:none}
-  .gameQuestV6 .gqV6LaneTabCount{font-size:10px;letter-spacing:-.04em}
+  .gameQuestV6 .gqV6LaneTabCount{font-size:12px;letter-spacing:-.04em}
   .gameQuestV6 .gqWeeklyLane{
     overflow:visible;
     gap:0;
@@ -293,7 +293,7 @@
     padding:0 2px;
     min-height:27px;
   }
-  .gameQuestV6 .gqV6MobileFlowOps span{font-size:10px;color:var(--color-muted)}
+  .gameQuestV6 .gqV6MobileFlowOps span{font-size:12px;color:var(--color-muted)}
   .gameQuestV6 .gqV6MobileFlowOps button{
     flex:0 0 auto;
     min-height:28px;
@@ -302,7 +302,7 @@
     border-radius:7px;
     background:var(--color-panel);
     color:var(--color-ink);
-    font-size:11px;
+    font-size:12px;
     font-weight:800;
   }
   .gameQuestV6 .gqV6MobileFlowOps button:focus-visible,
@@ -338,11 +338,11 @@
     width:27px;
     height:27px;
     border-radius:7px;
-    font-size:11px;
+    font-size:12px;
   }
-  .gameQuestV6 .gqV6GameCard .gameQuestName{font-size:13px;line-height:1.25}
+  .gameQuestV6 .gqV6GameCard .gameQuestName{font-size:14px;line-height:1.4}
   .gameQuestV6 .gqV6GameCard .gameQuestCount{
-    font-size:11px;
+    font-size:12px;
     font-variant-numeric:tabular-nums;
     color:var(--color-muted);
   }
@@ -388,25 +388,38 @@
     min-width:52px;
     min-height:38px;
     padding:4px 6px;
-    font-size:11px;
+    font-size:12px;
   }
   .gameQuestV6 .gqWeeklyUnlockHint{
     margin:3px 4px 3px 8px;
     padding:4px 6px;
-    font-size:10px;
+    font-size:12px;
     line-height:1.4;
   }
-  .gameQuestV6 .gqWeeklyEmpty{padding:11px 7px;font-size:11px}
+  .gameQuestV6 .gqWeeklyEmpty{padding:11px 7px;font-size:12px}
 }
 @media (max-width:350px) {
   .gameQuestV6 .gqV6Top .gameQuestHeroSide{
     grid-template-columns:minmax(0,1fr) 70px 39px 39px;
     gap:4px;
   }
-  .gameQuestV6 .gqV6BoardTab span{font-size:11px}
-  .gameQuestV6 .gqV6LaneTabName{font-size:11px}
-  .gameQuestV6 .gqV6LaneTabCount{font-size:9px}
+  .gameQuestV6 .gqV6BoardTab span{font-size:12px}
+  .gameQuestV6 .gqV6LaneTabName{font-size:12px}
+  .gameQuestV6 .gqV6LaneTabCount{font-size:12px}
 }
 @media (prefers-reduced-motion:reduce) {
   .gameQuestV6 .gqV6ToggleChevron{transition:none}
+}
+
+@media (max-width:1024px) {
+  .gameQuestV6 .gameQuestTaskRow { min-width:0; }
+  .gameQuestV6 .gameQuestTaskText { overflow-wrap:anywhere; white-space:normal; }
+  .gameQuestV6 .gqV6LaneTab, .gameQuestV6 .gqV6BoardTab,
+  .gameQuestV6 .gqV6GameToggle, .gameQuestV6 [data-gqv6-expand-all],
+  .gameQuestV6 .gameQuestTaskOpen { min-height:44px; }
+}
+
+@media(max-width:700px) {
+  .gameQuestV6 .gqV6TaskBtn { min-height:44px; }
+  .gameQuestV6 .gameQuestEditQuick .gameCommandCopy b { font-size:12px; white-space:normal; text-overflow:clip; }
 }

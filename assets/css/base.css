@@ -96,3 +96,15 @@ body:not(.locked) .lockScreen { display: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto; animation-duration: 0.01ms; animation-iteration-count: 1; transition-duration: 0.01ms; }
 }
+
+/* vNext: preserve content width and keyboard visibility at every breakpoint. */
+button, a, summary, input, select, textarea { scroll-margin-block: 88px; }
+button:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms; animation-iteration-count: 1; transition-duration: .01ms; scroll-behavior: auto; }
+}
+@media (forced-colors: active) {
+  button, summary, input, select, textarea { border: 1px solid ButtonText; }
+  :focus-visible { outline: 3px solid Highlight; }
+}

@@ -263,11 +263,16 @@
   }
   function taskDone(board,gid,task){return localStorage.getItem(taskKey(board,gid,task))==="1"}
   function setTaskDone(board,gid,task,val,el){
+    // A first interaction pins this lane's visible game. Completing its last
+    // task must not unexpectedly switch the mobile reader to the next game.
+    const lane=board==="daily"?dailyLane(task):weeklyLane(task);
+    const focusKey=MOBILE_FOCUS_PREFIX+board+"_"+lane;
+    if(!localStorage.getItem(focusKey))localStorage.setItem(focusKey,gid);
     syncSetItem(taskKey(board,gid,task),val);
     if(val&&el&&typeof playCompletionEffect==="function"){
       playCompletionEffect({level:"micro",category:"gamecreate",anchor:el,title:"游戏项目完成",eventId:"gqv5:"+board+":"+gid+":"+task.id+":"+resetScope(board,task)});
     }
-    renderAll();
+    renderAll(["game"]);
   }
   function entryFor(board,g,cfg){
     const tasks=boardTasks(board,g.id,cfg);

@@ -191,3 +191,16 @@
 .gqIconPresetGrid button { min-width: 32px; min-height: 32px; border: 1px solid var(--color-line); border-radius: 6px; background: var(--color-panel-soft); font-size: 10px; }
 .gqMetaEnabledWrap { display: flex; align-items: center; gap: 6px; min-height: var(--tap-size); }
 .gqMetaEnabledWrap input { width: 18px; height: 18px; }
+
+/* Sessions stay in memory across closing; no extra private draft storage. */
+.editorDraftHint { padding:6px 12px; color:var(--color-muted); font-size:12px; background:var(--color-panel-soft); }
+.cfgTask[hidden], .cfgTask.filteredOut { display:none; }
+.cfgSummaryMain b { white-space:normal; overflow-wrap:anywhere; }
+@media (max-width:700px) {
+  .taskEditorCommandDeck .editorScopeTabs { display:flex; overflow-x:auto; scrollbar-width:thin; }
+  .editorScopeTabs button { flex:0 0 auto; min-height:44px; font-size:13px; }
+  .cfgBodyV20 input:not([type=checkbox]), .cfgBodyV20 select, .cfgBodyV20 textarea,
+  .refEditorModal input:not([type=checkbox]), .fitnessEditorModal input:not([type=checkbox]),
+  .gameQuestEditorModal input:not([type=checkbox]) { font-size:16px; }
+  .editorBottomBar { padding-bottom:max(10px,env(safe-area-inset-bottom)); }
+}
