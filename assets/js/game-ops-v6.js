@@ -6,29 +6,47 @@
   const EDIT_BOARD_ORDER=["daily","weekly"];
   const VIEW_ORDER=["daily","weekly","hub"];
   const BOARD_META={
-    daily:{label:"日常",short:"DAILY",sub:"每天或高频重复处理的基础事项。"},
-    weekly:{label:"周常",short:"WEEKLY",sub:"先清周一速攻，再处理周内中速；真正受时间约束的放在等待。"},
+    daily:{label:"日常",short:"DAILY",sub:"必做先清 · 可选随时做，跳过不影响今日完成率。"},
+    weekly:{label:"周常",short:"WEEKLY",sub:"速攻 / 中速 / 等待 / 可选 · 跳过可选不影响周完成率。"},
     hub:{label:"限时・周期",short:"LIMITED / RECURRING",sub:"限时奖励与周期玩法统一在 TaskRing 查看和操作。"}
   };
   // Weekly flow is about execution readiness, not game priority or reward tier.
-  const WEEKLY_LANE_ORDER=["sprint","steady","wait"];
+  const DAILY_LANE_ORDER=["must","optional"];
+  const DAILY_LANE_META={
+    must:{name:"必做",hint:"固定资源和官方签到优先 · 完成即可收工",symbol:"check-circle"},
+    optional:{name:"可选",hint:"有空再做 · 不计入必做完成率",symbol:"diamond"}
+  };
+  const DAILY_OPTIONAL_IDS=new Set([
+    "daily-city",                    // ZZZ coffee/scratch/store
+    "daily-prayer","daily-cafe",     // NTE side resources
+    "daily-dispatch",                // HSR dispatch
+    "daily-barrier-guild","daily-encounter-region","daily-stamina", // Onmyoji time-heavy loops
+    "daily-ship","routine-monitor"  // Endfield ship/multi-day monitor
+  ]);
+  function dailyLane(task){
+    const v=String(task&&(task.daily_lane||task.daily_tier)||"").toLowerCase();
+    if(DAILY_LANE_ORDER.includes(v))return v;
+    return DAILY_OPTIONAL_IDS.has(String(task&&task.id||""))?"optional":"must";
+  }
+  const WEEKLY_LANE_ORDER=["sprint","steady","wait","optional"];
   const WEEKLY_LANE_META={
     sprint:{name:"速攻",hint:"周一就能清完 · 先拿确定收益",symbol:"zap"},
     steady:{name:"中速",hint:"周内分批处理 · 不必周一硬清",symbol:"calendar-days"},
-    wait:{name:"等待",hint:"等待开放 / 累计条件 / 独立冷却",symbol:"hourglass"}
+    wait:{name:"等待",hint:"等待开放 / 累计条件 / 独立冷却",symbol:"hourglass"},
+    optional:{name:"可选",hint:"额外收益 / 长线养成 · 不计入周常完成率",symbol:"diamond"}
   };
   // Safe fallback for existing encrypted Gist configurations: no data migration
   // required, and stable task IDs preserve weekly completion history.
   const WEEKLY_LANE_BY_ID={
     "weekly-ridu":"steady","weekly-bounty":"sprint","weekly-hunt":"sprint",
     "weekly-pilgrimage":"sprint","weekly-city-vitality":"sprint",
-    "weekly-mammon":"sprint","weekly-auction":"sprint","weekly-butler":"wait",
+    "weekly-mammon":"sprint","weekly-auction":"optional","weekly-butler":"wait",
     "weekly-travel":"steady","weekly-boss":"sprint",
     "weekly-universe":"sprint","weekly-echo":"sprint",
     "weekly-orochi":"sprint","weekly-secret":"sprint",
-    "weekly-pvp":"steady","weekly-share":"sprint","weekly-shop":"sprint",
-    "weekly-guild":"wait","weekly-coop":"steady",
-    "weekly-six-realms":"steady","weekly-hero-contract":"steady",
+    "weekly-pvp":"optional","weekly-share":"sprint","weekly-shop":"sprint",
+    "weekly-guild":"wait","weekly-coop":"optional",
+    "weekly-six-realms":"optional","weekly-hero-contract":"optional",
     "weekly-affairs":"steady"
   };
   const WEEKLY_WAIT_HINT_BY_ID={
@@ -58,7 +76,7 @@
   const BOARD_STORAGE_KEY="taskring_gamequest_board_v6";
   const LEGACY_BOARD_STORAGE_KEY="taskring_gamequest_board_v5";
 
-  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),weeklyLanes:WEEKLY_LANE_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
+  window.TaskRingGameOpsV6={version:VERSION,boards:EDIT_BOARD_ORDER.slice(),views:VIEW_ORDER.slice(),dailyLanes:DAILY_LANE_ORDER.slice(),weeklyLanes:WEEKLY_LANE_ORDER.slice(),priorityOrder:PRIORITY_ORDER.slice()};
 
   function record(v){return !!v&&typeof v==="object"&&!Array.isArray(v)}
   function cleanTitle(v){return String(v||"").replace(/^(?:必|必做|选|选做|MUST|OPTIONAL)\s*[｜|:：]\s*/i,"").trim()}
@@ -73,6 +91,7 @@
     const out={id:id,title:title,url:normUrl(obj.url||obj.link||""),enabled:obj.enabled!==false};
     const note=String(obj.note||obj.detail||"").trim();
     if(note)out.note=note;
+    if(board==="daily")out.daily_lane=dailyLane(obj.id?obj:{...obj,id:id});
     if(board==="weekly"){
       out.weekly_lane=weeklyLane(obj.id?obj:{...obj,id:id});
       const waitHint=String(obj.unlock_hint||obj.unlockHint||WEEKLY_WAIT_HINT_BY_ID[id]||"").trim();
