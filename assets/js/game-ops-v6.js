@@ -296,7 +296,7 @@
     return '<ul class="gameQuestTaskList gameQuestTaskListV2 gqV6TaskList">'+entry.tasks.map(function(t,idx){
       const done=taskDone(board,entry.game.id,t),url=safeUrl(t.url);
       const instance="";
-      return '<li class="'+(done?"done":"")+'"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 gqV6TaskBtn '+(done?"done":"")+'" data-gqv5-task="1" data-board="'+esc(board)+'" data-game="'+esc(entry.game.id)+'" data-task="'+esc(t.id)+'" aria-pressed="'+(done?"true":"false")+'"><span class="gameQuestTaskNo">'+String(idx+1).padStart(2,"0")+'</span><span class="gameQuestMiniBox"></span><i>'+esc(t.title)+'</i>'+instance+'</button>'+(url?'<a class="gameQuestTaskOpen" href="'+url+'" target="_blank" rel="noopener noreferrer">打开 ↗</a>':"")+'</div>'+noteHtml(t)+'</li>';
+      return '<li class="'+(done?"done":"")+'"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 gqV6TaskBtn '+(done?"done":"")+'" data-gqv5-task="1" data-board="'+esc(board)+'" data-game="'+esc(entry.game.id)+'" data-task="'+esc(t.id)+'" aria-pressed="'+(done?"true":"false")+'"><span class="gameQuestTaskNo">'+String(idx+1).padStart(2,"0")+'</span><span class="gameQuestMiniBox"></span><i>'+esc(t.title)+'</i>'+instance+'</button>'+(url?'<a class="gameQuestTaskOpen" href="'+url+'" target="_blank" rel="noopener noreferrer">打开 ↗</a>':"")+'</div>'+(board==="weekly"&&weeklyLane(t)==="wait"&&t.unlock_hint?'<p class="gqWeeklyUnlockHint">'+esc(t.unlock_hint)+'</p>':'')+noteHtml(t)+'</li>';
     }).join("")+'</ul>';
   }
   function gameCard(board,entry,lane=""){
@@ -352,7 +352,7 @@
     const entry=entryFor(board,game);
     entry.tasks.filter(function(t){return board!=="weekly"||!lane||weeklyLane(t)===lane}).forEach(function(t){syncSetItem(taskKey(board,gid,t),val)});
     if(val&&el&&entry.tasks.length&&typeof playCompletionEffect==="function"){
-      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+BOARD_META[board].label+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
+      playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+(board==="weekly"&&lane?WEEKLY_LANE_META[lane]?.name||"周常":BOARD_META[board].label)+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
     }
     renderAll();
   }
