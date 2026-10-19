@@ -86,3 +86,44 @@ test('weekly category tab keeps the horizontal strip position after selecting a 
  const after=await strip.evaluate(el=>el.scrollLeft);
  expect(Math.abs(after-before)).toBeLessThanOrEqual(3);
 });
+
+test('game editor add-task works for weekly and daily without losing draft fields',async({page})=>{
+ await editor(page,'controlGameQuestEditorBtn');
+ const weekly=page.locator('#gameQuestEditorList [data-gqv5-editor-board="weekly"]');
+ await weekly.locator(':scope > summary').click();
+ const weeklyCard=weekly.locator('[data-gqv5-editor-game="endfield"]');
+ const originalWeekly=await weeklyCard.locator('[data-gqv6-editor-task]').count();
+ const originalIds=await page.evaluate(()=>loadLocalTaskConfig().gameQuest.boards.weekly.endfield.map(t=>t.id));
+ await weeklyCard.locator('.gqV6TitleInput').first().fill('保留原有任务的未保存编辑');
+ await weeklyCard.locator('[data-gqv5-add]').click();
+ await expect(weekly).toHaveAttribute('open','');
+ await expect(weeklyCard.locator('[data-gqv6-editor-task]')).toHaveCount(originalWeekly+1);
+ const weeklyNew=weeklyCard.locator('.gqV6TitleInput').last();
+ await expect(weeklyNew).toHaveValue('新任务');
+ await expect(weeklyNew).toBeFocused();
+ await weeklyNew.fill('新增每周任务测试');
+ await expect(weeklyCard.locator('.gqV6TitleInput').first()).toHaveValue('保留原有任务的未保存编辑');
+ const daily=page.locator('#gameQuestEditorList [data-gqv5-editor-board="daily"]');
+ const dailyCard=daily.locator('[data-gqv5-editor-game="endfield"]');
+ const originalDaily=await dailyCard.locator('[data-gqv6-editor-task]').count();
+ await dailyCard.locator('[data-gqv5-add]').click();
+ await expect(dailyCard.locator('[data-gqv6-editor-task]')).toHaveCount(originalDaily+1);
+ const dailyNew=dailyCard.locator('.gqV6TitleInput').last();
+ await expect(dailyNew).toHaveValue('新任务');
+ await expect(dailyNew).toBeFocused();
+ await dailyNew.fill('新增每日任务测试');
+ await expect(weeklyCard.locator('.gqV6TitleInput').last()).toHaveValue('新增每周任务测试');
+ // Adding rows only changes editor drafts until the explicit Save action.
+ expect(await page.evaluate(()=>loadLocalTaskConfig().gameQuest.boards.weekly.endfield.length)).toBe(originalWeekly);
+ await page.locator('#saveGameQuestBtn').click();
+ await expect.poll(()=>page.evaluate(()=>loadLocalTaskConfig().gameQuest.boards.weekly.endfield.at(-1)?.title)).toBe('新增每周任务测试');
+ const saved=await page.evaluate(()=>({
+  weekly:loadLocalTaskConfig().gameQuest.boards.weekly.endfield,
+  daily:loadLocalTaskConfig().gameQuest.boards.daily.endfield
+ }));
+ expect(saved.weekly.length).toBe(originalWeekly+1);
+ expect(saved.daily.length).toBe(originalDaily+1);
+ expect(saved.weekly.slice(0,originalWeekly).map(t=>t.id)).toEqual(originalIds);
+ expect(saved.weekly[0].title).toBe('保留原有任务的未保存编辑');
+ expect(saved.daily.at(-1).title).toBe('新增每日任务测试');
+});
