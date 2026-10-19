@@ -63,3 +63,26 @@ test('opening and collecting an unchanged editor preserves every task and subtas
  const before=await page.evaluate(()=>taskConfig.tasks);await editor(page);
  const after=await page.evaluate(()=>collectEditorConfig().tasks);expect(after).toEqual(before);
 });
+
+test('weekly category tab keeps the horizontal strip position after selecting a later category',async({page})=>{
+ await page.evaluate(()=>{
+  const cfg=structuredClone(taskConfig);
+  const weeklyCats=new Set(cfg.tasks.filter(t=>t.enabled!==false&&t.plan_mode==='weekly').map(t=>t.time_category));
+  timeCategoryOrder.filter(cat=>!weeklyCats.has(cat)).forEach((cat,i)=>{
+   cfg.tasks.push({...cfg.tasks[6],id:'weekly-scroll-'+cat,code:'t'+(600+i),title:'横向滚动测试 · '+cat,time_category:cat,ai_enabled:false,steps:[]});
+  });
+  saveLocalTaskConfig(cfg,'浏览器滚动隔离测试');applyTaskConfig(cfg,true);
+ });
+ await view(page,'weekly');
+ const strip=page.locator('.weeklyCategoryTabs');
+ await expect(strip.locator('button')).toHaveCount(1+8);
+ await strip.evaluate(el=>{el.scrollLeft=320});
+ await page.waitForTimeout(120); // settle CSS scroll-snap before recording the user's viewport
+ const before=await strip.evaluate(el=>el.scrollLeft);
+ expect(before).toBeGreaterThan(100);
+ await page.locator('[data-weekly-category-tab="science"]').click();
+ await expect(page.locator('[data-weekly-category-tab="science"]')).toHaveClass(/active/);
+ await page.waitForTimeout(120);
+ const after=await strip.evaluate(el=>el.scrollLeft);
+ expect(Math.abs(after-before)).toBeLessThanOrEqual(3);
+});
