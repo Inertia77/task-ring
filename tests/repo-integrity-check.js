@@ -87,6 +87,8 @@ assert(gameOpsV6Js.includes("LANE_STORAGE_PREFIX"),"GameQuest lane selections mu
 assert(productUiJs.includes('const previousTabScroll=el.querySelector(".weeklyCategoryTabs")?.scrollLeft;'),"Weekly tab rerender must capture horizontal scroll");
 assert(productUiJs.includes("if(tabs)tabs.scrollLeft=previousTabScroll;"),"Weekly tab rerender must restore horizontal scroll");
 assert(gameOpsV6Js.includes("MOBILE_FOCUS_PREFIX"),"GameQuest mobile focus preferences should stay local");
+assert(gameOpsV6Js.includes('function newTask(board){return {id:"",title:"新任务"'),"GameQuest add-task must create a nonempty editable draft");
+assert(gameOpsV6Js.includes('input.select();'),"GameQuest add-task must select the new title for immediate editing");
 assert(gameOpsV6Js.includes("gqV6MobileCollapsed"),"GameQuest mobile accordion card state is missing");
 assert(gameOpsV6Js.includes('data-gqv6-expand-all="1"'),"GameQuest mobile expand-all control is missing");
 assert(gameOpsV6Js.includes('data-gqv6-game-toggle="1"'),"GameQuest mobile per-game toggle is missing");
