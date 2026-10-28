@@ -42,78 +42,71 @@
   }
 }
 
-/* Wide desktop: categories become compact two-column lanes. The decorative group label is redundant here and otherwise collides with status chips. */
-@media (min-width: 1280px) {
+/* Desktop: one consistent category width, cards flow inside each category.
+ * Variable-height categories are no longer put into equal-height grid rows:
+ * the shorter left category cannot strand an empty rectangle underneath it.
+ * The formerly odd last category uses the exact same horizontal boundaries.
+ */
+@media (min-width: 1050px) {
   .dailyGroups {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
+    gap: 10px;
   }
 
-  .dailyGroup {
+  .dailyGroups > .dailyGroup {
+    grid-column: auto;
+    justify-self: stretch;
     align-self: start;
+    width: 100%;
+    max-width: none;
   }
 
   .dailyGroup > summary {
-    padding: 7px 10px;
+    padding: 7px 12px;
   }
 
   .dailyGroup > summary::after {
     display: none;
   }
 
-  .dailyGroupBody,
+  .dailyGroupBody {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 410px), 1fr));
+    align-items: start;
+    gap: 8px;
+    padding: 8px;
+  }
+
   .dailyGroupBody:has(> .dailyCard:only-child) {
     grid-template-columns: minmax(0, 1fr);
-    gap: 6px;
-    padding: 6px;
   }
+}
 
-  /* The category grid has two tracks, but an odd last category should never
-     be stranded in the left half of the page. In particular, one category
-     with two tasks gets two balanced cards across the full content width. */
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child {
-    grid-column: 1 / -1;
-  }
-
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  /* A lone category must share the same horizontal boundaries as the
-     overview/header. Do not center it inside an arbitrary fixed-width island. */
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child:has(> .dailyGroupBody > .dailyCard:only-child) {
-    justify-self: stretch;
-    width: 100%;
-    max-width: none;
-  }
-
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody:has(> .dailyCard:only-child) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* One task within a full-width category is an execution row, not an
-     oversized tile: task/metadata on the left and high-frequency actions on
-     the right. The HTML, disclosure, keyboard and state handlers stay intact. */
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child {
-    grid-template-columns: minmax(0, 1fr) minmax(330px, 440px);
-    column-gap: 18px;
+/* On a wide monitor a single daily task becomes a short execution row.
+ * No special "last category" layout: it applies consistently anywhere.
+ * At narrower widths the normal stacked card remains more readable.
+ */
+@media (min-width: 1280px) {
+  .dailyGroupBody > .dailyCard:only-child {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+    column-gap: 16px;
     row-gap: 6px;
     align-items: center;
-    padding: 12px 14px;
     min-height: 76px;
+    padding: 12px 14px;
   }
 
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child::after {
+  .dailyGroupBody > .dailyCard:only-child::after {
     display: none;
   }
 
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyMain {
+  .dailyGroupBody > .dailyCard:only-child .dailyMain {
     min-width: 0;
     align-items: center;
   }
 
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions {
+  .dailyGroupBody > .dailyCard:only-child .dailyActions {
     min-width: 0;
     margin: 0;
     padding: 0 0 0 16px;
@@ -122,13 +115,13 @@
     align-self: center;
   }
 
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions > button,
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .dailyActions > a,
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child .uxActionMore > summary {
+  .dailyGroupBody > .dailyCard:only-child .dailyActions > button,
+  .dailyGroupBody > .dailyCard:only-child .dailyActions > a,
+  .dailyGroupBody > .dailyCard:only-child .uxActionMore > summary {
     min-height: 40px;
   }
 
-  .dailyGroups > .dailyGroup:nth-child(odd):last-child > .dailyGroupBody > .dailyCard:only-child > .subtaskInline {
+  .dailyGroupBody > .dailyCard:only-child > .subtaskInline {
     grid-column: 1 / -1;
     margin: 2px 0 0;
     padding-left: calc(var(--tap-size) + 8px);
