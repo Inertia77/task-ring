@@ -1,0 +1,108 @@
+/* Daily mixed-card alignment.
+ *
+ * A regular task is a grid card, while an AI task's action strip is flex.
+ * Old align-items:start + align-self:start left cards of different natural
+ * heights within the same category row uneven, despite equal-height tracks.
+ * Use an intrinsic two-row card on desktop: content grows as needed and the
+ * controls sit at the same baseline. No fixed height or stretched buttons.
+ * Do not alter disclosure state, task order, or the single-card execution row.
+ */
+@media (min-width: 1050px) {
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) {
+    align-items: stretch;
+    grid-auto-rows: auto;
+  }
+
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) auto;
+    align-self: stretch;
+    align-content: stretch;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyMain {
+    grid-row: 1;
+    align-self: start;
+    min-width: 0;
+  }
+
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions {
+    grid-row: 2;
+    align-self: end;
+    margin-top: 8px;
+    min-width: 0;
+  }
+
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .subtaskInline {
+    grid-row: 3;
+    align-self: start;
+  }
+
+  /* AI launcher: use the same three action slots as a native Daily card.
+     AI buttons retain their labels and handlers, including the More menu. */
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 6px;
+    padding-top: 7px;
+    padding-left: calc(var(--tap-size) + 8px);
+  }
+
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions:has(> :nth-child(2):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions:has(> :nth-child(4)) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions > * {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    height: 42px;
+    padding: 5px 8px;
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+
+  /* A details wrapper is not a button, and its menu must stay anchored. */
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions > .uxActionMore {
+    display: block;
+    position: relative;
+    padding: 0;
+  }
+
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions > .uxActionMore > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions > .uxActionMore .uxActionMenu > * {
+    height: auto;
+    min-height: 38px;
+  }
+
+  /* Both native and AI controls use matching tappable baselines on desktop. */
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions > button,
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions > a,
+  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions > .uxActionMore > summary {
+    min-height: 42px;
+    height: 42px;
+  }
+}
+
+/* Mobile remains content-height: do not introduce empty space in a vertical
+ * task list. The older user-approved mobile density stays authoritative. */
