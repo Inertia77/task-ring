@@ -56,7 +56,9 @@ jobs:
           git diff --check origin/main...HEAD
 
   browser:
-    runs-on: ubuntu-latest
+    # Playwright 1.58.2 supports Ubuntu 24.04; ubuntu-latest moved to 26.04,
+    # where its Chromium/WebKit dependency installer exits before tests run.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
