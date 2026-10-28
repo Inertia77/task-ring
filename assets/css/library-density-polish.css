@@ -185,7 +185,37 @@
 .refGroup .refItemCopy strong { white-space:normal; overflow-wrap:anywhere; line-height:1.5; }
 .refGroup .refItemCopy > span { font-size:12px; }
 .refGroup .refItemAction { min-width:44px; min-height:44px; }
-@media (min-width:1050px) { .refGrid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } }
+/* Archive sections form consistent full-width horizontal bands.
+ * Group heights may differ greatly (4 vs 10+ links): two group columns left
+ * enormous vertical holes under shorter groups. Flow groups sequentially,
+ * while placing their links in responsive columns inside each section.
+ */
+@media (min-width: 1050px) {
+  .refGrid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+  }
+
+  .refGrid > .libraryToolbar,
+  .refGrid > .refGroup {
+    grid-column: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .refGroupBody {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1480px) {
+  .refGroupBody {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 @media (max-width:700px) {
   .refBox .refSummarySub { display:none; }
   .refGrid .libraryToolbar { gap:6px; }
