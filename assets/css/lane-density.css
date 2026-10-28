@@ -30,3 +30,75 @@
 @media (min-width: 1500px) {
   .weeklyTaskGroups > .weeklyMissionGroup:only-child .weeklyMissionGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
+
+/* Weekly cards: same height and aligned content within every desktop row.
+ * The previous weekly-polish default used align-items:start and max-content
+ * implicit rows, while AI weekly tasks omit the progress meter without a
+ * target and add optional undo controls. Both caused uneven card bottoms.
+ * Fixed grid slots reserve only the meter track; never render fake progress.
+ */
+@media (min-width: 1050px) {
+  .weeklyMissionGroup .weeklyMissionGrid {
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(60px, 1fr) 6px minmax(44px, auto) auto minmax(42px, auto);
+    row-gap: 6px;
+    align-self: stretch;
+    align-content: stretch;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionHead {
+    grid-row: 1;
+    align-self: start;
+    min-width: 0;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionMeter {
+    grid-row: 2;
+    height: 5px;
+    margin: 0;
+    align-self: center;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionActions {
+    grid-row: 3;
+    align-self: end;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .weeklySubtasks {
+    grid-row: 4;
+    margin-top: 0;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionBadges {
+    grid-row: 5;
+    align-self: end;
+    align-content: end;
+    min-width: 0;
+    margin: 0;
+  }
+}
+
+/* Keep naturally sized, single-column cards on touch layouts: equal-height
+ * desktop rows should not introduce large empty areas on phones.
+ */
+@media (max-width: 1049px) {
+  .weeklyMissionGroup .weeklyMissionGrid {
+    align-items: start;
+    grid-auto-rows: max-content;
+  }
+
+  .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard {
+    align-self: start;
+    height: auto;
+  }
+}
