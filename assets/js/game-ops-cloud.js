@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const C=window.TaskRingOpsCore,config=window.TaskRingOpsConfig;
+  const C=window.TaskRingOpsCore,config=window.TaskRingOpsConfig,P=window.TaskRingGamePlayPolicy;
   const client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'taskring-gameops-auth-v1'}});
   const PAGE=25,PREFIX='taskring-gameops-cache-v1:';
   let user=null,rows=[],archive=[],filter='',reason='',history=false,page=0,hasMore=false;
@@ -17,6 +17,8 @@
     if(!user)return;
     const active=cacheGet(PREFIX+user.id+':active');rows=active?.rows||[];lastSync=active?.at||null;
     const old=cacheGet(archiveKey());archive=old?.rows||[];hasMore=!!old?.hasMore;
+    const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
+    P?.setOpsTasks(rows,user.id);
   }
   function render(){const el=document.getElementById('gameOpsCloud');if(el)el.innerHTML=html();}
   function selected(k,v){return k===v?' selected':'';}
@@ -33,12 +35,15 @@
   }
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
+    const gp=P?.forCode(t.game),locked=!history&&gp?.tier===3&&!!window.TaskRingGameOpsV6?.isTier3Locked?.();
+    const tierTag=gp?.tier?'<span class="opsTag gqOpsTier">T'+gp.tier+'</span>':'';
+    const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
     const claimable=!history&&t.gameplay_end_at&&Date.parse(t.gameplay_end_at)<Date.now()&&t.claim_end_at&&Date.parse(t.claim_end_at)>Date.now();
     const urgencyTag=urgency==='red'?'<span class="opsTag opsUrgency red">3天内</span>':urgency==='yellow'?'<span class="opsTag opsUrgency yellow">7天内</span>':'';
     const verify=t.verification!=='CONFIRMED'?'<span class="opsTag uncertain">'+esc(labels[t.verification])+'</span>':'';
     const source=/^https?:\/\//i.test(t.source_url||'')?'<a href="'+esc(t.source_url)+'" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>':'来源尚未确认';
-    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
+    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+tierTag+storyTag+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+((disabled||locked)?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+((disabled||locked)?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
   }
   function manualForm(){
     const val=k=>esc(manualDraft[k]||'');
@@ -50,7 +55,7 @@
     const chips='<nav class="opsFilters" aria-label="限时周期游戏筛选">'+[['','全部'],...Object.entries(C.games)].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(filter===id)+'" class="'+(filter===id?'active':'')+'">'+name+'</button>').join('')+'</nav>';
     let content='';
     if(history){content='<div class="opsArchiveFilter"><label>归档原因 <select data-ops-reason><option value="">全部</option>'+['DONE','SKIP','EXPIRED','REPLACED','INVALID'].map(v=>'<option value="'+v+'"'+selected(reason,v)+'>'+({DONE:'Done · 完成',SKIP:'Skip · 不做',EXPIRED:'Expired · 过期',REPLACED:'Replaced · 替代',INVALID:'Invalid · 无效'}[v])+'</option>').join('')+'</select></label><span>最近归档 · 第 '+(page+1)+' 页</span></div><div class="opsGrid">'+archive.map(card).join('')+'</div><div class="opsPagination"><button type="button" data-ops-page="-1" '+(page===0||busy?'disabled':'')+'>上一页</button><button type="button" data-ops-page="1" '+(!hasMore||busy?'disabled':'')+'>下一页</button></div>';}
-    else {const visible=rows.filter(t=>!filter||t.game===filter);const g=C.groups(visible);content=Object.entries(g).filter(([,list])=>list.length).map(([s,list])=>'<section class="opsGroup"><h2>'+labels[s]+' <small>'+list.length+'</small></h2><div class="opsGrid">'+list.map(card).join('')+'</div></section>').join('');}
+    else {const visible=rows.filter(t=>!filter||t.game===filter);const g=C.groups(visible);Object.values(g).forEach(list=>list.sort((a,b)=>Number(P?.tierForCode(a.game)===3)-Number(P?.tierForCode(b.game)===3)));content=Object.entries(g).filter(([,list])=>list.length).map(([s,list])=>'<section class="opsGroup"><h2>'+labels[s]+' <small>'+list.length+'</small></h2><div class="opsGrid">'+list.map(card).join('')+'</div></section>').join('');}
     if(!(history?archive.length:rows.filter(t=>!filter||t.game===filter).length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
   }
@@ -64,12 +69,29 @@
       if(token!==request||user?.id!==uid)return;
       lastSync=new Date().toISOString();
       if(history){hasMore=fetched.length>PAGE;archive=fetched.slice(0,PAGE);cachePut(archiveKey(),{rows:archive,hasMore,at:lastSync});}
-      else{rows=fetched;loaded=true;cachePut(PREFIX+uid+':active',{rows,at:lastSync});}
+      else{rows=fetched;loaded=true;cachePut(PREFIX+uid+':active',{rows,at:lastSync});P?.setOpsTasks(rows,uid);}
       status='已同步';
     }catch(e){if(token===request){status=navigator.onLine?'同步失败':'离线缓存';error=navigator.onLine?'同步失败：'+(e.message||e)+ '。保留最近缓存，可点击刷新重试。':'';}}
     finally{if(token===request){busy=false;render();}}
   }
+  async function fetchPolicy(){
+    if(!P||!user||!navigator.onLine)return;
+    const uid=user.id;
+    try{
+      const {data,error:e}=await client.from('game_play_policies')
+        .select('game_key,game_name,game_kind,play_tier,story_focus,routine_policy,limited_event_policy,sort_order')
+        .eq('user_id',uid);
+      if(e)throw e;
+      if(user?.id!==uid)return;
+      cachePut(PREFIX+uid+':policy',{rows:data,at:new Date().toISOString()});
+      P.setRows(data,uid);
+    }catch(e){console.warn('Game play policy unavailable; preserving per-user cache',e);}
+  }
   async function mutate(id,patch){
+    const target=rows.find(t=>t.id===id);
+    if(target&&P?.tierForCode(target.game)===3&&window.TaskRingGameOpsV6?.isTier3Locked?.()){
+      error='T3 需先完成 T1/T2 当前可执行的必做任务。';render();return;
+    }
     if(!navigator.onLine){status='离线缓存';error='当前离线，操作未提交；联网后请重试。';render();return;}
     if(mutationId)return;
     // A fetch started before this write must never restore its stale active row.
@@ -116,15 +138,15 @@
   client.auth.onAuthStateChange((_event,session)=>{
     const next=session?.user||null,changed=next?.id!==user?.id;
     user=next;authReady=true;
-    if(changed){request++;busy=false;rows=[];archive=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};if(user)restore();}
+    if(changed){request++;busy=false;rows=[];archive=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
-    if(user)setTimeout(fetchTasks,0);
+    if(user)setTimeout(()=>{fetchTasks();fetchPolicy();},0);
   });
-  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;if(user)restore();render();return fetchTasks();}).catch(e=>{authReady=true;error=e.message;render();});
+  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy()]);}).catch(e=>{authReady=true;error=e.message;render();});
   addEventListener('offline',()=>{request++;busy=false;status='离线缓存';error='';render();});
-  addEventListener('online',fetchTasks);
+  addEventListener('online',()=>{fetchTasks();fetchPolicy();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchTasks();});
   setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId)fetchTasks();},60000);
-  window.TaskRingGameOpsCloud={html,refresh:fetchTasks};
+  window.TaskRingGameOpsCloud={html,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()])};
 })();
