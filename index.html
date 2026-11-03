@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20261019.6"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20261103.1"/>
 </head>
 <body class="nx locked">
 
@@ -119,7 +119,7 @@
             <span class="controlAreaCopy">
               <small>04 / GAME</small>
               <b>游戏</b>
-              <em>配置六游戏的日常、周常、周期与版本任务</em>
+              <em>管理多游戏的日常、周常与限时任务</em>
             </span>
             <span class="controlAreaAction">编辑任务 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
           </button>
@@ -292,7 +292,7 @@
       <button id="gameQuestEditorSectionToggleBtn" class="editorSectionToggleBtn" type="button" aria-expanded="true">全部收起</button>
     </div>
     <div class="taskEditorHint">
-      导入/导出只处理游戏分区，不包含也不会覆盖其他模块。点“导入游戏 JSON”直接选择 .json / .txt 文件；这里只维护日常与周常。限时・周期请在对应板块补充任务。六游戏固定按 绝区零 → 异环 → 鸣潮 → 崩铁 → 阴阳师 → 终末地 排序。
+      导入/导出只处理游戏分区，不会覆盖其他模块。点“导入游戏 JSON”选择 .json / .txt 文件；这里维护日常与周常，限时・周期请在对应板块补充。游戏的 T1 / T2 / T3 与剧情标记以个人 Supabase 策略为准；尚未同步策略时使用已导入配置。
     </div>
     <div id="gameQuestEditorDays" class="gameQuestEditorDays"></div>
     <div id="gameQuestEditorList" class="gameQuestEditorList"></div>
@@ -413,8 +413,9 @@
   <script src="assets/js/vendor/supabase-2.117.2.js"></script>
 <script src="assets/js/game-ops-config.js?v=20261007.1"></script>
 <script src="assets/js/game-ops-core.js?v=20261007.2"></script>
-<script src="assets/js/game-ops-cloud.js?v=20261019.6"></script>
-<script src="assets/js/game-ops-v6.js?v=20261019.8"></script>
+<script src="assets/js/game-play-policy.js?v=20261103.1"></script>
+  <script src="assets/js/game-ops-cloud.js?v=20261103.1"></script>
+<script src="assets/js/game-ops-v6.js?v=20261103.1"></script>
 <script src="assets/js/pwa.js?v=20261019.6"></script>
 </body>
 </html>

@@ -457,3 +457,34 @@
   .gqV6LaneTab{flex:1 0 auto;min-width:116px;min-height:42px;padding:8px 10px;scroll-snap-align:start}
   .gqDailyFlow .gqV6LaneTab{min-width:0;flex:1 1 50%}
 }
+
+
+/* Game Play Policy: independent play tier, story focus, and execution gate. */
+.gqV6GateNotice,.gqV6Untracked{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:10px 13px;border:1px solid var(--color-line);border-radius:11px;background:var(--color-panel-soft)}
+.gqV6GateNotice strong,.gqV6Untracked strong{font-size:12px;white-space:nowrap}
+.gqV6GateNotice span,.gqV6Untracked>span{font-size:11px;color:var(--color-muted)}
+.gqV6GateNotice.blocked{border-left:4px solid #9b6a27}
+.gqV6GateNotice.open{border-left:4px solid #258b68}
+.gqV6TierDivider{grid-column:1/-1;display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:6px 9px;margin-top:5px;border-radius:8px;background:var(--color-panel-soft);border-left:4px solid #64748b}
+.gqV6TierDivider strong{font-size:12px}
+.gqV6TierDivider span{font-size:10px;color:var(--color-muted)}
+.gqV6TierDivider.tier-1{border-left-color:#b95743}
+.gqV6TierDivider.tier-2{border-left-color:#447fb0}
+.gqV6TierDivider.tier-3{border-left-color:#348468}
+.gqV6PlayTier,.gqV6StoryFocus{display:inline-flex;align-items:center;padding:2px 6px;border-radius:6px;border:1px solid var(--color-line);font-size:9px;font-weight:900;white-space:nowrap}
+.gqV6PlayTier.t1{background:#fff0eb;color:#9f3e2a}
+.gqV6PlayTier.t2{background:#edf5fd;color:#285e8e}
+.gqV6PlayTier.t3{background:#eef9f2;color:#226e4f}
+.gqV6StoryFocus,.gqOpsStory{background:#f7f0ff;color:#69419d}
+.gqV6TierLocked{border-style:dashed}
+.gqV6TierLocked .gameQuestMiniCheckBtn:disabled,.gqV6TierLocked .gameQuestCheck:disabled{cursor:not-allowed;opacity:.6}
+.gqV6Untracked{align-items:flex-start}
+.gqV6Untracked>span{display:flex;flex-wrap:wrap;gap:5px}
+.gqV6UntrackedTag{display:inline-flex;padding:4px 7px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-panel);font-weight:700}
+.gqOpsTier{background:#eef4fa;color:#2c648b}
+@media(max-width:600px){.gqV6GateNotice,.gqV6Untracked{display:grid;gap:4px}.gqV6TierDivider{align-items:start}}
+
+.opsTier3Section{display:grid;gap:10px;margin-top:16px;padding:12px;border:1px dashed var(--color-line-strong);border-left:4px solid #348468;border-radius:12px;background:var(--color-panel-soft)}
+.opsTier3Section>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.opsTier3Section>header strong{font-size:14px}
+.opsTier3Section>header span{font-size:11px;color:var(--color-muted)}

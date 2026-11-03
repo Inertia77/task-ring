@@ -10,7 +10,7 @@ const root=path.resolve(__dirname,'..');
 const uid='test-owner';
 const task=(id,extra={})=>({id,user_id:uid,task_key:id,game:'ZZZ',server:'GLOBAL',task_name:id,task_type:'RECURRING',lifecycle_status:'ACTIVE',verification:'TO_VERIFY',priority:'NORMAL',user_action:'NONE',archived_at:null,...extra});
 const tick=()=>new Promise(r=>setTimeout(r,20));
-async function boot(db,cache={},online=true,owner=uid){
+async function boot(db,cache={},online=true,owner=uid,policies=[]){
   const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{url:'http://127.0.0.1:8000/?preview=1',runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window;w.scrollTo=()=>{};let connected=online;Object.defineProperty(w.navigator,'onLine',{get:()=>connected});
   Object.entries(cache).forEach(([k,v])=>w.localStorage.setItem(k,v));
@@ -20,7 +20,7 @@ async function boot(db,cache={},online=true,owner=uid){
       calls.push({table,mode:this.mode,range:[this.start,this.end]});
       let result;if(client.fail||!connected)result={data:null,error:{message:'test transport failure'}};
       else{
-        let found=db.filter(r=>this.filters.every(f=>f(r)));
+        let found=(table==='game_play_policies'?policies:db).filter(r=>this.filters.every(f=>f(r)));
         if(this.mode==='insert'){const r=task('manual-'+db.length,this.data);db.push(r);found=[r];}
         if(this.mode==='update')found.forEach(r=>{Object.assign(r,this.data);if(r.lifecycle_status==='ARCHIVED')r.archived_at=new Date().toISOString();});
         found=found.slice();found.sort((a,b)=>{for(const [k,o] of this.orders){if(a[k]===b[k])continue;if(a[k]==null)return o.nullsFirst? -1:1;if(b[k]==null)return o.nullsFirst?1:-1;return String(a[k]).localeCompare(String(b[k]))*(o.ascending?1:-1);}return 0;});
@@ -88,5 +88,33 @@ test('an older in-flight read cannot restore a task archived by a confirmed writ
     s.client.holdNextRead=true;const stale=s.w.TaskRingGameOpsCloud.refresh();await tick();assert(s.client.releaseRead);
     await s.click('[data-ops-action="DONE"][data-id="RACE"]');assert.equal(db[0].user_action,'DONE');assert(!s.w.document.querySelector('[data-ops-card="RACE"]'));
     s.client.releaseRead();await stale;assert(!s.w.document.querySelector('[data-ops-card="RACE"]'));
+  }finally{s.dom.window.close();}
+});
+
+test('play tiers keep story focus independent and only unlock T3 after mandatory T1 actions',async()=>{
+  const policies=[
+    {user_id:uid,game_key:'zzz',game_name:'示例主游戏',play_tier:1,story_focus:true,sort_order:1},
+    {user_id:uid,game_key:'endfield',game_name:'示例余力游戏',play_tier:3,story_focus:true,sort_order:6}
+  ];
+  const s=await boot([],{},true,uid,policies);
+  try{
+    const cfg={
+      version:6,priorityOrder:['zzz','endfield'],
+      games:[{id:'zzz',name:'示例主游戏',short:'主游戏',icon:'A',priority:1,enabled:true},{id:'endfield',name:'示例余力游戏',short:'余力游戏',icon:'B',priority:2,enabled:true}],
+      boards:{daily:{zzz:[{id:'core',title:'主游戏必做',daily_lane:'must'}],endfield:[{id:'bonus',title:'余力游戏任务',daily_lane:'must'}]},weekly:{zzz:[],endfield:[]}}
+    };
+    s.w.eval('gameQuestConfig=TaskRingGameOpsV6.normalizeConfig('+JSON.stringify(cfg)+');renderGameQuestPanel()');
+    await s.click('[data-gqv6-board="daily"]');
+    const panel=s.w.document.querySelector('#gameQuestPanel');
+    assert.match(panel.textContent,/T1.*核心玩/);
+    assert.match(panel.textContent,/T3.*有余力再玩/);
+    assert.match(panel.textContent,/剧情重点/);
+    assert.equal(s.w.TaskRingGameOpsV6.pendingCore().daily,1);
+    assert.equal(s.w.TaskRingGameOpsV6.isTier3Locked(),true);
+    assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,true);
+    await s.click('[data-gqv5-task][data-game="zzz"]');
+    assert.equal(s.w.TaskRingGameOpsV6.isTier3Locked(),false);
+    assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,false);
+    assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}
 });
