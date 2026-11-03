@@ -55,7 +55,15 @@
     const chips='<nav class="opsFilters" aria-label="限时周期游戏筛选">'+[['','全部'],...Object.entries(C.games)].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(filter===id)+'" class="'+(filter===id?'active':'')+'">'+name+'</button>').join('')+'</nav>';
     let content='';
     if(history){content='<div class="opsArchiveFilter"><label>归档原因 <select data-ops-reason><option value="">全部</option>'+['DONE','SKIP','EXPIRED','REPLACED','INVALID'].map(v=>'<option value="'+v+'"'+selected(reason,v)+'>'+({DONE:'Done · 完成',SKIP:'Skip · 不做',EXPIRED:'Expired · 过期',REPLACED:'Replaced · 替代',INVALID:'Invalid · 无效'}[v])+'</option>').join('')+'</select></label><span>最近归档 · 第 '+(page+1)+' 页</span></div><div class="opsGrid">'+archive.map(card).join('')+'</div><div class="opsPagination"><button type="button" data-ops-page="-1" '+(page===0||busy?'disabled':'')+'>上一页</button><button type="button" data-ops-page="1" '+(!hasMore||busy?'disabled':'')+'>下一页</button></div>';}
-    else {const visible=rows.filter(t=>!filter||t.game===filter);const g=C.groups(visible);Object.values(g).forEach(list=>list.sort((a,b)=>Number(P?.tierForCode(a.game)===3)-Number(P?.tierForCode(b.game)===3)));content=Object.entries(g).filter(([,list])=>list.length).map(([s,list])=>'<section class="opsGroup"><h2>'+labels[s]+' <small>'+list.length+'</small></h2><div class="opsGrid">'+list.map(card).join('')+'</div></section>').join('');}
+    else {
+      const visible=rows.filter(t=>!filter||t.game===filter);
+      const primary=visible.filter(t=>P?.tierForCode(t.game)!==3);
+      const deferred=visible.filter(t=>P?.tierForCode(t.game)===3);
+      const sections=list=>Object.entries(C.groups(list)).filter(([,items])=>items.length).map(([state,items])=>
+        '<section class="opsGroup"><h2>'+labels[state]+' <small>'+items.length+'</small></h2><div class="opsGrid">'+items.map(card).join('')+'</div></section>'
+      ).join('');
+      content=sections(primary)+(deferred.length?'<section class="opsTier3Section"><header><strong>T3｜有余力再玩</strong><span>'+(window.TaskRingGameOpsV6?.isTier3Locked?.()?'先完成 T1/T2 当前必要任务':'T1/T2 已清，可按余力安排')+'</span></header>'+sections(deferred)+'</section>':'');
+    }
     if(!(history?archive.length:rows.filter(t=>!filter||t.game===filter).length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
   }

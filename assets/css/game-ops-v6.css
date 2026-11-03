@@ -483,3 +483,8 @@
 .gqV6UntrackedTag{display:inline-flex;padding:4px 7px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-panel);font-weight:700}
 .gqOpsTier{background:#eef4fa;color:#2c648b}
 @media(max-width:600px){.gqV6GateNotice,.gqV6Untracked{display:grid;gap:4px}.gqV6TierDivider{align-items:start}}
+
+.opsTier3Section{display:grid;gap:10px;margin-top:16px;padding:12px;border:1px dashed var(--color-line-strong);border-left:4px solid #348468;border-radius:12px;background:var(--color-panel-soft)}
+.opsTier3Section>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.opsTier3Section>header strong{font-size:14px}
+.opsTier3Section>header span{font-size:11px;color:var(--color-muted)}
