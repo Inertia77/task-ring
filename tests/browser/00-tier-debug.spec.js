@@ -19,6 +19,22 @@ test.only('diagnose GameQuest visibility and policy rendering',async({page})=>{
   await snap('BEFORE');
   await view(page,'game');
   await snap('AFTER');
+  const deeper=await page.evaluate(()=>{
+    const el=document.querySelector('.gqWeeklyFlow');
+    const rules=[];
+    for(const sheet of document.styleSheets){
+      let all;try{all=sheet.cssRules}catch{continue}
+      const scan=(xs,scope)=>{for(const r of xs){
+        if(r.cssRules)scan(r.cssRules,scope+' / '+r.conditionText);
+        const v=r.style?.getPropertyValue('visibility');
+        const cv=r.style?.getPropertyValue('content-visibility');
+        if(v||cv){try{if(el.matches(r.selectorText))rules.push({selector:r.selectorText,source:sheet.href,visibility:v,contentVisibility:cv,scope})}catch{}}
+      }};
+      scan(all,'');
+    }
+    return {flowAttrs:[...el.attributes].map(a=>[a.name,a.value]),flowComputed:{visibility:getComputedStyle(el).visibility,contentVisibility:getComputedStyle(el).contentVisibility,display:getComputedStyle(el).display},directChild:el.outerHTML.slice(0,260),matchingRules:rules};
+  });
+  console.log('GAME_DEEPER '+JSON.stringify(deeper));
   await expect(page.locator('#gameQuestPanel')).toBeVisible();
   await expect(page.locator('[data-gqv6-expand-all][data-lane="must"]')).toBeVisible();
 });
