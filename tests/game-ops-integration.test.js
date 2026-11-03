@@ -91,12 +91,13 @@ test('an older in-flight read cannot restore a task archived by a confirmed writ
   }finally{s.dom.window.close();}
 });
 
-test('play tiers keep story focus independent and only unlock T3 after mandatory T1 actions',async()=>{
+test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 remains outstanding',async()=>{
   const policies=[
     {user_id:uid,game_key:'zzz',game_name:'示例主游戏',play_tier:1,story_focus:true,sort_order:1},
     {user_id:uid,game_key:'endfield',game_name:'示例余力游戏',play_tier:3,story_focus:true,sort_order:6}
   ];
-  const s=await boot([],{},true,uid,policies);
+  const db=[task('T3_CLOUD',{game:'ENF'})];
+  const s=await boot(db,{},true,uid,policies);
   try{
     const cfg={
       version:6,priorityOrder:['zzz','endfield'],
@@ -110,11 +111,21 @@ test('play tiers keep story focus independent and only unlock T3 after mandatory
     assert.match(panel.textContent,/T3.*有余力再玩/);
     assert.match(panel.textContent,/剧情重点/);
     assert.equal(s.w.TaskRingGameOpsV6.pendingCore().daily,1);
-    assert.equal(s.w.TaskRingGameOpsV6.isTier3Locked(),true);
-    assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,true);
-    await s.click('[data-gqv5-task][data-game="zzz"]');
-    assert.equal(s.w.TaskRingGameOpsV6.isTier3Locked(),false);
-    assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,false);
+    assert.match(panel.textContent,/T3 任务仍可随时勾选/);
+    assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,false);
+    assert.equal(panel.querySelector('[data-gqv5-card][data-game="endfield"]').disabled,false);
+    await s.click('[data-gqv5-task][data-game="endfield"]');
+    assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').getAttribute('aria-pressed'),'true');
+    assert.equal(s.w.TaskRingGameOpsV6.pendingCore().daily,1);
+    await s.click('[data-gqv5-task][data-game="endfield"]');
+    assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').getAttribute('aria-pressed'),'false');
+    await s.click('[data-gqv5-card][data-game="endfield"]');
+    assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').getAttribute('aria-pressed'),'true');
+    await s.click('[data-gqv6-board="hub"]');
+    assert.equal(s.w.document.querySelector('[data-ops-action="DONE"][data-id="T3_CLOUD"]').disabled,false);
+    await s.click('[data-ops-action="DONE"][data-id="T3_CLOUD"]');
+    assert.equal(db[0].user_action,'DONE');
+    assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
     assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}
 });

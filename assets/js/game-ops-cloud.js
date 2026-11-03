@@ -35,7 +35,7 @@
   }
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
-    const gp=P?.forCode(t.game),locked=!history&&gp?.tier===3&&!!window.TaskRingGameOpsV6?.isTier3Locked?.();
+    const gp=P?.forCode(t.game);
     const tierTag=gp?.tier?'<span class="opsTag gqOpsTier">T'+gp.tier+'</span>':'';
     const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
@@ -43,7 +43,7 @@
     const urgencyTag=urgency==='red'?'<span class="opsTag opsUrgency red">3天内</span>':urgency==='yellow'?'<span class="opsTag opsUrgency yellow">7天内</span>':'';
     const verify=t.verification!=='CONFIRMED'?'<span class="opsTag uncertain">'+esc(labels[t.verification])+'</span>':'';
     const source=/^https?:\/\//i.test(t.source_url||'')?'<a href="'+esc(t.source_url)+'" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>':'来源尚未确认';
-    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+tierTag+storyTag+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+((disabled||locked)?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
+    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+tierTag+storyTag+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
   }
   function manualForm(){
     const val=k=>esc(manualDraft[k]||'');
@@ -62,7 +62,7 @@
       const sections=list=>Object.entries(C.groups(list)).filter(([,items])=>items.length).map(([state,items])=>
         '<section class="opsGroup"><h2>'+labels[state]+' <small>'+items.length+'</small></h2><div class="opsGrid">'+items.map(card).join('')+'</div></section>'
       ).join('');
-      content=sections(primary)+(deferred.length?'<section class="opsTier3Section"><header><strong>T3｜有余力再玩</strong><span>'+(window.TaskRingGameOpsV6?.isTier3Locked?.()?'先完成 T1/T2 当前必要任务':'T1/T2 已清，可按余力安排')+'</span></header>'+sections(deferred)+'</section>':'');
+      content=sections(primary)+(deferred.length?'<section class="opsTier3Section"><header><strong>T3｜有余力再玩</strong><span>'+((window.TaskRingGameOpsV6?.pendingCore?.().total||0)?'建议先完成 T1/T2，T3 仍可直接完成':'按余力安排，随时可以完成')+'</span></header>'+sections(deferred)+'</section>':'');
     }
     if(!(history?archive.length:rows.filter(t=>!filter||t.game===filter).length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
@@ -96,10 +96,6 @@
     }catch(e){console.warn('Game play policy unavailable; preserving per-user cache',e);}
   }
   async function mutate(id,patch){
-    const target=rows.find(t=>t.id===id);
-    if(target&&patch.user_action==='DONE'&&P?.tierForCode(target.game)===3&&window.TaskRingGameOpsV6?.isTier3Locked?.()){
-      error='T3 需先完成 T1/T2 当前可执行的必做任务。';render();return;
-    }
     if(!navigator.onLine){status='离线缓存';error='当前离线，操作未提交；联网后请重试。';render();return;}
     if(mutationId)return;
     // A fetch started before this write must never restore its stale active row.
