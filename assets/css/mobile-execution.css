@@ -32,7 +32,7 @@ button, a, summary { touch-action: manipulation; }
   .inertiaHeader .returnTodayBtn:not([hidden]) { min-height: 44px; padding-inline: 7px; font-size: 12px; }
 
   /* One quiet, full-width dock with six stable destinations. */
-  #viewDock { inset: auto 0 0; gap: 0; padding: 5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); border: 0; border-top: 1px solid var(--color-line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: 0 -4px 24px #17171408; }
+  #viewDock { position: fixed; inset: auto 0 0; gap: 0; padding: 5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); border: 0; border-top: 1px solid var(--color-line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: 0 -4px 24px #17171408; }
   #viewDock .viewDockBtn { min-height: 58px; grid-template-rows: 30px 18px; gap: 2px; padding: 3px 0; margin: 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-muted); }
   #viewDock .viewDockBtn::before, #viewDock .viewDockBtn::after { display: none; }
   #viewDock .viewDockBtn .dockGlyph { width: 32px; height: 30px; border: 0; border-radius: 10px; background: transparent; color: inherit; }
@@ -102,9 +102,11 @@ button, a, summary { touch-action: manipulation; }
   .gameQuestV6 .gqV6BoardTab { min-height: 46px; border-radius: 10px; }
   .gameQuestV6 .gqV6BoardTab span { font-size: 13px; }
   .gameQuestV6 .gqV6LaneTab { min-height: 46px; padding: 7px 9px; border-radius: 10px; }
-  .gameQuestV6 .gqV6GameCard .gameQuestCardTop { gap: 6px; padding: 7px 8px; }
+  .gameQuestV6 .gqV6GameCard .gameQuestCardTop { grid-template-columns: 44px minmax(0,1fr) auto 44px; gap: 6px; padding: 7px 4px; }
+  .gameQuestV6 .gqV6GameCard :is(.gqV6Priority,.gameQuestIcon) { display: none; }
   .gameQuestV6 .gqV6GameCard .gameQuestCheck { width: 44px; height: 44px; flex-basis: 44px; }
-  .gameQuestV6 .gqV6GameCard .gameQuestName { font-size: 15px; }
+  .gameQuestV6 .gqV6GameCard .gameQuestName { font-size: 15px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+  .gameQuestV6 .gqV6Top .gameQuestEditQuick .gameCommandCopy b { white-space: normal; overflow: visible; text-overflow: clip; }
   .gameQuestV6 .gqV6MobileGameToggle { min-width: 44px; min-height: 44px; }
   .gameQuestV6 .gqV6TaskList .gameQuestMiniCheckBtn { min-height: 44px; padding: 8px; font-size: 13px; line-height: 1.5; }
   .gameQuestV6 .gameQuestTaskText { overflow-wrap: anywhere; }

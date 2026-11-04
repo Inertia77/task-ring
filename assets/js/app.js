@@ -3862,4 +3862,3 @@ window.TaskRingCoreBoot=function(){
     if(dayChanged||cycleChanged)location.reload();
   },60*1000);
 };
-

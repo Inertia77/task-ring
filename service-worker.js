@@ -148,4 +148,3 @@ async function staleWhileRevalidate(event, request){
     return Response.error();
   }
 }
-
