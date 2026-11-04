@@ -503,3 +503,20 @@ body.nx { background: var(--color-canvas); font-weight: 400; line-height: 1.55; 
   .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionHead,
   .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionMeter { width:100%; align-self:stretch; }
 }
+
+.nx .fitnessLane { border:1px solid var(--color-line); }
+.nx .fitnessCommandIcon { display:none; }
+.nx .fitnessCommandCopy :is(small,em), .nx .fitnessProgressCard small, .nx .fitnessProgressCard em { display:none; }
+.nx .fitnessCommandCopy b { font-weight:550; font-size:12px; }
+.nx .fitnessProgressRing { width:30px; height:30px; }
+.nx .fitnessProgressRing::before { width:24px; height:24px; }
+.nx .fitnessProgressRing b { font-size:9px; }
+.nx .fitnessProgressCard { grid-template-columns:30px minmax(0,1fr); }
+.nx .fitnessProgressCard, .nx .fitnessCommandBtn, .nx .fitnessTimerBtn { min-height:44px; }
+.nx .footer { display:none; }
+@media(max-width:900px) {
+  .nx .fitnessHero .taskAreaDescription { display:none; }
+  .nx .fitnessHeroSide { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  .nx .fitnessHeroSide > .fitnessProgressCard { grid-column:1/-1; }
+  .nx .fitnessCommandCopy b { white-space:normal; font-size:11px; }
+}
