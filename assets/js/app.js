@@ -2172,7 +2172,12 @@ function setActiveAppView(view){
   // previous module. Keep this transient UI state out of synced task data.
   if(next!==previous){
     cancelAnimationFrame(appViewScrollFrame);
-    appViewScrollFrame=requestAnimationFrame(()=>window.scrollTo({top:appViewScrollPositions.get(next)||0,behavior:"instant"}));
+    // WebKit must finish the panel/disclosure layout before restoring scroll.
+    appViewScrollFrame=requestAnimationFrame(()=>{
+      appViewScrollFrame=requestAnimationFrame(()=>{
+        if(activeAppView===next)window.scrollTo({top:appViewScrollPositions.get(next)||0,behavior:"instant"});
+      });
+    });
   }
 }
 const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
