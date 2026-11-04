@@ -328,6 +328,17 @@
   gameQuestTaskObjectsFor=function(gid,_d,cfg){return boardTasks("daily",gid,cfg||gameQuestConfig)};
   gameQuestWeeklyTasksFor=function(gid,cfg){return boardTasks("weekly",gid,cfg||gameQuestConfig)};
 
+  const collapsedBoards={daily:false,weekly:false};
+  const noteDisclosures=new Map();
+  const baseSetActiveAppView=setActiveAppView;
+  setActiveAppView=function(view,...args){
+    if(view==="game"&&activeAppView!=="game"){
+      collapsedBoards.daily=false;collapsedBoards.weekly=false;
+      localStorage.setItem(BOARD_STORAGE_KEY,"daily");
+    }
+    return baseSetActiveAppView.call(this,view,...args);
+  };
+
   function currentBoard(){
     const saved=localStorage.getItem(BOARD_STORAGE_KEY)||localStorage.getItem(LEGACY_BOARD_STORAGE_KEY);
     if(saved==="cycle"||saved==="version"||saved==="interest")return "hub";
@@ -369,16 +380,16 @@
     renderGameQuestPanel();
   }
   function esc(v){return escapeHtml(String(v==null?"":v))}
-  function noteHtml(task){
+  function noteHtml(task,board,gid){
     const note=String(task.note||"").trim();
-    return note?'<details class="gameQuestTaskNote"><summary>备注</summary><div class="gameQuestTaskNoteBody">'+esc(note)+'</div></details>':"";
+    return note?'<details class="gameQuestTaskNote" data-gq-note="'+esc(board+':'+gid+':'+task.id)+'"><summary>备注</summary><div class="gameQuestTaskNoteBody">'+esc(note)+'</div></details>':"";
   }
   function taskRows(board,entry){
     if(!entry.tasks.length)return '<div class="gqV6EmptyTask">暂无任务</div>';
     return '<ul class="gameQuestTaskList gameQuestTaskListV2 gqV6TaskList">'+entry.tasks.map(function(t,idx){
       const done=taskDone(board,entry.game.id,t),url=safeUrl(t.url);
       const instance="";
-      return '<li class="'+(done?"done":"")+'"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 gqV6TaskBtn '+(done?"done":"")+'" data-gqv5-task="1" data-board="'+esc(board)+'" data-game="'+esc(entry.game.id)+'" data-task="'+esc(t.id)+'" aria-pressed="'+(done?"true":"false")+'"'+'><span class="gameQuestTaskNo">'+String(idx+1).padStart(2,"0")+'</span><span class="gameQuestMiniBox"></span><i>'+esc(t.title)+'</i>'+instance+'</button>'+(url?'<a class="gameQuestTaskOpen" href="'+url+'" target="_blank" rel="noopener noreferrer">打开 ↗</a>':"")+'</div>'+(board==="weekly"&&weeklyLane(t)==="wait"&&t.unlock_hint?'<p class="gqWeeklyUnlockHint"><span class="gqWeeklyGateIcon" aria-hidden="true">'+(typeof taskUiIcon==="function"?taskUiIcon("hourglass"):"")+'</span><span>'+esc(t.unlock_hint)+'</span></p>':'')+noteHtml(t)+'</li>';
+      return '<li class="'+(done?"done":"")+'"><div class="gameQuestTaskRow"><button type="button" class="gameQuestMiniCheckBtn gameQuestMiniCheckBtnV2 gqV6TaskBtn '+(done?"done":"")+'" data-gqv5-task="1" data-board="'+esc(board)+'" data-game="'+esc(entry.game.id)+'" data-task="'+esc(t.id)+'" aria-pressed="'+(done?"true":"false")+'"'+'><span class="gameQuestTaskNo">'+String(idx+1).padStart(2,"0")+'</span><span class="gameQuestMiniBox"></span><i>'+esc(t.title)+'</i>'+instance+'</button>'+(url?'<a class="gameQuestTaskOpen" href="'+url+'" target="_blank" rel="noopener noreferrer">打开 ↗</a>':"")+'</div>'+(board==="weekly"&&weeklyLane(t)==="wait"&&t.unlock_hint?'<p class="gqWeeklyUnlockHint"><span class="gqWeeklyGateIcon" aria-hidden="true">'+(typeof taskUiIcon==="function"?taskUiIcon("hourglass"):"")+'</span><span>'+esc(t.unlock_hint)+'</span></p>':'')+noteHtml(t,board,entry.game.id)+'</li>';
     }).join("")+'</ul>';
   }
   function gameCard(board,entry,lane="",mobileExpanded=true,allExpanded=false){
@@ -427,9 +438,9 @@
   }
   function boardTabs(active){
     return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+VIEW_ORDER.map(function(view){
-      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span>限时・周期</span><b>◷</b><em>LIMITED / RECURRING</em></button>';
+      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub" aria-current="'+(active==='hub'?'page':'false')+'"><span>限时・周期</span><b>◷</b><em>LIMITED / RECURRING</em></button>';
       const s=boardStats(view);
-      return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'"><span>'+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>'+BOARD_META[view].short+'</em></button>';
+      return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'" aria-current="'+(active===view?'page':'false')+'"><span>'+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>'+BOARD_META[view].short+'</em></button>';
     }).join("")+'</nav>';
   }
   function cycleVersionHub(){
@@ -437,6 +448,11 @@
   }
   renderGameQuestPanel=function(){
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
+    const viewport=typeof collectUiScrollState==="function"?collectUiScrollState():null;
+    const focused=panel.contains(document.activeElement)?document.activeElement:null;
+    const focusData=focused?Object.entries(focused.dataset).filter(([key])=>key!=="uxCompacted"):[];
+    const noteKey=focused?.closest("[data-gq-note]")?.dataset.gqNote;
+    panel.querySelectorAll("[data-gq-note]").forEach(el=>noteDisclosures.set(el.dataset.gqNote,el.open));
     const board=currentBoard(),isHub=board==="hub",stats=isHub?{done:0,total:0,pct:0}:boardStats(board),meta=BOARD_META[board]||BOARD_META.daily,entries=isHub?[]:entriesFor(board);
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
     const meter=isHub?'<div class="gameQuestTopMeter"><span class="gameCommandIcon">◷</span><span class="gameCommandCopy"><small>LIVE OPS</small><b>限时・周期</b><em>云端任务 · 本机缓存</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
@@ -447,8 +463,17 @@
     const gateNote='<aside class="gqV6GateNotice '+(gate.total?'advisory':'open')+'" role="status"><strong>'+(gate.total?'建议优先处理 T1/T2':'T1/T2 主要任务已清')+'</strong><span>'+(gate.total?'T1/T2 尚有：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'；T3 任务仍可随时勾选。':'T3 有余力再玩，但随时可勾选完成，不设强制解锁。')+'</span></aside>';
     const extras=PLAY?.untrackedGames(gameQuestConfig?.games||[])||[];
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>已分级 · 尚未添加任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">T'+g.tier+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
-    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
+    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'<button type="button" class="gqV6BoardDisclosure" data-gqv6-collapse="'+board+'" aria-expanded="'+!collapsedBoards[board]+'" aria-controls="gqv6-board-body">'+(collapsedBoards[board]?'展开任务':'收起任务')+'</button></div><div id="gqv6-board-body"'+(collapsedBoards[board]?' hidden':'')+'>'+flowBoard(board,entries)+'</div>' ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+gateNote+body+untracked+'</div>';
+    panel.querySelectorAll("[data-gq-note]").forEach(el=>{el.open=noteDisclosures.get(el.dataset.gqNote)===true});
+    // Direct tab / accordion renders bypass renderAll. Restore the same viewport
+    // and semantic control here as well; never persist completion/config data.
+    if(focused){
+      const replacement=noteKey?[...panel.querySelectorAll("[data-gq-note]")].find(el=>el.dataset.gqNote===noteKey)?.querySelector("summary"):
+        focusData.length?[...panel.querySelectorAll("button,a,summary,input")].find(el=>el.tagName===focused.tagName&&focusData.every(([k,v])=>el.dataset[k]===v)):null;
+      replacement?.focus({preventScroll:true});
+    }
+    if(viewport&&typeof restoreUiScrollState==="function")restoreUiScrollState(viewport);
   };
 
   function setCard(board,gid,val,el,lane=""){
@@ -460,7 +485,7 @@
     if(val&&el&&entry.tasks.length&&typeof playCompletionEffect==="function"){
       playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:game.name+" · "+(lane?(board==="daily"?DAILY_LANE_META[lane]?.name:WEEKLY_LANE_META[lane]?.name)||BOARD_META[board].label:BOARD_META[board].label)+"完成",eventId:"gqv5-card:"+board+":"+gid+":"+Date.now()});
     }
-    renderAll();
+    renderAll(["game"]);
   }
 
   function completeDailyBoard(el){
@@ -476,7 +501,7 @@
     if(changed&&el&&typeof playCompletionEffect==="function"){
       playCompletionEffect({level:"parent",category:"gamecreate",anchor:el,title:"今日游戏必做已完成",eventId:"gqv6-daily-all:"+operationalDate()+":"+Date.now()});
     }
-    renderAll();
+    renderAll(["game"]);
     return {changed:changed,total:total};
   }
 
@@ -581,6 +606,12 @@
   function newTask(board){return {id:"",title:"新任务",url:"",...(board==="weekly"?{weekly_lane:"steady"}:{daily_lane:"must"})}}
 
   document.addEventListener("click",function(e){
+    const collapse=e.target.closest&&e.target.closest("[data-gqv6-collapse]");
+    if(collapse){
+      e.preventDefault();e.stopImmediatePropagation();
+      const board=collapse.dataset.gqv6Collapse;
+      collapsedBoards[board]=!collapsedBoards[board];renderGameQuestPanel();return;
+    }
     const refresh=e.target.closest&&e.target.closest("[data-gqv5-refresh]");
     if(refresh){e.preventDefault();e.stopImmediatePropagation();Promise.resolve(null);return}
     const tab=e.target.closest&&e.target.closest("[data-gqv6-board],[data-gqv5-board]");

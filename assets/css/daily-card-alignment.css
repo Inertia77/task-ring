@@ -13,34 +13,6 @@
     grid-auto-rows: auto;
   }
 
-  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(min-content, 1fr) auto;
-    align-self: stretch;
-    align-content: stretch;
-    height: 100%;
-    min-height: 0;
-  }
-
-  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyMain {
-    grid-row: 1;
-    align-self: start;
-    min-width: 0;
-  }
-
-  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions {
-    grid-row: 2;
-    align-self: end;
-    margin-top: 8px;
-    min-width: 0;
-  }
-
-  .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .subtaskInline {
-    grid-row: 3;
-    align-self: start;
-  }
-
   /* AI launcher: use the same three action slots as a native Daily card.
      AI buttons retain their labels and handlers, including the More menu. */
   .dailyGroupBody .dailyCard.aiEmbeddedCard > .dailyActions.aiInlineActions {
@@ -103,6 +75,23 @@
     height: 42px;
   }
 }
+
+/* Footer actions align naturally even when one card has subtasks. */
+@media (min-width:1050px) {
+  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard,
+  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard {
+    display:flex; flex-direction:column; align-self:stretch; height:100%;
+  }
+  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyMain { width:100%; }
+  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions {
+    order:3; width:100%; margin-top:auto; padding-top:12px;
+  }
+  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .subtaskInline { order:2; }
+  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionActions { order:6; width:100%; margin-top:auto; padding-top:10px; }
+  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionBadges { order:4; }
+  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .weeklySubtasks { order:3; }
+}
+
 
 /* Mobile remains content-height: do not introduce empty space in a vertical
  * task list. The older user-approved mobile density stays authoritative. */

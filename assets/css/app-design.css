@@ -16,9 +16,9 @@
   --color-success-soft: #eef7f2;
   --color-danger: #bd534d;
   --color-danger-soft: #fdf1ef;
-  --color-warning: #a77c30;
+  --color-warning: #88601e;
   --color-warning-soft: #fcf6e9;
-  --color-info: #647bb7;
+  --color-info: #52699f;
   --color-info-soft: #f0f3fb;
   --color-utility: #67737b;
   --color-utility-surface: #f5f6f8;
@@ -45,6 +45,12 @@
   --card-art-game-weekly: #a498bd;
   --card-art-track: #8fafb4;
   --card-art-ref: #baaa8d;
+  --control-touch: 44px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
   --task-title: 15px;
   --body-size: 14px;
 }
@@ -380,7 +386,10 @@ body.nx { background: var(--color-canvas); font-weight: 400; line-height: 1.55; 
   .nx .dailyVisualChip { min-width: 0; font-size: 11px; padding-inline: 3px; }
   .nx .dailyVisualChip .trUiIcon { width: 13px; height: 13px; }
   .nx .dailyVisualChip.steps { display: none; }
-  .nx .subtaskInline > summary { min-height: 40px; font-size: 11px; }
+  .nx .subtaskInline > summary { min-height: var(--control-touch); font-size: 12px; }
+  .nx .orbitDrawer > summary, .nx .gameQuestTaskNote > summary { min-height: var(--control-touch); }
+  .nx .fitnessItemMetaBtn, .nx .fitnessItemLink { min-width: var(--control-touch); min-height: var(--control-touch); }
+  .nx .gameQuestV6 .gqV6LaneTab, .nx .gameQuestV6 .gqV6CompleteAll { min-height: var(--control-touch); }
   .nx .weeklyCommandHero { grid-template-columns: minmax(0,1fr); gap: 12px; }
   .nx .weeklyCommandHero .taskAreaDescription { display: none; }
   .nx .weeklyHeroStats { gap: 0; padding: 10px 0; border-block: 1px solid var(--color-line); }
@@ -438,22 +447,6 @@ body.nx { background: var(--color-canvas); font-weight: 400; line-height: 1.55; 
 }
 @media (forced-colors: active) {
   .nx #viewDock .viewDockBtn.active, .nx .taskRingActionRow button.active { outline: 2px solid Highlight; }
-}
-
-/* Footer actions align naturally even when one card has subtasks. */
-@media (min-width:1050px) {
-  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard,
-  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard {
-    display:flex; flex-direction:column; align-self:stretch; height:100%;
-  }
-  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyMain { width:100%; }
-  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .dailyActions {
-    order:3; width:100%; margin-top:auto; padding-top:12px;
-  }
-  .nx .dailyGroupBody:not(:has(> .dailyCard:only-child)) > .dailyCard > .subtaskInline { order:2; }
-  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionActions { order:6; width:100%; margin-top:auto; padding-top:10px; }
-  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .missionBadges { order:4; }
-  .nx .weeklyMissionGroup .weeklyMissionGrid > .weeklyMissionCard > .weeklySubtasks { order:3; }
 }
 
 .nx .gameQuestV6 .gqV6TierDivider { padding:8px 0; margin:0; border:0; border-radius:0; background:transparent; }

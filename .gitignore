@@ -27,3 +27,9 @@ dist/
 # Isolated browser artifacts (CI uploads them separately)
 test-results/
 playwright-report/
+
+# Local audit preview and generated baseline
+preview/
+.openai/
+_audit/
+before-results/
