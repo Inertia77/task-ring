@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 const fs=require('node:fs');
 const phase=process.env.AUDIT_PHASE||'after';
-for(const width of [320,360,390,430,700,768,820,1024,1280,1440,1920]){
+for(const width of [320,360,390,430,700,768,820,900,901,1024,1049,1050,1099,1100,1280,1440,1500,1920]){
  test(`six modules at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:900});await boot(page);
   const metrics=[];

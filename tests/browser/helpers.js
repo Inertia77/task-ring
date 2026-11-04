@@ -1,7 +1,7 @@
 const {expect}=require('@playwright/test');
 async function boot(page){
   await page.route('https://**/*',r=>r.abort());
-  await page.goto('/?preview');
+  await page.goto((process.env.AUDIT_BASE_PATH||'')+'/?preview');
   await page.waitForFunction(()=>!!window.TaskRingProductUi);
   await page.evaluate(()=>{
     const cfg=buildDefaultConfig();

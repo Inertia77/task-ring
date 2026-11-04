@@ -59,20 +59,28 @@ jobs:
     # Playwright 1.58.2 supports Ubuntu 24.04; ubuntu-latest moved to 26.04,
     # where its Chromium/WebKit dependency installer exits before tests run.
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
+      - name: Capture pinned baseline with identical isolated fixtures
+        run: |
+          mkdir -p _audit/before
+          git archive 172acbc9c4bb816d0da07fd1c76e645cd8c5a305 | tar -x -C _audit/before
+          AUDIT_PHASE=before AUDIT_BASE_PATH=/_audit/before npx playwright test governance-evidence.spec.js --output=before-results
       - run: npm run test:browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: browser-evidence
           path: |
+            before-results/
             test-results/
             playwright-report/
           retention-days: 14

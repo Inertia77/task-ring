@@ -3,7 +3,7 @@
 (() => {
   "use strict";
   // GameQuest v3 owns Today / Cycle / Interest navigation. Keep later note helpers active.
-  if(document.documentElement.hasAttribute("data-gamequest-tier-v3")) return;
+  if(document.documentElement.hasAttribute("data-gamequest-tier-v3")||document.documentElement.hasAttribute("data-gamequest-sheet-v6")) return;
 
   let activePage = "daily";
   let dailyCollapsed = false;

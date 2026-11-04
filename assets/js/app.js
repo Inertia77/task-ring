@@ -2178,7 +2178,7 @@ function setActiveAppView(view){
     });
   }
 }
-const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
+const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".gqV6BoardTabs",".gqV6LaneTabs",".opsFilters",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
 let restoreUiScrollFromStorage=true;
 let uiScrollSaveTimer=null;
 function readUiScrollState(){try{return JSON.parse(localStorage.getItem(UI_SCROLL_STATE_KEY)||"{}")||{}}catch(e){return {}}}
@@ -2192,9 +2192,12 @@ function collectUiScrollState(){
   });
   return state;
 }
+let uiScrollRestoreGeneration=0;
 function restoreUiScrollState(state){
   if(!state||typeof state!=="object")return;
+  const generation=++uiScrollRestoreGeneration;
   const apply=()=>{
+    if(generation!==uiScrollRestoreGeneration||state.activeAppView!==activeAppView)return;
     Object.entries(state.lists||{}).forEach(([key,pos])=>{
       const [selector,idxText]=key.split("|");
       const el=document.querySelectorAll(selector)[Number(idxText)||0];
