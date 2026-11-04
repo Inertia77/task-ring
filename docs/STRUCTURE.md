@@ -143,3 +143,10 @@ index.html
 任务编辑器的每条任务始终存在于同一个 DOM 草稿；范围/搜索只改变 hidden，不替换保存配置。四编辑器 session 仅存于当前页面，关闭可恢复，浏览器刷新会触发未保存保护。没有新增私人配置明文存储。
 
 `npm test` 运行既有 Node 及完整性测试；`npm run check:syntax` 做运行时 JS 语法检查；`npm run test:browser` 运行 Chromium/WebKit 隔离测试、截图与真实 Service Worker 升级验证。测试环境无生产 Token，外部 HTTPS 被拦截。CI 独立上传浏览器截图/报告；截图不写入产品运行目录。
+
+
+## 手机与平板执行布局（2026-11-04）
+
+`mobile-execution.css` 是最后加载的响应式呈现层：900px 及以下使用含安全区的六入口底栏，统一任务卡片、44px 触控区、自然换行与紧凑进度条；1024px 及以下修正总标题和筛选布局。桌面卡片对齐规则继续保留。模块切换的滚动位置仅保存在当前页面内存，不写入任务配置或同步状态。Service Worker 缓存版本同步更新。
+
+`tests/browser/mobile-execution.spec.js` 覆盖 320/390/768px 的控件分离、底栏与宽度，以及模块滚动恢复和配置不变。

@@ -1,0 +1,130 @@
+/* Final responsive presentation layer. No task or storage semantics. */
+:root { --nav-mobile-height: 68px; }
+html { scrollbar-gutter: stable; }
+button, a, summary { touch-action: manipulation; }
+
+@media (max-width: 1024px) {
+  body.nx { background: #f5f4f0; }
+  .inertiaHeader { grid-template-columns: minmax(0,1fr) auto; }
+  .inertiaHeroTitle { flex-wrap: nowrap; white-space: nowrap; }
+  .inertiaHeader .inertiaSubtitle, .inertiaHeader .inertiaBrandRow,
+  .inertiaHeader .inertiaTitleSlash, .inertiaHeader .inertiaTitleEn { display: none; }
+  .inertiaHeader .inertiaToolbar { display: flex; width: auto; }
+  .inertiaHeader .inertiaToolbar :is(.todayPill,.cyclePill,.uxShortcutHint) { display: none; }
+  .taskRingControlPanel { grid-template-columns: minmax(0,1fr); grid-template-areas: "head" "actions" "status" "progress"; }
+  .taskRingControlPanel .taskRingActionRow { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .taskRingControlPanel .dailyStatusStrip { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .dailyCard:hover, .weeklyMissionCard:hover, .gameQuestCard:hover,
+  .fitnessItem:hover, .refItem:hover { transform: none; }
+}
+
+@media (max-width: 900px) {
+  html { scrollbar-gutter: auto; scroll-padding-block: 12px calc(90px + env(safe-area-inset-bottom)); }
+  body.nx { min-height: 100dvh; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .wrap { padding: max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left)); }
+  .inertiaHeader { gap: 8px; padding: 4px 0 10px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .inertiaHeroBrand { gap: 8px; }
+  .inertiaHeader .inertiaHeroMark { flex-basis: 32px; width: 32px; padding: 5px; border-radius: 10px; transform: none; }
+  .inertiaHeader .inertiaHeroTitle { font-size: 18px; letter-spacing: -.04em; }
+  .inertiaHeader .inertiaToolbar { gap: 6px; }
+  .inertiaHeader .inertiaToolbar > .controlCenterBtn { min-height: 44px; padding: 6px 12px; border-radius: 12px; font-size: 13px; background: white; }
+  .inertiaHeader .inertiaToolbar .githubInlineState { min-height: 30px; max-width: 90px; align-self: center; padding: 4px 6px; border: 0; background: transparent; font-size: 11px; }
+  .inertiaHeader .returnTodayBtn:not([hidden]) { min-height: 44px; padding-inline: 7px; font-size: 12px; }
+
+  /* One quiet, full-width dock with six stable destinations. */
+  #viewDock { inset: auto 0 0; gap: 0; padding: 5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); border: 0; border-top: 1px solid var(--color-line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: 0 -4px 24px #17171408; }
+  #viewDock .viewDockBtn { min-height: 58px; grid-template-rows: 30px 18px; gap: 2px; padding: 3px 0; margin: 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-muted); }
+  #viewDock .viewDockBtn::before, #viewDock .viewDockBtn::after { display: none; }
+  #viewDock .viewDockBtn .dockGlyph { width: 32px; height: 30px; border: 0; border-radius: 10px; background: transparent; color: inherit; }
+  #viewDock .viewDockBtn .dockGlyph .trUiIcon { width: 21px; height: 21px; }
+  #viewDock .dockDesktopLabel { display: none; }
+  #viewDock .dockMobileLabel { display: block; }
+  #viewDock .viewDockBtn b { font-size: 11px; line-height: 18px; }
+  #viewDock .viewDockBtn.active { color: var(--color-ink); background: var(--color-panel-soft); }
+  #viewDock .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
+  body:is(.modalOpen,.controlCenterOpen) #viewDock { visibility: hidden; }
+
+  /* Compact overview: controls remain 44px; passive metrics share one strip. */
+  .taskAreaHeader.taskRingControlPanel { gap: 8px; padding: 12px; border-left-width: 3px; border-radius: 14px; background: white; box-shadow: none; }
+  .taskRingControlPanel .taskRingControlHead .taskAreaEyebrow { display: none; }
+  .taskRingControlPanel .taskRingControlHead > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+  .taskRingControlPanel .taskAreaTitle { font-size: 20px; line-height: 1.3; }
+  .taskRingControlPanel .taskRingModeText { padding: 0; border: 0; background: transparent; font-size: 12px; font-weight: 450; }
+  .taskRingControlPanel .taskRingActionRow { gap: 3px; margin: 0; padding: 3px; border-radius: 11px; background: var(--color-panel-soft); }
+  .taskRingControlPanel .taskRingActionRow button { min-height: 44px; padding: 6px 2px; border: 0; border-radius: 8px; font-size: 13px; }
+  .taskRingControlPanel .dailyStatusStrip { gap: 0; border: 1px solid var(--color-line); border-radius: 10px; overflow: hidden; background: var(--color-panel-soft); }
+  .taskRingControlPanel .dailyStatusItem { padding: 7px 6px; border: 0; border-right: 1px solid var(--color-line); border-radius: 0; background: transparent; box-shadow: none; }
+  .taskRingControlPanel .dailyStatusItem:last-child { border-right: 0; }
+  .taskRingControlPanel .dailyStatusItem span { font-size: 11px; }
+  .taskRingControlPanel .dailyStatusItem b { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .taskRingControlPanel .dailyStatusItem.attention { color: var(--color-danger); background: var(--color-danger-soft); }
+  .taskRingControlPanel .dailyStatusItem.running { color: white; background: var(--color-ink); }
+  .taskRingControlPanel .taskProgressWrap { padding: 0; background: transparent; }
+  .taskRingControlPanel .progress-meta { font-size: 11px; }
+  .taskRingControlPanel .progress { margin-top: 5px; }
+  .orbitDrawer > summary { min-height: 44px; padding-block: 5px; }
+  .orbitDrawerMini { width: 30px; height: 30px; flex-basis: 30px; }
+  .orbitDrawerMini b { width: 24px; height: 24px; }
+  .orbitDrawerText strong { font-size: 13px; }
+
+  /* Natural card heights, readable titles, predictable touch targets. */
+  .dailyGroups { gap: 10px; }
+  .dailyGroup, .weeklyMissionGroup { border-radius: 14px; box-shadow: none; }
+  .dailyGroup > summary { min-height: 48px; background: var(--color-panel); }
+  .dailyGroupBody, .weeklyMissionGrid { padding: 6px; gap: 6px; background: var(--color-panel-soft); }
+  .dailyCard, .weeklyMissionCard, .gameQuestV6 .gqV6GameCard, .fitnessItem, .refItem { background: white; background-image: none; border-radius: 11px; box-shadow: none; }
+  .dailyCard { padding: 10px; border-left-width: 3px; }
+  .dailyCard::before, .dailyCard::after, .weeklyMissionCard::before, .weeklyMissionCard::after { display: none; }
+  .dailyCard .dailyMain { grid-template-columns: 44px minmax(0,1fr); gap: 8px; padding-right: 0; }
+  .dailyCard.highPriority .dailyMain { padding-right: 24px; }
+  .dailyCard .dailyComplete { width: 44px; height: 44px; margin: 0; border: 0; background: transparent; }
+  .dailyCard .dailyComplete span { width: 26px; height: 26px; border-radius: 8px; transform: none; }
+  .dailyCard .dailyTitle { font-size: 15px; line-height: 1.5; }
+  .dailyCard .dailyTitle .taskText { display: block; overflow: visible; -webkit-line-clamp: unset; }
+  .dailyCard .dailyMeta { gap: 5px; }
+  .dailyCard .dailyActions.uxCompacted { grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) minmax(52px,.65fr); padding: 7px 0 0; margin: 7px 0 0; gap: 6px; }
+  .dailyCard .dailyActions.uxCompacted > .uxActionMore { grid-column: auto; }
+  .dailyCard .dailyActions.uxCompacted:has(> :nth-child(2):last-child) { grid-template-columns: minmax(0,1fr) 68px; }
+  .dailyCard .dailyActions :is(button,a), .dailyCard .uxActionMore > summary,
+  .weeklyMissionCard .missionActions :is(button,a), .weeklyMissionCard .uxActionMore > summary { min-height: 44px; font-size: 13px; border-radius: 9px; }
+  .dailyCard .subtaskInline { margin-left: 0; }
+  .subtaskInline > summary { min-height: 44px; font-size: 12px; }
+  .weeklyCategoryTabs { grid-auto-columns: minmax(100px,max-content); scroll-snap-type: x proximity; }
+  .weeklyCategoryTab { min-height: 48px; }
+  .weeklyMissionCard .missionTitleBlock b { display: block; overflow: visible; font-size: 15px; }
+
+  /* Card transforms must never re-anchor a fixed action sheet on touch. */
+  .dailyCard, .weeklyMissionCard { transform: none; }
+  .dailyActions .uxActionMenu { border-radius: 14px; padding: 8px; }
+  .dailyActions .uxActionMenu :is(button,a) { min-height: 44px; font-size: 14px; }
+
+  .gameQuestV6 .gqV6BoardTabs { gap: 5px; }
+  .gameQuestV6 .gqV6BoardTab { min-height: 46px; border-radius: 10px; }
+  .gameQuestV6 .gqV6BoardTab span { font-size: 13px; }
+  .gameQuestV6 .gqV6LaneTab { min-height: 46px; padding: 7px 9px; border-radius: 10px; }
+  .gameQuestV6 .gqV6GameCard .gameQuestCardTop { gap: 6px; padding: 7px 8px; }
+  .gameQuestV6 .gqV6GameCard .gameQuestCheck { width: 44px; height: 44px; flex-basis: 44px; }
+  .gameQuestV6 .gqV6GameCard .gameQuestName { font-size: 15px; }
+  .gameQuestV6 .gqV6MobileGameToggle { min-width: 44px; min-height: 44px; }
+  .gameQuestV6 .gqV6TaskList .gameQuestMiniCheckBtn { min-height: 44px; padding: 8px; font-size: 13px; line-height: 1.5; }
+  .gameQuestV6 .gameQuestTaskText { overflow-wrap: anywhere; }
+  .gameQuestV6 .gqV6TaskList .gameQuestTaskOpen { min-width: 44px; min-height: 44px; }
+  .gameQuestV6 .gqV6MobileFlowOps { min-height: 44px; }
+  .gameQuestV6 .gqV6MobileFlowOps button { min-height: 44px; }
+
+  .ghModal { max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+  .ghModal :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea), .lockInput { font-size: 16px; }
+  .editorBottomBar { padding-bottom: max(10px,env(safe-area-inset-bottom)); }
+  .controlCenterMenu .controlCenterCloseBtn { min-width: 44px; min-height: 44px; }
+}
+
+@media (max-width: 359px) {
+  .wrap { padding-inline: max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right)); }
+  .inertiaHeader .inertiaHeroTitle { font-size: 16px; }
+  .inertiaHeroBrand { gap: 5px; }
+  .inertiaHeader .inertiaToolbar { gap: 2px; }
+  .inertiaHeader .inertiaToolbar .githubInlineState { max-width: 65px; padding-inline: 3px; }
+  .taskRingControlPanel .dailyStatusItem { padding-inline: 4px; }
+  .taskRingControlPanel .dailyStatusItem span { font-size: 10px; }
+  #viewDock .viewDockBtn[data-view-target="fitness"] .dockMobileLabel { font-size: 10px; }
+}

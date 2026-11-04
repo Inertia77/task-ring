@@ -2155,8 +2155,12 @@ function applyActiveAppView(){
     if(btn.matches(".viewDockBtn"))btn.setAttribute("aria-current",isActive?"page":"false");
   });
 }
+const appViewScrollPositions=new Map();
+let appViewScrollFrame=0;
 function setActiveAppView(view){
+  const previous=activeAppView;
   const next=APP_VIEWS.has(view)?view:"tasks";
+  if(next!==previous)appViewScrollPositions.set(previous,window.scrollY);
   closeControlCenter();
   activeAppView=next;
   localStorage.setItem(APP_VIEW_KEY,next);
@@ -2164,6 +2168,12 @@ function setActiveAppView(view){
   if(next==="time")renderTimePanel();
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game")renderGameQuestPanel();
+  // A new module opens at its own reading position, never halfway down the
+  // previous module. Keep this transient UI state out of synced task data.
+  if(next!==previous){
+    cancelAnimationFrame(appViewScrollFrame);
+    appViewScrollFrame=requestAnimationFrame(()=>window.scrollTo({top:appViewScrollPositions.get(next)||0,behavior:"instant"}));
+  }
 }
 const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
 let restoreUiScrollFromStorage=true;
@@ -3852,3 +3862,4 @@ window.TaskRingCoreBoot=function(){
     if(dayChanged||cycleChanged)location.reload();
   },60*1000);
 };
+

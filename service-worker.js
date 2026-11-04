@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261103-t3-soft";
+const CACHE_NAME = "taskring-shell-20261104-mobile-1";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const APP_SHELL = [
   "./assets/icons/app-icon-512.png",
   "./assets/icons/app-icon-maskable-512.png",
   "./assets/css/main.css",
+  "./assets/css/mobile-execution.css",
   "./assets/css/category-glyphs.css",
   "./assets/css/ui-icon-polish.css",
   "./assets/css/tokens.css",
@@ -147,3 +148,4 @@ async function staleWhileRevalidate(event, request){
     return Response.error();
   }
 }
+
