@@ -30,7 +30,7 @@ for(const width of [320,390,768]){
   });
 }
 
-test('module navigation restores each reading position without changing task config',async({page})=>{
+test('module navigation opens at the top without changing task config',async({page})=>{
   await page.setViewportSize({width:390,height:700});
   await boot(page);
   const config=await page.evaluate(()=>localStorage.getItem('taskring_local_config_v1'));
@@ -40,6 +40,6 @@ test('module navigation restores each reading position without changing task con
   await view(page,'weekly');
   await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
   await view(page,'tasks');
-  await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(previous);
+  await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
   expect(await page.evaluate(()=>localStorage.getItem('taskring_local_config_v1'))).toBe(config);
 });
