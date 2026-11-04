@@ -2155,7 +2155,9 @@ function applyActiveAppView(){
     if(btn.matches(".viewDockBtn"))btn.setAttribute("aria-current",isActive?"page":"false");
   });
 }
+let appViewScrollFrame=0;
 function setActiveAppView(view){
+  const previous=activeAppView;
   const next=APP_VIEWS.has(view)?view:"tasks";
   closeControlCenter();
   activeAppView=next;
@@ -2164,6 +2166,17 @@ function setActiveAppView(view){
   if(next==="time")renderTimePanel();
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game")renderGameQuestPanel();
+  // Open a different module at its heading and filters. This avoids inheriting
+  // a deep reading position from another module and does not touch task data.
+  if(next!==previous){
+    cancelAnimationFrame(appViewScrollFrame);
+    // WebKit must finish the panel/disclosure layout before restoring scroll.
+    appViewScrollFrame=requestAnimationFrame(()=>{
+      appViewScrollFrame=requestAnimationFrame(()=>{
+        if(activeAppView===next)window.scrollTo({top:0,behavior:"instant"});
+      });
+    });
+  }
 }
 const UI_SCROLL_SELECTORS=[".viewDock",".weeklyCategoryTabs",".gameQuestModeTabs",".gameQuestFilterTabs",".gameQuestGameTabs",".gameQuestDays",".fitnessDayTabs",".timeSubTabs",".dayTabs",".taskEditorList",".refEditorList",".gameQuestEditorList",".fitnessEditorList"];
 let restoreUiScrollFromStorage=true;
