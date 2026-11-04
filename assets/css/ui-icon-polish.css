@@ -24,7 +24,7 @@
 
 /* Category summaries — icon + number; no redundant prose. */
 .dailyGroup > summary::after { display:none !important; }
-.dailyGroup > summary { padding:9px 12px !important; }
+.dailyGroup > summary { padding:9px 12px; }
 .dailyGroup > summary .sectionSummaryMetrics { display:flex;gap:5px;align-items:center;flex-wrap:wrap; }
 .dailyGroupMetric {
   display:inline-flex; align-items:center; justify-content:center; gap:5px;
@@ -115,7 +115,7 @@
   .viewDockBtn b {grid-row:2;grid-column:1; font-size:11px;align-self:center; }
   .viewDockBtn[data-view-target="fitness"] b {font-size:10.5px;}
   .viewDockBtn.active::after {left:18%;right:18%;}
-  .dailyGroup > summary {padding:8px 10px!important;}
+  .dailyGroup > summary {padding:8px 10px;}
   .dailyGroupMetric {min-height:26px;padding:2px 5px;gap:3px;font-size:11px;}
   .dailyGroupMetric .trUiIcon {width:14px;height:14px;}
   .dailyCard {padding-top:10px;}

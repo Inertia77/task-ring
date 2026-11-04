@@ -83,7 +83,7 @@
     else if(st.warn)bits.push(`<span class="dailyVisualChip attention" title="前次未完成" aria-label="前次未完成">${taskUiIcon("triangle-alert")}<span class="dailyVisualValue">前次未完成</span></span>`);
     else bits.push(dailyVisualChip("circle-dashed","待执行","pending"));
     if(running)bits.push(dailyVisualChip(paused?"pause-circle":"clock",paused?"计时已暂停":"正在计时",paused?"paused":"running"));
-    bits.push(dailyVisualChip("clock-3",`预计 ${taskEstimatedMinutes(t)} 分钟`,"duration",`${taskEstimatedMinutes(t)}m`));
+    bits.push(dailyVisualChip("clock-3",`预计 ${taskEstimatedMinutes(t)} 分钟`,"duration",`${taskEstimatedMinutes(t)} 分钟`));
     if(hasSteps(t.id)){
       const p=stepProgress(t,st.dayId||today,st.cycle||cycleYmd);
       bits.push(dailyVisualChip("list-check",`子任务 ${p.done}/${p.total}`,"steps",`${p.done}/${p.total}`));
