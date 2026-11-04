@@ -33,13 +33,13 @@ button, a, summary { touch-action: manipulation; }
 
   /* One quiet, full-width dock with six stable destinations. */
   #viewDock { position: fixed; inset: auto 0 0; gap: 0; padding: 5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); border: 0; border-top: 1px solid var(--color-line); border-radius: 0; background: rgba(255,255,255,.97); box-shadow: 0 -4px 24px #17171408; }
-  #viewDock .viewDockBtn { min-height: 58px; grid-template-rows: 30px 18px; gap: 2px; padding: 3px 0; margin: 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-muted); }
+  #viewDock .viewDockBtn { display: grid; grid-template-columns: minmax(0,1fr); justify-items: center; min-height: 58px; grid-template-rows: 30px 18px; gap: 2px; padding: 3px 0; margin: 0; border: 0; border-radius: 12px; background: transparent; color: var(--color-muted); }
   #viewDock .viewDockBtn::before, #viewDock .viewDockBtn::after { display: none; }
-  #viewDock .viewDockBtn .dockGlyph { width: 32px; height: 30px; border: 0; border-radius: 10px; background: transparent; color: inherit; }
+  #viewDock .viewDockBtn .dockGlyph { grid-row: 1; grid-column: 1; width: 32px; height: 30px; border: 0; border-radius: 10px; background: transparent; color: inherit; }
   #viewDock .viewDockBtn .dockGlyph .trUiIcon { width: 21px; height: 21px; }
   #viewDock .dockDesktopLabel { display: none; }
   #viewDock .dockMobileLabel { display: block; }
-  #viewDock .viewDockBtn b { font-size: 11px; line-height: 18px; }
+  #viewDock .viewDockBtn b { grid-row: 2; grid-column: 1; font-size: 11px; line-height: 18px; }
   #viewDock .viewDockBtn.active { color: var(--color-ink); background: var(--color-panel-soft); }
   #viewDock .viewDockBtn.active .dockGlyph { background: var(--color-primary); color: var(--color-ink); }
   body:is(.modalOpen,.controlCenterOpen) #viewDock { visibility: hidden; }
