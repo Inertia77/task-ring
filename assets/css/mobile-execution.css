@@ -95,6 +95,7 @@ button, a, summary { touch-action: manipulation; }
 
   /* Card transforms must never re-anchor a fixed action sheet on touch. */
   .dailyCard, .weeklyMissionCard { transform: none; }
+  .dailyCard:has(.uxActionMore[open]), .weeklyMissionCard:has(.uxActionMore[open]) { z-index: 150; }
   .dailyActions .uxActionMenu { border-radius: 14px; padding: 8px; }
   .dailyActions .uxActionMenu :is(button,a) { min-height: 44px; font-size: 14px; }
 
@@ -115,7 +116,7 @@ button, a, summary { touch-action: manipulation; }
   .gameQuestV6 .gqV6MobileFlowOps button { min-height: 44px; }
 
   .ghModal { max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overscroll-behavior: contain; }
-  .ghModal :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea), .lockInput { font-size: 16px; }
+  :is(.ghModal,.taskEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.refEditorModal) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea), .lockInput { font-size: 16px; }
   .editorBottomBar { padding-bottom: max(10px,env(safe-area-inset-bottom)); }
   .controlCenterMenu .controlCenterCloseBtn { min-width: 44px; min-height: 44px; }
 }
