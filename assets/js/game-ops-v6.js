@@ -333,6 +333,10 @@
     if(saved==="cycle"||saved==="version"||saved==="interest")return "hub";
     return VIEW_ORDER.includes(saved)?saved:"daily";
   }
+  // First-level entry begins at daily; changing lanes within the game area does not reset it.
+  window.TaskRingGameOpsV6.resetForModuleEntry=function(){
+    if(currentBoard()!=="daily")localStorage.setItem(BOARD_STORAGE_KEY,"daily");
+  };
   function setCurrentBoard(board){
     if(!VIEW_ORDER.includes(board))board="daily";
     localStorage.setItem(BOARD_STORAGE_KEY,board);
