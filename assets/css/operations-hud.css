@@ -911,3 +911,20 @@ body.nx .gameQuestV6 .gqV6TierExpand[aria-pressed="true"] {
     min-height: 40px;
   }
 }
+
+/* Complete archival counts stay available via title; mobile shows the useful
+   total rather than truncating "10 项 · 10 链接 · 0 备注" in half. */
+body.nx .refGroupCountCompact { display: none; }
+@media (max-width: 700px) {
+  body.nx .refBox .refGroupCount {
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: 66px;
+    overflow: visible;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  body.nx .refBox .refGroupCountFull,
+  body.nx .refBox .refItemMetaExtra { display: none; }
+  body.nx .refBox .refGroupCountCompact { display: inline; }
+}
