@@ -1008,3 +1008,68 @@ body.nx .refGroupCountCompact { display: none; }
     line-height: 1.2;
   }
 }
+
+
+/* Library contrast — B / CLEAR.
+   Project headers and their content rows are intentionally distinct surfaces;
+   titles are primary ink, source metadata secondary ink (not low-opacity gray).
+   Scope strictly to Library. All existing link hit targets remain intact. */
+body.nx .refBox {
+  --library-clear-title: #182c3c;
+  --library-clear-group: #263d51;
+  --library-clear-meta: #455d72;
+  --library-clear-stat: #344f64;
+  --library-clear-index: #506577;
+  --library-clear-action: #345774;
+}
+body.nx .refBox .refGroup > summary {
+  color: var(--library-clear-group);
+  background: linear-gradient(100deg, #eaf2f7 0%, #f0f5f8 70%, #eef4f7 100%);
+  border-bottom-color: #c8d8e2;
+}
+body.nx .refBox .refGroupTitle {
+  color: var(--library-clear-group);
+  font-weight: 760;
+}
+body.nx .refBox .refGroupCount,
+body.nx .refBox .refGroupCountFull,
+body.nx .refBox .refGroupCountCompact {
+  color: var(--library-clear-stat);
+  font-weight: 600;
+}
+body.nx .refBox .refGroupNo,
+body.nx .refBox .refItemNo {
+  color: var(--library-clear-index);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+body.nx .refBox .refGroupBody {
+  background: #fff;
+}
+body.nx .refBox .refItemCopy strong {
+  color: var(--library-clear-title);
+  font-weight: 750;
+}
+body.nx .refBox .refItemCopy > span,
+body.nx .refBox .refItemHost,
+body.nx .refBox .refItemMetaExtra {
+  color: var(--library-clear-meta);
+}
+body.nx .refBox .refItemAction.refItemOpen {
+  display: grid;
+  place-items: center;
+  color: var(--library-clear-action);
+  background: #edf3f7;
+  border-color: #c2d1dc;
+  font-size: 17px;
+}
+body.nx .refBox .refItemAction.refItemOpen:hover,
+body.nx .refBox .refItemAction.refItemOpen:focus-visible {
+  color: #182c3c;
+  background: #e1eef6;
+  border-color: #8faebf;
+}
+body.nx .refBox .refItemAction.refItemOpen.disabled {
+  color: #586f80;
+  background: #f2f6f9;
+}
