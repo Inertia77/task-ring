@@ -572,3 +572,49 @@ body.nx :is(button,a,summary):focus-visible { outline: 3px solid #2e86a5; outlin
     bottom: calc(100px + env(safe-area-inset-bottom));
   }
 }
+
+/* Expand-all belongs to the first squad divider, not a standalone help row. */
+body.nx .gameQuestV6 .gqV6TierExpand {
+  flex: 0 0 auto;
+  margin-left: auto;
+  min-height: 40px;
+  padding: 7px 11px;
+  border: 1px solid #d0dce4;
+  border-radius: 7px;
+  color: #314d60;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+body.nx .gameQuestV6 .gqV6TierExpand[aria-pressed="true"] {
+  border-color: #b2cfcd;
+  color: #23574d;
+  background: #e6f4ef;
+}
+@media (max-width: 900px) {
+  /* No stale gold animation on the previously selected mobile destination. */
+  body.nx #viewDock > .viewDockBtn,
+  body.nx #viewDock > .viewDockBtn .dockGlyph {
+    transition: none;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 7px;
+    padding: 2px 0;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider > strong {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider > span { display: none; }
+  body.nx .gameQuestV6 .gqV6TierExpand {
+    min-height: 44px;
+    margin-left: auto;
+    padding: 8px 12px;
+  }
+}
