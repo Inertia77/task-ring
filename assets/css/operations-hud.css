@@ -335,8 +335,15 @@ body.nx :is(button,a,summary):focus-visible { outline: 3px solid #2e86a5; outlin
   body.nx .inertiaBrandRow,body.nx .inertiaSubtitle,body.nx .inertiaTitleSlash,body.nx .inertiaTitleEn { display: none; }
   body.nx .inertiaHeroMark { flex-basis: 34px; width: 34px; padding: 5px; }
   body.nx .inertiaToolbar .ghSetupBtn,
-  body.nx .inertiaToolbar .githubInlineState,
   body.nx .inertiaToolbar .headerLockBtn { display: none; }
+  body.nx .inertiaToolbar .githubInlineState {
+    display: inline-flex;
+    max-width: 78px;
+    min-height: 30px;
+    padding-inline: 3px;
+    color: #d6e7ee;
+    font-size: 10px;
+  }
   body.nx .inertiaToolbar > .controlCenterBtn { min-height: 44px; padding: 8px 13px; }
   body.nx #viewDock {
     inset: auto 0 0;
