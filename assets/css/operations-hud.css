@@ -618,3 +618,313 @@ body.nx .gameQuestV6 .gqV6TierExpand[aria-pressed="true"] {
     padding: 8px 12px;
   }
 }
+
+/* 2026-11-05 real-device audit: compact execution, not smaller hit targets.
+   Match the live phone captures: 320-430px broken GAME commands, large
+   archive links, multiline limited-event filters and an empty legend card. */
+@media (max-width: 700px) {
+  /* GAME: three actions can fit; four columns cannot. The selected subpage
+     already identifies LIMITED OPS, so repeating it in a narrow meter is noise. */
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {
+    grid-template-columns: minmax(0,1fr);
+    gap: 8px;
+    padding: 11px 12px;
+  }
+  body.nx .gameQuestV6 .gameQuestTopTitle > strong {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding: 6px 3px;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter {
+    grid-column: 1/-1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 2px 8px;
+    gap: 8px;
+    border: 1px solid rgba(179,218,228,.26);
+    background: rgba(179,218,228,.08);
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter .gameCommandCopy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: auto;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter .gameCommandCopy b {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter .gameQuestMiniRing {
+    width: 25px;
+    height: 25px;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter .gameQuestMiniRing::before {
+    width: 19px;
+    height: 19px;
+  }
+  body.nx .gameQuestV6.gameOpsHub .gqV6Top .gameQuestTopMeter {
+    display: none;
+  }
+  body.nx .gameQuestV6 .gqV6Top :is(.gameQuestTopTimer,.gameQuestTopManual,.gameQuestEditQuick) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  body.nx .gameQuestV6 .gqV6Top :is(.gameQuestTopTimer,.gameQuestTopManual,.gameQuestEditQuick) .gameCommandCopy {
+    min-width: 0;
+    width: auto;
+    text-align: center;
+  }
+  body.nx .gameQuestV6 .gqV6Top :is(.gameQuestTopTimer,.gameQuestTopManual,.gameQuestEditQuick) .gameCommandCopy b {
+    display: block;
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* LIVE OPS: filtered task list should begin before the user's first scroll.
+     Controls still have their original labels and 44px tap areas. */
+  body.nx .gameQuestV6 .gqV6BoardIntro.hub {
+    min-height: 34px;
+    padding: 0 2px;
+    margin: 0;
+  }
+  body.nx .gameQuestV6 .gqV6BoardIntro.hub > div:first-child {
+    gap: 0;
+  }
+  body.nx .gameQuestV6 .gqV6BoardIntro.hub > div:first-child > em {
+    display: none;
+  }
+  body.nx .gameQuestV6 .gameOpsCloud {
+    min-width: 0;
+    padding: 0 0 10px;
+  }
+  body.nx .gameQuestV6 .opsToolbar {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    align-items: start;
+    gap: 5px;
+    margin: 0 0 8px;
+  }
+  body.nx .gameQuestV6 .opsSync {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-height: 20px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  body.nx .gameQuestV6 .opsSync small {
+    flex-basis: auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  body.nx .gameQuestV6 .opsTools {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+  }
+  body.nx .gameQuestV6 .opsTools button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 2px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  body.nx .gameQuestV6 .opsFilters {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0 0 10px;
+    padding: 2px 0 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.nx .gameQuestV6 .opsFilters::-webkit-scrollbar {
+    display: none;
+  }
+  body.nx .gameQuestV6 .opsFilters button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  body.nx .gameQuestV6 .opsGroup {
+    margin-bottom: 14px;
+  }
+  body.nx .gameQuestV6 .opsGroup h2 {
+    margin-bottom: 7px;
+  }
+
+  /* LIBRARY: these are shortcuts, not feature cards. Keep the 44px open target,
+     but remove the redundant padding, shadow and card margins. */
+  body.nx .refBox .refGroup > summary {
+    min-height: 50px;
+    padding: 6px 9px;
+  }
+  body.nx .refBox .refGroupCount {
+    max-width: 52px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+  body.nx .refBox .refGroupBody {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 0;
+    padding: 3px 9px 6px;
+    background: #fff;
+  }
+  body.nx .refBox .refItem {
+    grid-template-columns: 22px minmax(0,1fr) 44px;
+    min-height: 52px;
+    margin: 0;
+    padding: 3px 4px;
+    border: 0;
+    border-bottom: 1px solid #e1e9ee;
+    border-radius: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    transform: none;
+  }
+  body.nx .refBox .refItem:last-child {
+    border-bottom: 0;
+  }
+  body.nx .refBox .refItem:hover,
+  body.nx .refBox .refItem:focus-within {
+    border-color: #c6d8e2;
+    background: #f7fafc;
+    box-shadow: none;
+  }
+  body.nx .refBox .refItemCopy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  body.nx .refBox .refItemCopy > span {
+    font-size: 10.5px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  body.nx .refBox .refItemActions,
+  body.nx .refBox .refItemAction {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+  }
+  body.nx .refBox .refItemAction {
+    background: #f1f5f8;
+    border: 1px solid #d9e4ec;
+    border-radius: 7px;
+  }
+  body.nx .refBox .libraryToolbar {
+    gap: 6px;
+    padding-block: 2px 8px;
+  }
+  body.nx .refBox .libraryToolbar input,
+  body.nx .refBox .libraryToolbar button {
+    min-height: 44px;
+  }
+
+  /* DAILY: closed help no longer masquerades as a large empty mission card.
+     The real legend stays one tap away and is fully visible when expanded. */
+  body.nx #legendBox:not([open]) {
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
+    margin: 8px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  body.nx #legendBox:not([open]) > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 7px 12px;
+    border: 1px solid #cfdce5;
+    border-radius: 8px;
+    background: #f5f9fb;
+    color: #466274;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  body.nx #legendBox:not([open]) > summary::before {
+    content: "ⓘ";
+    color: #557a91;
+    font-size: 14px;
+  }
+  body.nx #legendBox[open] {
+    width: 100%;
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    border-radius: 9px;
+  }
+  body.nx #legendBox[open] > summary {
+    min-height: 40px;
+  }
+}
+
+/* Complete archival counts stay available via title; mobile shows the useful
+   total rather than truncating "10 项 · 10 链接 · 0 备注" in half. */
+body.nx .refGroupCountCompact { display: none; }
+@media (max-width: 700px) {
+  body.nx .refBox .refGroupCount {
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: 66px;
+    overflow: visible;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  body.nx .refBox .refGroupCountFull,
+  body.nx .refBox .refItemMetaExtra { display: none; }
+  body.nx .refBox .refGroupCountCompact { display: inline; }
+}

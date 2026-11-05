@@ -441,6 +441,7 @@
   }
   renderGameQuestPanel=function(){
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
+    window.TaskRingGameOpsCloud?.rememberFilterScroll?.();
     // The v6 board and lane strips are replaced on each local rerender.
     // Preserve their real viewport positions and the originating task control.
     const policyWasOpen=Boolean(panel.querySelector(".gqV6GateNotice")?.open);
@@ -467,7 +468,8 @@
     const extras=PLAY?.untrackedGames(gameQuestConfig?.games||[])||[];
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>已分级 · 尚未添加任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">T'+g.tier+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
-    panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+gateNote+body+untracked+'</div>';
+    panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+'">'+top+boardTabs(board)+gateNote+body+untracked+'</div>';
+    window.TaskRingGameOpsCloud?.restoreFilterScroll?.();
     if(policyWasOpen){const note=panel.querySelector(".gqV6GateNotice");if(note)note.open=true;}
     const boardStrip=panel.querySelector(".gqV6BoardTabs");
     if(boardStrip)boardStrip.scrollLeft=boardScrollLeft;

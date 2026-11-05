@@ -20,7 +20,28 @@
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
   }
-  function render(){const el=document.getElementById('gameOpsCloud');if(el)el.innerHTML=html();}
+  let filterStripLeft=0;
+  function rememberFilterScroll(){
+    const strip=document.querySelector('#gameOpsCloud .opsFilters');
+    if(strip)filterStripLeft=strip.scrollLeft;
+  }
+  function restoreFilterScroll(){
+    const strip=document.querySelector('#gameOpsCloud .opsFilters');
+    if(strip)strip.scrollLeft=filterStripLeft;
+  }
+  function render(){
+    const el=document.getElementById('gameOpsCloud');if(!el)return;
+    rememberFilterScroll();
+    const selectedFilter=document.activeElement?.matches?.('[data-ops-filter]')?document.activeElement.dataset.opsFilter:null;
+    el.innerHTML=html();
+    restoreFilterScroll();
+    if(selectedFilter!==null){
+      [...el.querySelectorAll('[data-ops-filter]')].find(btn=>btn.dataset.opsFilter===selectedFilter)?.focus({preventScroll:true});
+    }
+  }
+  document.addEventListener('scroll',e=>{
+    if(e.target?.matches?.('#gameOpsCloud .opsFilters'))filterStripLeft=e.target.scrollLeft;
+  },true);
   function selected(k,v){return k===v?' selected':'';}
   function remainingLabel(t){
     const ms=C.deadlineMs(t);if(!Number.isFinite(ms))return '期限待核验';
@@ -152,5 +173,5 @@
   addEventListener('online',()=>{fetchTasks();fetchPolicy();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchTasks();});
   setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId)fetchTasks();},60000);
-  window.TaskRingGameOpsCloud={html,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()])};
+  window.TaskRingGameOpsCloud={html,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
 })();
