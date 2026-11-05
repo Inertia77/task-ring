@@ -2165,7 +2165,10 @@ function setActiveAppView(view){
   applyActiveAppView();
   if(next==="time")renderTimePanel();
   if(next==="weekly")renderWeeklyPlanPanel();
-  if(next==="game")renderGameQuestPanel();
+  if(next==="game"){
+    if(next!==previous)window.TaskRingGameOpsV6?.resetForModuleEntry?.();
+    renderGameQuestPanel();
+  }
   // Open a different module at its heading and filters. This avoids inheriting
   // a deep reading position from another module and does not touch task data.
   if(next!==previous){
