@@ -6,6 +6,9 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   await boot(page);
   await view(page,'game');
   await page.locator('[data-gqv6-board="weekly"]').click();
+  // Normal 320px UI intentionally fits four compact tabs. Simulate wider translated
+  // labels / enlarged controls so the navigation becomes genuinely scrollable.
+  await page.addStyleTag({content:'.gameQuestV6 .gqV6LaneTab{flex:0 0 132px!important;min-width:132px!important}'});
   const strip=page.locator('.gqV6LaneTabs');
   await strip.evaluate(el=>{el.scrollLeft=140});
   await page.waitForTimeout(150); // settle the existing mobile scroll-snap
