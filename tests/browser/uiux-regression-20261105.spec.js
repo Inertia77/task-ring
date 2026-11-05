@@ -63,3 +63,21 @@ for(const [group,widths] of [
     }
   });
 }
+
+test('game reentry starts on daily without disturbing internal board selection',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page);
+  await view(page,'game');
+  await page.locator('[data-gqv6-board="weekly"]').click();
+  await expect(page.locator('[data-gqv6-board="weekly"]')).toHaveClass(/active/);
+  await page.locator('[data-gqv6-lane="optional"]').click();
+  await expect(page.locator('[data-gqv6-lane="optional"]')).toHaveAttribute('aria-selected','true');
+  // A local game rerender retains the user's selected board and lane.
+  await page.evaluate(()=>renderAll(['game']));
+  await expect(page.locator('[data-gqv6-board="weekly"]')).toHaveClass(/active/);
+  await expect(page.locator('[data-gqv6-lane="optional"]')).toHaveAttribute('aria-selected','true');
+  await view(page,'library');
+  await view(page,'game');
+  await expect(page.locator('[data-gqv6-board="daily"]')).toHaveClass(/active/);
+  await expect(page.locator('[data-gqv6-lane="must"]')).toHaveAttribute('aria-selected','true');
+});
