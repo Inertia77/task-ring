@@ -437,6 +437,18 @@
   }
   renderGameQuestPanel=function(){
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
+    // The v6 board and lane strips are replaced on each local rerender.
+    // Preserve their real viewport positions and the originating task control.
+    const previousBoard=panel.querySelector(".gqV6BoardTab.active")?.dataset.gqv6Board;
+    const boardScrollLeft=panel.querySelector(".gqV6BoardTabs")?.scrollLeft||0;
+    const laneScrollLeft=panel.querySelector(".gqV6LaneTabs")?.scrollLeft||0;
+    const previousFocus=panel.contains(document.activeElement)&&document.activeElement?.matches(
+      "[data-gqv6-board],[data-gqv6-lane],[data-gqv5-task],[data-gqv5-card],[data-gqv6-game-toggle],[data-gqv6-expand-all]"
+    )?document.activeElement:null;
+    const focusKeys=["gqv6Board","gqv6Lane","gqv5Task","gqv5Card","gqv6GameToggle","gqv6ExpandAll","board","game","task","lane","taskLane"];
+    const focusData=previousFocus?focusKeys.filter(key=>key in previousFocus.dataset).map(key=>[key,previousFocus.dataset[key]]):[];
+    const focusTag=previousFocus?.tagName;
+    const readingY=document.body.dataset.appView==="game"?window.scrollY:null;
     const board=currentBoard(),isHub=board==="hub",stats=isHub?{done:0,total:0,pct:0}:boardStats(board),meta=BOARD_META[board]||BOARD_META.daily,entries=isHub?[]:entriesFor(board);
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
     const meter=isHub?'<div class="gameQuestTopMeter"><span class="gameCommandIcon">◷</span><span class="gameCommandCopy"><small>LIVE OPS</small><b>限时・周期</b><em>云端任务 · 本机缓存</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
@@ -449,6 +461,20 @@
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>已分级 · 尚未添加任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">T'+g.tier+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+gateNote+body+untracked+'</div>';
+    const boardStrip=panel.querySelector(".gqV6BoardTabs");
+    if(boardStrip)boardStrip.scrollLeft=boardScrollLeft;
+    if(previousBoard===board){
+      const laneStrip=panel.querySelector(".gqV6LaneTabs");
+      if(laneStrip)laneStrip.scrollLeft=laneScrollLeft;
+    }
+    if(focusData.length){
+      const replacement=[...panel.querySelectorAll("[data-gqv6-board],[data-gqv6-lane],[data-gqv5-task],[data-gqv5-card],[data-gqv6-game-toggle],[data-gqv6-expand-all]")]
+        .find(el=>el.tagName===focusTag&&focusData.every(([key,value])=>el.dataset[key]===value));
+      replacement?.focus({preventScroll:true});
+    }
+    // Do not turn an internal filter/completion rerender into a module-level jump.
+    // Real first-level module navigation still explicitly scrolls to its header.
+    if(readingY!==null&&window.scrollY!==readingY)window.scrollTo({top:readingY,behavior:"instant"});
   };
 
   function setCard(board,gid,val,el,lane=""){
