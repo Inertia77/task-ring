@@ -443,6 +443,7 @@
     const panel=document.getElementById("gameQuestPanel");if(!panel)return;
     // The v6 board and lane strips are replaced on each local rerender.
     // Preserve their real viewport positions and the originating task control.
+    const policyWasOpen=Boolean(panel.querySelector(".gqV6GateNotice")?.open);
     const previousBoard=panel.querySelector(".gqV6BoardTab.active")?.dataset.gqv6Board;
     const boardScrollLeft=panel.querySelector(".gqV6BoardTabs")?.scrollLeft||0;
     const laneScrollLeft=panel.querySelector(".gqV6LaneTabs")?.scrollLeft||0;
@@ -460,11 +461,14 @@
     const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
     const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong>'+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"必做已完成":"一键完成必做")+'</b></button></div>':'<strong>'+stats.done+'/'+stats.total+'</strong>';
     const gate=pendingCore();
-    const gateNote='<aside class="gqV6GateNotice '+(gate.total?'advisory':'open')+'" role="status"><strong>'+(gate.total?'建议优先处理 T1/T2':'T1/T2 主要任务已清')+'</strong><span>'+(gate.total?'T1/T2 尚有：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'；T3 任务仍可随时勾选。':'T3 有余力再玩，但随时可勾选完成，不设强制解锁。')+'</span></aside>';
+    // The policy explanation is optional context, not a blocking action or a task lock.
+    // Keep the full rule one tap away instead of pushing all game tasks below the fold.
+    const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'T1/T2 待处理 '+gate.total+' 项':'T1/T2 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 T1/T2：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。T3 任务仍可随时勾选、撤销。':'T3 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
     const extras=PLAY?.untrackedGames(gameQuestConfig?.games||[])||[];
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>已分级 · 尚未添加任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">T'+g.tier+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+board+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+meta.sub+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6">'+top+boardTabs(board)+gateNote+body+untracked+'</div>';
+    if(policyWasOpen){const note=panel.querySelector(".gqV6GateNotice");if(note)note.open=true;}
     const boardStrip=panel.querySelector(".gqV6BoardTabs");
     if(boardStrip)boardStrip.scrollLeft=boardScrollLeft;
     if(previousBoard===board){
