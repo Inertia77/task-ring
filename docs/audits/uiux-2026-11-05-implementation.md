@@ -16,6 +16,7 @@
 | P1 | `service-worker.js` 原激活流程删除所有不等于当前缓存名的 Cache Storage 项，可清除同源其他应用缓存 | 仅清理过期 `taskring-shell-*` 缓存 | `tests/service-worker-cache-scope.test.js` |
 | P1 | `assets/js/game-ops-v6.js` 的 `renderGameQuestPanel` 用 `panel.innerHTML` 重建横向导航条，而原 UI 滚动保存选择器没有覆盖新版 `.gqV6LaneTabs` / `.gqV6BoardTabs` | 在本地局部渲染前后分别保存/恢复对应滚动状态，定位相同任务按钮焦点 | `tests/browser/uiux-regression-20261105.spec.js` |
 | P1 | 新版游戏的当前 board 保存在本机，即使从其他一级模块重新进入仍保留上次周常/限时 board，与“进入游戏默认日常”不符 | 只在真正跨一级模块进入时将 board 设为 daily；同模块筛选与重渲染不重置 | 同上：模块重入与内部筛选保持 |
+| P1 | `app-design.css` 的 warning/danger/success/info 状态文字 Token 与对应浅底色的对比分别约 3.50/4.22/4.16/3.74:1，低于普通正文 WCAG AA 的 4.5:1 目标 | 小范围调暗已有语义前景色；修改后的四组对比分别约 4.67/5.00/5.01/4.67:1 | `tests/ui-status-contrast.test.js`（Token 对比断言，不能替代整站逐元素检测） |
 | P2 | 新增 JS 页面资源未提升查询版本，既有安装应用可能识别不到静态资源变化 | 提升 `index.html` 的 `data-build` 与 `app.js`、`game-ops-v6.js` 资源版本到 `20261105.1`，同步更新 TaskRing PWA shell 缓存名 | 仓库检查、浏览器 PWA 检查 |
 
 ## CSS 维护成本的实测基线（源码静态统计）
