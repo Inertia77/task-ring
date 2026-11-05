@@ -8,10 +8,12 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   await page.locator('[data-gqv6-board="weekly"]').click();
   // Normal 320px UI intentionally fits four compact tabs. Simulate wider translated
   // labels / enlarged controls so the navigation becomes genuinely scrollable.
-  await page.addStyleTag({content:'.gameQuestV6 .gqV6LaneTab{flex:0 0 132px!important;min-width:132px!important}'});
+  await page.addStyleTag({content:'.gameQuestV6 .gqV6LaneTabs{display:flex!important;width:260px!important;max-width:260px!important;overflow-x:auto!important;scroll-snap-type:none!important}.gameQuestV6 .gqV6LaneTab{flex:0 0 160px!important;min-width:160px!important}'});
   const strip=page.locator('.gqV6LaneTabs');
+  const overflow=await strip.evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,display:getComputedStyle(el).display}));
+  expect(overflow.scroll,'Test fixture must overflow before testing scroll preservation').toBeGreaterThan(overflow.client+100);
   await strip.evaluate(el=>{el.scrollLeft=140});
-  await page.waitForTimeout(150); // settle the existing mobile scroll-snap
+  await page.waitForTimeout(80);
   // Invoke the real delegated click handler without Playwright auto-scrolling
   // the strip into a different position before the event is dispatched.
   const after=await page.evaluate(()=>{
