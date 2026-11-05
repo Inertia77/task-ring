@@ -277,7 +277,19 @@ body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
   background: rgba(223,244,250,.08);
 }
 body.nx .gameQuestV6 .gqV6Top .gameCommandCopy b { color: #fff; font-weight: 750; }
-body.nx .gameQuestV6 .gqV6Top .gameCommandIcon { display: grid; place-items: center; }
+body.nx .gameQuestV6 .gqV6Top .gameCommandIcon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(242,205,107,.44);
+  border-radius: 6px;
+  background: rgba(238,202,111,.16);
+  color: #ffe49b;
+  font-size: 16px;
+}
+body.nx .gameQuestV6 .gameQuestMiniRing i { color: #203746; }
+body.nx .gameQuestV6 .gameQuestMiniRing::before { background: #f5f9fa; }
 body.nx .gameQuestV6 .gqV6BoardTabs {
   border: 1px solid #cad9e2;
   background: #dfe9ef;
