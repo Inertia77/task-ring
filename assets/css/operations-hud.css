@@ -1,0 +1,382 @@
+/* TaskRing / Operations HUD
+   Game-inspired visual shell only. No storage, task, or sync semantics.
+   Uses the existing nav, actions, progress, and mission content. */
+:root {
+  --hud-deep: #111d2a;
+  --hud-mid: #213549;
+  --hud-amber: #f0cb68;
+  --hud-cyan: #6bbdcd;
+  --hud-muted: #b4c6d2;
+  --hud-line: #ced9e2;
+}
+body.nx {
+  --color-canvas: #eaf0f4;
+  --color-card-line: #d0dbe3;
+  --shadow-card: 0 2px 6px rgba(20,42,60,.055);
+  --shadow-card-hover: 0 6px 18px rgba(20,42,60,.1);
+  background-color: var(--color-canvas);
+  background-image:
+    linear-gradient(rgba(70,113,135,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(70,113,135,.035) 1px,transparent 1px),
+    radial-gradient(ellipse at 90% 0%,rgba(108,184,205,.1),transparent 52%);
+  background-size: 36px 36px,36px 36px,auto;
+}
+
+/* The status header reads like a compact game lobby, not a form toolbar. */
+body.nx .inertiaHeader {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  min-height: 82px;
+  margin-bottom: 10px;
+  padding: 13px 18px;
+  border: 1px solid #364c5c;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(130deg,transparent 0 82px,rgba(255,255,255,.022) 82px 83px),
+    linear-gradient(110deg,#111c29 0%,#1d3244 72%,#264b55 100%);
+  color: #f5f8fc;
+  box-shadow: 0 10px 24px rgba(15,39,55,.12);
+}
+body.nx .inertiaHeader::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: linear-gradient(90deg,var(--hud-amber) 0 22%,var(--hud-cyan) 22% 46%,rgba(255,255,255,.18) 46% 100%);
+  pointer-events: none;
+}
+body.nx .inertiaHeader::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: 17%;
+  top: -96px;
+  transform: skewX(-25deg);
+  border-inline: 1px solid rgba(155,217,227,.14);
+  background: rgba(90,160,175,.045);
+  pointer-events: none;
+}
+body.nx .inertiaHeroBrand,
+body.nx .inertiaToolbar { position: relative; z-index: 1; }
+body.nx .inertiaHeroMark {
+  background: #f2ce6c;
+  border: 1px solid #ffebae;
+  border-radius: 9px 3px 9px 3px;
+  box-shadow: 3px 3px 0 rgba(108,185,198,.24);
+}
+body.nx .inertiaBrandRow { display: flex; align-items: center; gap: 6px; }
+body.nx .inertiaOwnerBadge,
+body.nx .inertiaVersionBadge {
+  border: 0; border-radius: 3px; padding: 2px 6px;
+  font: 650 9px/1.5 var(--font-sans);
+  letter-spacing: .09em;
+}
+body.nx .inertiaOwnerBadge { background: var(--hud-amber); color: #253240; }
+body.nx .inertiaVersionBadge { background: rgba(131,196,210,.16); color: #cbebf3; }
+body.nx .inertiaHeroTitle { color: #f8fbff; font-size: 22px; letter-spacing: -.03em; font-weight: 750; }
+body.nx .inertiaTitleSlash { display: inline; color: var(--hud-amber); }
+body.nx .inertiaTitleEn { display: inline; color: #c2d5e0; font-size: 14px; font-weight: 550; letter-spacing: 0; }
+body.nx .inertiaSubtitle { display: block; color: #b9cbd6; font-size: 11px; }
+body.nx .inertiaToolbar > .controlCenterBtn,
+body.nx .inertiaToolbar > .ghSetupBtn,
+body.nx .inertiaToolbar > .headerLockBtn {
+  color: #eaf3f8;
+  border: 1px solid #567181;
+  border-radius: 8px;
+  background: rgba(211,237,243,.1);
+}
+body.nx .inertiaToolbar > .controlCenterBtn {
+  background: var(--hud-amber);
+  color: #1c2932;
+  border-color: #f6df9b;
+  font-weight: 750;
+}
+body.nx .inertiaToolbar > .controlCenterBtn:hover { background: #ffe3a0; }
+body.nx .inertiaToolbar .githubInlineState,
+body.nx .inertiaToolbar .pill { color: #d4e4ec; background: transparent; }
+body.nx .inertiaToolbar .returnTodayBtn { color:#182b39; background:var(--hud-amber); border-color:#f4d786; }
+
+/* Six destinations become the command rail. Keep mobile nav fixed and touch-safe. */
+body.nx #viewDock {
+  border: 1px solid #354a59;
+  border-radius: 12px;
+  padding: 5px;
+  background: linear-gradient(120deg,#152230,#23394a);
+  box-shadow: 0 8px 20px rgba(17,33,46,.12);
+}
+body.nx #viewDock .viewDockBtn {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: rgba(222,239,245,.035);
+  color: #c7d6df;
+}
+body.nx #viewDock .viewDockBtn:hover { background: rgba(214,232,239,.13); color: white; }
+body.nx #viewDock .viewDockBtn .dockGlyph { color: inherit; background: rgba(165,197,209,.09); }
+body.nx #viewDock .viewDockBtn.active {
+  border-color: #e8ce8d;
+  color: #1b2a36;
+  background: linear-gradient(110deg,#ffe7a9,#e7c363);
+  box-shadow: inset 3px 0 0 #a67927,0 2px 8px rgba(0,0,0,.1);
+}
+body.nx #viewDock .viewDockBtn.active .dockGlyph { color: #203341; background: rgba(26,55,64,.11); }
+body.nx #viewDock .viewDockUtility:not(.active) { color: #a5c6d1; background: rgba(88,155,178,.08); }
+body.nx #viewDock .viewDockBtn b { font-weight: 650; }
+body.nx #viewDock .viewDockBtn::after { display: none; }
+
+/* Missions: readable content on pale surfaces, strong tactical hierarchy. */
+body.nx .taskAreaHeader.taskRingControlPanel,
+body.nx .taskAreaHeader.weeklyCommandHero,
+body.nx .taskAreaHeader.fitnessHero,
+body.nx .timePanelHeader,
+body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar,
+body.nx .refBoxHeader {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--hud-line);
+  border-left: 4px solid #c59f50;
+  border-radius: 10px 3px 10px 10px;
+  background: linear-gradient(112deg,#fff 0%,#f4f9fc 78%,#edf5f8 100%);
+  box-shadow: 0 4px 14px rgba(24,49,66,.045);
+}
+body.nx .taskAreaHeader.taskRingControlPanel {
+  padding: 13px 15px;
+  gap: 10px 14px;
+  margin-bottom: 8px;
+}
+body.nx .taskRingControlHead .taskAreaEyebrow,
+body.nx .taskAreaHeader .taskAreaHeaderCopy .taskAreaEyebrow,
+body.nx .fitnessEyebrow,
+body.nx .timePanelHeader > div:first-child > span {
+  display: block;
+  color: #567789;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+body.nx .taskRingControlHead strong,
+body.nx .taskAreaHeader .taskAreaTitle,
+body.nx .fitnessHero h2,
+body.nx .timePanelHeader > div:first-child > b {
+  color: #1c3040;
+  font-size: 23px;
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+body.nx .taskRingControlPanel .dailyStatusStrip {
+  padding: 8px 0 5px;
+  border-color: #dce6ec;
+}
+body.nx .taskRingControlPanel .dailyStatusItem b { color: #21394b; }
+body.nx .taskRingControlPanel .dailyStatusItem.attention b { color: var(--color-danger); }
+body.nx .taskRingControlPanel .dailyStatusItem.running b { color: var(--color-success); }
+body.nx .taskRingActionRow {
+  border: 1px solid #d5e1e9;
+  background: #eaf1f5;
+  border-radius: 8px;
+}
+body.nx .taskRingActionRow button { border-radius: 6px; color: #536776; }
+body.nx .taskRingActionRow button.active {
+  color: #172b39;
+  background: var(--hud-amber);
+  box-shadow: 0 1px 4px rgba(125,95,38,.13);
+}
+body.nx .taskRingControlPanel .taskProgressWrap { margin: 0; }
+body.nx .progress { height: 7px; overflow: hidden; border-radius: 3px; background: #dce7ec; }
+body.nx .progress > div {
+  border-radius: inherit;
+  background: linear-gradient(90deg,#367d84,#6dc8c5,#c9d875);
+  box-shadow: 0 0 10px rgba(60,157,164,.24);
+  transition: width .22s ease;
+}
+body.nx .taskAreaHeader.weeklyCommandHero,
+body.nx .taskAreaHeader.fitnessHero,
+body.nx .timePanelHeader {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-left-color: #6d9dbb;
+}
+body.nx .taskAreaHeader.fitnessHero { border-left-color: #6aab93; }
+body.nx .timePanelHeader { border-left-color: #7c9fae; }
+body.nx .refBoxHeader { padding: 14px; margin-bottom: 12px; border-left-color: #a9926a; }
+
+/* Mission group labels behave as squad headers, not extra large cards. */
+body.nx .dailyGroup > summary,
+body.nx .weeklyMissionGroup > summary {
+  border: 1px solid #dbe5ec;
+  border-left: 3px solid #88adbe;
+  border-radius: 6px;
+  background: linear-gradient(95deg,#eaf2f6,#f5f9fb);
+  padding: 8px 10px;
+  min-height: 44px;
+}
+body.nx .dailyGroups,body.nx .weeklyTaskGroups { gap: 14px; }
+body.nx .dailyCard,
+body.nx .weeklyMissionCard,
+body.nx .fitnessItem,
+body.nx .refItem {
+  border: 1px solid #cfdbe3;
+  border-top: 2px solid #d7c186;
+  border-radius: 8px 3px 8px 8px;
+  background: linear-gradient(135deg,#fff 0%,#fff 76%,#f7fafc 100%);
+  box-shadow: 0 2px 8px rgba(20,41,55,.055);
+}
+body.nx .dailyCard:hover,
+body.nx .weeklyMissionCard:hover,
+body.nx .fitnessItem:hover,
+body.nx .refItem:hover {
+  border-color: #86aebf;
+  box-shadow: 0 5px 17px rgba(20,41,55,.1);
+}
+body.nx .dailyCard.running,
+body.nx .weeklyMissionCard.running { border-top-color: #3c9273; background: #f7fdf9; }
+body.nx .dailyCard.highPriority { border-top-color: #c58e3c; }
+body.nx .dailyCard .dailyComplete span { border-color: #7c9dae; }
+body.nx .dailyCard .dailyActions .timerStartTiny,
+body.nx .weeklyMissionCard .missionPrimary {
+  background: #f8e9b7;
+  border-color: #e6ce86;
+  color: #584418;
+  font-weight: 650;
+}
+body.nx .dailyCard .dailyActions :is(button,a),
+body.nx .weeklyMissionCard .missionActions :is(button,a) { border-radius: 6px; }
+body.nx .weeklyCategoryTab.active,
+body.nx .fitnessDayTab.active { color: #203544; border-color: #d8b965; background: #f7e5a8; }
+body.nx .refGroup { border-color: #cad9e2; border-radius: 9px; box-shadow: 0 2px 8px rgba(25,52,72,.045); }
+body.nx .refGroup > summary { border-left: 3px solid #b9a37a; }
+body.nx .timeStatCards > div { border-top: 2px solid #7fa5b9; }
+body.nx .timeTaskRow,
+body.nx .timeBudgetRow { border-left: 2px solid #9eb9c8; }
+
+/* Game Quest: a dedicated operation console, with the same data and click targets. */
+body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {
+  border: 1px solid #355367;
+  border-left: 4px solid var(--hud-amber);
+  padding: 14px;
+  margin-bottom: 3px;
+  background:
+    repeating-linear-gradient(125deg,transparent 0 91px,rgba(255,255,255,.025) 91px 92px),
+    linear-gradient(110deg,#1a293a,#234657);
+  color: #f2f8fb;
+}
+body.nx .gameQuestV6 .gameQuestTopTitle > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #9cd8e5;
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: .12em;
+}
+body.nx .gameQuestV6 .gameQuestTopTitle > strong { color: #fff; font-size: 23px; font-weight: 760; }
+body.nx .gameQuestV6 .gameQuestTopTitle > em { color: #c0d7df; }
+body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
+  border-color: #506c7c;
+  color: #eaf6fa;
+  background: rgba(223,244,250,.08);
+}
+body.nx .gameQuestV6 .gqV6Top .gameCommandCopy b { color: #fff; font-weight: 750; }
+body.nx .gameQuestV6 .gqV6Top .gameCommandIcon { display: grid; place-items: center; }
+body.nx .gameQuestV6 .gqV6BoardTabs {
+  border: 1px solid #cad9e2;
+  background: #dfe9ef;
+  border-radius: 9px;
+}
+body.nx .gameQuestV6 .gqV6BoardTab { border-radius: 7px; color: #4c6273; }
+body.nx .gameQuestV6 .gqV6BoardTab.active {
+  color: #f6faff;
+  background: linear-gradient(105deg,#1b3448,#275466);
+  box-shadow: inset 3px 0 var(--hud-amber);
+}
+body.nx .gameQuestV6 .gqV6BoardTab.active :is(span,b) { color: #f9f3dc; }
+body.nx .gameQuestV6 .gqV6LaneTabs { border: 1px solid #d4e2e9; background: #e7f0f4; border-radius: 8px; }
+body.nx .gameQuestV6 .gqV6LaneTab.active {
+  background: #243d50;
+  color: #f3f9fd;
+  box-shadow: inset 0 -3px 0 var(--hud-amber);
+}
+body.nx .gameQuestV6 .gqV6LaneTab.active .gqV6LaneTabCount { color: #f6d67a; }
+body.nx .gameQuestV6 .gqV6GameCard {
+  border: 1px solid #cad9e1;
+  border-left: 3px solid #c3a45b;
+  border-radius: 8px 3px 8px 8px;
+  background: #fff;
+  box-shadow: 0 3px 11px rgba(16,44,65,.055);
+}
+body.nx .gameQuestV6 .gqV6GameCard:has(.gqV6PlayTier.t2) { border-left-color: #67a4bb; }
+body.nx .gameQuestV6 .gqV6GameCard:has(.gqV6PlayTier.t3) { border-left-color: #98a7b3; }
+body.nx .gameQuestV6 .gqV6GameCard .gameQuestName { color: #233647; font-weight: 720; }
+body.nx .gameQuestV6 .gqV6MobileGameToggle { border: 1px solid #dce6eb; background: #eef4f7; }
+body.nx .gameQuestV6 .gqV6TaskList .gameQuestMiniCheckBtn { border-radius: 7px; }
+body.nx .gameQuestV6 .gqV6CompleteAll { background: #e7f4ee; border-color: #afd6c2; color: #235d48; font-weight: 700; }
+
+/* Dialogs and lock screen retain familiar semantics while sharing the shell. */
+body.nx .controlCenterHead {
+  color: #fff;
+  border-color: #324e60;
+  background: linear-gradient(110deg,#1c2b3b,#2a4a56);
+}
+body.nx .controlCenterHeading > span { color: #a6d4df; }
+body.nx .controlCenterHeading > strong { color: #fff; }
+body.nx .controlCenterHeading > p { color: #c5d7df; }
+body.nx .lockCard { border: 1px solid #72909e; border-top: 4px solid #e5c46d; box-shadow: 0 24px 60px rgba(12,31,46,.2); }
+body.nx :is(button,a,summary):focus-visible { outline: 3px solid #2e86a5; outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  body.nx .inertiaHeader {
+    min-height: 58px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 9px;
+  }
+  body.nx .inertiaHeroBrand { gap: 8px; }
+  body.nx .inertiaHeroTitle { font-size: 19px; }
+  body.nx .inertiaBrandRow,body.nx .inertiaSubtitle,body.nx .inertiaTitleSlash,body.nx .inertiaTitleEn { display: none; }
+  body.nx .inertiaHeroMark { flex-basis: 34px; width: 34px; padding: 5px; }
+  body.nx .inertiaToolbar .ghSetupBtn,
+  body.nx .inertiaToolbar .githubInlineState,
+  body.nx .inertiaToolbar .headerLockBtn { display: none; }
+  body.nx .inertiaToolbar > .controlCenterBtn { min-height: 44px; padding: 8px 13px; }
+  body.nx #viewDock {
+    inset: auto 0 0;
+    border: 0;
+    border-top: 1px solid #436071;
+    border-radius: 0;
+    margin: 0;
+    padding: 5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+    background: rgba(21,34,47,.98);
+    box-shadow: 0 -8px 26px rgba(12,29,42,.22);
+  }
+  body.nx #viewDock .viewDockBtn { min-height: 58px; border-radius: 8px; padding: 3px 0; color: #cbd9e0; }
+  body.nx #viewDock .viewDockBtn.active { background: #f1d27c; color: #1b2f3b; }
+  body.nx #viewDock .viewDockBtn.active .dockGlyph { background: rgba(46,68,74,.11); color: #1d3340; }
+  body.nx #viewDock .viewDockBtn .dockGlyph { width: 30px; height: 30px; }
+  body.nx #viewDock .viewDockBtn b { font-size: 11px; }
+  body.nx .taskAreaHeader.taskRingControlPanel { padding: 10px 11px; gap: 8px; border-left-width: 3px; }
+  body.nx .taskRingControlHead .taskAreaEyebrow { display: none; }
+  body.nx .taskRingControlHead strong { font-size: 20px; }
+  body.nx .taskRingControlPanel .dailyStatusStrip { padding: 6px 0; }
+  body.nx .taskRingControlPanel .dailyStatusItem { padding-inline: 6px; }
+  body.nx .taskRingControlPanel .dailyStatusItem b { font-size: 17px; }
+  body.nx .taskAreaHeader.weeklyCommandHero,
+  body.nx .taskAreaHeader.fitnessHero,
+  body.nx .timePanelHeader { padding: 10px; }
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar { padding: 11px; }
+  body.nx .gameQuestV6 .gameQuestTopTitle > span { font-size: 9px; }
+  body.nx .gameQuestV6 .gameQuestTopTitle > strong { font-size: 20px; }
+  body.nx .gameQuestV6 .gqV6Top .gameCommandIcon { display: none; }
+  body.nx .refBoxHeader { padding: 10px; }
+}
+@media (max-width: 359px) {
+  body.nx .inertiaHeader { padding: 7px 8px; }
+  body.nx .inertiaHeroTitle { font-size: 17px; }
+  body.nx #viewDock { padding-inline: 5px; }
+  body.nx #viewDock .viewDockBtn b { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.nx .progress > div,
+  body.nx #viewDock .viewDockBtn,
+  body.nx .dailyCard,
+  body.nx .weeklyMissionCard { transition: none; }
+}
