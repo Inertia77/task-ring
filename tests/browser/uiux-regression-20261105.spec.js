@@ -9,20 +9,15 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   const strip=page.locator('.gqV6LaneTabs');
   await strip.evaluate(el=>{el.scrollLeft=140});
   await page.waitForTimeout(150); // settle the existing mobile scroll-snap
-  await page.evaluate(()=>{
-    // Sample before the app's capture-phase click handler stops propagation.
-    document.addEventListener('pointerdown',event=>{
-      if(event.target.closest('[data-gqv6-lane]')){
-        window.__beforeLaneClick={x:document.querySelector('.gqV6LaneTabs').scrollLeft,y:window.scrollY};
-      }
-    },{capture:true,once:true});
+  // Invoke the real delegated click handler without Playwright auto-scrolling
+  // the strip into a different position before the event is dispatched.
+  const after=await page.evaluate(()=>{
+    const before={x:document.querySelector('.gqV6LaneTabs').scrollLeft,y:window.scrollY};
+    document.querySelector('[data-gqv6-lane="wait"]').dispatchEvent(
+      new MouseEvent('click',{bubbles:true,cancelable:true})
+    );
+    return {before,x:document.querySelector('.gqV6LaneTabs').scrollLeft,y:window.scrollY};
   });
-  // Click a tab already visible within the scrolled strip, not an offscreen tab.\n  await page.locator('[data-gqv6-lane="wait"]').click();
-  const after=await page.evaluate(()=>({
-    before:window.__beforeLaneClick,
-    x:document.querySelector('.gqV6LaneTabs').scrollLeft,
-    y:window.scrollY
-  }));
   expect(after.before.x).toBeGreaterThan(30);
   expect(Math.abs(after.x-after.before.x)).toBeLessThanOrEqual(4);
   expect(after.y).toBeGreaterThanOrEqual(0);
