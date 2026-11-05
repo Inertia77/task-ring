@@ -25,10 +25,18 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await page.locator('[data-gqv6-expand-all][data-board="daily"][data-lane="must"]').click();
   await optional.click();
   await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toHaveAttribute('aria-pressed','true');
+  await page.locator('[data-gqv5-task][data-game="endfield"]').first().click();
+  await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('[data-gqv5-task][data-game="zzz"]').first()).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('.gqV6StoryFocus').first()).toBeVisible();
   await page.locator('[data-gqv6-board="weekly"]').click();
   await expect(page.locator('[data-gqv6-lane="sprint"]')).toBeVisible();
   await expect(page.locator('#gqv6-lane-panel-weekly-sprint')).toBeVisible();
   await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toBeEnabled();
+  await page.locator('[data-gqv6-expand-all][data-board="weekly"][data-lane="sprint"]').click();
+  const t3Weekly=page.locator('[data-gqv5-task][data-board="weekly"][data-game="endfield"]').first();
+  await t3Weekly.click();
+  await expect(t3Weekly).toHaveAttribute('aria-pressed','true');
+  await t3Weekly.click();
+  await expect(t3Weekly).toHaveAttribute('aria-pressed','false');
 });
