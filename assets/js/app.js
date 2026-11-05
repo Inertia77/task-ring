@@ -919,8 +919,9 @@ function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本
   if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");}
   ghLog(msg);
   if(promptToken&&!ghPromptedThisLoad){
+    // The visible GitHub status already says whether this device is synced.
+    // Do not cover the mission controls with a repeated three-second unlock toast.
     ghPromptedThisLoad=true;
-    showToast("本机已解锁；需要云同步时可点 GitHub 同步设置 Token。","warn",3000);
   }
 }
 async function handleSoftUnlock(){
@@ -937,7 +938,6 @@ async function handleSoftUnlock(){
     unlockApp();
     applyLocalConfigIfAny();
     renderAll();
-    showToast("已解锁，本机已记住。","ok",1800);
     if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未设置 Gist Token，当前使用本机/内置数据。")
   }catch(err){
     console.error(err);
