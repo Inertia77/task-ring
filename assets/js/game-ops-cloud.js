@@ -8,8 +8,8 @@
   let manualDraft={};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels={UPCOMING:'即将开放',ACTIVE:'进行中',ENDING_SOON:'即将结束',EXPIRED:'已截止 · 待归档',DONE:'已完成',SKIP:'不做',EXPIRED_REASON:'已过期',REPLACED:'已替代',INVALID:'无效',TO_VERIFY:'待核验',ESTIMATED:'估算时间',CONFIRMED:'已确认'};
-  const date=v=>v?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(v))+' JST':'待核验';
-  const precise=(value,day)=>value?date(value):day?esc(day)+'（时刻待核验）':'待核验';
+  const date=(v)=>v?window.TaskRingOpsCore.taskEndDay({deadline_at:v}):"待核验";
+  const precise=(v,day)=>esc(day||date(v));
   const archiveKey=()=>PREFIX+user.id+':archive:'+filter+':'+reason+':'+page;
   function cacheGet(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
   function cachePut(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{error='本机存储已满，离线缓存未更新';}}
@@ -44,15 +44,11 @@
   },true);
   function selected(k,v){return k===v?' selected':'';}
   function remainingLabel(t){
-    const ms=C.deadlineMs(t);if(!Number.isFinite(ms))return '期限待核验';
-    if(ms<Date.now())return t.verification==='CONFIRMED'?'已截止':'日期待复核';
-    if(!C.deadline(t)&&t.deadline_date){
-      const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-      const days=Math.round((Date.parse(t.deadline_date+'T00:00:00+09:00')-Date.parse(today+'T00:00:00+09:00'))/86400000);
-      return days===0?'今日截止（时刻待核验）':'剩余 '+days+' 天（时刻待核验）';
-    }
-    const hours=Math.ceil((ms-Date.now())/3600000);
-    return hours<=24?'剩余约 '+hours+' 小时':'剩余约 '+Math.ceil(hours/24)+' 天';
+    const days=C.daysUntilEnd(t);
+    if(days===null)return "期限待核验";
+    if(days<0)return t.verification==="CONFIRMED"?"已截止":"日期待复核";
+    if(days===0)return "今日截止";
+    return "剩余 "+days+" 天";
   }
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
