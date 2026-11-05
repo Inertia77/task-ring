@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261104-design-2";
+const CACHE_NAME = "taskring-shell-20261105-hud-2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./assets/icons/app-icon-maskable-512.png",
   "./assets/css/main.css",
   "./assets/css/app-design.css",
+  "./assets/css/operations-hud.css",
   "./assets/css/mobile-execution.css",
   "./assets/css/category-glyphs.css",
   "./assets/css/ui-icon-polish.css",
@@ -77,7 +78,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("taskring-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
