@@ -422,9 +422,9 @@
         '<header class="gqWeeklyLaneHeader"><span class="gqWeeklyLaneIcon" aria-hidden="true">'+icon+'</span>'+
         '<div class="gqWeeklyLaneHeading"><h3>【'+group.meta.name+'】</h3><p>'+group.meta.hint+'</p></div>'+
         '<span class="gqWeeklyLaneCount" aria-label="'+group.meta.name+'已完成'+group.done+'项，总共'+group.total+'项">'+group.done+'/'+group.total+'</span></header>'+
-        '<div class="gqV6MobileFlowOps"><span>点游戏右侧箭头展开任务</span><button type="button" data-gqv6-expand-all="1" data-board="'+board+'" data-lane="'+group.lane+'" aria-pressed="'+expandAll+'">'+(expandAll?'收起其他':'全部展开')+'</button></div>'+
+
         '<div class="gameQuestGrid gqV6Grid gqWeeklyGrid">'+
-        (group.grouped.length?group.grouped.slice().sort((a,b)=>tierRank(a.game)-tierRank(b.game)||(PLAY?.get(a.game).sortOrder??0)-(PLAY?.get(b.game).sortOrder??0)).map(function(e,i,arr){const t=tierOf(e.game),prev=i?tierOf(arr[i-1].game):-1;const head=(i===0||t!==prev)?'<header class="gqV6TierDivider tier-'+(t??0)+'"><strong>'+(t?'T'+t+'｜'+tierLabel(t):'尚未分级')+'</strong><span>'+(t===3?(pendingCore().total?'建议先做 T1/T2，T3 仍可随时勾选':'可按余力安排，也可随时勾选'):t===1?'核心任务优先':t===2?'日常周常同样必做':'登录同步策略后显示分级')+'</span></header>':'';return head+gameCard(board,e,group.lane,expandAll||focus===e.game.id,expandAll)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
+        (group.grouped.length?group.grouped.slice().sort((a,b)=>tierRank(a.game)-tierRank(b.game)||(PLAY?.get(a.game).sortOrder??0)-(PLAY?.get(b.game).sortOrder??0)).map(function(e,i,arr){const t=tierOf(e.game),prev=i?tierOf(arr[i-1].game):-1;const head=(i===0||t!==prev)?'<header class="gqV6TierDivider tier-'+(t??0)+'"><strong>'+(t?'T'+t+'｜'+tierLabel(t):'尚未分级')+'</strong><span>'+(t===3?(pendingCore().total?'建议先做 T1/T2，T3 仍可随时勾选':'可按余力安排，也可随时勾选'):t===1?'核心任务优先':t===2?'日常周常同样必做':'登录同步策略后显示分级')+'</span>'+(i===0?'<button type="button" class="gqV6TierExpand" data-gqv6-expand-all="1" data-board="'+board+'" data-lane="'+group.lane+'" aria-pressed="'+expandAll+'">'+(expandAll?'收起其他':'全部展开')+'</button>':'')+'</header>':'';return head+gameCard(board,e,group.lane,expandAll||focus===e.game.id,expandAll)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
         '</section>';
     }).join("");
     return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+tabs+panels+'</div>';
