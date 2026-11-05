@@ -9,7 +9,7 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels={UPCOMING:'即将开放',ACTIVE:'进行中',ENDING_SOON:'即将结束',EXPIRED:'已截止 · 待归档',DONE:'已完成',SKIP:'不做',EXPIRED_REASON:'已过期',REPLACED:'已替代',INVALID:'无效',TO_VERIFY:'待核验',ESTIMATED:'估算时间',CONFIRMED:'已确认'};
   const date=(v)=>v?window.TaskRingOpsCore.taskEndDay({deadline_at:v}):"待核验";
-  const precise=(v,day)=>day||date(v);
+  const precise=(v,day)=>esc(day||date(v));
   const archiveKey=()=>PREFIX+user.id+':archive:'+filter+':'+reason+':'+page;
   function cacheGet(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
   function cachePut(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{error='本机存储已满，离线缓存未更新';}}
