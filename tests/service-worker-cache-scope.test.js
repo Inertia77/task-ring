@@ -7,9 +7,12 @@ const vm = require('node:vm');
 test('service worker activation only deletes obsolete TaskRing shell caches', async () => {
   const handlers = new Map();
   const deleted = [];
+  const source = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
+  const currentCacheName = source.match(/const CACHE_NAME = "([^"]+)"/)?.[1];
+  assert.ok(currentCacheName?.startsWith('taskring-shell-'));
   const cacheNames = [
     'taskring-shell-20261001',
-    'taskring-shell-20261104-design-2',
+    currentCacheName,
     'other-app-cache',
     'taskring-user-data',
   ];
@@ -23,7 +26,6 @@ test('service worker activation only deletes obsolete TaskRing shell caches', as
       delete: async (name) => { deleted.push(name); return true; },
     },
   };
-  const source = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
   vm.runInNewContext(source, context, { filename: 'service-worker.js' });
   let pending;
   handlers.get('activate')({ waitUntil(promise) { pending = promise; } });
