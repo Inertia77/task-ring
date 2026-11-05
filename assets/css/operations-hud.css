@@ -928,3 +928,83 @@ body.nx .refGroupCountCompact { display: none; }
   body.nx .refBox .refItemMetaExtra { display: none; }
   body.nx .refBox .refGroupCountCompact { display: inline; }
 }
+
+/* Phone alignment / actionable-card consistency (real-device audit).
+   Override the original 2-column desktop dock grid in the final style layer. */
+@media (max-width: 900px) {
+  body.nx #viewDock .viewDockBtn {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: 30px 18px;
+    place-items: center;
+    align-content: center;
+    row-gap: 3px;
+    min-height: 64px;
+    padding: 5px 2px;
+    text-align: center;
+  }
+  body.nx #viewDock .viewDockBtn .dockGlyph {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1;
+    place-items: center;
+    width: 32px;
+    height: 30px;
+    margin: 0;
+  }
+  body.nx #viewDock .viewDockBtn b {
+    display: flex;
+    grid-column: 1;
+    grid-row: 2;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 18px;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+  body.nx #viewDock .viewDockBtn .dockMobileLabel {
+    display: block;
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    line-height: 18px;
+  }
+  /* All action rows use identical button height. Varying content may still
+     produce naturally sized cards; do not pad short tasks with fake content. */
+  body.nx .dailyCard .dailyActions.uxCompacted,
+  body.nx .weeklyMissionCard .missionActions.uxCompacted,
+  body.nx .dailyCard.aiEmbeddedCard .dailyActions.aiInlineActions,
+  body.nx .weeklyMissionCard.aiEmbeddedCard .missionActions.aiInlineActions {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 7px;
+    padding-top: 0;
+    padding-left: 0;
+  }
+  body.nx .dailyCard .dailyActions.uxCompacted:has(> :nth-child(2):last-child),
+  body.nx .weeklyMissionCard .missionActions.uxCompacted:has(> :nth-child(2):last-child),
+  body.nx .dailyCard.aiEmbeddedCard .dailyActions.aiInlineActions:has(> :nth-child(2):last-child),
+  body.nx .weeklyMissionCard.aiEmbeddedCard .missionActions.aiInlineActions:has(> :nth-child(2):last-child) {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  body.nx :is(.dailyCard,.weeklyMissionCard) :is(.dailyActions,.missionActions) > * {
+    min-width: 0;
+    margin-block: 0;
+  }
+  body.nx :is(.dailyCard,.weeklyMissionCard) :is(.dailyActions,.missionActions) > :is(button,a),
+  body.nx :is(.dailyCard,.weeklyMissionCard) :is(.dailyActions,.missionActions) > .uxActionMore > summary {
+    display: flex;
+    min-height: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 6px;
+    line-height: 1.2;
+  }
+}
