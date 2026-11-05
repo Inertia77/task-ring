@@ -12,12 +12,12 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   const strip=page.locator('.gqV6LaneTabs');
   const overflow=await strip.evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,display:getComputedStyle(el).display}));
   expect(overflow.scroll,'Test fixture must overflow before testing scroll preservation').toBeGreaterThan(overflow.client+100);
-  await strip.evaluate(el=>{el.scrollLeft=140});
-  await page.waitForTimeout(80);
-  // Invoke the real delegated click handler without Playwright auto-scrolling
-  // the strip into a different position before the event is dispatched.
+  // Set the scroll position and dispatch the real delegated click in the same
+  // animation turn. Async focus restoration otherwise introduces unrelated scrolling.
   const after=await page.evaluate(()=>{
-    const before={x:document.querySelector('.gqV6LaneTabs').scrollLeft,y:window.scrollY};
+    const strip=document.querySelector('.gqV6LaneTabs');
+    strip.scrollLeft=140;
+    const before={x:strip.scrollLeft,y:window.scrollY};
     document.querySelector('[data-gqv6-lane="wait"]').dispatchEvent(
       new MouseEvent('click',{bubbles:true,cancelable:true})
     );
