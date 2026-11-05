@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261105-hud-3";
+const CACHE_NAME = "taskring-shell-20261105-hud-4";
 const APP_SHELL = [
   "./",
   "./index.html",
