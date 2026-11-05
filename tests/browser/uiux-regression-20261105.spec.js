@@ -10,7 +10,8 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   await strip.evaluate(el=>{el.scrollLeft=140});
   await page.waitForTimeout(150); // settle the existing mobile scroll-snap
   await page.evaluate(()=>{
-    document.addEventListener('click',event=>{
+    // Sample before the app's capture-phase click handler stops propagation.
+    document.addEventListener('pointerdown',event=>{
       if(event.target.closest('[data-gqv6-lane]')){
         window.__beforeLaneClick={x:document.querySelector('.gqV6LaneTabs').scrollLeft,y:window.scrollY};
       }
