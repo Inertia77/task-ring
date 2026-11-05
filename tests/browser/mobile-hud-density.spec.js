@@ -8,13 +8,17 @@ for(const width of [320,390,768]){
     let previous='tasks';
     for(const target of ['weekly','fitness','game','time','library','tasks']){
       await view(page,target);
+      // Commit layout in the next frame before measuring color. Mobile HUD has
+      // no navigation color transition, so the previous tab must already be neutral.
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
       const state=await page.evaluate(()=>({
         active:[...document.querySelectorAll('#viewDock .viewDockBtn.active')].map(b=>b.dataset.viewTarget),
         current:[...document.querySelectorAll('#viewDock .viewDockBtn[aria-current="page"]')].map(b=>b.dataset.viewTarget),
-        colors:[...document.querySelectorAll('#viewDock .viewDockBtn')].map(b=>({name:b.dataset.viewTarget,background:getComputedStyle(b).backgroundColor}))
+        colors:[...document.querySelectorAll('#viewDock .viewDockBtn')].map(b=>({name:b.dataset.viewTarget,background:getComputedStyle(b).backgroundColor,transition:getComputedStyle(b).transitionDuration}))
       }));
       expect(state.active).toEqual([target]);
       expect(state.current).toEqual([target]);
+      expect(state.colors.every(c=>c.transition.split(',').every(v=>parseFloat(v)===0)), 'Mobile dock colors must not animate from old active state').toBeTruthy();
       const here=state.colors.find(c=>c.name===target).background;
       const earlier=state.colors.find(c=>c.name===previous).background;
       if(previous!==target)expect(earlier,'previous module cannot look selected').not.toBe(here);
@@ -62,7 +66,9 @@ test('game policy remains accessible without filling the first phone screen',asy
     advisory:document.querySelector('.gqV6GateNotice').getBoundingClientRect().height
   }));
   expect(viewport.advisory).toBeLessThanOrEqual(55);
+  expect(viewport.firstTop,'first game should enter the phone viewport early').toBeLessThan(570);
   expect(viewport.firstTop).toBeLessThan(viewport.navTop);
+  await expect(page.locator('[data-gqv6-expand-all]').filter({visible:true})).toHaveCount(1);
   // Task tier controls must remain operable; this is not a gating widget.
   const t3=page.locator('.gqV6GameCard [data-gqv5-task]').filter({visible:true}).first();
   await expect(t3).toBeEnabled();
