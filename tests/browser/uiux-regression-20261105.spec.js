@@ -17,7 +17,7 @@ test('game weekly lane scroll survives selection and completion retains keyboard
       }
     },{capture:true,once:true});
   });
-  await page.locator('[data-gqv6-lane="steady"]').click();
+  // Click a tab already visible within the scrolled strip, not an offscreen tab.\n  await page.locator('[data-gqv6-lane="wait"]').click();
   const after=await page.evaluate(()=>({
     before:window.__beforeLaneClick,
     x:document.querySelector('.gqV6LaneTabs').scrollLeft,
@@ -26,10 +26,10 @@ test('game weekly lane scroll survives selection and completion retains keyboard
   expect(after.before.x).toBeGreaterThan(30);
   expect(Math.abs(after.x-after.before.x)).toBeLessThanOrEqual(4);
   expect(after.y).toBeGreaterThanOrEqual(0);
-  await expect(page.locator('[data-gqv6-lane="steady"]')).toHaveAttribute('aria-selected','true');
-  await expect(page.locator('[data-gqv6-lane="steady"]')).toBeFocused();
+  await expect(page.locator('[data-gqv6-lane="wait"]')).toHaveAttribute('aria-selected','true');
+  await expect(page.locator('[data-gqv6-lane="wait"]')).toBeFocused();
 
-  await page.locator('[data-gqv6-expand-all][data-board="weekly"][data-lane="steady"]').click();
+  await page.locator('[data-gqv6-expand-all][data-board="weekly"][data-lane="wait"]').click();
   const task=page.locator('[data-gqv5-task][data-board="weekly"]').filter({visible:true}).first();
   const id=await task.getAttribute('data-task');
   const game=await task.getAttribute('data-game');
