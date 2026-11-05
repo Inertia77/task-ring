@@ -17,6 +17,8 @@ for(const width of [320,390,768,1440]){
         activeBg:active.backgroundImage,
         activeColor:active.backgroundColor,
         dailyBorder:daily.borderLeftWidth,
+        headerHeight:document.querySelector('.inertiaHeader').getBoundingClientRect().height,
+        brandRect:document.querySelector('.inertiaHeroBrand').getBoundingClientRect().toJSON(),
         viewport:document.documentElement.clientWidth,
         content:document.documentElement.scrollWidth
       };
@@ -25,6 +27,8 @@ for(const width of [320,390,768,1440]){
     expect(surface.activeBg.includes('linear-gradient')||surface.activeColor!=='rgba(0, 0, 0, 0)').toBeTruthy();
     expect(Number.parseFloat(surface.dailyBorder)).toBeGreaterThanOrEqual(3);
     expect(surface.content).toBeLessThanOrEqual(surface.viewport+1);
+    if(width>=1100)expect(surface.headerHeight,'Desktop masthead must remain compact').toBeLessThanOrEqual(130);
+    expect(surface.brandRect.width).toBeGreaterThan(80);
     const check=page.locator('input[data-task="test-task-2"]').first();
     await page.locator('#showToday').click();
     await check.locator('..').click();
