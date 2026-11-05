@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./assets/icons/app-icon-maskable-512.png",
   "./assets/css/main.css",
   "./assets/css/app-design.css",
+  "./assets/css/operations-hud.css",
   "./assets/css/mobile-execution.css",
   "./assets/css/category-glyphs.css",
   "./assets/css/ui-icon-polish.css",
