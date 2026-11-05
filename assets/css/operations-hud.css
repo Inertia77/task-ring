@@ -430,3 +430,191 @@ body.nx :is(button,a,summary):focus-visible { outline: 3px solid #2e86a5; outlin
   body.nx .dailyCard,
   body.nx .weeklyMissionCard { transition: none; }
 }
+
+/* 2026-11-05 / Mobile usability audit.
+   Navigation uses one explicit current-page state, never a stale touch hover.
+   Preserve all hit targets and access to the original policy details. */
+@media (max-width: 900px) {
+  body.nx #viewDock > .viewDockBtn:not([aria-current="page"]),
+  body.nx #viewDock > .viewDockBtn:not([aria-current="page"]):hover {
+    border-color: transparent;
+    background: rgba(222,239,245,.035);
+    color: #c7d6df;
+    box-shadow: none;
+  }
+  body.nx #viewDock > .viewDockBtn.viewDockUtility:not([aria-current="page"]),
+  body.nx #viewDock > .viewDockBtn.viewDockUtility:not([aria-current="page"]):hover {
+    background: rgba(88,155,178,.08);
+    color: #b2c8d1;
+  }
+  body.nx #viewDock > .viewDockBtn[aria-current="page"] {
+    border-color: #e8ce8d;
+    background: #f1d27c;
+    color: #192d3a;
+  }
+  body.nx #viewDock > .viewDockBtn:not([aria-current="page"]) .dockGlyph {
+    background: rgba(165,197,209,.09);
+    color: inherit;
+  }
+
+  /* Never squeeze the DAILY eyebrow, title and mode onto one baseline. */
+  body.nx .taskAreaHeader.taskRingControlPanel .taskRingControlHead .taskAreaEyebrow {
+    display: none;
+  }
+  body.nx .taskAreaHeader.taskRingControlPanel .taskRingControlHead > div {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+    align-items: baseline;
+    gap: 4px 9px;
+  }
+  body.nx .taskAreaHeader.taskRingControlPanel .taskAreaTitle {
+    grid-column: 1;
+    margin: 0;
+    white-space: nowrap;
+  }
+  body.nx .taskAreaHeader.taskRingControlPanel .taskRingModeText {
+    grid-column: 2;
+    min-width: 0;
+    margin: 0;
+    color: #506777;
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  /* Disclosure retains the advisory text and T3 freedom, but no longer
+     consumes two or three lines before the first task. */
+  body.nx .gameQuestV6 .gqV6GateNotice {
+    display: block;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid #d7e2e9;
+    border-left: 3px solid #c8ab6c;
+    background: #f4f8fa;
+    border-radius: 8px;
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice > summary {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 11px;
+    color: #304b5d;
+    list-style: none;
+    cursor: pointer;
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice > summary::-webkit-details-marker { display: none; }
+  body.nx .gameQuestV6 .gqV6GateNotice > summary strong {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice > summary .gqV6GateToggle {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: #497186;
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice > summary .gqV6GateToggle::after {
+    content: "⌄";
+    padding-left: 4px;
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice[open] > summary .gqV6GateToggle::after {
+    content: "⌃";
+  }
+  body.nx .gameQuestV6 .gqV6GateNotice > p {
+    margin: 0;
+    padding: 1px 11px 10px;
+    color: #506777;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  body.nx .gameQuestV6 .gqV6MobileFlowOps > span {
+    display: none;
+  }
+  body.nx .gameQuestV6 .gqV6MobileFlowOps {
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 0;
+    margin-block: 0 3px;
+  }
+
+  /* The action buttons remain at least 44px tall; trim passive vertical space. */
+  body.nx .dailyCard {
+    padding: 9px 10px;
+  }
+  body.nx .dailyCard .dailyMain { gap: 7px; }
+  body.nx .dailyCard .dailyTitle { line-height: 1.37; }
+  body.nx .dailyCard .dailyActions,
+  body.nx .dailyCard .dailyActions.uxCompacted {
+    margin-top: 5px;
+    padding-top: 0;
+    gap: 5px;
+  }
+
+  /* Critical feedback remains available but doesn't occupy a large floating
+     block. Passive unlock messages are suppressed in the application layer. */
+  body.nx .toastBox {
+    left: 12px;
+    right: 12px;
+    bottom: calc(79px + env(safe-area-inset-bottom));
+    max-width: none;
+    min-height: 0;
+    padding: 9px 11px;
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  body.nx .toastBox.dockAware {
+    bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Expand-all belongs to the first squad divider, not a standalone help row. */
+body.nx .gameQuestV6 .gqV6TierExpand {
+  flex: 0 0 auto;
+  margin-left: auto;
+  min-height: 40px;
+  padding: 7px 11px;
+  border: 1px solid #d0dce4;
+  border-radius: 7px;
+  color: #314d60;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+body.nx .gameQuestV6 .gqV6TierExpand[aria-pressed="true"] {
+  border-color: #b2cfcd;
+  color: #23574d;
+  background: #e6f4ef;
+}
+@media (max-width: 900px) {
+  /* No stale gold animation on the previously selected mobile destination. */
+  body.nx #viewDock > .viewDockBtn,
+  body.nx #viewDock > .viewDockBtn .dockGlyph {
+    transition: none;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 7px;
+    padding: 2px 0;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider > strong {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  body.nx .gameQuestV6 .gqV6TierDivider > span { display: none; }
+  body.nx .gameQuestV6 .gqV6TierExpand {
+    min-height: 44px;
+    margin-left: auto;
+    padding: 8px 12px;
+  }
+}
