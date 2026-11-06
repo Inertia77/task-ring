@@ -15,7 +15,7 @@
   function cachePut(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{error='本机存储已满，离线缓存未更新';}}
   function restore(){
     if(!user)return;
-    const active=cacheGet(PREFIX+user.id+':active');rows=active?.rows||[];lastSync=active?.at||null;
+    const active=cacheGet(PREFIX+user.id+':active');rows=active?.rows||[];lastSync=active?.at||null;if(active)loaded=true;
     const old=cacheGet(archiveKey());archive=old?.rows||[];hasMore=!!old?.hasMore;
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
@@ -34,6 +34,8 @@
     rememberFilterScroll();
     const selectedFilter=document.activeElement?.matches?.('[data-ops-filter]')?document.activeElement.dataset.opsFilter:null;
     el.innerHTML=html();
+    const meter=document.getElementById('gameQuestTopMeter');
+    if(meter)meter.innerHTML=summaryHtml();
     restoreFilterScroll();
     if(selectedFilter!==null){
       [...el.querySelectorAll('[data-ops-filter]')].find(btn=>btn.dataset.opsFilter===selectedFilter)?.focus({preventScroll:true});
@@ -49,6 +51,38 @@
     if(days<0)return t.verification==="CONFIRMED"?"已截止":"日期待复核";
     if(days===0)return "今日截止";
     return "剩余 "+days+" 天";
+  }
+  // LIVE OPS is a task-status dashboard, never a completion percentage.
+  // Use the same filtered, unarchived records as the list. No extra queries or writes.
+  function summary(){
+    if(!authReady)return {ready:false,label:'正在读取任务…'};
+    if(!user)return {ready:false,label:'登录后查看任务态势'};
+    if(!loaded&&!rows.length)return {ready:false,label:'等待任务同步…'};
+    const list=rows.filter(t=>!filter||t.game===filter);
+    const result={ready:true,active:0,due:0,upcoming:0,expired:0,unknown:0,
+      scope:filter?(C.games[filter]||filter):'全部游戏'};
+    for(const t of list){
+      const state=C.state(t),days=C.daysUntilEnd(t);
+      if(state==='UPCOMING')result.upcoming++;
+      else if(state==='EXPIRED')result.expired++;
+      else if(state==='ACTIVE'||state==='ENDING_SOON'){
+        result.active++;
+        if(days!==null&&days>=0&&days<=7)result.due++;
+      }
+      if(days===null||t.verification!=='CONFIRMED')result.unknown++;
+    }
+    return result;
+  }
+  function summaryHtml(){
+    const s=summary();
+    if(!s.ready)return '<span class="gqOpsMeterPending">'+esc(s.label)+'</span>';
+    const items=[
+      ['进行中',s.active,'active'],['7天内截止',s.due,'urgent'],
+      ['待开始',s.upcoming,'upcoming'],['已截止',s.expired,'expired']
+    ];
+    return '<div class="gqOpsMeterGrid" title="'+esc(s.scope+' · 未归档任务；按 JST 日期统计'+(s.unknown?'；其中 '+s.unknown+' 项日期或核验状态待确认':''))+'">'+
+      items.map(([name,count,tone])=>'<span class="gqOpsMeterStat '+tone+(count?'':' quiet')+'"><small>'+name+'</small><b>'+count+'</b></span>').join('')+
+      '</div>';
   }
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
@@ -169,5 +203,5 @@
   addEventListener('online',()=>{fetchTasks();fetchPolicy();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchTasks();});
   setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId)fetchTasks();},60000);
-  window.TaskRingGameOpsCloud={html,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
+  window.TaskRingGameOpsCloud={html,summary,summaryHtml,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
 })();
