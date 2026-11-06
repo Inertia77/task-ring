@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 
-test('daily and weekly meters keep required and all denominators independent of T3',async({page})=>{
+test('daily and weekly required meters exclude T3 while all meters include it',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await boot(page);
   await view(page,'game');
@@ -22,36 +22,36 @@ test('daily and weekly meters keep required and all denominators independent of 
   const all=page.locator('.gqDualMeter .gqMeterItem.isAll');
   await expect(required).toContainText('必做完成度');
   await expect(required.locator('b')).toHaveText('0/5');
-  await expect(all.locator('b')).toHaveText('0/10');
+  await expect(all.locator('b')).toHaveText('0/12');
   await expect(page.locator('[data-gqv6-board="daily"]')).toContainText('全部 0/10');
 
   await page.locator('[data-gqv5-task][data-board="daily"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/5');
-  await expect(all.locator('b')).toHaveText('1/10');
+  await expect(all.locator('b')).toHaveText('1/12');
 
   await page.locator('[data-gqv6-lane="optional"][data-board="daily"]').click();
   await page.locator('[data-gqv5-task][data-board="daily"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/5');
-  await expect(all.locator('b')).toHaveText('2/10');
+  await expect(all.locator('b')).toHaveText('2/12');
 
-  // T3 retains checkability, but does not alter either T1/T2 meter.
+  // T3 remains checkable, advances the all-task meter, never the required meter.
   await page.locator('[data-gqv6-expand-all][data-board="daily"][data-lane="optional"]').click();
   const t3=page.locator('[data-gqv5-task][data-board="daily"][data-game="endfield"]').first();
   await expect(t3).toBeEnabled();
   await t3.click();
   await expect(required.locator('b')).toHaveText('1/5');
-  await expect(all.locator('b')).toHaveText('2/10');
+  await expect(all.locator('b')).toHaveText('3/12');
 
   await page.locator('[data-gqv6-board="weekly"]').click();
   await expect(required.locator('b')).toHaveText('0/15'); // sprint + steady + wait
-  await expect(all.locator('b')).toHaveText('0/20'); // plus optional
+  await expect(all.locator('b')).toHaveText('0/24'); // plus T1/T2 optional and all T3 weekly tasks
   await page.locator('[data-gqv5-task][data-board="weekly"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/15');
-  await expect(all.locator('b')).toHaveText('1/20');
+  await expect(all.locator('b')).toHaveText('1/24');
   await page.locator('[data-gqv6-lane="optional"][data-board="weekly"]').click();
   await page.locator('[data-gqv5-task][data-board="weekly"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/15');
-  await expect(all.locator('b')).toHaveText('2/20');
+  await expect(all.locator('b')).toHaveText('2/24');
 
   const geometry=await page.evaluate(()=>({
     width:document.documentElement.scrollWidth,
