@@ -30,13 +30,13 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
   await expect(all.locator('b')).toHaveText('1/12');
 
   await page.locator('[data-gqv6-lane="optional"][data-board="daily"]').click();
-  await page.locator('[data-gqv5-task][data-board="daily"][data-game="zzz"]').first().click();
+  await page.locator('#gqv6-lane-panel-daily-optional [data-gqv5-task][data-board="daily"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/5');
   await expect(all.locator('b')).toHaveText('2/12');
 
   // T3 remains checkable, advances the all-task meter, never the required meter.
   await page.locator('[data-gqv6-expand-all][data-board="daily"][data-lane="optional"]').click();
-  const t3=page.locator('[data-gqv5-task][data-board="daily"][data-game="endfield"]').first();
+  const t3=page.locator('#gqv6-lane-panel-daily-optional [data-gqv5-task][data-board="daily"][data-game="endfield"]').first();
   await expect(t3).toBeEnabled();
   await t3.click();
   await expect(required.locator('b')).toHaveText('1/5');
@@ -49,7 +49,7 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
   await expect(required.locator('b')).toHaveText('1/15');
   await expect(all.locator('b')).toHaveText('1/24');
   await page.locator('[data-gqv6-lane="optional"][data-board="weekly"]').click();
-  await page.locator('[data-gqv5-task][data-board="weekly"][data-game="zzz"]').first().click();
+  await page.locator('#gqv6-lane-panel-weekly-optional [data-gqv5-task][data-board="weekly"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/15');
   await expect(all.locator('b')).toHaveText('2/24');
 
