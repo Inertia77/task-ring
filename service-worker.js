@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261105-hud-8";
+const CACHE_NAME = "taskring-shell-20261106-notion-1";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -46,6 +46,7 @@ const APP_SHELL = [
   "./assets/css/daily-card-alignment.css",
   "./assets/js/data/default-data.js",
   "./assets/js/app.js",
+  "./assets/js/notion-app-links.js",
   "./assets/js/data/integrity-core.js",
   "./assets/js/data-integrity.js",
   "./assets/js/views/completion-effects.js",
