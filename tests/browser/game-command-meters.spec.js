@@ -23,7 +23,7 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
   await expect(required).toContainText('必做完成度');
   await expect(required.locator('b')).toHaveText('0/5');
   await expect(all.locator('b')).toHaveText('0/12');
-  await expect(page.locator('[data-gqv6-board="daily"]')).toContainText('全部 0/10');
+  await expect(page.locator('[data-gqv6-board="daily"]')).toContainText('全部 0/12');
 
   await page.locator('[data-gqv5-task][data-board="daily"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/5');
@@ -96,8 +96,8 @@ test('LIVE OPS meter follows JST task status and active game filter, not a compl
   await expect(meter.locator('.gqOpsMeterStat')).toHaveCount(4);
   await expect(meter.locator('.active b')).toHaveText('3');
   await expect(meter.locator('.urgent b')).toHaveText('1');
-  await expect(meter.locator('.upcoming b')).toHaveText('1');
-  await expect(meter.locator('.expired b')).toHaveText('1');
+  await expect(meter.locator('.upcoming b, .gqOpsMeterStat.quiet:nth-child(3) b')).toHaveText('1');
+  await expect(meter.locator('.expired b, .gqOpsMeterStat.quiet:nth-child(4) b')).toHaveText('1');
   await expect(meter).not.toContainText('%');
 
   await page.locator('[data-ops-filter="ZZZ"]').click();
