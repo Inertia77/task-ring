@@ -297,14 +297,20 @@
   // remain individually visible and independently checkable.
   function boardStats(board,cfg){
     const entries=entriesFor(board,cfg);
-    let done=0,total=0,cardsDone=0;
-    entries.filter(function(entry){return tierOf(entry.game)!==3}).forEach(function(entry){
+    let done=0,total=0,allDone=0,allTotal=0,cardsDone=0;
+    const priorityEntries=entries.filter(function(entry){return tierOf(entry.game)!==3});
+    priorityEntries.forEach(function(entry){
       const required=entry.tasks.filter(function(t){return !isOptionalTask(board,t)});
       const cardDone=required.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
       total+=required.length;done+=cardDone;
+      // Both meters use the same T1/T2 scope; optional tasks only affect "all".
+      allDone+=entry.done;allTotal+=entry.total;
       if(required.length&&cardDone===required.length)cardsDone++;
     });
-    return {done:done,total:total,pct:total?Math.round(done/total*100):0,cards:entries.filter(e=>tierOf(e.game)!==3).length,cardsDone:cardsDone};
+    return {done:done,total:total,pct:total?Math.round(done/total*100):0,
+      allDone:allDone,allTotal:allTotal,allPct:allTotal?Math.round(allDone/allTotal*100):0,
+      optionalDone:allDone-done,optionalTotal:allTotal-total,
+      cards:priorityEntries.length,cardsDone:cardsDone};
   }
 
   function pendingCore(){
@@ -431,9 +437,9 @@
   }
   function boardTabs(active){
     return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+VIEW_ORDER.map(function(view){
-      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span>限时・周期</span><b>◷</b><em>LIMITED / RECURRING</em></button>';
+      if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span>限时・周期</span><b>◷</b><em>任务态势</em></button>';
       const s=boardStats(view);
-      return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'"><span>'+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>'+BOARD_META[view].short+'</em></button>';
+      return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'" aria-label="'+BOARD_META[view].label+'必做 '+s.done+'/'+s.total+'，全部 '+s.allDone+'/'+s.allTotal+'"><span>'+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>全部 '+s.allDone+'/'+s.allTotal+'</em></button>';
     }).join("")+'</nav>';
   }
   function cycleVersionHub(){
@@ -457,10 +463,10 @@
     const readingY=document.body.dataset.appView==="game"?window.scrollY:null;
     const board=currentBoard(),isHub=board==="hub",stats=isHub?{done:0,total:0,pct:0}:boardStats(board),meta=BOARD_META[board]||BOARD_META.daily,entries=isHub?[]:entriesFor(board);
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
-    const meter=isHub?'<div class="gameQuestTopMeter"><span class="gameCommandIcon">◷</span><span class="gameCommandCopy"><small>LIVE OPS</small><b>限时・周期</b><em>云端任务 · 本机缓存</em></span></div>':'<div class="gameQuestTopMeter"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gameCommandCopy"><small>'+meta.short+'</small><b>'+stats.done+'/'+stats.total+'</b><em>'+meta.label+'完成度</em></span></div>';
+    const meter=isHub?'<div class="gameQuestTopMeter gqOpsMeter" id="gameQuestTopMeter" aria-label="限时周期任务态势">'+(window.TaskRingGameOpsCloud?.summaryHtml?.()||'<span class="gqOpsMeterPending">正在读取任务…</span>')+'</div>':'<div class="gameQuestTopMeter gqDualMeter" role="group" aria-label="'+meta.label+'任务完成度，仅统计 T1/T2"><div class="gqMeterItem isRequired" title="T1/T2 必做完成度'+(board==="weekly"?'，含等待分类':'')+'"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gqMeterCopy"><small>必做完成度</small><b>'+stats.done+'/'+stats.total+'</b></span></div><div class="gqMeterItem isAll" title="T1/T2 全部任务完成度，包含可选；T3 不计入"><span class="gameQuestMiniRing" style="--p:'+stats.allPct+'%"><i>'+stats.allPct+'%</i></span><span class="gqMeterCopy"><small>全部完成度</small><b>'+stats.allDone+'/'+stats.allTotal+'</b></span></div></div>';
     const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong>游戏作战区</strong><em>TaskRing 统一管理日常、周常与限时・周期任务；版本 / 前瞻 / 卡池排期由 Calendar 独立维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+(gqActive?(active.paused?"Ⅱ":"◷"):"◷")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">＋</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">✎</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
     const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
-    const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong>'+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"必做已完成":"一键完成必做")+'</b></button></div>':'<strong>'+stats.done+'/'+stats.total+'</strong>';
+    const boardAction=board==="daily"?'<div class="gqV6BoardActions"><strong title="T1/T2 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"必做已完成":"一键完成必做")+'</b></button></div>':'<strong title="T1/T2 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong>';
     const gate=pendingCore();
     // The policy explanation is optional context, not a blocking action or a task lock.
     // Keep the full rule one tap away instead of pushing all game tasks below the fold.
