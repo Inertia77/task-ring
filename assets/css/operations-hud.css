@@ -1073,3 +1073,158 @@ body.nx .refBox .refItemAction.refItemOpen.disabled {
   color: #586f80;
   background: #f2f6f9;
 }
+
+
+/* 2026-11-06 GAME command telemetry: two honest completion denominators,
+   and four date/status counters (not a synthetic completion rate) for LIVE OPS. */
+@media (min-width: 1101px) {
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {
+    grid-template-columns: minmax(200px,.65fr) minmax(660px,1.35fr);
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide {
+    grid-template-columns: minmax(260px,1.8fr) repeat(3,minmax(105px,.8fr));
+  }
+}
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter.gqDualMeter {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 0;
+  align-items: stretch;
+  padding: 5px 7px;
+  min-width: 0;
+}
+body.nx .gameQuestV6 .gqMeterItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 2px 5px;
+}
+body.nx .gameQuestV6 .gqMeterItem + .gqMeterItem {
+  border-left: 1px solid rgba(180,213,224,.28);
+}
+body.nx .gameQuestV6 .gqMeterItem .gameQuestMiniRing {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  background: conic-gradient(#58b18b var(--p,0%),rgba(181,203,211,.22) 0);
+}
+body.nx .gameQuestV6 .gqMeterItem.isAll .gameQuestMiniRing {
+  background: conic-gradient(#f0c66d var(--p,0%),rgba(181,203,211,.22) 0);
+}
+body.nx .gameQuestV6 .gqMeterItem .gameQuestMiniRing::before {
+  width: 28px;
+  height: 28px;
+  background: #eef6f8;
+}
+body.nx .gameQuestV6 .gqMeterItem .gameQuestMiniRing i {
+  font-size: 9px;
+  color: #254153;
+}
+body.nx .gameQuestV6 .gqMeterCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+body.nx .gameQuestV6 .gqMeterCopy small {
+  color: #b6d8e3;
+  font-size: 10px;
+  font-weight: 700;
+}
+body.nx .gameQuestV6 .gqMeterCopy b {
+  color: #f6f9fb;
+  font-size: 15px;
+  line-height: 1.1;
+}
+body.nx .gameQuestV6 .gqMeterItem.isAll .gqMeterCopy b { color: #f6d790; }
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter.gqOpsMeter {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  align-items: center;
+  padding: 5px;
+  min-width: 0;
+}
+body.nx .gameQuestV6 .gqOpsMeterGrid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+body.nx .gameQuestV6 .gqOpsMeterStat {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  align-content: center;
+  min-width: 0;
+  padding: 2px 4px;
+  font-variant-numeric: tabular-nums;
+}
+body.nx .gameQuestV6 .gqOpsMeterStat + .gqOpsMeterStat {
+  border-left: 1px solid rgba(180,213,224,.22);
+}
+body.nx .gameQuestV6 .gqOpsMeterStat small {
+  color: #b7d9e4;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+body.nx .gameQuestV6 .gqOpsMeterStat b {
+  color: #f8fafb;
+  font-size: 16px;
+  line-height: 1;
+}
+body.nx .gameQuestV6 .gqOpsMeterStat.urgent b { color: #f5d17c; }
+body.nx .gameQuestV6 .gqOpsMeterStat.expired b { color: #ffae97; }
+body.nx .gameQuestV6 .gqOpsMeterStat.quiet b { color: #c4d4d9; }
+body.nx .gameQuestV6 .gqOpsMeterPending {
+  justify-self: center;
+  color: #c3dce5;
+  font-size: 12px;
+  font-weight: 600;
+}
+body.nx .gameQuestV6 .gqV6BoardTab em {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+body.nx .gameQuestV6 .gqV6BoardActions > strong {
+  font-size: 13px;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  body.nx .gameQuestV6 .gqV6Top .gameQuestTopMeter.gqDualMeter,
+  body.nx .gameQuestV6.gameOpsHub .gqV6Top .gameQuestTopMeter.gqOpsMeter {
+    display: grid;
+    min-height: 43px;
+    grid-column: 1/-1;
+    padding: 4px 5px;
+  }
+  body.nx .gameQuestV6 .gqMeterItem { padding: 1px 2px; gap: 6px; }
+  body.nx .gameQuestV6 .gqV6Top .gqMeterItem .gameQuestMiniRing {
+    flex: 0 0 29px;
+    width: 29px;
+    height: 29px;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gqMeterItem .gameQuestMiniRing::before {
+    width: 22px;
+    height: 22px;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gqMeterCopy small { font-size: 9px; }
+  body.nx .gameQuestV6 .gqV6Top .gqMeterCopy b { font-size: 13px; }
+  body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat small { font-size: 9px; }
+  body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat b { font-size: 14px; }
+  body.nx .gameQuestV6 .gqV6BoardTab em { font-size: 9px; }
+}
+@media (max-width: 359px) {
+  body.nx .gameQuestV6 .gqV6Top .gqMeterItem { gap: 4px; }
+  body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat { padding-inline: 2px; }
+  body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat small { font-size: 8px; }
+}
