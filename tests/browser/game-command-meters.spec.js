@@ -103,8 +103,8 @@ test('LIVE OPS meter follows JST task status and active game filter, not a compl
   await page.locator('[data-ops-filter="ZZZ"]').click();
   await expect(meter.locator('.active b')).toHaveText('1');
   await expect(meter.locator('.urgent b')).toHaveText('1');
-  await expect(meter.locator('.upcoming b')).toHaveCount(0);
-  await expect(meter.locator('.expired b')).toHaveCount(0);
+  await expect(meter.locator('.upcoming b')).toHaveText('0');
+  await expect(meter.locator('.expired b')).toHaveText('0');
   const dims=await page.evaluate(()=>({
     doc:document.documentElement.scrollWidth,
     view:innerWidth,
