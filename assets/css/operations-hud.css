@@ -1228,3 +1228,17 @@ body.nx .gameQuestV6 .gqV6BoardActions > strong {
   body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat { padding-inline: 2px; }
   body.nx .gameQuestV6 .gqV6Top .gqOpsMeterStat small { font-size: 8px; }
 }
+
+/* Lane tabs: thin, noninteractive completion strip; counts include all visible T3 tasks. */
+body.nx .gameQuestV6 .gqV6LaneTab { position: relative; overflow: hidden; }
+body.nx .gameQuestV6 .gqV6LaneTab::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg,#63ab8e var(--gq-lane-p,0%),transparent var(--gq-lane-p,0%));
+  pointer-events: none;
+}
+body.nx .gameQuestV6 .gqV6LaneTab.active::after {
+  background: linear-gradient(90deg,#f0cf79 var(--gq-lane-p,0%),transparent var(--gq-lane-p,0%));
+}
