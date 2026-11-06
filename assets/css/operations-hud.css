@@ -1242,3 +1242,10 @@ body.nx .gameQuestV6 .gqV6LaneTab::after {
 body.nx .gameQuestV6 .gqV6LaneTab.active::after {
   background: linear-gradient(90deg,#f0cf79 var(--gq-lane-p,0%),transparent var(--gq-lane-p,0%));
 }
+
+/* Keep both meter units legible on medium/tablet widths. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide {
+    grid-template-columns: minmax(250px,1.7fr) repeat(3,minmax(100px,.8fr));
+  }
+}
