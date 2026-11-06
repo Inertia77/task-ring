@@ -416,7 +416,7 @@
     const tabs='<div class="gqV6LaneTabs" role="tablist" aria-label="'+(isDaily?"日常任务分类":"周常任务分类")+'">'+groups.map(function(group){
       const active=group.lane===selected;
       const icon=typeof taskUiIcon==="function"?taskUiIcon(group.meta.symbol):"";
-      return '<button type="button" class="gqV6LaneTab '+group.lane+(active?' active':'')+'" role="tab" data-gqv6-lane="'+group.lane+'" data-board="'+board+'" aria-selected="'+active+'" aria-controls="gqv6-lane-panel-'+board+'-'+group.lane+'" tabindex="'+(active?'0':'-1')+'"><span class="gqV6LaneTabName"><span aria-hidden="true">'+icon+'</span>'+group.meta.name+'</span><b class="gqV6LaneTabCount">'+group.done+'/'+group.total+'</b></button>';
+      return '<button type="button" class="gqV6LaneTab '+group.lane+(active?' active':'')+'" role="tab" data-gqv6-lane="'+group.lane+'" data-board="'+board+'" aria-selected="'+active+'" aria-label="'+group.meta.name+'已完成 '+group.done+'/'+group.total+'（包含本分类显示的 T3 项目）" style="--gq-lane-p:'+(group.total?Math.round(group.done/group.total*100):0)+'%" aria-controls="gqv6-lane-panel-'+board+'-'+group.lane+'" tabindex="'+(active?'0':'-1')+'"><span class="gqV6LaneTabName"><span aria-hidden="true">'+icon+'</span>'+group.meta.name+'</span><b class="gqV6LaneTabCount">'+group.done+'/'+group.total+'</b></button>';
     }).join("")+'</div>';
     const panels=groups.map(function(group){
       const active=group.lane===selected;
