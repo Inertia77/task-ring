@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261106-notion-3";
+const CACHE_NAME = "taskring-shell-20261106-game-meter-1";
 const APP_SHELL = [
   "./",
   "./index.html",
