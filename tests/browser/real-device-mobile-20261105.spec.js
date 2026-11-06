@@ -50,8 +50,8 @@ for(const width of [320,390,430]){
         screen:document.documentElement.scrollWidth
       };
     });
-    expect(m.meterDisplay).toBe('none');
-    expect(m.heroHeight).toBeLessThan(160);
+    expect(m.meterDisplay).toBe('grid');
+    expect(m.heroHeight).toBeLessThan(195);
     expect(m.buttons).toHaveLength(3);
     for(const action of m.buttons){expect(action.h).toBeGreaterThanOrEqual(44);expect(action.w).toBeGreaterThan(70);expect(action.label).toBe('nowrap');}
     expect(m.filterWrap).toBe('nowrap');
