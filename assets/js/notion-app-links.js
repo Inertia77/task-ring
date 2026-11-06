@@ -10,7 +10,7 @@
   const notionHosts = new Set(['app.notion.com', 'www.notion.so', 'notion.so']);
   let guide = null;
   let activeUrl = '';
-  let activeIntent = '';
+  let activeAppLink = '';
 
   function resolveNotion(raw) {
     let url;
@@ -21,11 +21,10 @@
     return url;
   }
 
-  function toIntent(url) {
-    const fragment = url.hash ? '%23' + encodeURIComponent(url.hash.slice(1)) : '';
-    return 'intent://' + url.host + url.pathname + url.search + fragment +
-      '#Intent;scheme=https;action=android.intent.action.VIEW;' +
-      'category=android.intent.category.BROWSABLE;package=notion.id;end';
+  // Notion registers its own URL scheme; avoid HTTPS App Links routing entirely.
+  // Preserve the full host, path, query and fragment of the original page.
+  function toAppLink(url) {
+    return 'notion://' + url.host + url.pathname + url.search + url.hash;
   }
 
   function closeGuide() {
@@ -91,10 +90,10 @@
 
   function showGuide(url, intent) {
     activeUrl = url;
-    activeIntent = intent;
+    activeAppLink = intent;
     const panel = ensureGuide();
     const retry = panel.querySelector('[data-notion-retry]');
-    retry.href = activeIntent;
+    retry.href = activeAppLink;
     retry.removeAttribute('target');
     panel.querySelector('[data-notion-copy]').textContent = '复制原始 Notion 链接';
     panel.hidden = false;
@@ -111,14 +110,14 @@
     const originalHref = anchor.getAttribute('href');
     const notion = resolveNotion(originalHref);
     if (!notion) return;
-    const intent = toIntent(notion);
-    showGuide(notion.href, intent);
+    const appLink = toAppLink(notion);
+    showGuide(notion.href, appLink);
 
     const originalTarget = anchor.getAttribute('target');
-    anchor.setAttribute('href', intent);
+    anchor.setAttribute('href', appLink);
     anchor.removeAttribute('target');
     window.setTimeout(() => {
-      if (anchor.getAttribute('href') !== intent) return;
+      if (anchor.getAttribute('href') !== appLink) return;
       anchor.setAttribute('href', originalHref);
       if (originalTarget === null) anchor.removeAttribute('target');
       else anchor.setAttribute('target', originalTarget);
