@@ -81,7 +81,7 @@
       ['待开始',s.upcoming,'upcoming'],['已截止',s.expired,'expired']
     ];
     return '<div class="gqOpsMeterGrid" title="'+esc(s.scope+' · 未归档任务；按 JST 日期统计'+(s.unknown?'；其中 '+s.unknown+' 项日期或核验状态待确认':''))+'">'+
-      items.map(([name,count,tone])=>'<span class="gqOpsMeterStat '+tone+'"><small>'+name+'</small><b>'+count+'</b></span>').join('')+
+      items.map(([name,count,tone])=>'<span class="gqOpsMeterStat '+(count?tone:'quiet')+'"><small>'+name+'</small><b>'+count+'</b></span>').join('')+
       '</div>';
   }
   function card(t){
