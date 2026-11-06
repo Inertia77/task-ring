@@ -95,3 +95,46 @@ test('daily heading and mode are separated without shrinking the tap target',asy
   expect(layout.actionHeight).toBeGreaterThanOrEqual(44);
   expect(layout.overflow).toBeLessThanOrEqual(1);
 });
+
+
+for(const width of [320,390,430]){
+  test('mobile game pending policy and compulsory button share a compact row at '+width+'px',async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await boot(page);
+    await view(page,'game');
+    const advice=page.locator('.gqV6GateNotice');
+    const action=page.locator('.gqV6BoardIntro.daily [data-gqv6-complete-daily]');
+    await expect(advice).toBeVisible();
+    await expect(action).toBeVisible();
+    await expect(action).toHaveCount(1);
+
+    const geometry=await page.evaluate(()=>{
+      const gate=document.querySelector('.gqV6GateNotice');
+      const summary=gate.querySelector('summary');
+      const btn=document.querySelector('.gqV6BoardIntro.daily [data-gqv6-complete-daily]');
+      const intro=document.querySelector('.gqV6BoardIntro.daily');
+      const r=el=>el.getBoundingClientRect();
+      return {gate:r(gate).toJSON(),summary:r(summary).toJSON(),
+        button:r(btn).toJSON(),intro:r(intro).toJSON(),
+        viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+    });
+    expect(Math.abs(geometry.gate.top-geometry.button.top)).toBeLessThanOrEqual(3);
+    expect(geometry.gate.right+3).toBeLessThanOrEqual(geometry.button.left);
+    expect(geometry.summary.height).toBeGreaterThanOrEqual(44);
+    expect(geometry.button.height).toBeGreaterThanOrEqual(44);
+    expect(geometry.button.width).toBeGreaterThanOrEqual(125);
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewport+1);
+
+    await advice.locator('summary').click();
+    await expect(advice).toHaveAttribute('open','');
+    await expect(advice).toContainText('T3');
+    await expect(action).toBeEnabled();
+    await expect(page.locator('.gqV6LaneTabs')).toBeVisible();
+    await advice.locator('summary').click();
+    await expect(advice).not.toHaveAttribute('open','');
+
+    await page.locator('[data-gqv6-board="weekly"]').click();
+    await expect(page.locator('.gqV6GateNotice')).toBeVisible();
+    await expect(page.locator('[data-gqv6-complete-daily]')).toHaveCount(0);
+  });
+}
