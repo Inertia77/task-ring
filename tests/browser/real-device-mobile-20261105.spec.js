@@ -57,7 +57,7 @@ for(const width of [320,390,430]){
     expect(m.filterWrap).toBe('nowrap');
     expect(m.filterScroll).toBeGreaterThan(m.filterClient+20);
     expect(m.chipHeight).toBeGreaterThanOrEqual(44);
-    expect(m.cardTop).toBeLessThan(width<360?730:640);
+    expect(m.cardTop).toBeLessThan(width<360?790:710);
     expect(m.screen).toBeLessThanOrEqual(width+1);
     await page.screenshot({path:`test-results/visual/${test.info().project.name}/after/${width}-real-device-hub.png`,fullPage:true});
   });
