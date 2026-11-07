@@ -465,11 +465,12 @@ body.nx { background: var(--color-canvas); font-weight: 400; line-height: 1.55; 
 .nx .opsGroup h2 { font-weight:600; }
 .nx .opsGroup h2 small { background:var(--color-panel-soft); font-weight:500; }
 .nx .opsCard { border-color:var(--color-line); border-radius:12px; background:white; box-shadow:var(--shadow-card); }
-.nx .opsCard.urgency-yellow { border-color:#e0c77e; background:#fffdf7; box-shadow:none; }
+.nx .opsCard.urgency-yellow { border-color:#d4ad52; background:#fff8e7; box-shadow:0 2px 10px rgba(157,111,24,.085); }
 .nx .opsCard.urgency-red { border-color:#e0aaa4; background:#fffafa; box-shadow:none; }
 .nx .opsGame { font-weight:550; color:var(--color-muted); }
 .nx .opsTag { background:var(--color-panel-soft); font-size:10px; font-weight:500; }
-.nx .opsTag.uncertain, .nx .opsUrgency.yellow { background:var(--color-warning-soft); color:var(--color-warning); }
+.nx .opsTag.uncertain { background:var(--color-warning-soft); color:var(--color-warning); }
+.nx .opsUrgency.yellow { background:#ffedbc; color:#795718; font-weight:650; }
 .nx .opsUrgency.red { background:var(--color-danger-soft); color:var(--color-danger); }
 .nx .opsCard h3 { font-weight:600; }
 .nx .opsActions button:first-child { border-color:#eaddb5; background:#fff5d4; color:#66521e; }
