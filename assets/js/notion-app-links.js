@@ -21,9 +21,17 @@
     return url;
   }
 
-  // Notion registers its own URL scheme; avoid HTTPS App Links routing entirely.
-  // Preserve the full host, path, query and fragment of the original page.
+  // Notion's newer links use /p/<page-id> on app.notion.com. Some Android
+  // versions launch the app but do not route that new path to the intended page.
+  // Use the established native page-ID URL for this one well-defined shape.
+  // Keep the original HTTPS URL unchanged in storage and in the copy action.
   function toAppLink(url) {
+    const isNewHost = url.hostname.toLowerCase() === 'app.notion.com';
+    const pageMatch = /^\/p\/([0-9a-f]{32}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\/?$/i.exec(url.pathname);
+    if (isNewHost && pageMatch) {
+      const pageId = pageMatch[1].replace(/-/g, '');
+      return 'notion://www.notion.so/' + pageId + url.search + url.hash;
+    }
     return 'notion://' + url.host + url.pathname + url.search + url.hash;
   }
 
