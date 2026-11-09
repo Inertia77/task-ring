@@ -27,7 +27,11 @@
   // Keep the original HTTPS URL unchanged in storage and in the copy action.
   function toAppLink(url) {
     const isNewHost = url.hostname.toLowerCase() === 'app.notion.com';
-    const pageMatch = /^\/p\/([0-9a-f]{32}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\/?$/i.exec(url.pathname);
+    // Some copied page links contain a title slug, e.g. /p/UP-<32-hex-ID>.
+    // Always extract the actual trailing Notion ID rather than forwarding the
+    // slugged /p/ path to the app, which can open its previous page instead.
+    const pageSegment = /^\/p\/([^/]+)\/?$/i.exec(url.pathname)?.[1] || '';
+    const pageMatch = /(?:^|-)([0-9a-f]{32}|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i.exec(pageSegment);
     if (isNewHost && pageMatch) {
       const pageId = pageMatch[1].replace(/-/g, '');
       return 'notion://www.notion.so/' + pageId + url.search + url.hash;
