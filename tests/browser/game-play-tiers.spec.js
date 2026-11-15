@@ -20,6 +20,12 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await expect(page.locator('#gqv6-lane-panel-daily-must')).toBeVisible();
   await expect(page.locator('[data-gqv6-expand-all][data-lane="must"]')).toBeVisible();
   await expect(page.locator('[data-gqv5-task][data-game="zzz"]').first()).toBeEnabled();
+  await expect(page.locator('[data-gqv5-task][data-game="endfield"]')).toHaveCount(0);
+  await expect(page.locator('[data-gqv6-scope="reserve"]')).toBeVisible();
+  await page.locator('[data-gqv6-scope="reserve"]').click();
+  await expect(page.locator('[data-gqv6-scope="reserve"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-gqv5-task][data-game="zzz"]')).toHaveCount(0);
+  await expect(page.locator('[data-gqv6-complete-daily]')).toHaveCount(0);
   const optional=page.locator('[data-gqv5-task][data-game="endfield"]').first();
   await expect(optional).toBeEnabled();
   await page.locator('[data-gqv6-expand-all][data-board="daily"][data-lane="must"]').click();
@@ -27,7 +33,7 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toHaveAttribute('aria-pressed','true');
   await page.locator('[data-gqv5-task][data-game="endfield"]').first().click();
   await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toHaveAttribute('aria-pressed','false');
-  await expect(page.locator('[data-gqv5-task][data-game="zzz"]').first()).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('[data-gqv5-task][data-game="zzz"]')).toHaveCount(0);
   await expect(page.locator('.gqV6StoryFocus').first()).toBeVisible();
   await page.locator('[data-gqv6-board="weekly"]').click();
   await expect(page.locator('[data-gqv6-lane="sprint"]')).toBeVisible();
@@ -39,4 +45,22 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await expect(t3Weekly).toHaveAttribute('aria-pressed','true');
   await t3Weekly.click();
   await expect(t3Weekly).toHaveAttribute('aria-pressed','false');
+  // Returning to the core scope keeps its own daily board and does not mark T3.
+  await page.locator('[data-gqv6-scope="core"]').click();
+  await expect(page.locator('[data-gqv6-board="daily"]')).toHaveClass(/active/);
+  await expect(page.locator('[data-gqv5-task][data-game="zzz"]').first()).toHaveAttribute('aria-pressed','false');
+  await page.locator('[data-gqv6-complete-daily]').click();
+  await expect(page.locator('[data-gqv6-scope="reserve"]')).toHaveClass(/ready/);
+  await expect(page.locator('[data-gq-scope-hint]')).toContainText('今日主线必做已完成');
+  await expect(page.locator('[data-gqv6-scope="core"]')).toHaveAttribute('aria-pressed','true');
+  await page.locator('[data-gqv6-scope="reserve"]').click();
+  await expect(page.locator('[data-gqv6-board="weekly"]')).toHaveClass(/active/);
+  await page.locator('[data-gqv6-board="daily"]').click();
+  await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toHaveAttribute('aria-pressed','false');
+  const dims=await page.evaluate(()=>({width:document.documentElement.scrollWidth,view:innerWidth,button:document.querySelector('[data-gqv6-scope="reserve"]').getBoundingClientRect().height}));
+  expect(dims.width).toBeLessThanOrEqual(dims.view+1);
+  expect(dims.button).toBeGreaterThanOrEqual(44);
+  await view(page,'tasks');await view(page,'game');
+  await expect(page.locator('[data-gqv6-scope="core"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-gqv6-board="daily"]')).toHaveClass(/active/);
 });
