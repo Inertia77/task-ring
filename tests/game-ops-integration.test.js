@@ -16,7 +16,7 @@ async function boot(db,cache={},online=true,owner=uid,policies=[]){
   Object.entries(cache).forEach(([k,v])=>w.localStorage.setItem(k,v));
   const calls=[],errors=[];w.addEventListener('error',e=>errors.push(e.error));w.fetch=async()=>({ok:true,json:async()=>({})});
   const client={fail:false,auth:{onAuthStateChange(){},getSession:async()=>({data:{session:owner?{user:{id:owner}}:null}}),signOut:async()=>({})},from(table){
-    const q={table,filters:[],orders:[],mode:'read',data:null,start:0,end:Infinity,eq(k,v){this.filters.push(r=>r[k]===v);return this;},is(k,v){this.filters.push(r=>(r[k]??null)===v);return this;},not(k,_op,v){this.filters.push(r=>(r[k]??null)!==v);return this;},order(k,opts){this.orders.push([k,opts]);return this;},range(a,b){this.start=a;this.end=b;return this;},select(){return this;},update(data){this.mode='update';this.data=data;return this;},insert(data){this.mode='insert';this.data=data;return this;},single(){this.one=true;return this;},then(ok,fail){
+    const q={table,filters:[],orders:[],mode:'read',data:null,start:0,end:Infinity,eq(k,v){this.filters.push(r=>r[k]===v);return this;},in(k,values){this.filters.push(r=>values.includes(r[k]));return this;},is(k,v){this.filters.push(r=>(r[k]??null)===v);return this;},not(k,_op,v){this.filters.push(r=>(r[k]??null)!==v);return this;},order(k,opts){this.orders.push([k,opts]);return this;},range(a,b){this.start=a;this.end=b;return this;},select(){return this;},update(data){this.mode='update';this.data=data;return this;},insert(data){this.mode='insert';this.data=data;return this;},single(){this.one=true;return this;},then(ok,fail){
       calls.push({table,mode:this.mode,range:[this.start,this.end]});
       let result;if(client.fail||!connected)result={data:null,error:{message:'test transport failure'}};
       else{
@@ -108,10 +108,14 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     await s.click('[data-gqv6-board="daily"]');
     const panel=s.w.document.querySelector('#gameQuestPanel');
     assert.match(panel.textContent,/T1.*核心玩/);
-    assert.match(panel.textContent,/T3.*有余力再玩/);
+    assert.match(panel.textContent,/余力作战 T3/);
+    assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]'),null);
     assert.match(panel.textContent,/剧情重点/);
     assert.equal(s.w.TaskRingGameOpsV6.pendingCore().daily,1);
     assert.match(panel.textContent,/T3 任务仍可随时勾选/);
+    await s.click('[data-gqv6-scope="reserve"]');
+    assert.match(panel.textContent,/T3.*有余力再玩/);
+    assert.equal(panel.querySelector('[data-gqv5-task][data-game="zzz"]'),null);
     assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,false);
     assert.equal(panel.querySelector('[data-gqv5-card][data-game="endfield"]').disabled,false);
     await s.click('[data-gqv5-task][data-game="endfield"]');
@@ -125,6 +129,12 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     assert.equal(s.w.document.querySelector('[data-ops-action="DONE"][data-id="T3_CLOUD"]').disabled,false);
     await s.click('[data-ops-action="DONE"][data-id="T3_CLOUD"]');
     assert.equal(db[0].user_action,'DONE');
+    assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
+    await s.click('[data-ops-history]');
+    assert(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'));
+    await s.click('[data-gqv6-scope="core"]');
+    await s.click('[data-gqv6-board="hub"]');
+    await s.click('[data-ops-history]');
     assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
     assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}

@@ -6,11 +6,31 @@
   let user=null,rows=[],archive=[],filter='',reason='',history=false,page=0,hasMore=false;
   let status='同步中',error='',busy=false,authReady=false,manualOpen=false,mutationId=null,loaded=false,request=0,lastSync=null;
   let manualDraft={};
+  // Display scopes share the same authenticated task source and mutation path.
+  let scope='core';
+  const scopeFilters={core:'',reserve:''};
+  function tierForTask(code){
+    const policy=P?.forCode(code);
+    const configured=typeof gameQuestConfig!=='undefined'?(gameQuestConfig?.games||[]).find(g=>String(g.id||'').toLowerCase()===policy?.key):null;
+    return policy?.tier??P?.get(configured)?.tier??null;
+  }
+  function inScope(t,which=scope){return (tierForTask(t.game)===3)===(which==='reserve');}
+  function scopeGames(which=scope){return Object.entries(C.games).filter(([game])=>inScope({game},which));}
+  function effectiveFilter(which=scope){const selected=which===scope?filter:scopeFilters[which];return scopeGames(which).some(([game])=>game===selected)?selected:'';}
+  function scopedRows(which=scope,respectFilter=true){const selected=respectFilter?effectiveFilter(which):'';return rows.filter(t=>inScope(t,which)&&(!selected||t.game===selected));}
+  function setScope(next){
+    if(!['core','reserve'].includes(next)||next===scope)return;
+    scopeFilters[scope]=filter;
+    const wasHistory=history;
+    scope=next;filter=scopeFilters[next]||'';history=false;page=0;archive=[];hasMore=false;
+    // Switching a display scope never clears an unsaved manual task or mutates records.
+    if(wasHistory){request++;busy=false;Promise.resolve().then(fetchTasks);}
+  }
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels={UPCOMING:'即将开放',ACTIVE:'进行中',ENDING_SOON:'即将结束',EXPIRED:'已截止 · 待归档',DONE:'已完成',SKIP:'不做',EXPIRED_REASON:'已过期',REPLACED:'已替代',INVALID:'无效',TO_VERIFY:'待核验',ESTIMATED:'估算时间',CONFIRMED:'已确认'};
   const date=(v)=>v?window.TaskRingOpsCore.taskEndDay({deadline_at:v}):"待核验";
   const precise=(v,day)=>esc(day||date(v));
-  const archiveKey=()=>PREFIX+user.id+':archive:'+filter+':'+reason+':'+page;
+  const archiveKey=()=>PREFIX+user.id+':archive:'+scope+':'+effectiveFilter()+':'+reason+':'+page;
   function cacheGet(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
   function cachePut(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{error='本机存储已满，离线缓存未更新';}}
   function restore(){
@@ -20,16 +40,17 @@
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
   }
-  let filterStripLeft=0;
+  const filterStripLeft={core:0,reserve:0};
   function rememberFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
-    if(strip)filterStripLeft=strip.scrollLeft;
+    if(strip)filterStripLeft[strip.dataset.opsScope||scope]=strip.scrollLeft;
   }
   function restoreFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
-    if(strip)strip.scrollLeft=filterStripLeft;
+    if(strip)strip.scrollLeft=filterStripLeft[scope]||0;
   }
   function render(){
+    window.TaskRingGameOpsV6?.refreshScopeNavigation?.();
     const el=document.getElementById('gameOpsCloud');if(!el)return;
     rememberFilterScroll();
     const selectedFilter=document.activeElement?.matches?.('[data-ops-filter]')?document.activeElement.dataset.opsFilter:null;
@@ -42,7 +63,7 @@
     }
   }
   document.addEventListener('scroll',e=>{
-    if(e.target?.matches?.('#gameOpsCloud .opsFilters'))filterStripLeft=e.target.scrollLeft;
+    if(e.target?.matches?.('#gameOpsCloud .opsFilters'))filterStripLeft[e.target.dataset.opsScope||scope]=e.target.scrollLeft;
   },true);
   function selected(k,v){return k===v?' selected':'';}
   function remainingLabel(t){
@@ -54,13 +75,14 @@
   }
   // LIVE OPS is a task-status dashboard, never a completion percentage.
   // Use the same filtered, unarchived records as the list. No extra queries or writes.
-  function summary(){
+  function summary(which=scope,respectFilter=true){
     if(!authReady)return {ready:false,label:'正在读取任务…'};
     if(!user)return {ready:false,label:'登录后查看任务态势'};
     if(!loaded&&!rows.length)return {ready:false,label:'等待任务同步…'};
-    const list=rows.filter(t=>!filter||t.game===filter);
+    const selected=respectFilter?effectiveFilter(which):'';
+    const list=scopedRows(which,respectFilter);
     const result={ready:true,active:0,due:0,upcoming:0,expired:0,unknown:0,
-      scope:filter?(C.games[filter]||filter):'全部游戏'};
+      scope:selected?(C.games[selected]||selected):(which==='reserve'?'余力作战':'主线作战')};
     for(const t of list){
       const state=C.state(t),days=C.daysUntilEnd(t);
       if(state==='UPCOMING')result.upcoming++;
@@ -87,7 +109,8 @@
   function card(t){
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
     const gp=P?.forCode(t.game);
-    const tierTag=gp?.tier?'<span class="opsTag gqOpsTier">T'+gp.tier+'</span>':'';
+    const tier=tierForTask(t.game);
+    const tierTag=tier?'<span class="opsTag gqOpsTier">T'+tier+'</span>':'';
     const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
     const claimable=!history&&t.gameplay_end_at&&Date.parse(t.gameplay_end_at)<Date.now()&&t.claim_end_at&&Date.parse(t.claim_end_at)>Date.now();
@@ -103,19 +126,18 @@
   function html(){
     if(!authReady)return '<div class="opsEmpty" role="status">正在恢复登录会话…</div>';
     if(!user)return '<div class="opsLogin"><div><span class="opsEyebrow">LIMITED / RECURRING</span><h3>登录后查看限时・周期任务</h3><p>使用已有 Supabase 账号。登录会话会保存在这台设备。</p></div><form data-ops-login><label>邮箱<input name="email" type="email" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button '+(busy?'disabled':'')+'>登录</button></form>'+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+'</div>';
-    const chips='<nav class="opsFilters" aria-label="限时周期游戏筛选">'+[['','全部'],...Object.entries(C.games)].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(filter===id)+'" class="'+(filter===id?'active':'')+'">'+name+'</button>').join('')+'</nav>';
+    const selectedFilter=effectiveFilter();
+    const chips='<nav class="opsFilters" data-ops-scope="'+scope+'" aria-label="限时周期游戏筛选">'+[['','本区全部'],...scopeGames()].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(selectedFilter===id)+'" class="'+(selectedFilter===id?'active':'')+'">'+name+'</button>').join('')+'</nav>';
     let content='';
-    if(history){content='<div class="opsArchiveFilter"><label>归档原因 <select data-ops-reason><option value="">全部</option>'+['DONE','SKIP','EXPIRED','REPLACED','INVALID'].map(v=>'<option value="'+v+'"'+selected(reason,v)+'>'+({DONE:'Done · 完成',SKIP:'Skip · 不做',EXPIRED:'Expired · 过期',REPLACED:'Replaced · 替代',INVALID:'Invalid · 无效'}[v])+'</option>').join('')+'</select></label><span>最近归档 · 第 '+(page+1)+' 页</span></div><div class="opsGrid">'+archive.map(card).join('')+'</div><div class="opsPagination"><button type="button" data-ops-page="-1" '+(page===0||busy?'disabled':'')+'>上一页</button><button type="button" data-ops-page="1" '+(!hasMore||busy?'disabled':'')+'>下一页</button></div>';}
+    if(history){content='<div class="opsArchiveFilter"><label>归档原因 <select data-ops-reason><option value="">全部</option>'+['DONE','SKIP','EXPIRED','REPLACED','INVALID'].map(v=>'<option value="'+v+'"'+selected(reason,v)+'>'+({DONE:'Done · 完成',SKIP:'Skip · 不做',EXPIRED:'Expired · 过期',REPLACED:'Replaced · 替代',INVALID:'Invalid · 无效'}[v])+'</option>').join('')+'</select></label><span>最近归档 · 第 '+(page+1)+' 页</span></div><div class="opsGrid">'+archive.filter(t=>inScope(t)&&(!selectedFilter||t.game===selectedFilter)).map(card).join('')+'</div><div class="opsPagination"><button type="button" data-ops-page="-1" '+(page===0||busy?'disabled':'')+'>上一页</button><button type="button" data-ops-page="1" '+(!hasMore||busy?'disabled':'')+'>下一页</button></div>';}
     else {
-      const visible=rows.filter(t=>!filter||t.game===filter);
-      const primary=visible.filter(t=>P?.tierForCode(t.game)!==3);
-      const deferred=visible.filter(t=>P?.tierForCode(t.game)===3);
+      const visible=scopedRows();
       const sections=list=>Object.entries(C.groups(list)).filter(([,items])=>items.length).map(([state,items])=>
         '<section class="opsGroup"><h2>'+labels[state]+' <small>'+items.length+'</small></h2><div class="opsGrid">'+items.map(card).join('')+'</div></section>'
       ).join('');
-      content=sections(primary)+(deferred.length?'<section class="opsTier3Section"><header><strong>T3｜有余力再玩</strong><span>'+((window.TaskRingGameOpsV6?.pendingCore?.().total||0)?'建议先完成 T1/T2，T3 仍可直接完成':'按余力安排，随时可以完成')+'</span></header>'+sections(deferred)+'</section>':'');
+      content=sections(visible);
     }
-    if(!(history?archive.length:rows.filter(t=>!filter||t.game===filter).length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
+    if(!(history?archive.filter(t=>inScope(t)&&(!selectedFilter||t.game===selectedFilter)).length:scopedRows().length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
   }
   async function fetchTasks(){
@@ -123,7 +145,7 @@
     busy=true;status='同步中';error='';const token=++request,uid=user.id;render();
     try{
       let fetched=[],offset=0;
-      if(history){let q=client.from('game_ops_tasks').select('*').eq('user_id',uid).not('archived_at','is',null).order('archived_at',{ascending:false}).order('id',{ascending:false});if(filter)q=q.eq('game',filter);if(reason)q=q.eq('archive_reason',reason);const {data,error:e}=await q.range(page*PAGE,page*PAGE+PAGE);if(e)throw e;fetched=data;}
+      if(history){const selected=effectiveFilter(),games=scopeGames().map(([code])=>code);if(games.length){let q=client.from('game_ops_tasks').select('*').eq('user_id',uid).not('archived_at','is',null).order('archived_at',{ascending:false}).order('id',{ascending:false});q=selected?q.eq('game',selected):q.in('game',games);if(reason)q=q.eq('archive_reason',reason);const {data,error:e}=await q.range(page*PAGE,page*PAGE+PAGE);if(e)throw e;fetched=data;}}
       else {do{const {data,error:e}=await client.from('game_ops_tasks').select('*').eq('user_id',uid).is('archived_at',null).order('deadline_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}).range(offset,offset+199);if(e)throw e;fetched.push(...data);if(data.length<200)break;offset+=200;}while(true);}
       if(token!==request||user?.id!==uid)return;
       lastSync=new Date().toISOString();
@@ -203,5 +225,5 @@
   addEventListener('online',()=>{fetchTasks();fetchPolicy();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchTasks();});
   setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId)fetchTasks();},60000);
-  window.TaskRingGameOpsCloud={html,summary,summaryHtml,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
+  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
 })();
