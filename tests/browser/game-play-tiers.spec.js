@@ -64,3 +64,28 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await expect(page.locator('[data-gqv6-scope="core"]')).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('[data-gqv6-board="daily"]')).toHaveClass(/active/);
 });
+
+test('desktop keeps both scope entries visible but renders only the selected scope',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await boot(page);await view(page,'game');
+  await page.evaluate(()=>{
+    const P=window.TaskRingGamePlayPolicy,uid='desktop-reserve-fixture';
+    P.setOwner(uid);
+    P.setRows([{game_key:'zzz',play_tier:1,sort_order:1},{game_key:'endfield',play_tier:3,sort_order:6}],uid);
+  });
+  const reserve=page.locator('[data-gqv6-scope="reserve"]');
+  await expect(reserve).toBeVisible();
+  await expect(page.locator('[data-gqv5-task][data-game="endfield"]')).toHaveCount(0);
+  await reserve.click();
+  await expect(page.locator('[data-gqv5-task][data-game="endfield"]').first()).toBeVisible();
+  await expect(page.locator('[data-gqv5-task][data-game="zzz"]')).toHaveCount(0);
+  const dims=await page.evaluate(()=>({
+    doc:document.documentElement.scrollWidth,view:innerWidth,
+    scope:document.querySelector('.gqScopeNav').getBoundingClientRect().width,
+    button:document.querySelector('[data-gqv6-scope="reserve"]').getBoundingClientRect().height
+  }));
+  expect(dims.doc).toBeLessThanOrEqual(dims.view+1);
+  expect(dims.scope).toBeGreaterThan(300);
+  expect(dims.button).toBeGreaterThanOrEqual(44);
+  await page.screenshot({path:'test-results/visual/'+test.info().project.name+'/after/1440-game-reserve.png',fullPage:true});
+});
