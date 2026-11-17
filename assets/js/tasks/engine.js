@@ -80,9 +80,10 @@
       ?(available?"optional":null)
       :available&&((overdue||carry)&&s.missed!=="EXPIRE"||near)?"deadline"
       :available&&today?(def.required&&!planned||def.required&&s.mustOnPlan?"required":"planned"):null;
-    const section=def.completedToday?(optional?"optional":"planned"):bucket==="deadline"&&dueToday&&def.required?"required":bucket;
+    const required=!optional&&available&&def.required===true&&(today&&(!planned||s.mustOnPlan)||dueToday);
+    const section=def.completedToday?(optional?"optional":"planned"):bucket==="deadline"&&dueToday&&required?"required":bucket;
     return {id:def.id,instanceId:instance(def.id,period),definition:def,period,available,today:available&&today,planned:available&&planned,
-      required:available&&def.required===true&&(today&&(!planned||s.mustOnPlan)||dueToday),overdue:available&&(overdue||carry),dueToday,deadline:s.due,
+      required,overdue:available&&(overdue||carry),dueToday,deadline:s.due,
       bucket:section,optional};
   }
 

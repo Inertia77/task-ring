@@ -50,7 +50,7 @@ test("date-only, confirmed exact time, and unverified deadline precision differ"
 });
 test("optional tasks and duplicate references never inflate required metrics",()=>{
   const day=def("DAILY",{}, {done:true}),one=def("ONE_TIME",{showToday:true});
-  const reserve=def("OPTIONAL",{}, {required:false});
+  const reserve=def("OPTIONAL");
   const data=query([day,day,one,reserve]);
   A.deepEqual(E.counts(data),{required:{done:1,total:2},all:{done:1,total:3},remaining:2,deadlines:0});
   A.equal(data.at(-1).done,true);
