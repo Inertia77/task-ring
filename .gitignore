@@ -27,3 +27,5 @@ dist/
 # Isolated browser artifacts (CI uploads them separately)
 test-results/
 playwright-report/
+taskring-config-*.json
+taskring-backup-*.json

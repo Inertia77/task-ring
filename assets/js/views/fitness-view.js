@@ -476,4 +476,5 @@
   const coreBoot=window.TaskRingCoreBoot;
   window.TaskRingCoreBoot=function(){const result=coreBoot.apply(this,arguments);initFitnessUI();renderFitnessPanel();return result};
   window.renderFitnessPanel=renderFitnessPanel;
+  window.TaskRingFitnessTasks={itemsForDay,doneKey,setItemDone,showDay(day){selectedDay=day;renderFitnessPanel()}};
 })();

@@ -1,7 +1,7 @@
 const {expect}=require('@playwright/test');
-async function boot(page){
+async function boot(page,initial='tasks'){
   await page.route('https://**/*',r=>r.abort());
-  await page.goto('/?preview');
+  await page.goto('/?preview&view='+initial);
   await page.waitForFunction(()=>!!window.TaskRingProductUi);
   await page.evaluate(()=>{
     const cfg=buildDefaultConfig();
@@ -21,5 +21,13 @@ async function boot(page){
   await page.evaluate(()=>document.fonts.ready);
   await expect(page.locator('body')).not.toHaveClass(/locked/);
 }
-async function view(page,name){await page.locator(`#viewDock [data-view-target="${name}"]`).click();await expect(page.locator(`#viewDock [data-view-target="${name}"]`)).toHaveClass(/active/);}
+async function view(page,name){
+  const button=page.locator(`#viewDock [data-view-target="${name}"]`);
+  if(await button.isVisible())await button.click();
+  else{
+    await page.locator('#viewDock [data-view-target="more"]').click();
+    await page.locator(`#commandMore [data-view-target="${name}"]`).click();
+  }
+  await expect(page.locator('body')).toHaveAttribute('data-app-view',name);
+}
 module.exports={boot,view};

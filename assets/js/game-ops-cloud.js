@@ -5,7 +5,7 @@
   const PAGE=25,PREFIX='taskring-gameops-cache-v1:';
   let user=null,rows=[],archive=[],filter='',reason='',history=false,page=0,hasMore=false;
   let status='同步中',error='',busy=false,authReady=false,manualOpen=false,mutationId=null,loaded=false,request=0,lastSync=null;
-  let manualDraft={};
+  let manualDraft={},recentDone=[],recentRequest=0;
   // Display scopes share the same authenticated task source and mutation path.
   let scope='core';
   const scopeFilters={core:'',reserve:''};
@@ -36,6 +36,7 @@
   function restore(){
     if(!user)return;
     const active=cacheGet(PREFIX+user.id+':active');rows=active?.rows||[];lastSync=active?.at||null;if(active)loaded=true;
+    recentDone=(cacheGet(PREFIX+user.id+':recent-done')||[]).filter(freshDone);
     const old=cacheGet(archiveKey());archive=old?.rows||[];hasMore=!!old?.hasMore;
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
@@ -51,6 +52,7 @@
   }
   function render(){
     window.TaskRingGameOpsV6?.refreshScopeNavigation?.();
+    window.TaskRingCommand?.renderOverview();
     const el=document.getElementById('gameOpsCloud');if(!el)return;
     rememberFilterScroll();
     const selectedFilter=document.activeElement?.matches?.('[data-ops-filter]')?document.activeElement.dataset.opsFilter:null;
@@ -140,16 +142,16 @@
     if(!(history?archive.filter(t=>inScope(t)&&(!selectedFilter||t.game===selectedFilter)).length:scopedRows().length))content='<div class="opsEmpty">'+(busy?'正在同步任务…':history?'这一页没有归档记录。':loaded?'当前没有待办任务。':'尚无任务缓存，联网后刷新。')+'</div>'+(history?content:'');
     return '<div class="opsToolbar"><div class="opsSync" role="status"><i class="'+(status==='已同步'?'ok':status==='同步失败'?'fail':'')+'"></i>'+status+(lastSync?'<small>最近 '+date(lastSync)+'</small>':'')+'</div><div class="opsTools"><button type="button" data-ops-refresh '+(busy?'disabled':'')+'>刷新</button><button type="button" data-ops-history>'+ (history?'当前任务':'历史')+'</button><button type="button" data-ops-toggle-manual '+(!navigator.onLine?'disabled':'')+'>＋ 补任务</button><button type="button" data-ops-logout aria-label="退出 Supabase 登录">退出</button></div></div>'+chips+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+(manualOpen?manualForm():'')+content;
   }
-  async function fetchTasks(){
+  async function fetchTasks(forceActive=false){
     if(!user||busy||mutationId||!navigator.onLine){if(!navigator.onLine){status='离线缓存';render();}return;}
-    busy=true;status='同步中';error='';const token=++request,uid=user.id;render();
+    busy=true;status='同步中';error='';const token=++request,uid=user.id,useHistory=history&&forceActive!==true;render();
     try{
       let fetched=[],offset=0;
-      if(history){const selected=effectiveFilter(),games=scopeGames().map(([code])=>code);if(games.length){let q=client.from('game_ops_tasks').select('*').eq('user_id',uid).not('archived_at','is',null).order('archived_at',{ascending:false}).order('id',{ascending:false});q=selected?q.eq('game',selected):q.in('game',games);if(reason)q=q.eq('archive_reason',reason);const {data,error:e}=await q.range(page*PAGE,page*PAGE+PAGE);if(e)throw e;fetched=data;}}
+      if(useHistory){const selected=effectiveFilter(),games=scopeGames().map(([code])=>code);if(games.length){let q=client.from('game_ops_tasks').select('*').eq('user_id',uid).not('archived_at','is',null).order('archived_at',{ascending:false}).order('id',{ascending:false});q=selected?q.eq('game',selected):q.in('game',games);if(reason)q=q.eq('archive_reason',reason);const {data,error:e}=await q.range(page*PAGE,page*PAGE+PAGE);if(e)throw e;fetched=data;}}
       else {do{const {data,error:e}=await client.from('game_ops_tasks').select('*').eq('user_id',uid).is('archived_at',null).order('deadline_at',{ascending:true,nullsFirst:false}).order('id',{ascending:true}).range(offset,offset+199);if(e)throw e;fetched.push(...data);if(data.length<200)break;offset+=200;}while(true);}
       if(token!==request||user?.id!==uid)return;
       lastSync=new Date().toISOString();
-      if(history){hasMore=fetched.length>PAGE;archive=fetched.slice(0,PAGE);cachePut(archiveKey(),{rows:archive,hasMore,at:lastSync});}
+      if(useHistory){hasMore=fetched.length>PAGE;archive=fetched.slice(0,PAGE);cachePut(archiveKey(),{rows:archive,hasMore,at:lastSync});}
       else{rows=fetched;loaded=true;cachePut(PREFIX+uid+':active',{rows,at:lastSync});P?.setOpsTasks(rows,uid);}
       status='已同步';
     }catch(e){if(token===request){status=navigator.onLine?'同步失败':'离线缓存';error=navigator.onLine?'同步失败：'+(e.message||e)+ '。保留最近缓存，可点击刷新重试。':'';}}
@@ -168,23 +170,54 @@
       P.setRows(data,uid);
     }catch(e){console.warn('Game play policy unavailable; preserving per-user cache',e);}
   }
+  const sinceToday=()=>window.TaskRingTasks.businessDate(Date.now(),0)+'T00:00:00+09:00';
+  function freshDone(t){return t.user_action==='DONE'&&Date.parse(t.archived_at)>=Date.parse(sinceToday());}
+  async function fetchRecent(){
+    if(!user||!navigator.onLine||mutationId)return;
+    const uid=user.id,token=++recentRequest;
+    try{
+      const fetched=[];
+      for(let offset=0;;offset+=200){
+        const {data,error:e}=await client.from('game_ops_tasks').select('*').eq('user_id',uid)
+          .eq('user_action','DONE').gte('archived_at',sinceToday()).order('id',{ascending:true}).range(offset,offset+199);
+        if(e)throw e;
+        fetched.push(...data);
+        if(data.length<200)break;
+      }
+      if(token!==recentRequest||user?.id!==uid)return;
+      recentDone=fetched.filter(freshDone);
+      cachePut(PREFIX+uid+':recent-done',recentDone);
+      window.TaskRingCommand?.renderOverview();
+    }catch(e){if(token===recentRequest&&user?.id===uid)console.warn('Recent game completions unavailable',e);}
+  }
   async function mutate(id,patch){
     if(!navigator.onLine){status='离线缓存';error='当前离线，操作未提交；联网后请重试。';render();return;}
-    if(mutationId)return;
+    if(mutationId||!user)return false;
+    const uid=user.id, current=[...rows,...recentDone].find(row=>row.id===id);
+    if(!current)return false;
     // A fetch started before this write must never restore its stale active row.
-    request++;busy=false;
+    request++;recentRequest++;busy=false;
     mutationId=id;error='';let confirmed=false;render();
     try{
-      const {data,error:e}=await client.from('game_ops_tasks').update(patch).eq('id',id).eq('user_id',user.id).select('*').single();if(e)throw e;
+      let update=client.from('game_ops_tasks').update(patch).eq('id',id).eq('user_id',uid);
+      if(current.updated_at)update=update.eq('updated_at',current.updated_at);
+      const {data,error:e}=await update.select('*').single();
+      if(user?.id!==uid)return false;
+      if(e)throw e;
+      if(!data)throw new Error('记录已更新，请刷新重试');
       if(patch.user_action&&data.user_action!==patch.user_action)throw new Error('服务器状态回读不一致');
       rows=rows.filter(t=>t.id!==id);if(!data.archived_at)rows.push(data);archive=archive.map(t=>t.id===id?data:t);
-      cachePut(PREFIX+user.id+':active',{rows,at:new Date().toISOString()});
+      recentDone=recentDone.filter(row=>row.id!==id);
+      if(freshDone(data))recentDone.push(data);
+      cachePut(PREFIX+uid+':recent-done',recentDone);
+      cachePut(PREFIX+uid+':active',{rows,at:new Date().toISOString()});
       // Invalidate paginated history caches after a confirmed mutation.
       for(const key of Object.keys(localStorage))if(key.startsWith(PREFIX+user.id+':archive:'))localStorage.removeItem(key);
       status='已同步';confirmed=true;
-    }catch(e){status='同步失败';error='操作未确认：'+(e.message||e)+'。任务保留，请联网刷新后重试。';}
-    finally{mutationId=null;render();}
+    }catch(e){if(user?.id===uid){status='同步失败';error='操作未确认：'+(e.message||e)+'。任务保留，请联网刷新后重试。';}}
+    finally{if(user?.id===uid){mutationId=null;render();}}
     if(confirmed)await fetchTasks();
+    return confirmed;
   }
   document.addEventListener('click',async e=>{
     const b=e.target.closest('[data-ops-action],[data-ops-filter],[data-ops-history],[data-ops-page],[data-ops-refresh],[data-ops-toggle-manual],[data-ops-logout]');if(!b)return;
@@ -215,15 +248,37 @@
   client.auth.onAuthStateChange((_event,session)=>{
     const next=session?.user||null,changed=next?.id!==user?.id;
     user=next;authReady=true;
-    if(changed){request++;busy=false;rows=[];archive=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
+    if(changed){request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
-    if(user)setTimeout(()=>{fetchTasks();fetchPolicy();},0);
+    if(user)setTimeout(()=>{fetchTasks();fetchPolicy();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);
   });
-  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy()]);}).catch(e=>{authReady=true;error=e.message;render();});
+  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();});
   addEventListener('offline',()=>{request++;busy=false;status='离线缓存';error='';render();});
-  addEventListener('online',()=>{fetchTasks();fetchPolicy();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchTasks();});
-  setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId)fetchTasks();},60000);
-  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),rememberFilterScroll,restoreFilterScroll};
+  const overviewActive=()=>typeof activeAppView!=='undefined'&&activeAppView==='overview';
+  function refreshOverview(){return Promise.all([fetchTasks(true),fetchRecent()]);}
+  addEventListener('online',()=>{if(overviewActive())refreshOverview();else fetchTasks();fetchPolicy();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(overviewActive())refreshOverview();else fetchTasks();}});
+  setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId){if(overviewActive())refreshOverview();else fetchTasks();}},60000);
+  function commandSnapshot(){
+    return {rows:[...rows,...recentDone.filter(freshDone)].map(row=>({row,tier:tierForTask(row.game)})),
+      status:authReady?user?status:'未登录':'同步中',error,canWrite:!!user&&navigator.onLine&&!mutationId};
+  }
+  function commandSetDone(id,done){
+    if(done)return mutate(id,{user_action:'DONE',archive_reason:'DONE',lifecycle_status:'ARCHIVED'});
+    if(!recentDone.some(row=>row.id===id&&freshDone(row)))return false;
+    return mutate(id,{user_action:'NONE',archive_reason:null,archived_at:null,lifecycle_status:'ACTIVE'});
+  }
+  function showTask(id){
+    const row=[...rows,...recentDone].find(t=>t.id===id);
+    if(!row)return null;
+    rememberFilterScroll();filter='';reason='';page=0;
+    history=!!row.archived_at;
+    if(history)restore();
+    render();
+    if(history)fetchTasks();
+    return [...document.querySelectorAll('[data-ops-card]')].find(card=>card.dataset.opsCard===id)||document.getElementById('gameOpsCloud');
+  }
+  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),
+    rememberFilterScroll,restoreFilterScroll,commandSnapshot,commandSetDone,refreshOverview,showTask};
 })();

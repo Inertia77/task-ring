@@ -13,7 +13,7 @@ for(const width of [320,390,768]){
       return {viewport:innerWidth,page:document.documentElement.scrollWidth,
         check:rect('.dailyComplete'),copy:rect('.dailyCopy'),
         more:rect('.dailyActions .uxActionMore'),timer:rect('.dailyActions .timerStartTiny'),
-        dock:[...document.querySelectorAll('#viewDock > button')].map(el=>{
+        dock:[...document.querySelectorAll('#viewDock > button')].filter(el=>el.getClientRects().length).map(el=>{
           const r=el.getBoundingClientRect();return {left:r.left,right:r.right,height:r.height};
         })};
     });
@@ -21,7 +21,7 @@ for(const width of [320,390,768]){
     expect(layout.check.width).toBeGreaterThanOrEqual(44);
     expect(layout.check.right).toBeLessThanOrEqual(layout.copy.left);
     expect(Math.abs(layout.more.top-layout.timer.top)).toBeLessThan(3);
-    expect(layout.dock).toHaveLength(6);
+    expect(layout.dock).toHaveLength(5);
     for(const button of layout.dock){
       expect(button.left).toBeGreaterThanOrEqual(0);
       expect(button.right).toBeLessThanOrEqual(width);

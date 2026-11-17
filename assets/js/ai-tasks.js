@@ -48,6 +48,7 @@
       '<div class="missionScore"><strong>'+done+(goal?' / '+goal:' 次')+'</strong><em>'+(isDone?doneLabel:period+(goal?'待完成':'执行记录'))+'</em></div></header>'+
       (goal?'<div class="missionMeter" aria-label="'+period+'执行进度 '+progress+'%"><i></i></div>':'')+
       '<footer class="missionActions aiInlineActions">'+launchButtons(t)+'</footer>'+
+      (window.TaskRingCommand?.weeklyControls(t)||'')+
       '<div class="missionBadges aiEmbeddedFoot"><span class="statusBadge weeklyPace '+(isDone?'achieved':'idle')+'">'+(isDone?(t.ai_period==='on_demand'?'✓ 已执行':'✓ 已达成'):'✦ AI 任务')+'</span>'+
       '<span class="planModeBadge weekly">周计划</span><span class="taskCategoryIconBadge" data-task-category="'+escapeHtml(cat)+'" title="'+escapeHtml(category.name)+'">'+taskCategoryGlyph(cat)+'</span>'+
       '<button type="button" class="aiVerifyInline" data-ai-action="verify-weekly" data-ai-task="'+id+'">✓ 完成一次</button>'+

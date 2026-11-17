@@ -2,6 +2,8 @@
 
 ## 运行入口
 
+NEXT 调度、来源适配与统一配置详见 [TaskRing NEXT](TASKRING-NEXT.md)。
+
 `index.html` 是唯一 HTML 入口，按以下顺序加载：
 
 1. `assets/css/main.css`

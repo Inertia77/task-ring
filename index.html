@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261116.game-reserve-ops">
+<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261117.taskring-next">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20261116.1"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20261117.1"/>
 <script src="assets/js/notion-app-links.js?v=20261109.2" defer></script>
 </head>
 <body class="nx locked">
@@ -177,10 +177,9 @@
           <strong id="controlExportTitle">数据备份</strong>
           <span>JSON EXPORT</span>
         </div>
-        <button type="button" id="controlExportJsonBtn" class="controlExportBtn">
+        <button type="button" id="controlExportJsonBtn" class="controlExportBtn" data-command-json>
           <span class="controlUtilityIcon" aria-hidden="true">↓</span>
-          <span class="controlExportCopy"><b>一键导出全部 JSON</b><em>任务 · 游戏 · 生活改善 · 资料库</em></span>
-          <span class="controlExportCount">4 FILES</span>
+          <span class="controlExportCopy"><b>统一 JSON</b><em>导入、导出和完整备份</em></span>
         </button>
       </section>
 
@@ -204,14 +203,29 @@
   </div>
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
-  <button type="button" class="viewDockBtn viewDockCore active" data-view-target="tasks" aria-current="page" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore active" data-view-target="overview" aria-current="page" aria-label="任务总览"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><b><span class="dockDesktopLabel">任务总览</span><span class="dockMobileLabel">总览</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="tasks" aria-current="false" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
   <button type="button" class="viewDockBtn viewDockCore" data-view-target="weekly" aria-current="false" aria-label="周计划"><i class="dockGlyph" data-task-ui-icon="calendar-days" aria-hidden="true"></i><span>WEEK</span><b><span class="dockDesktopLabel">周计划</span><span class="dockMobileLabel">周计划</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore" data-view-target="fitness" aria-current="false" aria-label="生活改善"><i class="dockGlyph" data-task-ui-icon="sprout" aria-hidden="true"></i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="fitness" aria-current="false" aria-label="生活改善"><i class="dockGlyph" data-task-ui-icon="sprout" aria-hidden="true"></i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
   <button type="button" class="viewDockBtn viewDockCore" data-view-target="game" aria-current="false" aria-label="游戏"><i class="dockGlyph" data-task-ui-icon="sparkles" aria-hidden="true"></i><span>GAME</span><b><span class="dockDesktopLabel">游戏</span><span class="dockMobileLabel">游戏</span></b></button>
-  <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" data-task-ui-icon="clock" aria-hidden="true"></i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
-  <button type="button" class="viewDockBtn viewDockUtility" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="learning" aria-current="false" aria-label="学习中心"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockDesktopLabel">学习中心</span><span class="dockMobileLabel">学习</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart commandDesktopNav" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" data-task-ui-icon="clock" aria-hidden="true"></i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility commandDesktopNav" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
+  <button type="button" class="viewDockBtn commandMobileNav" data-view-target="more" aria-current="false" aria-label="更多"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockMobileLabel">更多</span></b></button>
 </nav>
-<section class="taskRingControlPanel taskAreaHeader viewPanel active" data-view-panel="tasks" aria-label="每日模块筛选与进度">
+<section class="viewPanel commandView active" id="commandCenter" data-view-panel="overview" aria-label="任务总览"></section>
+<section class="viewPanel commandView" id="learningCenter" data-view-panel="learning" aria-label="学习中心"></section>
+<section class="viewPanel commandView" id="commandMore" data-view-panel="more" aria-label="更多工作台">
+  <div class="commandHero"><div><h1>更多工作台</h1></div></div>
+  <div class="commandMoreGrid">
+    <button type="button" data-view-target="learning">学习中心</button>
+    <button type="button" data-view-target="fitness">生活改善</button>
+    <button type="button" data-view-target="time">时间账本</button>
+    <button type="button" data-view-target="library">资料库</button>
+    <button type="button" data-command-manage>任务管理</button>
+  </div>
+</section>
+<section class="taskRingControlPanel taskAreaHeader viewPanel" data-view-panel="tasks" aria-label="每日模块筛选与进度">
   <div class="taskRingControlHead taskAreaHeaderCopy">
     <div>
       <span class="taskAreaEyebrow">TR / DAILY COMMAND</span>
@@ -228,13 +242,17 @@
   <div class="dailyStatusHost" id="dayTabs"></div>
   <div class="progress-wrap taskProgressWrap"><div class="progress-meta"><span id="progressText">今日完成度 0/0</span><span>只统计「每日」里的今日任务，不影响周计划 / 游戏</span></div><div class="progress"><div id="bar"></div></div></div>
 </section>
-<section class="orbitPanel viewPanel active" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
+<section class="orbitPanel viewPanel" id="orbitPanel" data-view-panel="tasks" aria-label="任务环概览"></section>
 <section class="weeklyPlanPanel viewPanel" id="weeklyPlanPanel" data-view-panel="weekly" aria-label="周计划"></section>
-<section class="tableBox mainTaskPanel viewPanel active" data-view-panel="tasks"><table id="taskTable"></table></section>
-<section class="mobileBox mainTaskPanelMobile viewPanel active" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
-<details class="legendBox viewPanel active" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
+<section class="tableBox mainTaskPanel viewPanel" data-view-panel="tasks"><table id="taskTable"></table></section>
+<section class="mobileBox mainTaskPanelMobile viewPanel" data-view-panel="tasks"><div class="mobileCards" id="mobileCards"></div></section>
+<details class="legendBox viewPanel" id="legendBox" data-view-panel="tasks"><summary>标记说明</summary><div class="legendGrid"><span><b>保</b> 核心保底</span><span><b>重</b> 重要</span><span><b>选</b> 可选</span><span><b>延</b> 可延后补</span><span><b>锁</b> 已过期锁定</span><span><b>补</b> 前次未完成</span><span><b>旧</b> 上周遗留</span><span><b>分 2/6</b> 子任务进度</span></div></details>
 <section class="fitnessPanel viewPanel" id="fitnessPanel" data-view-panel="fitness" aria-label="生活改善计划"></section>
 <section class="gameQuestPanel viewPanel" id="gameQuestPanel" data-view-panel="game" aria-label="游戏任务作战区"></section>
+<div class="viewPanel commandView commandExtra" id="commandExtra-tasks" data-view-panel="tasks" hidden></div>
+<div class="viewPanel commandView commandExtra" id="commandExtra-weekly" data-view-panel="weekly" hidden></div>
+<div class="viewPanel commandView commandExtra" id="commandExtra-game" data-view-panel="game" hidden></div>
+<div class="viewPanel commandView commandExtra" id="commandExtra-fitness" data-view-panel="fitness" hidden></div>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
 <section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
@@ -401,22 +419,27 @@
 </div>
 
 <script src="assets/js/data/default-data.js?v=20261007.1"></script>
-<script src="assets/js/app.js?v=20261105.2"></script>
-<script src="assets/js/data/integrity-core.js?v=20260824.1"></script>
-<script src="assets/js/data-integrity.js?v=20261007.3"></script>
+<dialog id="commandDialog" class="commandDialog" aria-label="TaskRing 任务管理"></dialog>
+<script src="assets/js/tasks/engine.js?v=20261117.1"></script>
+<script src="assets/js/app.js?v=20261117.1"></script>
+<script src="assets/js/data/integrity-core.js?v=20261117.1"></script>
+<script src="assets/js/data-integrity.js?v=20261117.1"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20261104.2"></script>
-<script src="assets/js/views/editor-ux.js?v=20261019.6"></script>
-<script src="assets/js/views/fitness-view.js?v=20261019.6"></script>
-<script src="assets/js/views/product-ui.js?v=20261105.1"></script>
-<script src="assets/js/ai-tasks.js?v=20261017.3"></script>
+<script src="assets/js/views/editor-ux.js?v=20261117.1"></script>
+<script src="assets/js/views/fitness-view.js?v=20261117.1"></script>
+<script src="assets/js/views/product-ui.js?v=20261117.1"></script>
+<script src="assets/js/ai-tasks.js?v=20261117.1"></script>
 <script src="assets/js/game-disclosure.js?v=20260921.1"></script>
   <script src="assets/js/vendor/supabase-2.117.2.js"></script>
 <script src="assets/js/game-ops-config.js?v=20261007.1"></script>
 <script src="assets/js/game-ops-core.js?v=20261105.1"></script>
 <script src="assets/js/game-play-policy.js?v=20261103.1"></script>
-  <script src="assets/js/game-ops-cloud.js?v=20261116.1"></script>
-<script src="assets/js/game-ops-v6.js?v=20261116.1"></script>
-<script src="assets/js/pwa.js?v=20261019.6"></script>
+  <script src="assets/js/game-ops-cloud.js?v=20261117.1"></script>
+<script src="assets/js/game-ops-v6.js?v=20261117.1"></script>
+<script src="assets/js/tasks/config.js?v=20261117.1"></script>
+<script src="assets/js/tasks/sources.js?v=20261117.1"></script>
+<script src="assets/js/tasks/command.js?v=20261117.1"></script>
+<script src="assets/js/pwa.js?v=20261117.1"></script>
 </body>
 </html>

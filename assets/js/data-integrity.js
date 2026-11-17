@@ -183,10 +183,12 @@
     return out;
   }
   function writeStateMeta(meta){writeJson(STATE_META_KEY,meta)}
-  function markState(key,value,updatedAt=nowIso()){
+  function markState(key,value,sequence){
     if(!String(key).startsWith(GH_PREFIX))return;
     const meta=readStateMeta();
-    meta[key]={value:value?"1":"0",updatedAt,deviceId:deviceId()};
+    const previous=meta[key];
+    const updatedAt=new Date(Math.max(Date.now(),Core.isoMillis(previous?.updatedAt)+1)).toISOString();
+    meta[key]={value:value?"1":"0",updatedAt,deviceId:deviceId(),...((sequence||previous?.sequence)?{sequence:sequence||previous.sequence}:{})};
     writeStateMeta(meta);
   }
   function normalizeRemoteStates(states){
@@ -228,14 +230,14 @@
     const keys=new Set([...Object.keys(states||{}),...Object.keys(meta||{})]);
     return [...keys].sort().map(key=>{
       const record=meta?.[key]||{};
-      return `${key}|${states?.[key]==="1"?"1":"0"}|${record.value||""}|${record.updatedAt||record.updated_at||""}|${record.deviceId||record.device_id||""}`;
+      return `${key}|${states?.[key]==="1"?"1":"0"}|${record.value||""}|${record.updatedAt||record.updated_at||""}|${record.deviceId||record.device_id||""}|${JSON.stringify(record.sequence||null)}`;
     }).join("\n");
   }
 
   const baseScheduleGhSave=scheduleGhSave;
-  syncSetItem=function(key,value){
+  syncSetItem=function(key,value,sequence){
     if(value)localStorage.setItem(key,"1");else localStorage.removeItem(key);
-    markState(key,!!value);
+    markState(key,!!value,sequence);
     scheduleGhSave();
   };
   syncRemoveCycle=function(cycle=cycleYmd){
@@ -459,6 +461,9 @@
     core:Core,
     stateMetaKey:STATE_META_KEY,
     configConflictKey:CONFIG_CONFLICT_KEY,
-    hasConfigConflict
+    hasConfigConflict,
+    readStateMeta,
+    patchConfig:config=>patchConfigSafely(config,{interactive:false}),
+    importState(snapshot){applyMergedState(mergeWithRemoteState(snapshot));renderAll()}
   };
 })();

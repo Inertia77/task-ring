@@ -21,7 +21,7 @@
     saved(id){this.begin(id)},
     dirty(){return [...sessions].some(([id,s])=>s.baseline!==formSnapshot(id))}
   };
-  window.addEventListener("beforeunload",event=>{if(window.TaskRingEditorSessions.dirty()){event.preventDefault();event.returnValue=""}});
+  window.addEventListener("beforeunload",event=>{if(window.TaskRingEditorSessions.dirty()||window.TaskRingCommand?.dirty()){event.preventDefault();event.returnValue=""}});
 
   const EDITOR_FILTER_KEY="taskring_editor_filter_v20";
   let editorUiState={scope:"active",query:""};
