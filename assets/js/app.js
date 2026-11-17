@@ -1804,7 +1804,7 @@ function collectOneEditorRow(row){
   const used=new Set();
   const steps=stepLines.map((title,i)=>{let code=oldCodes[i]||makeStepCode(used);if(used.has(code))code=makeStepCode(used);used.add(code);return{id:slugifyId(title,`step-${i+1}`),code,title,enabled:true}});
   return {
-    ...original,id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
+    id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
     code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
     cat:row.querySelector(".cfgCat").value,
     title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,

@@ -30,7 +30,7 @@ test('overview completion shares daily state and supports undo after refresh',as
   await page.reload();
   const done=page.locator('#commandCenter .commandDone');
   await expect(done).toBeVisible();
-  if(await done.getAttribute('open')===null)await done.locator('summary').click();
+  if(await done.getAttribute('open')===null)await done.locator(':scope > summary').click();
   await page.getByRole('button',{name:'撤销完成：'+title,exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>isDone('test-task-0',today))).toBe(false);
 });
@@ -77,8 +77,8 @@ test('unified editor saves a scheduled task and exports one configuration',async
   await boot(page,'overview');
   await page.getByRole('button',{name:'任务管理',exact:true}).click();
   await page.getByRole('button',{name:'新建任务'}).click();
-  await page.getByLabel('任务名称').fill('计划测试');
-  await page.getByLabel('子任务（每行一项）').fill('收集资料\n整理摘要');
+  await page.locator('#commandDialog').getByLabel('任务名称',{exact:true}).fill('计划测试');
+  await page.locator('#commandDialog').getByLabel('子任务（每行一项）',{exact:true}).fill('收集资料\n整理摘要');
   await page.getByRole('button',{name:'保存任务'}).click();
   await expect(page.getByRole('button',{name:'完成：计划测试',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'任务管理',exact:true}).click();
