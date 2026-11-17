@@ -380,7 +380,7 @@
   function enhanceDetails(root=document){
     root.querySelectorAll("details").forEach(details=>{const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open))});
   }
-  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal,#controlCenterMenu")].reverse().find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
+  function visibleModal(){if(typeof document==="undefined")return undefined;return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal,#controlCenterMenu")].reverse().find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
   function focusableIn(modal){return [...modal.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null)}
   function enhanceFormLabels(root=document){
     root.querySelectorAll("input,select,textarea").forEach(control=>{
@@ -470,6 +470,7 @@
   let managedModal=null;
   let modalReturnTarget=null;
   function reconcileModal(){
+    if(typeof document==="undefined")return;
     const modal=visibleModal();if(modal===managedModal)return;
     const previous=managedModal;managedModal=modal;
     document.querySelector(".wrap")?.toggleAttribute("inert",!!modal);

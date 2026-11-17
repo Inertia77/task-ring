@@ -5,7 +5,7 @@
   const PAGE=25,PREFIX='taskring-gameops-cache-v1:';
   let user=null,rows=[],archive=[],filter='',reason='',history=false,page=0,hasMore=false;
   let status='同步中',error='',busy=false,authReady=false,manualOpen=false,mutationId=null,loaded=false,request=0,lastSync=null;
-  let manualDraft={},recentDone=[],recentRequest=0;
+  let manualDraft={},recentDone=[],recentRequest=0,authGeneration=0;
   // Display scopes share the same authenticated task source and mutation path.
   let scope='core';
   const scopeFilters={core:'',reserve:''};
@@ -193,7 +193,8 @@
   async function mutate(id,patch){
     if(!navigator.onLine){status='离线缓存';error='当前离线，操作未提交；联网后请重试。';render();return;}
     if(mutationId||!user)return false;
-    const uid=user.id, current=[...rows,...recentDone].find(row=>row.id===id);
+    const uid=user.id,generation=authGeneration,current=[...rows,...recentDone].find(row=>row.id===id);
+    const sameSession=()=>user?.id===uid&&generation===authGeneration;
     if(!current)return false;
     // A fetch started before this write must never restore its stale active row.
     request++;recentRequest++;busy=false;
@@ -202,7 +203,7 @@
       let update=client.from('game_ops_tasks').update(patch).eq('id',id).eq('user_id',uid);
       if(current.updated_at)update=update.eq('updated_at',current.updated_at);
       const {data,error:e}=await update.select('*').single();
-      if(user?.id!==uid)return false;
+      if(!sameSession())return false;
       if(e)throw e;
       if(!data)throw new Error('记录已更新，请刷新重试');
       if(patch.user_action&&data.user_action!==patch.user_action)throw new Error('服务器状态回读不一致');
@@ -214,8 +215,8 @@
       // Invalidate paginated history caches after a confirmed mutation.
       for(const key of Object.keys(localStorage))if(key.startsWith(PREFIX+user.id+':archive:'))localStorage.removeItem(key);
       status='已同步';confirmed=true;
-    }catch(e){if(user?.id===uid){status='同步失败';error='操作未确认：'+(e.message||e)+'。任务保留，请联网刷新后重试。';}}
-    finally{if(user?.id===uid){mutationId=null;render();}}
+    }catch(e){if(sameSession()){status='同步失败';error='操作未确认：'+(e.message||e)+'。任务保留，请联网刷新后重试。';}}
+    finally{if(sameSession()){mutationId=null;render();}}
     if(confirmed)await fetchTasks();
     return confirmed;
   }
@@ -248,7 +249,7 @@
   client.auth.onAuthStateChange((_event,session)=>{
     const next=session?.user||null,changed=next?.id!==user?.id;
     user=next;authReady=true;
-    if(changed){request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
+    if(changed){authGeneration++;request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
     if(user)setTimeout(()=>{fetchTasks();fetchPolicy();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);

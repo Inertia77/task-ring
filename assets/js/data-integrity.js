@@ -19,6 +19,7 @@
   const baseGhPatchConfig=ghPatchConfig;
   let pushQueued=false;
   let activePushPromise=null;
+  let configWrites=Promise.resolve();
 
   function nowIso(){return new Date().toISOString()}
   function readJson(key,fallback={}){
@@ -259,20 +260,31 @@
   };
   void baseScheduleGhSave; // kept only so older debug tooling can see that the function was intentionally replaced.
 
-  async function patchConfigSafely(config,{interactive=false,preloadedGist=null}={}){
+  function patchConfigSafely(config,options={}){
+    const operation=configWrites.then(()=>writeConfig(config,options));
+    configWrites=operation.catch(()=>{});
+    return operation;
+  }
+  async function writeConfig(config,{interactive=false,preloadedGist=null}={}){
     const candidate={...normalizeTaskConfig(config),updatedAt:nowIso()};
-    const gist=preloadedGist||await ghFetchGist();
+    const localBefore=loadLocalTaskConfig();
+    const beforeFingerprint=Core.configFingerprint(localBefore);
+    const gist=await ghFetchGist();
+    const current=loadLocalTaskConfig();
+    if(beforeFingerprint!==Core.configFingerprint(current))throw new Error("本机配置刚有新修改，请对最新版本重新同步。");
     const remoteResult=await ghParseConfig(gist);
     const remote=remoteResult.config;
     const baseFingerprint=configBaseFingerprint();
     const decision=Core.decideConfig({local:candidate,remote,baseFingerprint});
-    if(decision.source==="conflict"){
+    if(remoteResult.mode==="error")throw new Error("云端配置暂时不可读取，本机配置未上传。");
+    if(decision.source==="conflict"||decision.source==="remote"||
+      (preloadedGist&&gistRevision(preloadedGist)!==gistRevision(gist)&&decision.source!=="same"&&decision.source!=="local")){
       rememberConflict(candidate,remote,gist,decision.reason);
       const message="云端配置在本机编辑期间也发生了变化。为防止覆盖，TaskRing 已保留本机并记录云端冲突副本。";
       if(!interactive||!confirm(`${message}\n\n继续保存会用当前本机配置覆盖云端。确认继续？`))throw new Error(message);
     }
     const updated=await baseGhPatchConfig(candidate);
-    baseSaveLocalTaskConfig(candidate,"云端写入后统一本机时间戳");
+    if(Core.configFingerprint(loadLocalTaskConfig())===Core.configFingerprint(current))baseSaveLocalTaskConfig(candidate,"云端写入后统一本机时间戳");
     recordConfigBaseline(candidate,updated);
     return updated;
   }
@@ -449,6 +461,9 @@
     }
   };
 
+  window.addEventListener("online",()=>{
+    if(ghToken()&&!document.body.classList.contains("locked"))ghPull();
+  });
   migrateStoredTimeCategories();
   try{
     const local=loadLocalTaskConfig();

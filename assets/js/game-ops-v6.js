@@ -630,8 +630,9 @@
       section.querySelectorAll("[data-gqv5-editor-game]").forEach(function(card){
         const gid=card.dataset.gqv5EditorGame;
         const raw=[].slice.call(card.querySelectorAll("[data-gqv6-editor-task]")).map(function(row,i){
+          const previous=cfg.boards?.[board]?.[gid]?.find(item=>item.id===row.dataset.taskId);
           const task={
-            id:row.dataset.taskId||"",
+            ...previous,id:row.dataset.taskId||"",
             title:(row.querySelector(".gqV6TitleInput")&&row.querySelector(".gqV6TitleInput").value||"").trim(),
             url:(row.querySelector(".gqV6UrlInput")&&row.querySelector(".gqV6UrlInput").value||"").trim(),
             note:(row.querySelector(".gqV6NoteInput")&&row.querySelector(".gqV6NoteInput").value||"").trim(),
@@ -646,7 +647,7 @@
       });
     });
     cfg.games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
-    gameQuestDraftConfig={version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),games:cfg.games,boards:boards};
+    gameQuestDraftConfig={...cfg,version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),games:cfg.games,boards:{...cfg.boards,...boards}};
   };
 
   gameQuestEditorImportConfig=function(value){

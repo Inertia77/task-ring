@@ -56,7 +56,10 @@
         today=planned;
         available&&=validDate(s.date)&&date>=s.date&&(today||s.missed==="KEEP");
         break;
-      case "ONE_TIME": today=planned||s.showToday===true; break;
+      case "ONE_TIME":
+        today=planned||s.showToday===true;
+        available&&=!validDate(s.date)||date>=s.date;
+        break;
       case "DEADLINE": today=planned||dueToday; break;
       case "RECURRING":
         available&&=Number.isFinite(sinceAnchor)&&sinceAnchor>=0;
@@ -70,7 +73,7 @@
     }
     if(def.completedToday){today=true;available=true;}
     if(s.missed==="EXPIRE"&&overdue)available=false;
-    const carry=s.missed==="KEEP"&&((s.type==="SCHEDULED"&&validDate(s.date)&&date>s.date)||(s.type==="RECURRING"&&date>period));
+    const carry=s.missed==="KEEP"&&((["ONE_TIME","SCHEDULED"].includes(s.type)&&validDate(s.date)&&date>s.date)||(s.type==="RECURRING"&&date>period));
     const daysUntil=dayNumber(dueDate)-dayNumber(windowDate);
     const near=daysUntil>=0&&daysUntil<=3&&!overdue;
     const bucket=optional
@@ -135,6 +138,7 @@
   function validSchedule(s){
     return !!s&&TYPES.includes(s.type)&&POLICIES.includes(s.missed||"RESET")&&validBoundary(s.start)&&validBoundary(s.due)&&
       (!s.start?.date||!s.due?.date||s.start.date<=s.due.date)&&
+      (!s.start?.at||!s.due?.at||Date.parse(s.start.at)<=Date.parse(s.due.at))&&
       (!s.date||validDate(s.date))&&
       (s.type!=="SCHEDULED"||validDate(s.date))&&
       (s.type!=="DEADLINE"||validDate(s.due?.date))&&

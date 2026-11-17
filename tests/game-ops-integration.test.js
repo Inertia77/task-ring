@@ -139,3 +139,30 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}
 });
+
+test('overview archives and restores the same confirmed Supabase row, with offline and account isolation',async()=>{
+  const db=[task('COMMAND_CLOUD',{verification:'CONFIRMED',deadline_date:new Date(Date.now()+86400000).toISOString().slice(0,10)})];
+  const s=await boot(db);
+  try{
+    s.w.setActiveAppView('overview');
+    await tick();
+    const command=()=>[...s.w.document.querySelectorAll('#commandCenter [data-command-toggle]')].find(button=>button.getAttribute('aria-label').endsWith('COMMAND_CLOUD'));
+    assert(command());
+    await s.offline();assert(command().disabled);
+    await s.online();assert(!command().disabled);
+    command().click();await tick();
+    assert.equal(db[0].user_action,'DONE');
+    assert.equal(command().getAttribute('aria-pressed'),'true');
+    const foreign=await boot(db,s.cache(),false,'another-owner');
+    try{
+      foreign.w.setActiveAppView('overview');
+      assert(!foreign.w.document.getElementById('commandCenter').textContent.includes('COMMAND_CLOUD'));
+    }finally{await new Promise(resolve=>setTimeout(resolve,80));foreign.dom.window.close();}
+    command().click();await tick();
+    assert.equal(db.length,1);
+    assert.equal(db[0].task_key,'COMMAND_CLOUD');
+    assert.equal(db[0].archived_at,null);
+    assert.equal(db[0].user_action,'NONE');
+    assert.equal(command().getAttribute('aria-pressed'),'false');
+  }finally{await new Promise(resolve=>setTimeout(resolve,80));s.dom.window.close();}
+});

@@ -21,6 +21,8 @@
     return url?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+name+'</a>':"";
   };
   const todayLabel=()=>date()+" · "+dayName(today);
+  const timeFormatter=new Intl.DateTimeFormat("zh-CN",{timeZone:E.TIME_ZONE,hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+  const timeLabel=value=>{const instant=Date.parse(value);return Number.isFinite(instant)?timeFormatter.format(instant):"";};
   function update(host,html){
     if(host.innerHTML===html)return;
     const focus=host.contains(document.activeElement)?document.activeElement:null;
@@ -38,7 +40,7 @@
   function deadlineText(row){
     if(!row.deadline?.date)return "";
     const dateText=row.dueToday?"今日截止":row.overdue?"已逾期":"截止 "+row.deadline.date;
-    const time=row.deadline.at?new Intl.DateTimeFormat("zh-CN",{timeZone:E.TIME_ZONE,hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(row.deadline.at)):"";
+    const time=timeLabel(row.deadline.at);
     return dateText+(time?" "+time:"")+(row.deadline.precision==="unverified"?"（待核实）":"");
   }
   function card(row,{showSource=true}={}){
@@ -61,19 +63,18 @@
   }
   function upcoming(){
     const seen=new Set();
-    return Array.from({length:7},(_,i)=>E.offset(date(),i+1)).flatMap(day=>{
-      const now=Date.parse(day+"T12:00:00+09:00");
-      return S.query(day,now).filter(row=>{
-        const d=row.definition;
-        if(moduleFilter&&moduleFilter!==d.module)return false;
-        if(seen.has(row.instanceId)||d.module==="learning"||row.optional)return false;
-        if(row.deadline?.date!==day&&row.definition.schedule.date!==day&&!row.planned&&d.source!=="supabase")return false;
-        if(d.source==="supabase"&&row.deadline?.date!==day&&d.schedule.start?.date!==day)return false;
-        seen.add(row.instanceId);
-        return !row.done;
-      }).map(row=>({day,row}));
+    const dates=Array.from({length:7},(_,i)=>E.offset(date(),i+1));
+    return S.preview(dates).filter(({day,row})=>{
+      const d=row.definition;
+      if(moduleFilter&&moduleFilter!==d.module)return false;
+      if(seen.has(row.instanceId)||row.optional||row.done)return false;
+      if(d.source==="supabase"&&row.deadline?.date!==day&&d.schedule.start?.date!==day)return false;
+      if(d.source!=="supabase"&&row.deadline?.date!==day&&d.schedule.date!==day&&!row.planned)return false;
+      seen.add(row.instanceId);
+      return true;
     }).slice(0,15);
   }
+
   function renderOverview(force=false){
     if(!shell||!taskConfig||(!force&&activeAppView!=="overview"))return;
     const all=S.query(),tally=E.counts(all);
@@ -123,7 +124,7 @@
         '<button type="button" data-study-settings="'+track+'" data-command-focus="settings-'+track+'">轨道设置</button></header>'+
         (row?card(row,{showSource:false}):empty(state.config.paused?"轨道已暂停。":items.length?"当前没有待学内容。":"添加内容后开始学习。"))+
         '<details class="commandGroup" data-command-details="queue-'+track+'" '+(openedDetails.has("queue-"+track)||!items.length?'open':'')+'><summary>课程队列 '+items.length+'</summary>'+
-        '<ol class="studyQueue">'+items.map((item,index)=>'<li><span>'+esc(item.title)+(item.enabled===false?' · 停用':'')+'</span><div>'+
+        '<ol class="studyQueue">'+items.map((item,index)=>'<li><span>'+esc(item.title)+(item.stage?' · '+esc(item.stage):'')+(item.enabled===false?' · 停用':'')+'</span><div>'+
           '<button type="button" data-study-edit="'+track+'" data-study-id="'+esc(item.id)+'" data-command-focus="edit-'+esc(item.id)+'">编辑</button>'+
           '<button type="button" data-study-move="-1" data-study-track="'+track+'" data-study-id="'+esc(item.id)+'" aria-label="上移 '+esc(item.title)+'" '+(!index?'disabled':'')+'>↑</button>'+
           '<button type="button" data-study-move="1" data-study-track="'+track+'" data-study-id="'+esc(item.id)+'" aria-label="下移 '+esc(item.title)+'" '+(index===items.length-1?'disabled':'')+'>↓</button></div></li>').join("")+'</ol>'+
@@ -136,7 +137,8 @@
   function renderExtra(view){
     const host=document.getElementById("commandExtra-"+view);
     if(!host||activeAppView!==view)return;
-    const list=S.query().filter(row=>row.definition.nextSchedule&&row.definition.module===view);
+    const hasTasks=taskConfig?.tasks?.some(task=>task.nextSchedule&&(task.nextModule||"tasks")===view);
+    const list=hasTasks?S.query().filter(row=>row.definition.nextSchedule&&row.definition.module===view):[];
     host.hidden=!list.length;
     update(host,list.length?'<section class="commandGroup"><h2>统一调度</h2><div class="commandGrid">'+list.map(row=>card(row,{showSource:false})).join("")+'</div></section>':"");
   }
@@ -206,7 +208,7 @@
   dialog.addEventListener("cancel",event=>{event.preventDefault();dismiss()});
   function dialogError(message){dialog.querySelector(".commandDialogError").textContent=message}
 
-  function saveConfiguration(candidate,reason,guard=editorFingerprint){
+  function saveConfiguration(candidate,reason,guard=editorFingerprint,sync=true){
     if(guard&&guard!==fingerprint(config()))throw new Error("配置在编辑期间发生变化。请保留本页输入，重新打开编辑器后再应用。");
     C.validateConfig(candidate);
     const latest=loadLocalTaskConfig();
@@ -216,13 +218,15 @@
     if(!pushLocalConfigBackup(before,reason))throw new Error("无法建立本机回滚点，配置未保存。");
     const saved=saveLocalTaskConfig({...candidate,schemaVersion:C.VERSION,updatedAt:new Date().toISOString()},reason);
     applyTaskConfig(saved,true);
-    if(ghToken()&&navigator.onLine){
-      setGhStatus("GitHub：保存配置中","sync");
-      window.TaskRingIntegrity.patchConfig(saved).then(()=>setGhStatus("GitHub：已同步","on"),()=>{
-        setGhStatus("GitHub：配置未同步","err");renderOverview();
-      });
-    }
+    if(sync)syncConfiguration(saved);
     return saved;
+  }
+  function syncConfiguration(saved){
+    if(!ghToken()||!navigator.onLine)return;
+    setGhStatus("GitHub：保存配置中","sync");
+    window.TaskRingIntegrity.patchConfig(saved).then(()=>setGhStatus("GitHub：已同步","on"),()=>{
+      setGhStatus("GitHub：配置未同步","err");renderOverview();
+    });
   }
 
   function taskManager(){
@@ -249,13 +253,14 @@
     openDialog(t.id?"编辑任务":"新建任务",'<form data-command-task-form="'+esc(id)+'" class="commandForm">'+
       label("任务名称",input("title",t.title,"text","required maxlength=220"))+
       label("所属模块",'<select name="module">'+Object.keys(names).filter(key=>key!=="learning").map(key=>option(key,names[key],t.nextModule||"tasks")).join("")+'</select>')+
+      label("关联游戏（游戏模块）",'<select name="game">'+option("","无",t.nextGameId||"")+(gameQuestConfig?.games||[]).map(game=>option(game.id,game.name,t.nextGameId)).join("")+'</select>')+
       label("分类",'<select name="category">'+timeCategoryOrder.map(key=>option(key,timeCategoryLabel(key),t.time_category||"life")).join("")+'</select>')+
       label("执行周期",'<select name="type">'+Object.entries(types).map(([key,value])=>option(key,value,schedule.type)).join("")+'</select>')+
       label("安排日期",input("date",schedule.date,"date"))+
       label("开始日期",input("start",schedule.start?.date,"date"))+
-      label("开始时刻（日本时间，可留空）",input("startTime",schedule.start?.at?schedule.start.at.slice(11,16):"","time"))+
+      label("开始时刻（日本时间，可留空）",input("startTime",timeLabel(schedule.start?.at),"time"))+
       label("截止日期",input("due",schedule.due?.date,"date"))+
-      label("截止时刻（日本时间，可留空）",input("dueTime",schedule.due?.at?schedule.due.at.slice(11,16):"","time"))+
+      label("截止时刻（日本时间，可留空）",input("dueTime",timeLabel(schedule.due?.at),"time"))+
       label("未完成处理",'<select name="missed">'+option("RESET","按周期重置",schedule.missed)+option("KEEP","保留待办",schedule.missed)+option("EXPIRE","期限后收起",schedule.missed)+'</select>')+
       label("优先级",'<select name="priority">'+option("0","正常",String(t.nextPriority||0))+option("1","较高",String(t.nextPriority||0))+option("2","优先",String(t.nextPriority||0))+'</select>')+
       label("链接",input("url",t.url,"url"))+
@@ -292,7 +297,7 @@
     const codes=reservedTaskCodes(current);
     current.tasks.forEach(task=>codes.add(task.code));
     const task={...old,id:old?.id||"next-"+crypto.randomUUID(),code:old?.code||nextCode("t",codes),title:get("title"),
-      plan_mode:"weekly",days:old?.days||[],time_category:get("category"),nextModule:get("module"),nextSchedule:schedule,
+      plan_mode:"weekly",days:old?.days||[],time_category:get("category"),nextModule:get("module"),nextGameId:get("module")==="game"?get("game"):"",nextSchedule:schedule,
       nextPriority:Number(get("priority")),optional:!f.has("required"),enabled:f.has("enabled"),url:get("url"),note:get("note"),steps};
     const tasks=old?current.tasks.map(entry=>entry.id===old.id?task:entry):[...current.tasks,task];
     saveConfiguration({...current,tasks},"任务管理：编辑前备份");
@@ -351,14 +356,29 @@
     if(!importPreview)return;
     const {execution}=importPreview;
     if(execution&&!confirm("此操作会按记录版本合并完成历史与时间账本。应用前可下载当前完整备份。继续导入？"))return;
+    const protectedKey=key=>key.startsWith(GH_PREFIX)||[
+      TASK_CONFIG_LOCAL_KEY,window.TaskRingIntegrity.stateMetaKey,TIME_LOGS_KEY,TIME_LOG_DELETED_KEY
+    ].includes(key);
+    const before=execution?new Map(Object.keys(localStorage).filter(protectedKey).map(key=>[key,localStorage.getItem(key)])):null;
     if(execution)downloadJsonBackupFile("taskring-backup-before-import-"+date()+".json",snapshot());
-    saveConfiguration(importPreview.config,"统一 JSON 导入前");
-    if(execution){
-      window.TaskRingIntegrity.importState(execution);
-      mergeGhTimeLogDeletes(execution.time_logs_deleted);
-      mergeGhTimeLogs(execution.time_logs);
-      renderAll();
-      scheduleGhSave();
+    try{
+      const saved=saveConfiguration(importPreview.config,"统一 JSON 导入前",editorFingerprint,!execution);
+      if(execution){
+        window.TaskRingIntegrity.importState(execution);
+        mergeGhTimeLogDeletes(execution.time_logs_deleted);
+        mergeGhTimeLogs(execution.time_logs);
+        renderAll();
+        syncConfiguration(saved);
+        scheduleGhSave();
+      }
+    }catch(err){
+      if(before){
+        for(const key of Object.keys(localStorage))if(protectedKey(key)&&!before.has(key))localStorage.removeItem(key);
+        for(const [key,value] of before)localStorage.setItem(key,value);
+        if(!applyLocalConfigIfAny())applyTaskConfig(buildDefaultConfig(),false);
+        renderAll();
+      }
+      throw err;
     }
     dialog.close();
     showToast("已应用 JSON 到本机","ok",2600);
@@ -378,6 +398,7 @@
     const {config:queue}=S.trackState(track,date()),item=queue.items.find(entry=>entry.id===id)||{};
     openDialog(S.trackTitles[track]+"学习项",'<form class="commandForm" data-study-form="'+track+'" data-study-id="'+esc(id||"")+'">'+
       label("课程名称",'<input required maxlength="220" name="title" value="'+esc(item.title)+'">')+
+      label("阶段（可选）",'<input maxlength="60" name="stage" value="'+esc(item.stage)+'">')+
       label("学习链接",'<input type="url" name="url" value="'+esc(item.url)+'">')+
       label("学习要点",'<textarea name="note">'+esc(item.note)+'</textarea>')+
       '<label><input type="checkbox" name="enabled" '+(item.enabled!==false?'checked':'')+'> 启用</label>'+
@@ -402,7 +423,7 @@
       const title=String(f.get("title")).trim();
       if(!title)throw new Error("请填写课程名称");
       const item={...original,id:original?.id||crypto.randomUUID(),title,url:String(f.get("url")).trim(),
-        note:String(f.get("note")).trim(),enabled:f.has("enabled")};
+        note:String(f.get("note")).trim(),stage:String(f.get("stage")).trim(),enabled:f.has("enabled")};
       const items=original?queue.items.map(entry=>entry.id===original.id?item:entry):[...queue.items,item];
       updateTrack(track,{...queue,items});
     }

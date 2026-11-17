@@ -58,9 +58,11 @@
   }
   function nativeTask(task){
     const module=task.nextModule||"tasks";
+    const game=module==="game"&&(gameQuestConfig?.games||[]).find(item=>item.id===task.nextGameId);
+    const tier=game?window.TaskRingGamePlayPolicy?.get(game).tier:null;
     return {
       ...task,id:E.id("task",task.id),sourceId:task.id,module,source:"local",
-      schedule:task.nextSchedule,required:!task.optional,optional:!!task.optional,
+      schedule:task.nextSchedule,category:game?.name,tier,required:!task.optional&&tier!==3,optional:!!task.optional||tier===3,
       priority:task.nextPriority??(task.important?2:0),
       read({period}){
         const prefix=GH_PREFIX+"next_task_"+task.code+"|"+period;
@@ -118,10 +120,10 @@
       }];
     });
   }
-  function trackState(track,date){
+  function trackState(track,date,metadata=stores?.readStateMeta()){
     const config=taskConfig?.sequences?.[track]||E.emptyTrack();
     const prefix=learningKey(track,"");
-    const events=Object.entries(stores?.readStateMeta()||{}).flatMap(([key,record])=>{
+    const events=Object.entries(metadata||{}).flatMap(([key,record])=>{
       if(!key.startsWith(prefix)||!record.sequence||record.value!=="1")return [];
       const raw=key.slice(prefix.length);
       return /^\d+$/.test(raw)?[{ordinal:Number(raw),...record.sequence,completedAt:record.updatedAt}]:[];
@@ -138,7 +140,7 @@
   }
   function learning(date){
     return E.TRACKS.flatMap(track=>{
-      const state=trackState(track,date),item=state.current;
+      const state=trackState(track,date,stateMeta),item=state.current;
       if(!item)return [];
       return [{
         ...item,id:E.id("learning",track,item.id),sourceId:item.id,source:"local",module:"learning",
@@ -149,19 +151,28 @@
     });
   }
 
-  function definitions(date){
-    return [
-      ...ringBlocks().map(task=>legacyDaily(task,date)).filter(Boolean),
+  function definitions(date,preview=false){
+    const scheduled=[
       ...weeklyPoolBlocks().map(task=>weeklyPlan(task,date)),
       ...(taskConfig?.tasks||[]).filter(task=>task.nextSchedule&&E.validSchedule(task.nextSchedule)).map(nativeTask),
-      ...fitness(date),...games(date),...cloud(),...learning(date)
+      ...cloud()
     ];
+    if(preview)return scheduled;
+    return [...ringBlocks().map(task=>legacyDaily(task,date)).filter(Boolean),
+      ...scheduled,...fitness(date),...games(date),...learning(date)];
   }
 
   function query(date=ymd(operationalNow),now=Date.now()){
     stateMeta=stores?.readStateMeta()||{};
     return E.query(definitions(date),date,row=>row.definition.read(row),now);
   }
+  function preview(days){
+    stateMeta=stores?.readStateMeta()||{};
+    return days.flatMap(day=>{
+      const now=Date.parse(day+"T23:59:59+09:00");
+      return E.query(definitions(day,true),day,row=>row.definition.read(row),now).map(row=>({day,row}));
+    });
+  }
 
-  window.TaskRingTaskSources={query,definitions,plans,setPlan,weeklyState,trackState,setLearning,trackTitles};
+  window.TaskRingTaskSources={query,preview,definitions,plans,setPlan,weeklyState,trackState,setLearning,trackTitles};
 })();
