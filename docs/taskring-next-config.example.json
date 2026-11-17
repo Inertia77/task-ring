@@ -1,0 +1,32 @@
+{
+  "kind": "taskring-config",
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "id": "demo-next",
+      "code": "t900",
+      "title": "示例任务",
+      "enabled": false,
+      "nextModule": "tasks",
+      "time_category": "life",
+      "nextSchedule": {"type": "WEEKDAY", "days": [1, 4], "missed": "RESET"},
+      "steps": [{"id": "demo-step", "code": "s01", "title": "示例子任务"}]
+    }
+  ],
+  "modules": {
+    "gameQuest": {"version": 6, "games": [], "boards": {"daily": {}, "weekly": {}}},
+    "fitness": {"version": 2, "sections": [], "days": {}}
+  },
+  "schedules": {},
+  "sequences": {
+    "LANGUAGE": {
+      "paused": true,
+      "end": "stop",
+      "items": [{"id": "example-language", "title": "语言项目示例", "enabled": false}]
+    },
+    "KNOWLEDGE": {"paused": false, "end": "stop", "items": []}
+  },
+  "references": [],
+  "settings": {},
+  "sourceMappings": {"local": "taskring-gist", "gameOps": "supabase:public.game_ops_tasks"}
+}

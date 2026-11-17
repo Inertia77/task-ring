@@ -101,7 +101,7 @@
     let id=String(obj.id||slugifyId(board+"-"+title,board+"-"+(idx+1))).trim();
     if(used.has(id)){let base=id,n=2;while(used.has(base+"-"+n))n++;id=base+"-"+n}
     used.add(id);
-    const out={id:id,title:title,url:normUrl(obj.url||obj.link||""),enabled:obj.enabled!==false};
+    const out={...obj,id:id,title:title,url:normUrl(obj.url||obj.link||""),enabled:obj.enabled!==false};
     const note=String(obj.note||obj.detail||"").trim();
     if(note)out.note=note;
     if(board==="daily")out.daily_lane=dailyLane(obj.id?obj:{...obj,id:id});
@@ -137,7 +137,7 @@
   function normList(value,board){
     const list=Array.isArray(value)?value:(typeof value==="string"?value.split(/\n+/):[]);
     const used=new Set();
-    return list.map(function(x,i){return normTask(x,i,board,used)}).filter(function(x){return x&&x.enabled!==false}).slice(0,40);
+    return list.map(function(x,i){return normTask(x,i,board,used)}).filter(function(x){return x&&x.enabled!==false});
   }
   function dedupePush(target,task,board){
     if(!task||!task.title)return;
@@ -175,7 +175,7 @@
       if(seen.has(id)){let base=id,n=2;while(seen.has(base+"-"+n))n++;id=base+"-"+n}
       seen.add(id);
       return {
-        id:id,
+        ...g,id:id,
         name:name,
         short:String(g&&g.short||name).trim()||name,
         icon:String(g&&g.icon||"GQ").trim()||"GQ",
@@ -243,7 +243,7 @@
       EDIT_BOARD_ORDER.forEach(function(board){games.forEach(function(g){boards[board][g.id]=normList(migrated[board][g.id]||[],board)})});
     }
     games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
-    return {version:VERSION,updatedAt:String(src.updatedAt||""),priorityOrder:PRIORITY_ORDER.slice(),games:games,boards:boards};
+    return {...(record(src.boards)?src:{}),version:VERSION,updatedAt:String(src.updatedAt||""),priorityOrder:PRIORITY_ORDER.slice(),games:games,boards:{...src.boards,...boards}};
   };
 
   window.TaskRingGameOpsV6.normalizeConfig=function(config){return normalizeGameQuestConfig(config)};
@@ -339,6 +339,11 @@
   }
   // Advisory count only; never used as a permission gate for T3.
   window.TaskRingGameOpsV6.pendingCore=pendingCore;
+  window.TaskRingGameOpsV6.commandTasks=()=>["daily","weekly"].flatMap(board=>entriesFor(board).flatMap(({game,tasks})=>tasks.map(task=>({
+    board,game,task,tier:tierOf(game),lane:board==="daily"?dailyLane(task):weeklyLane(task),
+    required:tierOf(game)!==3&&!isOptionalTask(board,task),key:taskKey(board,game.id,task),
+    set:(value,el)=>setTaskDone(board,game.id,task,value,el)
+  }))));
 
   gameQuestStats=function(){return boardStats("daily")};
   gameQuestWeeklyStats=function(){return boardStats("weekly")};
@@ -370,6 +375,17 @@
     window.TaskRingGameOpsCloud?.setScope?.(scope);
     renderGameQuestPanel();
   }
+  window.TaskRingGameOpsV6.showTask=function(board,game,task,tier,lane){
+    setScope(tier===3?"reserve":"core");
+    setCurrentBoard(board);
+    if(lane&&board!=="hub"){
+      setCurrentLane(board,lane);
+      updateMobileFocus(board,lane,game);
+      renderGameQuestPanel();
+    }
+    if(board==="hub")return window.TaskRingGameOpsCloud?.showTask(task);
+    return [...document.querySelectorAll("[data-gqv5-task]")].find(el=>el.dataset.game===game&&el.dataset.task===task&&el.dataset.board===board);
+  };
   setGameQuestBoardMode=function(mode){
     const map={today:"daily",week:"weekly",interest:"hub",cycle:"hub",version:"hub"};
     setCurrentBoard(VIEW_ORDER.includes(mode)?mode:(map[mode]||"daily"));
@@ -614,8 +630,9 @@
       section.querySelectorAll("[data-gqv5-editor-game]").forEach(function(card){
         const gid=card.dataset.gqv5EditorGame;
         const raw=[].slice.call(card.querySelectorAll("[data-gqv6-editor-task]")).map(function(row,i){
+          const previous=cfg.boards?.[board]?.[gid]?.find(item=>item.id===row.dataset.taskId);
           const task={
-            id:row.dataset.taskId||"",
+            ...previous,id:row.dataset.taskId||"",
             title:(row.querySelector(".gqV6TitleInput")&&row.querySelector(".gqV6TitleInput").value||"").trim(),
             url:(row.querySelector(".gqV6UrlInput")&&row.querySelector(".gqV6UrlInput").value||"").trim(),
             note:(row.querySelector(".gqV6NoteInput")&&row.querySelector(".gqV6NoteInput").value||"").trim(),
@@ -630,7 +647,7 @@
       });
     });
     cfg.games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
-    gameQuestDraftConfig={version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),games:cfg.games,boards:boards};
+    gameQuestDraftConfig={...cfg,version:VERSION,updatedAt:new Date().toISOString(),priorityOrder:PRIORITY_ORDER.slice(),games:cfg.games,boards:{...cfg.boards,...boards}};
   };
 
   gameQuestEditorImportConfig=function(value){

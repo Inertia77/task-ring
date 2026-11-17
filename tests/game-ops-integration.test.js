@@ -16,7 +16,7 @@ async function boot(db,cache={},online=true,owner=uid,policies=[]){
   Object.entries(cache).forEach(([k,v])=>w.localStorage.setItem(k,v));
   const calls=[],errors=[];w.addEventListener('error',e=>errors.push(e.error));w.fetch=async()=>({ok:true,json:async()=>({})});
   const client={fail:false,auth:{onAuthStateChange(){},getSession:async()=>({data:{session:owner?{user:{id:owner}}:null}}),signOut:async()=>({})},from(table){
-    const q={table,filters:[],orders:[],mode:'read',data:null,start:0,end:Infinity,eq(k,v){this.filters.push(r=>r[k]===v);return this;},in(k,values){this.filters.push(r=>values.includes(r[k]));return this;},is(k,v){this.filters.push(r=>(r[k]??null)===v);return this;},not(k,_op,v){this.filters.push(r=>(r[k]??null)!==v);return this;},order(k,opts){this.orders.push([k,opts]);return this;},range(a,b){this.start=a;this.end=b;return this;},select(){return this;},update(data){this.mode='update';this.data=data;return this;},insert(data){this.mode='insert';this.data=data;return this;},single(){this.one=true;return this;},then(ok,fail){
+    const q={table,filters:[],orders:[],mode:'read',data:null,start:0,end:Infinity,eq(k,v){this.filters.push(r=>r[k]===v);return this;},gte(k,v){this.filters.push(r=>Date.parse(r[k])>=Date.parse(v));return this;},in(k,values){this.filters.push(r=>values.includes(r[k]));return this;},is(k,v){this.filters.push(r=>(r[k]??null)===v);return this;},not(k,_op,v){this.filters.push(r=>(r[k]??null)!==v);return this;},order(k,opts){this.orders.push([k,opts]);return this;},range(a,b){this.start=a;this.end=b;return this;},select(){return this;},update(data){this.mode='update';this.data=data;return this;},insert(data){this.mode='insert';this.data=data;return this;},single(){this.one=true;return this;},then(ok,fail){
       calls.push({table,mode:this.mode,range:[this.start,this.end]});
       let result;if(client.fail||!connected)result={data:null,error:{message:'test transport failure'}};
       else{
@@ -138,4 +138,31 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
     assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}
+});
+
+test('overview archives and restores the same confirmed Supabase row, with offline and account isolation',async()=>{
+  const db=[task('COMMAND_CLOUD',{verification:'CONFIRMED',deadline_date:new Date(Date.now()+86400000).toISOString().slice(0,10)})];
+  const s=await boot(db);
+  try{
+    s.w.setActiveAppView('overview');
+    await tick();
+    const command=()=>[...s.w.document.querySelectorAll('#commandCenter [data-command-toggle]')].find(button=>button.getAttribute('aria-label').endsWith('COMMAND_CLOUD'));
+    assert(command());
+    await s.offline();assert(command().disabled);
+    await s.online();assert(!command().disabled);
+    command().click();await tick();
+    assert.equal(db[0].user_action,'DONE');
+    assert.equal(command().getAttribute('aria-pressed'),'true');
+    const foreign=await boot(db,s.cache(),false,'another-owner');
+    try{
+      foreign.w.setActiveAppView('overview');
+      assert(!foreign.w.document.getElementById('commandCenter').textContent.includes('COMMAND_CLOUD'));
+    }finally{await new Promise(resolve=>setTimeout(resolve,80));foreign.dom.window.close();}
+    command().click();await tick();
+    assert.equal(db.length,1);
+    assert.equal(db[0].task_key,'COMMAND_CLOUD');
+    assert.equal(db[0].archived_at,null);
+    assert.equal(db[0].user_action,'NONE');
+    assert.equal(command().getAttribute('aria-pressed'),'false');
+  }finally{await new Promise(resolve=>setTimeout(resolve,80));s.dom.window.close();}
 });

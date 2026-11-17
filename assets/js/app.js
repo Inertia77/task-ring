@@ -198,8 +198,8 @@ function inferTaskPlanMode(raw){
 function taskPlanningMode(task){return normalizeTaskPlanMode(task?.plan_mode||task?.planMode||task?.planning_mode,inferTaskPlanMode(task||{}))}
 function isWeeklyPoolTask(task){return taskPlanningMode(task)==="weekly"}
 function isRingTask(task){return !isWeeklyPoolTask(task)}
-function ringBlocks(){return blocks.filter(t=>isRingTask(t)&&Array.isArray(t.days)&&t.days.length>0)}
-function weeklyPoolBlocks(){return blocks.filter(isWeeklyPoolTask)}
+function ringBlocks(){return blocks.filter(t=>!t.nextSchedule&&isRingTask(t)&&Array.isArray(t.days)&&t.days.length>0)}
+function weeklyPoolBlocks(){return blocks.filter(t=>!t.nextSchedule&&isWeeklyPoolTask(t))}
 function planModeBadgeHtml(t){const mode=taskPlanningMode(t);const def=taskPlanModeDefs[mode]||taskPlanModeDefs.weekly;return `<span class="planModeBadge ${mode}" title="${escapeHtml(def.hint)}">${escapeHtml(def.short)}</span>`}
 function taskDayHint(t){
   const daysText=Array.isArray(t.days)&&t.days.length?sortWeekDays(t.days).map(dayName).join("・"):"自由";
@@ -234,9 +234,9 @@ function normalizeRefGroups(groups){
         iid=`${base}-${n}`;
       }
       usedItemIds.add(iid);
-      return {id:iid,title:itTitle,url:String(it.url||"").trim(),enabled:it.enabled!==false};
+      return {...it,id:iid,title:itTitle,url:String(it.url||"").trim(),enabled:it.enabled!==false};
     });
-    return {id,title,enabled:raw.enabled!==false,items};
+    return {...raw,id,title,enabled:raw.enabled!==false,items};
   });
 }
 
@@ -412,8 +412,8 @@ function normalizeFitnessItemList(value,kind="training"){
     used.add(id);
     const note=String(obj?.note||obj?.detail||"").trim();
     const url=normalizeFitnessUrl(obj?.url||obj?.link||"",note);
-    return {id,title,note,url,optional:obj?.optional===true,enabled:obj?.enabled!==false};
-  }).filter(item=>item&&item.enabled!==false).slice(0,30);
+    return {...obj,id,title,note,url,optional:obj?.optional===true,enabled:obj?.enabled!==false};
+  }).filter(item=>item&&item.enabled!==false);
 }
 const FITNESS_SECTION_DEFAULTS=[
   {id:"training",name:"训练",short:"TRAINING",icon:"动",accent:"green",locked:true,enabled:true},
@@ -438,7 +438,7 @@ function normalizeFitnessSections(value,rawDays={}){
     const accent=FITNESS_SECTION_ACCENTS.has(String(raw.accent||"").trim())?String(raw.accent).trim():["green","amber","blue","violet","rose","cyan","slate"][idx%7];
     const defaultMeta=FITNESS_SECTION_DEFAULTS.find(x=>x.id===id);
     sections.push({
-      id,
+      ...raw,id,
       name:baseName,
       short:String(raw.short||defaultMeta?.short||baseName).trim().slice(0,18)||baseName,
       icon:String(raw.icon||defaultMeta?.icon||baseName.slice(0,1)||"＋").trim().slice(0,20)||"＋",
@@ -463,7 +463,7 @@ function normalizeFitnessSections(value,rawDays={}){
       pushSection({id,name:key,short:String(key).toUpperCase(),icon:String(key).slice(0,1),accent:"blue",enabled:true});
     });
   });
-  return sections.slice(0,12);
+  return sections;
 }
 function normalizeFitnessConfig(config){
   const fallback=deepClone(typeof defaultFitnessConfig!=="undefined"?defaultFitnessConfig:{version:2,sections:FITNESS_SECTION_DEFAULTS,days:{}});
@@ -482,7 +482,7 @@ function normalizeFitnessConfig(config){
     });
     days[key]=dayOut;
   });
-  return {version:2,updatedAt:String(src.updatedAt||""),sections,days};
+  return {...src,version:2,updatedAt:String(src.updatedAt||""),sections,days};
 }
 
 function buildDefaultConfig(){
@@ -558,10 +558,10 @@ function normalizeTaskConfig(config){
       let scode=String(st.code||"").trim();
       if(!/^s\d{2,}$/.test(scode)||usedStepCodes.has(scode)) scode=nextCode("s",usedStepCodes);
       usedStepCodes.add(scode);
-      return {id:sid, code:scode, title:stTitle, enabled:st.enabled!==false};
+      return {...st,id:sid, code:scode, title:stTitle, enabled:st.enabled!==false};
     });
     return {
-      id, code, cat, title, days,
+      ...raw,id, code, cat, title, days,
       url:String(raw.url||"").trim(),
       note:String(raw.note??raw.ai_prompt??"").trim(),
       ai_enabled:raw.ai_enabled===true,
@@ -581,7 +581,7 @@ function normalizeTaskConfig(config){
     };
   });
   const hasFitness=Object.prototype.hasOwnProperty.call(src,"fitness");
-  return {version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, retired_task_codes:retiredTaskCodes, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest), fitness:normalizeFitnessConfig(hasFitness?src.fitness:fallback.fitness)};
+  return {...src,version:4, privacy:"coded-state-keys", updatedAt:String(src.updatedAt||new Date().toISOString()), tasks, retired_task_codes:retiredTaskCodes, refs:normalizeRefGroups(src.refs||fallback.refs), gameQuest:normalizeGameQuestConfig(src.gameQuest||fallback.gameQuest), fitness:normalizeFitnessConfig(hasFitness?src.fitness:fallback.fitness)};
 }
 function applyTaskConfig(config, shouldRender=false){
   const repaired=repairReusedTaskCodes(normalizeTaskConfig(config));
@@ -599,7 +599,7 @@ function applyTaskConfig(config, shouldRender=false){
   gameQuestConfig=taskConfig.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig);
   fitnessConfig=taskConfig.fitness||normalizeFitnessConfig(defaultFitnessConfig);
   blocks=taskConfig.tasks.filter(t=>t.enabled!==false).map(t=>({
-    id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"",
+    id:t.id, code:t.code, cat:t.cat, title:t.title, days:t.days, url:t.url||"", nextSchedule:t.nextSchedule, nextModule:t.nextModule,
     note:t.note||"", ai_enabled:t.ai_enabled===true, ai_chat_url:t.ai_chat_url||"", ai_archive_url:t.ai_archive_url||"", ai_period:t.ai_period||"weekly", ai_target:t.ai_target||0,
     core:t.core?1:0, optional:t.optional?1:0, important:t.important?1:0, enabled:t.enabled!==false,
     time_category:t.time_category||inferTaskTimeCategory(t), estimated_minutes:t.estimated_minutes||inferEstimatedMinutes(t), weekly_minutes:taskWeeklyMinutes(t), plan_mode:taskPlanningMode(t)
@@ -675,8 +675,9 @@ function pushLocalConfigBackup(config,reason="自动备份"){
     const counts=configCounts(cfg);
     const entry={id:`bk-${Date.now().toString(36)}`,createdAt:new Date().toISOString(),reason,counts,config:cfg};
     const list=readLocalConfigBackups();
-    const sig=JSON.stringify(cfg.tasks||[]);
-    const dedup=list.filter(item=>JSON.stringify(item?.config?.tasks||[])!==sig);
+    const signature=value=>window.TaskRingIntegrityCore?.configFingerprint(value)||JSON.stringify(value);
+    const sig=signature(cfg);
+    const dedup=list.filter(item=>signature(item?.config)!==sig);
     dedup.unshift(entry);
     writeLocalConfigBackups(dedup);
     return entry;
@@ -790,7 +791,13 @@ const cats={life:{name:"生活&经济",color:"var(--life)",cls:"life",icon:"◇"
 const mobileCatNames={life:"生活",gamecreate:"创作",language:"语言和音乐"};
 function catMobileName(catKey,c){return mobileCatNames[catKey]||c?.name||catKey||"任务"}
 const ROLLOVER_HOUR=4;
-function getOperationalDate(date){const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR){d.setDate(d.getDate()-1)}return d}
+function getOperationalDate(date){
+  if(window.TaskRingTasks){
+    const label=window.TaskRingTasks.businessDate(date,ROLLOVER_HOUR);
+    return new Date(label+"T12:00:00");
+  }
+  const d=new Date(date);if(d.getHours()<ROLLOVER_HOUR)d.setDate(d.getDate()-1);return d;
+}
 function getUrlDateOverride(){
   try{
     const raw=new URLSearchParams(location.search).get("date");
@@ -802,7 +809,7 @@ function getUrlDateOverride(){
 }
 const realNow=new Date();
 const urlDateOverride=getUrlDateOverride();
-const operationalNow=getOperationalDate(urlDateOverride||realNow);
+const operationalNow=urlDateOverride||getOperationalDate(realNow);
 const today=operationalNow.getDay();
 const UI_VIEW_MODE_KEY="taskring_view_mode_v1";const UI_MOBILE_DAY_KEY="taskring_mobile_day_v1";const SAVED_VIEW_MODE=localStorage.getItem(UI_VIEW_MODE_KEY);let viewMode=["undone","today","all"].includes(SAVED_VIEW_MODE)?SAVED_VIEW_MODE:"undone";const SAVED_MOBILE_DAY=Number(localStorage.getItem(UI_MOBILE_DAY_KEY));let mobileDay=[0,1,2,3,4,5,6].includes(SAVED_MOBILE_DAY)?SAVED_MOBILE_DAY:today;
 function pad(n){return String(n).padStart(2,"0")}
@@ -810,7 +817,7 @@ function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDat
 function dayName(id){return days.find(d=>d.id===id)?.name||""}
 function dayNamesFor(t){return t.days.map(dayName).join("・")}
 function getCycleStart(date){const ref=new Date(date);const d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),4,0,0,0);const day=ref.getDay();const daysSinceMonday=(day+6)%7;d.setDate(d.getDate()-daysSinceMonday);if(ref<d)d.setDate(d.getDate()-7);return d}
-const cycleStart=getCycleStart(urlDateOverride||realNow);
+const cycleStart=getCycleStart(operationalNow);
 const cycleEnd=new Date(cycleStart);cycleEnd.setDate(cycleStart.getDate()+7);
 const cycleYmd=ymd(cycleStart);
 const prevCycleStart=new Date(cycleStart);prevCycleStart.setDate(cycleStart.getDate()-7);
@@ -827,9 +834,10 @@ const GQ_BOARD_MODE_KEY=`${GH_PREFIX}gamequest_board_mode_v1`;
 const GQ_WEEKLY_FILTER_KEY=`${GH_PREFIX}gamequest_weekly_filter_v1`;
 const UI_SCROLL_STATE_KEY="taskring_ui_scroll_state_v1";
 const ORBIT_DRAWER_OPEN_KEY="taskring_orbit_drawer_open_v1";
-const APP_VIEWS=new Set(["tasks","weekly","fitness","game","time","library"]);
+const APP_VIEWS=new Set(["overview","tasks","weekly","fitness","game","learning","time","library","more"]);
 const LOCAL_PREVIEW_UNLOCK=["localhost","127.0.0.1","::1"].includes(location.hostname)&&new URLSearchParams(location.search).has("preview");
-let activeAppView=APP_VIEWS.has(localStorage.getItem(APP_VIEW_KEY))?localStorage.getItem(APP_VIEW_KEY):"tasks";
+let activeAppView=new URLSearchParams(location.search).get("view");
+if(!APP_VIEWS.has(activeAppView))activeAppView=urlDateOverride?"tasks":"overview";
 let gameQuestBoardMode="today";
 let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"all";
 let ghSaveTimer=null;
@@ -1336,24 +1344,6 @@ function downloadJsonBackupFile(filename,payload){
   link.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function exportAllJsonSections(){
-  try{
-    const cfg=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
-    const date=ymd(new Date());
-    const files=[
-      {name:`taskring-tasks-${date}.json`,payload:taskEditorExportPayload(cfg)},
-      {name:`taskring-game-quest-${date}.json`,payload:deepClone(gameQuestConfig||cfg.gameQuest||normalizeGameQuestConfig(defaultGameQuestConfig))},
-      {name:`taskring-life-improvement-${date}.json`,payload:{...deepClone(fitnessConfig||cfg.fitness||normalizeFitnessConfig(defaultFitnessConfig)),section:"fitness",module:"life-improvement"}},
-      {name:`taskring-library-${date}.json`,payload:{version:1,refs:deepClone(refGroups||cfg.refs||normalizeRefGroups(defaultRefGroups))}}
-    ];
-    files.forEach(file=>downloadJsonBackupFile(file.name,file.payload));
-    closeControlCenter();
-    showToast("已导出任务、游戏、生活改善、资料库 4 个 JSON 文件","ok",3200);
-  }catch(error){
-    console.error("export all JSON sections failed",error);
-    showToast("JSON 导出失败，请重试","err",3000);
-  }
-}
 function initGithubSyncUI(){
   document.getElementById("lockUnlockBtn")?.addEventListener("click",handleSoftUnlock);
   document.getElementById("lockCodeInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handleSoftUnlock()}});
@@ -1362,7 +1352,6 @@ function initGithubSyncUI(){
   document.getElementById("controlGithubBtn")?.addEventListener("click",()=>{closeControlCenter();openGhModal()});
   document.getElementById("controlPullBtn")?.addEventListener("click",()=>{closeControlCenter();ghPull({preferRemote:true,interactive:true})});
   document.getElementById("controlPushBtn")?.addEventListener("click",()=>{closeControlCenter();ghPush(false)});
-  document.getElementById("controlExportJsonBtn")?.addEventListener("click",exportAllJsonSections);
   document.getElementById("controlLockBtn")?.addEventListener("click",()=>softLockNow());
   document.getElementById("controlClearExpiredBtn")?.addEventListener("click",()=>{closeControlCenter();completeCarryoverTasks()});
   document.getElementById("controlCenterCloseBtn")?.addEventListener("click",closeControlCenter);
@@ -1502,11 +1491,11 @@ function editorRowToTask(row,idx){
     if(stepUsed.has(code)||!/^s\d{2,}$/.test(code))code=makeStepCode(stepUsed);
     stepUsed.add(code);
     const previous=original?.steps?.filter(step=>step.enabled!==false)[sidx];
-    return {id:previous?.id||slugifyId(title,`step-${sidx+1}`),code:previous?.code||code,title,enabled:true}
+    return {...previous,id:previous?.id||slugifyId(title,`step-${sidx+1}`),code:previous?.code||code,title,enabled:true}
   });
   const days=[...row.querySelectorAll(".cfgDay:checked")].map(i=>Number(i.value));
   return {
-    id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
+    ...original,id:row.querySelector(".cfgId").value.trim()||row.dataset.id||makeTaskId(),
     code:row.querySelector(".cfgCode").value.trim()||row.dataset.code||makeTaskCode(),
     cat:original?.cat||row.querySelector(".cfgCat").value,
     title:row.querySelector(".cfgTitle").value.trim()||`任务 ${idx+1}`,
@@ -2141,28 +2130,33 @@ function occurrenceMeta(t,dayId,cycle=cycleYmd){
 
 /* === v11.0 Time Budget Ring runtime === */
 function applyActiveAppView(){
-  if(!APP_VIEWS.has(activeAppView))activeAppView="tasks";
+  if(!APP_VIEWS.has(activeAppView))activeAppView="overview";
   document.body.dataset.appView=activeAppView;
   document.querySelectorAll("[data-view-panel]").forEach(panel=>{
     const isActive=panel.dataset.viewPanel===activeAppView;
     panel.classList.toggle("active",isActive);
     panel.setAttribute("aria-hidden",isActive?"false":"true");
   });
+  const mobile=window.matchMedia?.("(max-width: 900px)").matches===true;
   document.querySelectorAll("[data-view-target]").forEach(btn=>{
-    const isActive=btn.dataset.viewTarget===activeAppView;
+    const mobileShortcut=mobile&&btn.classList.contains("commandDesktopNav");
+    const moreSelected=mobile&&btn.dataset.viewTarget==="more"&&["learning","fitness","time","library"].includes(activeAppView);
+    const isActive=!mobileShortcut&&(btn.dataset.viewTarget===activeAppView||moreSelected);
     btn.classList.toggle("active",isActive);
-    btn.setAttribute("aria-pressed",isActive?"true":"false");
+    btn.setAttribute("aria-pressed",String(isActive));
     if(btn.matches(".viewDockBtn"))btn.setAttribute("aria-current",isActive?"page":"false");
   });
 }
+window.addEventListener("resize",applyActiveAppView,{passive:true});
 let appViewScrollFrame=0;
 function setActiveAppView(view){
   const previous=activeAppView;
-  const next=APP_VIEWS.has(view)?view:"tasks";
+  const next=APP_VIEWS.has(view)?view:"overview";
   closeControlCenter();
   activeAppView=next;
   localStorage.setItem(APP_VIEW_KEY,next);
   applyActiveAppView();
+  window.TaskRingCommand?.onView(next);
   if(next==="time")renderTimePanel();
   if(next==="weekly")renderWeeklyPlanPanel();
   if(next==="game"){
@@ -2412,7 +2406,7 @@ function saveManualTimeEntry(form){
     task_code:target.task_code,
     title:target.title,
     category:normalizeTimeCategory(target.category),
-    cycle:ymd(getCycleStart(endedAt)),
+    cycle:ymd(getCycleStart(operationalEnded)),
     day_id:operationalEnded.getDay(),
     started_at:new Date(endedAt.getTime()-minutes*60000).toISOString(),
     ended_at:endedAt.toISOString(),
@@ -3797,6 +3791,7 @@ function renderAll(scopes=null){const should=name=>!Array.isArray(scopes)||scope
   if(should("daily")){renderTable();renderMobileTabs();renderMobileCards();renderOrbitPanel();updateProgress();}
   if(should("library"))renderReferenceLibrary();
   if(should("fitness"))window.renderFitnessPanel?.();
+  window.TaskRingCommand?.render();
   renderTimerDock();applyActiveAppView();restoreUiScrollState(uiState);restoreUiScrollFromStorage=false;
   if(focused&&!focused.isConnected){
     const candidates=focusId?[document.getElementById(focusId)]:focusData.length?[...document.querySelectorAll("button,input,summary,a")].filter(el=>el.tagName===focused.tagName&&focusData.every(([key,value])=>el.dataset[key]===value)):[];
@@ -3862,7 +3857,8 @@ window.TaskRingCoreBoot=function(){
   setInterval(()=>{
     const refreshedRealNow=new Date();
     const refreshedOperationalNow=getOperationalDate(refreshedRealNow);
-    const refreshedCycleStart=getCycleStart(refreshedRealNow);
+    if(urlDateOverride)return;
+    const refreshedCycleStart=getCycleStart(refreshedOperationalNow);
     const dayChanged=refreshedOperationalNow.getDay()!==today;
     const cycleChanged=ymd(refreshedCycleStart)!==ymd(cycleStart);
     if(dayChanged||cycleChanged)location.reload();

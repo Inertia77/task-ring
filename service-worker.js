@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261116-game-reserve-ops";
+const CACHE_NAME = "taskring-shell-20261117-taskring-next";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -65,6 +65,11 @@ const APP_SHELL = [
   "./assets/css/game-ops-cloud.css",
   "./assets/js/ux-efficiency.js",
   "./assets/js/private-restructure.js",
+  "./assets/js/tasks/engine.js",
+  "./assets/js/tasks/config.js",
+  "./assets/js/tasks/sources.js",
+  "./assets/js/tasks/command.js",
+  "./assets/css/command-center.css",
   "./assets/js/pwa.js"
 ];
 

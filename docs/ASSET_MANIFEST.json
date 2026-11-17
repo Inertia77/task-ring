@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "updatedAt": "2026-08-25",
+  "updatedAt": "2026-11-17",
   "runtimeAssets": [
     {
       "file": "assets/icons/favicon.svg",
@@ -26,6 +26,31 @@
       "file": "assets/icons/app-icon-maskable-512.png",
       "source": "manifest.webmanifest + service-worker.js",
       "usage": "PWA maskable 512px 应用图标"
+    },
+    {
+      "file": "assets/js/tasks/engine.js",
+      "source": "index.html + service-worker.js",
+      "usage": "TaskRing NEXT 调度与任务总览"
+    },
+    {
+      "file": "assets/js/tasks/sources.js",
+      "source": "index.html + service-worker.js",
+      "usage": "TaskRing NEXT 调度与任务总览"
+    },
+    {
+      "file": "assets/js/tasks/config.js",
+      "source": "index.html + service-worker.js",
+      "usage": "TaskRing NEXT 调度与任务总览"
+    },
+    {
+      "file": "assets/js/tasks/command.js",
+      "source": "index.html + service-worker.js",
+      "usage": "TaskRing NEXT 调度与任务总览"
+    },
+    {
+      "file": "assets/css/command-center.css",
+      "source": "assets/css/main.css + service-worker.js",
+      "usage": "任务总览、学习和配置样式"
     }
   ],
   "cssUrlAssets": [],

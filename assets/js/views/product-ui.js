@@ -242,6 +242,7 @@
       <header class="missionHead"><div class="missionIcon taskCategoryGraphic" data-task-category="${escapeHtml(taskTimeCategory(t))}" aria-hidden="true">${taskCategoryGlyph(taskTimeCategory(t))}</div><div class="missionTitleBlock"><b title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</b><span>${escapeHtml(taskDayHint(t))} · 预计 ${taskEstimatedMinutes(t)}m</span></div><div class="missionScore"><strong>${fmtMinutes(st.used)}${st.target?` / ${fmtMinutes(st.target)}`:""}</strong><em>${st.target?(st.state==="done"?"本周已达成":`剩余 ${fmtMinutes(remaining)}`):"未设周目标"}</em></div></header>
       <div class="missionMeter" aria-label="周目标进度 ${pct}%"><i></i></div>
       <footer class="missionActions"><button type="button" class="missionPrimary ${running?"active":""}" data-timer-start-task="${escapeHtml(t.id)}" data-timer-day="${today}" data-timer-cycle="${escapeHtml(cycleYmd)}">${running?`${active.paused?"继续计时":"计时中"} ${fmtTimer(activeTimerElapsedSeconds(active))}`:"开始计时"}</button><button type="button" class="missionGhost manualTimeTiny" data-manual-time-entry="task" data-manual-task-id="${escapeHtml(t.id)}">+补记</button><button type="button" class="missionGhost" data-time-task-detail="${escapeHtml(t.id)}">查看账本</button><button type="button" class="missionGhost safeTargetEdit" data-edit-weekly-target="${escapeHtml(t.id)}"><span>周目标</span><b>${st.target?fmtMinutes(st.target):"未设"}</b></button>${url?`<a class="missionLink" href="${url}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`:""}</footer>
+      ${window.TaskRingCommand?.weeklyControls(t)||""}
       ${weeklySubtasks(t)}
       <div class="missionBadges"><span class="statusBadge weeklyPace ${pace}">${paceLabel}</span>${planModeBadgeHtml(t)}<span class="taskCategoryIconBadge missionCategoryBadge" data-task-category="${escapeHtml(taskTimeCategory(t))}" role="img" title="分类：${escapeHtml(categoryDisplayName(taskTimeCategory(t),def.name))}" aria-label="分类：${escapeHtml(categoryDisplayName(taskTimeCategory(t),def.name))}">${taskCategoryGlyph(taskTimeCategory(t))}</span>${t.important?'<span class="hot">! 高优先级</span>':""}${running?`<span class="statusBadge ${active.paused?"paused":"running"}">${active.paused?"已暂停":"计时中"}</span>`:""}</div>
     </article>`;
@@ -250,8 +251,9 @@
     const el=document.getElementById("weeklyPlanPanel");if(!el)return;
     // Rebuilding the weekly tab strip must not jump back to its first category.
     const previousTabScroll=el.querySelector(".weeklyCategoryTabs")?.scrollLeft;
-    const tasks=weeklyPoolBlocks().slice().sort(weeklyPlanSort);
-    const rows=weeklyCategoryRows();
+    const pool=weeklyPoolBlocks();
+    const tasks=(window.TaskRingCommand?.weekTodayOnly()?pool.filter(task=>window.TaskRingTaskSources.plans(task).includes(ymd(operationalNow))):pool).slice().sort(weeklyPlanSort);
+    const rows=weeklyCategoryRows().filter(row=>tasks.some(task=>taskTimeCategory(task)===row.cat));
     const activeCategory=selectedWeeklyCategory(rows,tasks);
     const totalUsed=tasks.reduce((n,t)=>n+weeklyTaskStatus(t).used,0);
     const totalTarget=tasks.reduce((n,t)=>n+weeklyTaskStatus(t).target,0);
@@ -271,12 +273,14 @@
       const key=detailKey("weekly-group",cat);
       return `<details class="weeklyMissionGroup ${running?"running":""}" data-weekly-category="${escapeHtml(cat)}" data-ui-details-key="${escapeHtml(key)}" style="--w:${target?Math.min(100,Math.round(used/target*100)):0}%"${openAttr(key,running||near||index===0)}><summary><div class="sectionSummary"><div class="sectionSummaryMain"><b>${escapeHtml(categoryDisplayName(cat,def.name))}</b><span>${list.length} 项 · ${target?`投入 ${fmtMinutes(used)} · 周目标 ${fmtMinutes(target)}`:`完成 ${done}/${list.length} 项`}</span></div><div class="sectionSummaryMetrics"><span class="dailyMetaChip">完成 ${done}/${list.length}</span>${running?'<span class="statusBadge running">◷ 计时中</span>':""}</div><span class="summaryChevron" aria-hidden="true">⌄</span></div></summary><div class="groupMeter"><i></i></div><div class="weeklyMissionGrid">${list.map(weeklyCard).join("")}</div></details>`;
     }).join("");
-    el.innerHTML=`<div class="weeklyShell"><div class="weeklyCommandHero taskAreaHeader"><div class="taskAreaHeaderCopy"><span class="taskAreaEyebrow">WEEKLY ALLOCATION</span><b class="taskAreaTitle">周计划</b><em class="taskAreaDescription">按分类收纳长期主线，优先展示正在计时和接近目标的任务。</em></div><div class="weeklyHeroStats taskAreaHeaderSide"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}${weeklyCategoryTabs(rows,activeCategory,tasks)}${overview}<div class="weeklyTaskGroups">${groups||'<div class="weeklyEmpty"><b>周计划为空</b><span>从任务编辑器把任务模式设为「周计划」。</span><button type="button" data-open-task-editor>打开任务编辑器</button></div>'}</div></div>`;
+    el.innerHTML=`<div class="weeklyShell"><div class="weeklyCommandHero taskAreaHeader"><div class="taskAreaHeaderCopy"><span class="taskAreaEyebrow">WEEKLY ALLOCATION</span><b class="taskAreaTitle">周计划</b><em class="taskAreaDescription">按分类收纳长期主线，优先展示正在计时和接近目标的任务。</em></div><div class="weeklyHeroStats taskAreaHeaderSide"><div><span>本周投入</span><b>${fmtMinutes(totalUsed)}</b></div><div><span>周目标</span><b>${fmtMinutes(totalTarget)}</b></div><div><span>达成任务</span><b>${doneCount}/${tasks.length}</b></div></div></div>${activeHint}<button type="button" class="commandWeeklyFilter" data-command-week-filter aria-pressed="${window.TaskRingCommand?.weekTodayOnly()||false}">仅看今日安排</button>${weeklyCategoryTabs(rows,activeCategory,tasks)}${overview}<div class="weeklyTaskGroups">${groups||'<div class="weeklyEmpty"><b>周计划为空</b><span>从任务编辑器把任务模式设为「周计划」。</span><button type="button" data-open-task-editor>打开任务编辑器</button></div>'}</div></div>`;
     if(previousTabScroll!==undefined){
       const tabs=el.querySelector(".weeklyCategoryTabs");
       if(tabs)tabs.scrollLeft=previousTabScroll;
     }
   };
+
+  window.TaskRingWeeklySource={show(){weeklyCategorySelection="all";window.TaskRingCommand?.resetWeekFilter();renderWeeklyPlanPanel()}};
 
   function validGameDay(value){const n=Number(value);return [0,1,2,3,4,5,6].includes(n)?n:today}
   const savedGameDay=localStorage.getItem(GAME_SELECTED_DAY_KEY);
@@ -376,7 +380,7 @@
   function enhanceDetails(root=document){
     root.querySelectorAll("details").forEach(details=>{const summary=details.querySelector(":scope > summary");if(summary)summary.setAttribute("aria-expanded",String(details.open))});
   }
-  function visibleModal(){return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal,#controlCenterMenu")].reverse().find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
+  function visibleModal(){if(typeof document==="undefined")return undefined;return [...document.querySelectorAll(".ghModal,.taskEditorModal,.refEditorModal,.gameQuestEditorModal,.fitnessEditorModal,.timeDetailModal,.weeklyTargetModal,#controlCenterMenu")].reverse().find(m=>!m.classList.contains("hidden")&&getComputedStyle(m).display!=="none")}
   function focusableIn(modal){return [...modal.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null)}
   function enhanceFormLabels(root=document){
     root.querySelectorAll("input,select,textarea").forEach(control=>{
@@ -466,6 +470,7 @@
   let managedModal=null;
   let modalReturnTarget=null;
   function reconcileModal(){
+    if(typeof document==="undefined")return;
     const modal=visibleModal();if(modal===managedModal)return;
     const previous=managedModal;managedModal=modal;
     document.querySelector(".wrap")?.toggleAttribute("inert",!!modal);

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskRing portable configuration",
+  "type": "object",
+  "required": ["kind", "schemaVersion", "tasks", "modules", "schedules", "sequences", "references", "settings"],
+  "properties": {
+    "kind": {"const": "taskring-config"},
+    "schemaVersion": {"const": 1},
+    "tasks": {"type": "array", "items": {"$ref": "#/$defs/task"}},
+    "modules": {
+      "type": "object", "required": ["gameQuest", "fitness"],
+      "properties": {"gameQuest": {"type": "object"}, "fitness": {"type": "object"}}
+    },
+    "schedules": {"type": "object"},
+    "sequences": {
+      "type": "object",
+      "properties": {"LANGUAGE": {"$ref": "#/$defs/track"}, "KNOWLEDGE": {"$ref": "#/$defs/track"}}
+    },
+    "references": {"type": "array"},
+    "settings": {"type": "object"},
+    "sourceMappings": {"type": "object", "properties": {"gameOps": {"const": "supabase:public.game_ops_tasks"}}},
+    "compatibility": {"type": "object"}
+  },
+  "$defs": {
+    "task": {
+      "type": "object", "required": ["id", "title"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "title": {"type": "string", "minLength": 1},
+        "code": {"type": "string", "pattern": "^t[0-9]{3,}$"},
+        "nextModule": {"enum": ["tasks", "weekly", "game", "fitness"]},
+        "nextSchedule": {"$ref": "#/$defs/schedule"}, "steps": {"type": "array"}
+      }
+    },
+    "track": {
+      "type": "object", "required": ["items", "paused", "end"],
+      "properties": {
+        "paused": {"type": "boolean"}, "end": {"enum": ["stop", "loop"]},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/task"}}
+      }
+    },
+    "schedule": {
+      "type": "object", "required": ["type"],
+      "properties": {
+        "type": {"enum": ["DAILY", "WEEKDAY", "WEEKLY", "ONE_TIME", "SCHEDULED", "DEADLINE", "RECURRING", "OPTIONAL"]},
+        "missed": {"enum": ["RESET", "KEEP", "EXPIRE"]},
+        "intervalDays": {"type": "integer", "minimum": 1, "maximum": 3650},
+        "days": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 6}}
+      }
+    }
+  }
+}

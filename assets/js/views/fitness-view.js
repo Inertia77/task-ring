@@ -241,9 +241,9 @@
     const count=card.querySelector("[data-fitness-editor-day-count]");
     if(count)count.textContent=parts.join(" · ")||"暂无项目";
   }
-  function collectFitnessEditorItems(card,kind){
+  function collectFitnessEditorItems(card,kind,previous=[]){
     const entries=[...card.querySelectorAll(`[data-fitness-editor-item="${safeCssEscape(kind)}"]`)].map(row=>({
-      id:row.dataset.fitnessItemId||"",
+      ...previous.find(item=>item.id===row.dataset.fitnessItemId),id:row.dataset.fitnessItemId||"",
       title:row.querySelector("[data-fitness-item-title]")?.value||"",
       note:row.querySelector("[data-fitness-item-note]")?.value||"",
       url:row.querySelector("[data-fitness-item-url]")?.value||"",
@@ -274,7 +274,7 @@
       const id=row.dataset.lifeSectionId;
       const old=previous.get(id)||{};
       return {
-        id,
+        ...old,id,
         name:row.querySelector(".lifeSectionName")?.value.trim()||old.name||`改善分区 ${idx+1}`,
         short:row.querySelector(".lifeSectionShort")?.value.trim()||old.short||"LIFE",
         icon:row.querySelector(".lifeSectionIcon")?.value.trim()||old.icon||"＋",
@@ -288,7 +288,7 @@
     document.querySelectorAll("[data-fitness-editor-day]").forEach(card=>{
       const day=String(Number(card.dataset.fitnessEditorDay));
       const dayData={};
-      sections.forEach(section=>{dayData[section.id]=collectFitnessEditorItems(card,section.id)});
+      sections.forEach(section=>{dayData[section.id]=collectFitnessEditorItems(card,section.id,draftConfig.days?.[day]?.[section.id])});
       days[day]=dayData;
     });
     draftConfig=normalizeFitnessConfig({...draftConfig,sections,days,updatedAt:new Date().toISOString()});
@@ -476,4 +476,5 @@
   const coreBoot=window.TaskRingCoreBoot;
   window.TaskRingCoreBoot=function(){const result=coreBoot.apply(this,arguments);initFitnessUI();renderFitnessPanel();return result};
   window.renderFitnessPanel=renderFitnessPanel;
+  window.TaskRingFitnessTasks={itemsForDay,doneKey,setItemDone,showDay(day){selectedDay=day;renderFitnessPanel()}};
 })();

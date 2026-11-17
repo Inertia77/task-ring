@@ -16,13 +16,14 @@ for(const width of [320,390,768]){
         current:[...document.querySelectorAll('#viewDock .viewDockBtn[aria-current="page"]')].map(b=>b.dataset.viewTarget),
         colors:[...document.querySelectorAll('#viewDock .viewDockBtn')].map(b=>({name:b.dataset.viewTarget,background:getComputedStyle(b).backgroundColor,transition:getComputedStyle(b).transitionDuration}))
       }));
-      expect(state.active).toEqual([target]);
-      expect(state.current).toEqual([target]);
+      const dockTarget=['fitness','time','library'].includes(target)?'more':target;
+      expect(state.active).toEqual([dockTarget]);
+      expect(state.current).toEqual([dockTarget]);
       expect(state.colors.every(c=>c.transition.split(',').every(v=>parseFloat(v)===0)), 'Mobile dock colors must not animate from old active state').toBeTruthy();
-      const here=state.colors.find(c=>c.name===target).background;
+      const here=state.colors.find(c=>c.name===dockTarget).background;
       const earlier=state.colors.find(c=>c.name===previous).background;
-      if(previous!==target)expect(earlier,'previous module cannot look selected').not.toBe(here);
-      previous=target;
+      if(previous!==dockTarget)expect(earlier,'previous module cannot look selected').not.toBe(here);
+      previous=dockTarget;
     }
   });
 }

@@ -82,7 +82,9 @@
   function normalizeMetaEntry(entry){
     if(!entry||typeof entry!=="object")return null;
     const value=entry.value===true||entry.value===1||entry.value==="1"?"1":"0";
+    const sequence=entry.sequence;
     return {
+      ...(sequence&&typeof sequence.itemId==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(sequence.date||"")?{sequence:{itemId:sequence.itemId,date:sequence.date}}:{}),
       value,
       updatedAt:String(entry.updatedAt||entry.updated_at||""),
       deviceId:String(entry.deviceId||entry.device_id||"")
@@ -103,6 +105,11 @@
       const lt=isoMillis(local.updatedAt),rt=isoMillis(remote.updatedAt);
       if(lt>rt)return local;
       if(rt>lt)return remote;
+      if(local.sequence||remote.sequence){
+        if(local.value!==remote.value)return local.value==="0"?local:remote;
+        const compare=stableStringify([local.deviceId,local.sequence]).localeCompare(stableStringify([remote.deviceId,remote.sequence]));
+        return compare>=0?local:remote;
+      }
       if(local.value===remote.value)return local;
       // Equal/invalid timestamps are ambiguous: preserve the local user's state instead of deleting it silently.
       return local;
@@ -128,6 +135,7 @@
       if(!picked)return;
       const wasLegacy=!picked.versioned;
       const finalRecord={
+        ...(picked.sequence?{sequence:picked.sequence}:{}),
         value:picked.value,
         updatedAt:String(picked.updatedAt||migrationTime||""),
         deviceId:String(picked.deviceId||deviceId||"")

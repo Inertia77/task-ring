@@ -1,0 +1,133 @@
+/* Task overview and shared execution controls */
+.commandView {
+  --command-metal: #203240;
+  --command-strong: #152632;
+  --command-gold: #f1d27c;
+  --command-mist: #ccdde5;
+  --command-radius: 14px;
+  display: none;
+  min-width: 0;
+}
+.commandView.active:not([hidden]) { display: block; }
+.commandExtra[hidden] { display: none; }
+.commandHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 15px;
+  padding: clamp(14px, 3vw, 26px);
+  color: white;
+  background: linear-gradient(120deg, var(--command-strong), #324e5d);
+  border: 1px solid #526d7a;
+  border-radius: var(--command-radius);
+}
+.commandHero h1 { margin: 0; font-size: clamp(22px, 3vw, 35px); line-height: 1.2; }
+.commandHero p { margin: 4px 0 0; color: var(--command-mist); font-size: 13px; overflow-wrap: anywhere; }
+.commandKicker { color: var(--command-gold); font-size: 10px; letter-spacing: .12em; font-weight: 750; margin-bottom: 6px; }
+.commandView button, .commandDialog button, .commandWeeklyControls button, .commandWeeklyFilter {
+  color: var(--color-ink); border: 1px solid var(--color-line); border-radius: 8px;
+  background: var(--color-panel-soft); padding: 6px 10px; min-height: 44px; font-weight: 650;
+}
+.commandView button:hover, .commandDialog button:hover, .commandWeeklyControls button:hover { border-color: var(--color-ink); }
+.commandView button:focus-visible, .commandDialog :focus-visible, .commandWeeklyControls :focus-visible {
+  outline: 2px solid #187890; outline-offset: 2px;
+}
+.commandHero > button { background: var(--command-gold); border-color: var(--command-gold); }
+.commandMetrics { grid-column: 1/-1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.commandMetrics div { display: grid; gap: 4px; align-content: start; min-width: 0; padding: 8px 10px; border-radius: 8px; background: #172a35; }
+.commandMetrics span { color: var(--command-mist); font-size: 12px; }
+.commandMetrics strong { color: var(--command-gold); font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.commandMetrics small { color: var(--command-mist); font-size: 12px; }
+.commandMetrics progress { width: 100%; height: 5px; accent-color: var(--command-gold); }
+.commandFilters { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 7px; margin: 12px 0; }
+.commandTabs, .commandSelects { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.commandTabs button[aria-pressed="true"], .commandWeeklyFilter[aria-pressed="true"], .commandWeeklyControls button[aria-pressed="true"] {
+  color: white; background: #274655; border-color: #274655;
+}
+.commandSelects select, .commandForm :is(select,input:not([type="checkbox"]),textarea), .commandDialogBody :is(input[type="search"],input[type="file"]) {
+  font: inherit; border: 1px solid #9babb3; border-radius: 8px; min-height: 44px; min-width: 0; max-width: 100%;
+  padding: 6px 8px; color: var(--color-ink); background: white;
+}
+.commandSelects select { font-size: 12px; }
+.commandNotice, .commandEmpty { margin: 8px 0; color: var(--color-muted); background: var(--color-panel-soft); padding: 8px 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.commandGroup { margin: 14px 0 0; min-width: 0; }
+.commandGroup > h2, .commandGroup > summary, .studyTrack h2 { font-size: 16px; font-weight: 750; margin: 0 0 7px; }
+.commandGroup > h2 small { font-size: 11px; font-variant-numeric: tabular-nums; margin-inline-start: 3px; color: var(--color-muted); }
+.commandGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 315px), 1fr)); gap: 7px; }
+.commandCard {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 3px 7px;
+  padding: 7px; border: 1px solid var(--color-line); border-radius: 11px; background: var(--color-card, white); color: var(--color-ink);
+}
+.commandCard.is-overdue { border-inline-start: 4px solid #a93138; }
+.commandCard.is-done { border-inline-start: 4px solid #258064; }
+.commandCardMain { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 7px; overflow-wrap: anywhere; }
+.commandCardMain strong { font-size: 14px; }
+.commandCardMain p, .studyTrack header p { margin: 2px 0 0; font-size: 12px; color: var(--color-muted); overflow-wrap: anywhere; }
+.commandView .commandCheck { display: grid; place-items: center; width: 44px; padding: 0; background: transparent; border-color: transparent; font-size: 16px; }
+.commandCheck span { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 6px; border: 1px solid #899ba7; }
+.commandCheck[aria-pressed="true"] span { color: white; background: #246b56; border-color: #246b56; }
+.commandCheck:disabled { opacity: .55; }
+.commandCardActions { display: flex; gap: 4px; align-items: center; }
+.commandCardActions a { display: grid; place-items: center; min-height: 44px; padding-inline: 5px; color: #175b71; }
+.commandCardActions button, .commandCardActions a { font-size: 12px; }
+.commandDetails { grid-column: 1/-1; padding-inline: 5px; font-size: 13px; }
+.commandDetails summary, .commandDone summary, .commandWeeklyControls summary { cursor: pointer; min-height: 40px; align-content: center; }
+.commandDetails p { margin-block: 5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.commandDetails label { display: flex; align-items: center; gap: 6px; min-height: 36px; }
+.commandUpcoming, .studyQueue, .commandManagerList { list-style: none; margin: 0; padding: 0; }
+.commandUpcoming li, .studyQueue li, .commandManagerList li {
+  display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 4px 8px;
+  border-bottom: 1px solid var(--color-line); overflow-wrap: anywhere;
+}
+.commandUpcoming time, .studyQueue time { color: var(--color-muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.commandUpcoming span, .studyQueue span, .commandManagerList span { flex: 1; min-width: 0; }
+.commandUpcoming small, .commandManagerList small { white-space: nowrap; color: var(--color-muted); }
+.studyTracks, .commandMoreGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+.studyTrack { border: 1px solid var(--color-line); padding: 12px; border-radius: 12px; background: var(--color-card, white); }
+.studyTrack header { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 10px; }
+.studyTrack h2 { margin: 0; }
+.studyQueue li > div { display: flex; gap: 3px; }
+.commandWeeklyControls { display: flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+.commandWeeklyControls details { flex: 1 1 100%; padding-inline: 4px; }
+.commandWeekDays { display: flex; gap: 4px 10px; border: 0; padding: 0; flex-wrap: wrap; }
+.commandWeeklyFilter { margin-bottom: 8px; }
+.commandDialog {
+  color: var(--color-ink); background: var(--color-card, white); border: 1px solid var(--color-line);
+  border-radius: 14px; width: min(700px,calc(100% - 20px)); max-height: min(86dvh, 780px); padding: 0;
+}
+.commandDialog::backdrop { background: #12232bb0; }
+.commandDialog > header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 14px; background: #223845; color: white; }
+.commandDialog h2 { margin: 0; font-size: 17px; }
+.commandDialogBody { padding: 12px; }
+.commandDialogError:not(:empty) { color: #96282e; margin-top: 7px; }
+.commandManagerActions, .commandChecks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.commandDialogBody > label, .commandForm > label { display: grid; gap: 3px; min-width: 0; font-size: 13px; font-weight: 600; }
+.commandForm { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.commandForm :is(fieldset,footer,.commandChecks) { grid-column: 1/-1; }
+.commandForm textarea { min-height: 75px; resize: vertical; }
+.commandDialog [hidden] { display: none; }
+body.nx #viewDock .commandMobileNav { display: none; }
+@media (min-width: 901px) and (max-width: 1099px) {
+  body.nx #viewDock { grid-template-columns: repeat(8,minmax(0,1fr)); }
+}
+@media (max-width: 900px) {
+  body.nx #viewDock { grid-template-columns: repeat(5,minmax(0,1fr)); }
+  body.nx #viewDock .commandDesktopNav { display: none; }
+  body.nx #viewDock .commandMobileNav { display: grid; order: 5; }
+  body.nx #viewDock [data-view-target="game"] { order: 3; }
+  body.nx #viewDock [data-view-target="weekly"] { order: 4; }
+  .commandSelects select { font-size: 13px; }
+}
+@media (max-width: 520px) {
+  .studyTracks { grid-template-columns: minmax(0,1fr); }
+  .commandHero { gap: 9px; padding: 12px; }
+  .commandMetrics { gap: 4px; }
+  .commandMetrics div { padding: 6px; }
+  .commandMetrics span { font-size: 10px; }
+  .commandMetrics strong { font-size: 17px; }
+  .commandMetrics small { font-size: 10px; }
+  .commandTabs button { font-size: 12px; padding-inline: 8px; }
+  .commandCardActions { flex-wrap: wrap; justify-content: flex-end; }
+  .commandCardMain { gap: 4px; }
+  .commandForm input:not([type="checkbox"]), .commandForm textarea, .commandForm select { font-size: 16px; }
+}
