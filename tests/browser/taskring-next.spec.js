@@ -1,6 +1,45 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 
+for(const width of [320,390,768]){
+  test('mobile dock prioritizes daily workspaces and routes legacy pages via More at '+width+'px',async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await boot(page,'overview');
+    const dock=page.locator('#viewDock > .viewDockBtn:visible');
+    await expect(dock).toHaveCount(5);
+    expect(await dock.evaluateAll(buttons=>buttons.map(button=>button.dataset.viewTarget)))
+      .toEqual(['overview','fitness','game','learning','more']);
+    await view(page,'fitness');
+    await expect(page.locator('#viewDock [data-view-target="fitness"]')).toHaveAttribute('aria-current','page');
+    await expect(page.locator('#viewDock [data-view-target="more"]')).toHaveAttribute('aria-current','false');
+    await view(page,'learning');
+    await expect(page.locator('#viewDock [data-view-target="learning"]')).toHaveAttribute('aria-current','page');
+    await view(page,'more');
+    for(const name of ['tasks','weekly'])
+      await expect(page.locator('#commandMore [data-view-target="'+name+'"]')).toBeVisible();
+    await page.locator('#commandMore [data-view-target="tasks"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','tasks');
+    await expect(page.locator('#viewDock [data-view-target="more"]')).toHaveAttribute('aria-current','page');
+    await page.locator('#viewDock [data-view-target="more"]').click();
+    await page.locator('#commandMore [data-view-target="weekly"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','weekly');
+    await expect(page.locator('#viewDock [data-view-target="more"]')).toHaveAttribute('aria-current','page');
+  });
+}
+
+test('desktop retains direct daily and weekly navigation',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await boot(page,'overview');
+  await expect(page.locator('#viewDock [data-view-target="tasks"]')).toBeVisible();
+  await expect(page.locator('#viewDock [data-view-target="weekly"]')).toBeVisible();
+  await expect(page.locator('#viewDock [data-view-target="more"]')).toBeHidden();
+  await view(page,'tasks');
+  await expect(page.locator('#viewDock [data-view-target="tasks"]')).toHaveAttribute('aria-current','page');
+  await view(page,'weekly');
+  await expect(page.locator('#viewDock [data-view-target="weekly"]')).toHaveAttribute('aria-current','page');
+});
+
+
 for(const width of [320,360,390,768,1440]){
   test('overview, filters and navigation fit at '+width+'px',async({page})=>{
     await page.setViewportSize({width,height:900});
