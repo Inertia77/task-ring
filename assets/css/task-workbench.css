@@ -372,3 +372,14 @@ body.workbenchOpen { overflow: hidden !important; }
  .wb-context-actions {gap:6px;}
  .wb-context-actions button,.wb-context-link {min-height:36px;}
 }
+
+
+.wb-priority-section {padding:3px 2px 4px;}
+.wb-priority-section+.wb-priority-section {border-top:1px dashed #e5edf0; margin-top:4px;padding-top:7px;}
+.wb-priority-caption {display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:6px 8px 3px;font-size:10px;letter-spacing:.025em;font-weight:850;color:#56788a;}
+.wb-priority-caption small {font-size:10px;color:#94a7b1;}
+.wb-priority-section[data-wb-priority$="optional"] .wb-priority-caption {color:#8e7a52;}
+.wb-priority-section[data-wb-priority$="wait"] .wb-priority-caption {color:#81628d;}
+.wb-priority-section[data-wb-priority$="sprint"] .wb-priority-caption {color:#ad6844;}
+@media(max-width:390px){ .wb-tree-summary {font-size:9px;}}
