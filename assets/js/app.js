@@ -2161,9 +2161,14 @@ function setActiveAppView(view){
   // A deep link should follow in-app navigation too; otherwise its original
   // ?view= value would override the saved page on the next refresh.
   if(new URLSearchParams(location.search).has("view")||urlDateOverride){
-    const address=new URL(location.href);
-    address.searchParams.set("view",next);
-    history.replaceState(history.state,"",address.pathname+address.search+address.hash);
+    try{
+      const address=new URL(location.href);
+      address.searchParams.set("view",next);
+      history.replaceState(history.state,"",address.href);
+    }catch(_){
+      // file:// and restrictive browser contexts may disallow history changes;
+      // do not block navigation or its local persistence.
+    }
   }
   applyActiveAppView();
   window.TaskRingCommand?.onView(next);
