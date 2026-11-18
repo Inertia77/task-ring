@@ -21,7 +21,7 @@
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
   let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
   let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
-  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map();
+  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map(),searchCollapsed=new Set();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -262,12 +262,16 @@
       '</small>'+(recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
   }
   function treeExpanded(key,fallback=false){
+    if(keyword.trim())return !searchCollapsed.has(key);
     if(treeOpen.has(key))return treeOpen.get(key);
-    if(keyword.trim()||groupFilter!=="all")return true;
+    if(groupFilter!=="all")return true;
     return fallback;
   }
   function treeToggle(key){
-    treeOpen.set(key,!treeExpanded(key));
+    if(keyword.trim()){
+      if(searchCollapsed.has(key))searchCollapsed.delete(key);
+      else searchCollapsed.add(key);
+    }else treeOpen.set(key,!treeExpanded(key));
     const listScroll=root.querySelector(".wb-list-items")?.scrollTop||0;
     render();
     const el=[...root.querySelectorAll("[data-wb-tree-toggle]")].find(x=>x.dataset.wbTreeToggle===key);
@@ -300,6 +304,25 @@
       const game=games.find(x=>x.id===id);
       const name=game?.name||id+" · 未登记";
       const gameKey="game:"+id,expanded=treeExpanded(gameKey,idx===0);
+      const renderPriorityRows=(board,items)=>{
+        const priorities=board==="daily"?
+          [["must","必须完成"],["optional","有余力"]]:
+          [["sprint","优先处理"],["steady","正常周常"],["wait","等待条件"],["optional","有余力"]];
+        const field=board==="daily"?"daily_lane":"weekly_lane";
+        const normalized=v=>v|| (board==="daily"?"must":"steady");
+        const categories=[...priorities];
+        if(items.some(x=>!priorities.some(y=>y[0]===normalized(x.obj[field]))))categories.push(["other","其他设置"]);
+        return categories.map(([value,label])=>{
+          const current=items.filter(item=>{
+            const lane=normalized(item.obj[field]);
+            return value==="other"?!priorities.some(x=>x[0]===lane):lane===value;
+          });
+          if(!current.length)return "";
+          return '<div class="wb-priority-section" data-wb-priority="'+board+":"+value+'">'+
+            '<div class="wb-priority-caption"><span>'+label+'</span><small>'+current.length+' 项</small></div>'+
+            current.map(item=>entryMarkup(item,true)).join("")+'</div>';
+        }).join("")||'<p class="wb-tree-empty">此处暂无任务</p>';
+      };
       const renderLane=(board,items)=>{
         if(scope!=="all"&&scope!==board)return "";
         // Keep both lanes navigable when there is no active search or status filter.
@@ -311,8 +334,7 @@
           treeHeader(laneKey,laneLabel,items.length+" 项",open,1)+
           '<button type="button" class="wb-tree-add" data-wb-add-game="'+esc(id)+'" data-wb-board="'+board+
           '" title="新增'+esc(name)+' · '+groupName+'" aria-label="在'+esc(name)+groupName+'下新增任务">＋</button></div>'+
-          treePanel(laneKey,items.map(item=>entryMarkup(item,true)).join("")||
-            '<p class="wb-tree-empty">此处暂无任务</p>',open)+'</div>';
+          treePanel(laneKey,renderPriorityRows(board,items),open)+'</div>';
       };
       const d=renderLane("daily",daily),w=renderLane("weekly",weekly);
       let inner='<div class="wb-tree-settings">'+
@@ -685,7 +707,7 @@
     const pendingRaw=rawPending();
     if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();searchCollapsed.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
     if(!root.hidden){switchDomain(next);return;}
@@ -792,7 +814,7 @@
   root.addEventListener("input",event=>{
     const el=event.target;
     if(el.matches("[data-wb-search]")){
-      flush();keyword=el.value;
+      flush();keyword=el.value;searchCollapsed.clear();
       const list=filtered(),box=root.querySelector(".wb-list-items");
       if(!box)return;
       // Update only the results, keeping focus and the scroll position of the search input.
