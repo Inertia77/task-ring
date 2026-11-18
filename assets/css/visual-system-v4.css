@@ -398,3 +398,12 @@ body.nx .taskWorkbench .wb-feedback {border-top:1px solid rgba(255,255,255,.11);
   body.nx #viewDock .viewDockBtn.active,body.nx .wb-list-entry.selected {outline:2px solid Highlight;}
   body.nx .trTaskMeta {border:1px solid ButtonText;}
 }
+
+/* Header identity glyphs may be direct SVGs (generated) or hydrated spans (static). */
+body.nx .trTitleWithIcon > [data-task-ui-icon] {
+  display:inline-grid;place-items:center;flex:0 0 23px;width:23px;height:23px;
+  color:var(--tr-page-accent,#6d8fa5);
+}
+body.nx .trTitleWithIcon > [data-task-ui-icon] > .trUiIcon {width:23px;height:23px;}
+body.nx .weeklyCommandHero .trTitleWithIcon > .trUiIcon {color:#7883b5;}
+body.nx .taskRingControlPanel .trTitleWithIcon .trUiIcon {color:#558da6;}
