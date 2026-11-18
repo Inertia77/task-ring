@@ -48,36 +48,36 @@
   }
   function index(){
     refs=new Map();const rows=[];
-    function push(kind,mod,group,value,parent){
+    function push(kind,mod,group,value,parent,identity=group){
       if(!value||!value.id&&kind!=="studySettings")return;
-      const key=kind+":"+mod+":"+group+":"+value.id;
+      const key=kind+":"+mod+":"+identity+":"+value.id;
       const item={key,kind,domain:mod,group,obj:value,parent};
       rows.push(item);refs.set(key,item);
     }
-    draft.tasks.forEach(task=>push("task",area(task),task.cat||"普通",task,draft.tasks));
+    draft.tasks.forEach(task=>push("task",area(task),task.cat||"普通",task,draft.tasks,"root"));
     const gameName=id=>draft.gameQuest.games.find(game=>game.id===id)?.name||id;
-    draft.gameQuest.games.forEach(game=>push("gameMeta","game","游戏设置",game,draft.gameQuest.games));
+    draft.gameQuest.games.forEach(game=>push("gameMeta","game","游戏设置",game,draft.gameQuest.games,"game-meta"));
     ["daily","weekly"].forEach(board=>{
       Object.entries(draft.gameQuest.boards[board]||{}).forEach(([gameId,items])=>{
-        (items||[]).forEach(item=>push("gameTask","game",gameName(gameId)+(board==="daily"?" · 日常":" · 周常"),item,items));
+        (items||[]).forEach(item=>push("gameTask","game",gameName(gameId)+(board==="daily"?" · 日常":" · 周常"),item,items,gameId+":"+board));
       });
     });
-    draft.fitness.sections.forEach(section=>push("lifeSection","fitness","分区管理",section,draft.fitness.sections));
+    draft.fitness.sections.forEach(section=>push("lifeSection","fitness","分区管理",section,draft.fitness.sections,"life-section"));
     Object.entries(draft.fitness.days).forEach(([day,groups])=>{
       Object.entries(groups||{}).forEach(([sectionId,items])=>{
-        (items||[]).forEach(item=>push("lifeTask","fitness",(dayNames[day]||day)+" · "+(draft.fitness.sections.find(s=>s.id===sectionId)?.name||sectionId),item,items));
+        (items||[]).forEach(item=>push("lifeTask","fitness",(dayNames[day]||day)+" · "+(draft.fitness.sections.find(s=>s.id===sectionId)?.name||sectionId),item,items,day+":"+sectionId));
       });
     });
     ["LANGUAGE","KNOWLEDGE"].forEach(track=>{
       const queue=draft.sequences[track];
       const name=track==="LANGUAGE"?"语言":"知识";
       const settings={id:"settings-"+track,track};
-      push("studySettings","learning",name+" · 设置",settings,null);
-      queue.items.forEach(item=>push("studyItem","learning",name,item,queue.items));
+      push("studySettings","learning",name+" · 设置",settings,null,track);
+      queue.items.forEach(item=>push("studyItem","learning",name,item,queue.items,track));
     });
     draft.refs.forEach(group=>{
-      push("refGroup","refs","分组管理",group,draft.refs);
-      (group.items||[]).forEach(item=>push("refItem","refs",group.title,item,group.items));
+      push("refGroup","refs","分组管理",group,draft.refs,"ref-groups");
+      (group.items||[]).forEach(item=>push("refItem","refs",group.title,item,group.items,group.id));
     });
     return rows;
   }
@@ -361,6 +361,18 @@
     const copy=clone(item.obj);copy.id="wb-"+uuid();
     if(item.kind==="task"){copy.code=idCode("t",[...draft.tasks.map(t=>t.code),...(draft.retired_task_codes||[])],3);
       const used=new Set();copy.steps=(copy.steps||[]).map(s=>{const code=idCode("s",[...used],2);used.add(code);return {...s,id:code,code}});}
+    if(item.kind==="refGroup")copy.items=(copy.items||[]).map(entry=>({...entry,id:"wb-ref-"+uuid()}));
+    if(item.kind==="gameMeta"){
+      for(const board of ["daily","weekly"]){
+        draft.gameQuest.boards[board][copy.id]=(draft.gameQuest.boards[board][item.obj.id]||[]).map(task=>({...task,id:"wb-game-"+uuid()}));
+      }
+    }
+    if(item.kind==="lifeSection"){
+      days.forEach(day=>{draft.fitness.days[String(day)] ||= {};
+        const existing=draft.fitness.days[String(day)][item.obj.id]||[];
+        draft.fitness.days[String(day)][copy.id]=existing.map(task=>typeof task==="string"?task:{...task,id:"wb-life-"+uuid()});
+      });
+    }
     const at=item.parent.indexOf(item.obj);item.parent.splice(at+1,0,copy);
     index();selected=[...refs.values()].find(x=>x.obj===copy)?.key||"";notice="已复制到草稿";render();
   }
