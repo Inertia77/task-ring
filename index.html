@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.view-persistence">
+<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.fullscreen-studio">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -22,6 +22,7 @@
 <meta name="twitter:card" content="summary"/>
 
 <link rel="stylesheet" href="assets/css/main.css?v=20261118.1"/>
+<link rel="stylesheet" href="assets/css/task-workbench.css?v=20261118.1"/>
 <script src="assets/js/notion-app-links.js?v=20261109.2" defer></script>
 </head>
 <body class="nx locked">
@@ -73,7 +74,7 @@
       <div class="controlCenterHeading">
         <span>CONTROL / COMMAND MAP</span>
         <strong id="controlCenterTitle">总控制台</strong>
-        <p>四个主模块独立运行；账本与资料作为辅助工具区。</p>
+        <p>一份配置，多区域全屏编辑；保留 JSON、同步与备份。</p>
       </div>
       <button type="button" id="controlCenterCloseBtn" class="controlCenterCloseBtn" aria-label="关闭总控制台">×</button>
     </header>
@@ -81,9 +82,10 @@
     <div class="controlCenterBody">
       <section class="controlCenterSection" aria-labelledby="controlAreaTitle">
         <div class="controlSectionTitle">
-          <strong id="controlAreaTitle">主模块 / 工具</strong>
-          <span>CORE 01—04 · TOOLS 05—06</span>
+          <strong id="controlAreaTitle">统一任务编辑</strong>
+          <span>CONFIGURATION STUDIO</span>
         </div>
+        <button type="button" class="controlWorkbenchLaunch" id="controlWorkbenchBtn" data-workbench-open="tasks"><span><b>打开全屏编辑工作台</b><em>统一编辑每日、周计划、游戏、学习、生活改善和资料库；支持搜索、排序、复制、停用与安全保存。</em></span><strong>进入编辑 ↗</strong></button>
         <div class="controlAreaGrid">
           <button type="button" id="controlTaskEditorBtn" class="controlAreaCard controlAreaDaily" data-control-area="daily">
             <span class="controlAreaIcon" data-task-ui-icon="check-square" aria-hidden="true"></span>
@@ -218,6 +220,7 @@
 <section class="viewPanel commandView" id="commandMore" data-view-panel="more" aria-label="更多工作台">
   <div class="commandHero"><div><h1>更多工作台</h1></div></div>
   <div class="commandMoreGrid">
+    <button type="button" data-workbench-open="tasks">统一编辑工作台</button>
     <button type="button" data-view-target="tasks">每日任务</button>
     <button type="button" data-view-target="weekly">周计划</button>
     <button type="button" data-view-target="time">时间账本</button>
@@ -420,6 +423,7 @@
 
 <script src="assets/js/data/default-data.js?v=20261007.1"></script>
 <dialog id="commandDialog" class="commandDialog" aria-label="TaskRing 任务管理"></dialog>
+<div id="taskWorkbench" class="taskWorkbench" role="dialog" aria-modal="true" aria-labelledby="wbTitle" hidden></div>
 <script src="assets/js/tasks/engine.js?v=20261117.1"></script>
 <script src="assets/js/app.js?v=20261118.2"></script>
 <script src="assets/js/data/integrity-core.js?v=20261117.1"></script>
@@ -439,7 +443,8 @@
 <script src="assets/js/game-ops-v6.js?v=20261117.1"></script>
 <script src="assets/js/tasks/config.js?v=20261117.1"></script>
 <script src="assets/js/tasks/sources.js?v=20261117.1"></script>
-<script src="assets/js/tasks/command.js?v=20261117.1"></script>
+<script src="assets/js/tasks/command.js?v=20261118.2"></script>
+<script src="assets/js/tasks/workbench.js?v=20261118.1"></script>
 <script src="assets/js/pwa.js?v=20261117.1"></script>
 </body>
 </html>
