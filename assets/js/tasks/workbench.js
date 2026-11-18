@@ -551,16 +551,20 @@
   function onClick(event){
     const el=event.target.closest("button");if(!el)return;
     const d=el.dataset;
-    if(d.wbDomain){flush();domain=d.wbDomain;selected="";keyword="";groupFilter="all";scope="all";screen="list";render();}
+    if(d.wbDomain){switchDomain(d.wbDomain);}
     else if(d.wbSelect){choose(d.wbSelect);}
     else if(d.wbBack!==undefined){flush();screen="list";render();}
     else if(d.wbNew!==undefined)create("item");
     else if(d.wbNewGroup!==undefined)create("group");
     else if(d.wbSave!==undefined)save();
+    else if(d.wbUndo!==undefined)undo();
+    else if(d.wbRedo!==undefined)redo();
+    else if(d.wbStep!==undefined)stepItem(Number(d.wbStep));
+    else if(d.wbStatus!==undefined){flush();visibility=d.wbStatus;render();}
     else if(d.wbClose!==undefined)close();
     else if(d.wbDuplicate!==undefined)duplicate();
     else if(d.wbMove!==undefined)move(Number(d.wbMove));
-    else if(d.wbToggleEnabled!==undefined){flush();const item=current();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
+    else if(d.wbToggleEnabled!==undefined){flush();const item=current();if(!item)return;checkpoint();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
     else if(d.wbApplyRaw!==undefined)applyRaw();
     else if(d.wbLegacy!==undefined){
       const origin={"tasks":"controlTaskEditorBtn","weekly":"controlTaskEditorBtn","game":"controlGameQuestEditorBtn",
@@ -573,7 +577,8 @@
       if(!close())return;
       window.setActiveAppView?.(domain==="refs"?"library":domain);
     }else if(d.wbJsonExport!==undefined){
-      if(!close())return;
+      flush();
+      if(isDirty()){notice="请先保存全部草稿，再打开 JSON 管理，避免导入时覆盖未保存内容";render();return;}
       window.TaskRingCommand?.openWorkbenchJson?.();
     }
   }
@@ -582,13 +587,11 @@
     const el=event.target;
     if(el.matches("[data-wb-search]")){
       keyword=el.value;
-      const list=filtered();
-      const box=root.querySelector(".wb-list-items");
+      const list=filtered(),box=root.querySelector(".wb-list-items");
       if(!box)return;
-      // Re-render just the list without stealing search focus.
-      const originalSelected=selected;
-      const text=list.map(item=>'<button type="button" class="wb-list-entry '+(originalSelected===item.key?"selected":"")+'" data-wb-select="'+esc(item.key)+'"><span class="wb-entry-name">'+esc(item.obj.title||item.obj.name||"轨道设置")+'</span><small>'+esc(item.group)+'</small></button>').join("");
-      box.innerHTML=text||'<p class="wb-empty">没有匹配项目</p>';
+      // Update only the results, keeping focus and the scroll position of the search input.
+      box.innerHTML=listMarkup(list);
+      const count=root.querySelector(".wb-count");if(count)count.textContent=list.length+" 项结果";
     }else if(el.closest("[data-wb-editor-form]")){
       const badge=root.querySelector(".wb-status");
       if(badge){badge.textContent="● 正在编辑草稿";badge.classList.add("dirty");}
@@ -601,8 +604,17 @@
     }
   });
   root.addEventListener("keydown",event=>{
-    if(event.key==="Escape"){event.preventDefault();close();return;}
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"){event.preventDefault();save();return;}
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();root.querySelector("[data-wb-search]")?.focus();return;}
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"&&!event.target.matches("input,textarea,[contenteditable]")){
+      event.preventDefault();if(event.shiftKey)redo();else undo();return;
+    }
+    if(event.key==="Escape"){
+      event.preventDefault();
+      if(screen==="detail"&&matchMedia("(max-width:760px)").matches){flush();screen="list";render();}
+      else close();
+      return;
+    }
     if(event.key!=="Tab")return;
     const focusable=[...root.querySelectorAll("button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary")].filter(el=>el.getClientRects().length);
     if(!focusable.length)return;
@@ -619,5 +631,17 @@
     const target=el.dataset.workbenchOpen||({controlTaskEditorBtn:"tasks",controlGameQuestEditorBtn:"game",controlFitnessEditorBtn:"fitness",controlRefEditorBtn:"refs"}[el.id])||"tasks";
     event.preventDefault();event.stopImmediatePropagation();open(target);
   },true);
-  window.TaskRingWorkbench={open,close,isOpen:()=>!root.hidden};
+  function hasPendingForm(){
+    const form=root.querySelector("[data-wb-editor-form]");
+    return !!form&&JSON.stringify([...new FormData(form).entries()])!==form.dataset.wbOriginal;
+  }
+  document.getElementById("commandDialog")?.addEventListener("close",()=>{
+    if(root.hidden||!draft)return;
+    const current=storedConfig();
+    if(current&&fingerprint(current)!==expectedBase&&!isDirty()&&!hasPendingForm()){
+      expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();
+      undoStack=[];redoStack=[];notice="JSON 导入后已重新读取最新配置";render();
+    }
+  });
+  window.TaskRingWorkbench={open,close,isOpen:()=>!root.hidden,dirty:()=>!root.hidden&&(isDirty()||hasPendingForm())};
 })();
