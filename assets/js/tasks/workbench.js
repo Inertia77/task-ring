@@ -5,10 +5,12 @@
   const root=document.getElementById("taskWorkbench");
   if(!root)return;
   const C=window.TaskRingTaskConfig;
+  const glyph=(name,cls="")=>'<span class="trInlineIcon '+cls+'" aria-hidden="true">'+
+    (typeof window.taskUiIcon==="function"?window.taskUiIcon(name):"")+'</span>';
   const domains=[
-    ["tasks","每日任务","check-square"],["weekly","周计划","calendar-days"],
-    ["game","游戏作战区","sparkles"],["learning","学习中心","book-open"],
-    ["fitness","生活改善","sprout"],["refs","资料库","files"]
+    ["tasks","每日任务","clipboard-check"],["weekly","周计划","calendar-days"],
+    ["game","游戏作战区","gamepad-2"],["learning","学习中心","book-open"],
+    ["fitness","生活改善","sprout"],["refs","资料库","folder-open"]
   ];
   const dayNames={1:"周一",2:"周二",3:"周三",4:"周四",5:"周五",6:"周六",0:"周日"};
   const days=[1,2,3,4,5,6,0];
@@ -220,21 +222,21 @@
   function renderToolbar(){
     const count=changeCount(),dirty=isDirty();
     return '<header class="wb-top"><div class="wb-brand"><span class="wb-kicker">TASKRING / CONFIG STUDIO</span>'+
-      '<h1 id="wbTitle">任务编辑工作台</h1><p>六个区域，一份配置 · 切换区域不会丢失草稿</p></div>'+
+      '<h1 id="wbTitle">'+glyph("sliders-horizontal","trStudioTitleIcon")+'任务编辑工作台</h1><p>六个区域，一份配置 · 切换区域不会丢失草稿</p></div>'+
       '<div class="wb-top-actions"><span class="wb-status '+(dirty?"dirty":"")+'" aria-live="polite">'+
       (dirty?'● '+count+' 处待保存':'✓ 当前修改已保存')+'</span>'+
-      '<button type="button" class="wb-btn wb-history" data-wb-undo title="撤销（Ctrl+Z）" aria-label="撤销上一项草稿修改" '+(!undoStack.length?'disabled':'')+'>↶</button>'+
-      '<button type="button" class="wb-btn wb-history" data-wb-redo title="重做（Ctrl+Shift+Z）" aria-label="重做草稿修改" '+(!redoStack.length?'disabled':'')+'>↷</button>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>JSON 管理</button>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-undo title="撤销（Ctrl+Z）" aria-label="撤销上一项草稿修改" '+(!undoStack.length?'disabled':'')+'>'+glyph("rotate-ccw")+'</button>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-redo title="重做（Ctrl+Shift+Z）" aria-label="重做草稿修改" '+(!redoStack.length?'disabled':'')+'>'+glyph("history")+'</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>'+glyph("database")+'JSON 管理</button>'+
       '<button type="button" class="wb-btn wb-primary" data-wb-save '+(busy?'disabled':'')+'>'+(dirty?'保存 '+count+' 项修改':'保存全部')+'</button>'+
       '<button type="button" class="wb-btn wb-close" data-wb-close aria-label="退出编辑工作台">×</button></div></header>';
   }
   function renderFilters(){
     let x='<div class="wb-list-head"><div><span class="wb-pane-kicker">CONFIGURATION</span><h2>'+esc(labels[domain])+'</h2></div>'+
-      '<div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
+      '<div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>'+glyph("plus")+'新增</button>';
     if(["game","fitness","refs"].includes(domain))
-      x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
-    x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域（Ctrl+K）</span>'+
+      x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>'+glyph("plus")+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
+    x+='</div></div><label class="wb-search">'+glyph("search","trSearchIcon")+'<span class="wb-sr">搜索当前区域（Ctrl+K）</span>'+
       '<input type="search" data-wb-search placeholder="搜索名称、分类、备注或 ID…" autocomplete="off" value="'+esc(keyword)+'"></label>';
     x+='<div class="wb-filters">';
     if(domain==="game"){
@@ -306,7 +308,7 @@
   function treeHeader(key,title,summary,expanded,level=0){
     return '<button type="button" class="wb-tree-toggle" data-wb-tree-toggle="'+esc(key)+'" aria-expanded="'+
       expanded+'" aria-controls="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+'">'+
-      '<span class="wb-tree-caret" aria-hidden="true">'+(expanded?"⌄":"›")+'</span>'+
+      '<span class="wb-tree-caret" aria-hidden="true">'+glyph(expanded?"chevron-down":"chevron-right")+'</span>'+
       '<span class="wb-tree-heading">'+esc(title)+'</span><span class="wb-tree-summary">'+esc(summary)+'</span></button>';
   }
   function treePanel(key,content,expanded){
@@ -460,20 +462,20 @@
   }
   function renderDetail(){
     const item=refs.get(selected);
-    if(!item)return '<div class="wb-empty-detail"><span aria-hidden="true">✦</span><h2>选择任务，开始编辑</h2>'+
+    if(!item)return '<div class="wb-empty-detail"><span class="trStudioEmptyIcon" aria-hidden="true">'+glyph("list-check")+'</span><h2>选择任务，开始编辑</h2>'+
       '<p>左侧选择已有条目，修改会保留在跨区域草稿中。<br>也可以新建一个项目，最后统一保存。</p>'+
       '<p class="wb-keytips">快捷键：Ctrl/⌘ + K 搜索 · Ctrl/⌘ + S 保存 · Ctrl/⌘ + Z 撤销</p></div>';
     const obj=item.obj,stable=item.kind!=="studySettings";
     const title=obj.title||obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
     const raw=item.kind==="studySettings"?draft.sequences[obj.track]:obj;
     const all=filtered(),position=all.findIndex(row=>row.key===selected);
-    return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>← 返回列表</button>'+
+    return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>'+glyph("arrow-left")+'返回列表</button>'+
       '<span class="wb-breadcrumb">'+esc(labels[domain])+' / '+esc(item.group)+'</span>'+
-      '<div class="wb-switch-record"><button type="button" class="wb-btn wb-quiet" data-wb-step="-1" aria-label="上一项" '+(position<=0?'disabled':'')+'>← 上一项</button>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-step="1" aria-label="下一项" '+(position<0||position>=all.length-1?'disabled':'')+'>下一项 →</button></div></div>'+
+      '<div class="wb-switch-record"><button type="button" class="wb-btn wb-quiet" data-wb-step="-1" aria-label="上一项" '+(position<=0?'disabled':'')+'>'+glyph("chevron-left")+'上一项</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-step="1" aria-label="下一项" '+(position<0||position>=all.length-1?'disabled':'')+'>下一项'+glyph("chevron-right")+'</button></div></div>'+
       '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+
       (recordChanged(item)?' · 草稿已修改':'')+'</span><h2>'+esc(title)+'</h2></div>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>在正式页面查看</button></div>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>'+glyph("external-link")+'在正式页面查看</button></div>'+
       detailContext(item)+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
       '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
@@ -486,7 +488,7 @@
       '<button type="button" class="wb-btn wb-quiet" data-wb-move="1">↓ 下移</button>':'')+
       ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+
         (obj.enabled===false?"启用":"停用")+'</button>':"")+
-      '<button type="button" class="wb-btn wb-primary" data-wb-save>保存全部修改</button></div>';
+      '<button type="button" class="wb-btn wb-primary" data-wb-save>'+glyph("save")+'保存全部修改</button></div>';
   }
   function render(){
     if(root.hidden||!draft)return;
@@ -504,7 +506,7 @@
     root.innerHTML=renderToolbar()+'<div class="wb-layout"><nav class="wb-nav" aria-label="编辑区域">'+
       domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+
         '" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+
-        '</span><span>'+name+'</span><small>'+counts[key]+'</small></button>').join("")+
+        '</span>'+glyph(domains[i][2],"trStudioNavIcon")+'<span>'+name+'</span><small>'+counts[key]+'</small></button>').join("")+
       '<div class="wb-nav-tip">本工作台编辑的是任务配置，不会清除打卡历史。游戏限时与周期活动仍由 Supabase 独立维护。</div></nav>'+
       '<section class="wb-lists" aria-label="配置项目">'+renderFilters()+renderList()+'</section>'+
       '<main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+

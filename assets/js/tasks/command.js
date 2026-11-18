@@ -3,6 +3,12 @@
 
   const E=window.TaskRingTasks,S=window.TaskRingTaskSources,C=window.TaskRingTaskConfig;
   const names={tasks:"每日",weekly:"周计划",game:"游戏",learning:"学习",fitness:"生活改善"};
+  const uiIcon=(name,cls="")=>'<span class="trInlineIcon '+cls+'" aria-hidden="true">'+
+    (typeof window.taskUiIcon==="function"?window.taskUiIcon(name):"")+'</span>';
+  const groupIcons={"已逾期":"triangle-alert","今日必做":"zap","今日计划":"calendar-clock",
+    "临近截止":"hourglass","有余力任务":"sparkles","近期预览":"calendar-days",
+    "未来七天":"calendar-days","统一调度":"list-tree"};
+  const groupIcon=title=>uiIcon(groupIcons[title]||"list-check","trGroupIcon");
   const esc=escapeHtml,date=()=>ymd(operationalNow);
   const config=()=>taskConfig||loadLocalTaskConfig()||buildDefaultConfig();
   const fingerprint=window.TaskRingIntegrityCore.configFingerprint;
@@ -15,7 +21,8 @@
   const label=(text,input)=>'<label>'+text+input+'</label>';
   const option=(key,text,current)=>'<option value="'+esc(key)+'" '+(key===current?'selected':'')+'>'+esc(text)+'</option>';
   const moduleOptions=()=>E.MODULES.map(key=>option(key,names[key],moduleFilter)).join("");
-  const empty=message=>'<p class="commandEmpty">'+message+'</p>';
+  const empty=message=>'<p class="commandEmpty">'+uiIcon("check-circle","trEmptyIcon")+
+    '<span>'+message+'</span></p>';
   const link=(value,name)=>{
     const url=value&&/^https?:\/\//i.test(value)?safeUrl(value):"";
     return url?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+name+'</a>':"";
@@ -32,10 +39,13 @@
   }
   function metrics(values){
     const progress=p=>p.total?Math.round(p.done/p.total*100):0;
-    const meter=(title,p)=>'<div><span>'+title+'</span><strong>'+p.done+'<small> / '+p.total+'</small></strong>'+
+    const meter=(title,p,iconName)=>'<div class="trMetric"><span class="trMetricLabel">'+uiIcon(iconName)+title+'</span>'+
+      '<strong>'+p.done+'<small> / '+p.total+'</small></strong>'+
       '<progress aria-label="'+title+'" max="100" value="'+progress(p)+'"></progress></div>';
-    return '<div class="commandMetrics">'+meter("必做完成度",values.required)+meter("全部完成度",values.all)+
-      '<div><span>今日剩余</span><strong>'+values.remaining+'</strong></div><div><span>截止待处理</span><strong>'+values.deadlines+'</strong></div></div>';
+    return '<div class="commandMetrics">'+meter("必做完成度",values.required,"shield-check")+
+      meter("全部完成度",values.all,"check-circle")+
+      '<div class="trMetric"><span class="trMetricLabel">'+uiIcon("list-check")+'今日剩余</span><strong>'+values.remaining+'</strong></div>'+
+      '<div class="trMetric"><span class="trMetricLabel">'+uiIcon("hourglass")+'截止待处理</span><strong>'+values.deadlines+'</strong></div></div>';
   }
   function deadlineText(row){
     if(!row.deadline?.date)return "";
@@ -49,16 +59,29 @@
     const category=d.category&&d.category!==names[d.module]?d.category:"";
     const condition=row.optional?(d.tier===3?"有余力":d.note?"见备注":"按需安排"):"";
     const details=row.steps?.length||d.note;
+    const meta=[
+      [names[d.module],"module"],
+      [category,"category"],
+      [d.tier?"T"+d.tier:"","tier"],
+      [d.periodLabel,"period"],
+      [when,row.overdue?"alert":"deadline"],
+      [condition,"optional"]
+    ].filter(([value])=>!!value).map(([value,type])=>
+      '<span class="trTaskMeta trTaskMeta-'+type+'">'+
+      (type==="alert"?uiIcon("triangle-alert"):type==="deadline"?uiIcon("clock-3"):
+        type==="optional"?uiIcon("circle-dashed"):"")+esc(value)+'</span>').join("");
     return '<article class="commandCard '+(row.done?'is-done':row.overdue?'is-overdue':'')+'" data-command-row="'+key+'">'+
       '<div class="commandCardMain"><button type="button" class="commandCheck" data-command-toggle="'+key+'" data-command-focus="toggle-'+key+'" aria-pressed="'+!!row.done+'" aria-label="'+esc((row.done?"撤销完成：":"完成：")+d.title)+'" '+(row.canWrite===false?'disabled':'')+'><span aria-hidden="true">'+(row.done?'✓':'')+'</span></button>'+
-      '<div><strong>'+esc(d.title)+'</strong><p>'+esc([names[d.module],category,d.tier?"T"+d.tier:"",d.periodLabel,when,condition].filter(Boolean).join(" · "))+'</p></div></div>'+
-      '<div class="commandCardActions">'+link(d.url,"打开 ↗")+(showSource?'<button type="button" data-command-source="'+key+'" data-command-focus="source-'+key+'">来源</button>':'')+'</div>'+
+      '<div class="commandTaskIdentity"><strong>'+esc(d.title)+'</strong><p class="trTaskMetaRow">'+meta+'</p></div></div>'+
+      '<div class="commandCardActions">'+link(d.url,uiIcon("external-link")+'<span>打开</span>')+
+        (showSource?'<button type="button" data-command-source="'+key+'" data-command-focus="source-'+key+'">'+uiIcon("arrow-up-right")+'<span>来源</span></button>':'')+'</div>'+
       (details?'<details class="commandDetails" data-command-details="'+key+'" '+(openedDetails.has(row.instanceId)?'open':'')+'><summary>'+esc([row.steps?.length?"子任务 "+row.steps.filter(x=>x.done).length+"/"+row.steps.length:"",d.note?"备注":""].filter(Boolean).join(" · "))+'</summary>'+
       (d.note?'<p>'+esc(d.note)+'</p>':'')+(row.steps||[]).map((step,index)=>'<label><input type="checkbox" data-command-step="'+index+'" data-command-focus="step-'+key+'-'+index+'" '+(step.done?'checked':'')+'> '+esc(step.title)+'</label>').join("")+'</details>':'')+'</article>';
   }
   function group(title,items,blank=""){
     if(!items.length&&!blank)return "";
-    return '<section class="commandGroup"><h2>'+title+' <small>'+items.length+'</small></h2>'+
+    return '<section class="commandGroup" data-command-group="'+esc(title)+'"><h2>'+groupIcon(title)+
+      '<span>'+title+'</span><small>'+items.length+'</small></h2>'+
       (items.length?'<div class="commandGrid">'+items.map(row=>card(row)).join("")+'</div>':empty(blank))+'</section>';
   }
   function upcoming(){
@@ -92,22 +115,25 @@
     const near=filter==="all"||filter==="upcoming"?upcoming():[];
     const upcomingList=near.map(({day,row})=>'<li><time>'+day.slice(5)+'</time><span>'+esc(row.definition.title)+'</span><small>'+esc(names[row.definition.module])+'</small></li>').join("");
     const running=readActiveTimer();
-    update(shell,'<div class="commandHero"><div><div class="commandKicker">COMMAND CENTER</div><h1>任务总览</h1><p>'+todayLabel()+(running?' · '+esc(running.paused?"计时暂停："+running.title:"计时中："+running.title):' · 日本时间')+'</p></div><button type="button" data-command-manage data-command-focus="manage">任务管理</button>'+metrics(tally)+'</div>'+
+    update(shell,'<div class="commandHero"><div><div class="commandKicker">COMMAND CENTER / TODAY</div><h1>'+
+      uiIcon("layout-dashboard","trHeroIcon")+'任务总览</h1><p>'+todayLabel()+(running?' · '+esc(running.paused?"计时暂停："+running.title:"计时中："+running.title):' · 日本时间')+'</p></div><button type="button" data-command-manage data-command-focus="manage">'+
+      uiIcon("settings-2")+'<span>任务管理</span></button>'+metrics(tally)+'</div>'+
       '<div class="commandFilters"><div class="commandTabs" role="group" aria-label="总览范围">'+Object.entries({all:"今日全部",required:"今日必做",optional:"有余力",upcoming:"近期"}).map(([key,title])=>
-        '<button type="button" aria-pressed="'+(filter===key)+'" data-command-filter="'+key+'" data-command-focus="filter-'+key+'">'+title+'</button>').join("")+'</div>'+
+        '<button type="button" aria-pressed="'+(filter===key)+'" data-command-filter="'+key+'" data-command-focus="filter-'+key+'">'+
+          uiIcon(({all:"layout-dashboard",required:"zap",optional:"sparkles",upcoming:"calendar-days"})[key])+title+'</button>').join("")+'</div>'+
       '<div class="commandSelects"><select aria-label="按模块筛选" data-command-module data-command-focus="module">'+option("","全部模块",moduleFilter)+moduleOptions()+'</select>'+
       '<select aria-label="按完成状态筛选" data-command-status data-command-focus="status">'+option("","全部状态",statusFilter)+option("open","未完成",statusFilter)+option("done","已完成",statusFilter)+'</select>'+
       '<select aria-label="排序方式" data-command-sort data-command-focus="sort">'+option("default","默认排序",sort)+option("module","按模块",sort)+'</select></div></div>'+
       (notices.length?'<p class="commandNotice" role="status">'+notices.map(esc).join(' · ')+'</p>':'')+
-      (filter==="upcoming"?'<section class="commandGroup"><h2>未来七天</h2>'+(upcomingList?'<ul class="commandUpcoming">'+upcomingList+'</ul>':empty("这段时间没有符合筛选条件的安排。"))+'</section>':
+      (filter==="upcoming"?'<section class="commandGroup"><h2>'+groupIcon("未来七天")+'<span>未来七天</span></h2>'+(upcomingList?'<ul class="commandUpcoming">'+upcomingList+'</ul>':empty("这段时间没有符合筛选条件的安排。"))+'</section>':
         group("已逾期",unfinished.filter(x=>x.overdue&&!x.optional))+
         group("今日必做",unfinished.filter(x=>x.bucket==="required"&&!x.overdue))+
         group("今日计划",unfinished.filter(x=>x.bucket==="planned"&&!x.overdue))+
         group("临近截止",unfinished.filter(x=>x.bucket==="deadline"&&!x.overdue))+
         group("有余力任务",unfinished.filter(x=>x.optional))+
-        (done.length?'<details class="commandGroup commandDone" data-command-details="done-section" '+(openedDetails.has("done-section")||statusFilter==="done"||unfinished.length===0?'open':'')+'><summary>已完成 '+done.length+'</summary><div class="commandGrid">'+done.map(row=>card(row)).join("")+'</div></details>':'')+
+        (done.length?'<details class="commandGroup commandDone" data-command-details="done-section" '+(openedDetails.has("done-section")||statusFilter==="done"||unfinished.length===0?'open':'')+'><summary>'+uiIcon("check-circle")+'已完成 <span>'+done.length+'</span></summary><div class="commandGrid">'+done.map(row=>card(row)).join("")+'</div></details>':'')+
         (!selected.length?empty("没有符合当前筛选条件的任务。"):"")+
-        (filter==="all"&&upcomingList?'<section class="commandGroup"><h2>近期预览</h2><ul class="commandUpcoming">'+upcomingList+'</ul></section>':'')
+        (filter==="all"&&upcomingList?'<section class="commandGroup"><h2>'+groupIcon("近期预览")+'<span>近期预览</span></h2><ul class="commandUpcoming">'+upcomingList+'</ul></section>':'')
       ));
   }
 
@@ -120,7 +146,9 @@
       const history=state.accepted.slice().reverse().map((entry,index)=>
         '<li><time>'+entry.date+'</time><span>'+esc(items.find(item=>item.id===entry.itemId)?.title||"已移除的学习项")+'</span>'+
         (index===0?'<button type="button" data-study-undo="'+track+'" data-command-focus="undo-'+track+'">撤销最后一次</button>':'')+'</li>').join("");
-      return '<section class="commandGroup studyTrack"><header><div><h2>'+S.trackTitles[track]+'</h2><p>'+state.accepted.length+' 次完成 · '+(state.config.paused?'已暂停':state.config.end==="loop"?'队列循环':'学完停止')+'</p></div>'+
+      return '<section class="commandGroup studyTrack" data-study-track="'+track+'"><header><div><span class="trStudyKicker">'+
+        uiIcon(track==="LANGUAGE"?"book-open":"graduation-cap")+
+        (track==="LANGUAGE"?"LANGUAGE TRACK":"KNOWLEDGE TRACK")+'</span><h2>'+S.trackTitles[track]+'</h2><p>'+state.accepted.length+' 次完成 · '+(state.config.paused?'已暂停':state.config.end==="loop"?'队列循环':'学完停止')+'</p></div>'+
         '<button type="button" data-study-settings="'+track+'" data-command-focus="settings-'+track+'">轨道设置</button></header>'+
         (row?card(row,{showSource:false}):empty(state.config.paused?"轨道已暂停。":items.length?"当前没有待学内容。":"添加内容后开始学习。"))+
         '<details class="commandGroup" data-command-details="queue-'+track+'" '+(openedDetails.has("queue-"+track)||!items.length?'open':'')+'><summary>课程队列 '+items.length+'</summary>'+
@@ -131,7 +159,10 @@
         '<button type="button" data-study-edit="'+track+'" data-command-focus="add-'+track+'">添加学习项</button></details>'+
         (history?'<details class="commandGroup" data-command-details="history-'+track+'" '+(openedDetails.has("history-"+track)?'open':'')+'><summary>完成历史 '+state.accepted.length+'</summary><ol class="studyQueue">'+history+'</ol></details>':'')+'</section>';
     });
-    update(learn,'<div class="commandHero"><div><div class="commandKicker">LEARNING</div><h1>学习中心</h1><p>每天各一项。完成后，下一项于次日出现。</p></div><button type="button" data-workbench-open="learning">进入全屏编辑工作台</button></div><div class="studyTracks">'+tracks.join("")+'</div>');
+    update(learn,'<div class="commandHero trLearningHero"><div><div class="commandKicker">LEARNING / TWO TRACKS</div><h1>'+
+      uiIcon("book-open","trHeroIcon")+'学习中心</h1><p>语言与知识独立推进 · 未完成不跳项，完成后次日更新</p></div>'+
+      '<button type="button" data-workbench-open="learning">'+uiIcon("pencil")+'<span>编辑学习队列</span></button></div>'+
+      '<div class="studyTracks">'+tracks.join("")+'</div>');
   }
 
   function renderExtra(view){

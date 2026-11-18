@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.editor-hierarchy-v3">
+<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.visual-language-v4">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -23,6 +23,7 @@
 
 <link rel="stylesheet" href="assets/css/main.css?v=20261118.1"/>
 <link rel="stylesheet" href="assets/css/task-workbench.css?v=20261118.3"/>
+<link rel="stylesheet" href="assets/css/visual-system-v4.css?v=20261118.1"/>
 <script src="assets/js/notion-app-links.js?v=20261109.2" defer></script>
 </head>
 <body class="nx locked">
@@ -61,13 +62,13 @@
     </div>
   </div>
   <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
-    <button id="controlCenterBtn" class="controlCenterBtn" aria-expanded="false" aria-controls="controlCenterMenu">总控</button>
+    <button id="controlCenterBtn" class="controlCenterBtn" aria-expanded="false" aria-controls="controlCenterMenu"><span class="trHeaderIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span>总控</button>
     <button id="githubSetupBtn" class="ghSetupBtn"><span class="headerLabelDesktop">GitHub同步</span><span class="headerLabelMobile">同步</span></button>
     <span class="githubInlineState off" id="githubStatus" title="GitHub：未设置" role="status" aria-live="polite"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span>
     <span class="pill todayPill" id="todayLabel">今天：识别中</span>
     <button type="button" id="returnTodayBtn" class="returnTodayBtn" hidden>返回今天</button>
     <span class="pill cyclePill" id="cycleLabel">周期：计算中</span>
-    <button type="button" id="controlLockQuickBtn" class="headerLockBtn" aria-label="立即锁定 TaskRing">锁定</button>
+    <button type="button" id="controlLockQuickBtn" class="headerLockBtn" aria-label="立即锁定 TaskRing"><span data-task-ui-icon="lock-keyhole" aria-hidden="true"></span><span>锁定</span></button>
   </div>
   <div id="controlCenterMenu" class="controlCenterMenu hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="controlCenterTitle">
     <header class="controlCenterHead">
@@ -82,10 +83,10 @@
     <div class="controlCenterBody">
       <section class="controlCenterSection" aria-labelledby="controlAreaTitle">
         <div class="controlSectionTitle">
-          <strong id="controlAreaTitle">统一任务编辑</strong>
+          <span class="trSectionIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span><strong id="controlAreaTitle">统一任务编辑</strong>
           <span>CONFIGURATION STUDIO</span>
         </div>
-        <button type="button" class="controlWorkbenchLaunch" id="controlWorkbenchBtn" data-workbench-open="tasks"><span><b>编辑任务与配置</b><em>一个入口，编辑每日、周计划、游戏、学习、生活改善和资料库；跨区域连续编辑，统一保存。</em></span><strong>进入编辑 ↗</strong></button>
+        <button type="button" class="controlWorkbenchLaunch" id="controlWorkbenchBtn" data-workbench-open="tasks"><span class="trWorkbenchLaunchIcon" data-task-ui-icon="sliders-horizontal" aria-hidden="true"></span><span><b>编辑任务与配置</b><em>一个入口，编辑每日、周计划、游戏、学习、生活改善和资料库；跨区域连续编辑，统一保存。</em></span><strong>进入编辑 <span data-task-ui-icon="arrow-up-right" aria-hidden="true"></span></strong></button>
         <!-- Legacy editors stay wired for compatibility, not as competing entry points. -->
         <div class="controlLegacyActions" hidden aria-hidden="true">
           <button type="button" id="controlTaskEditorBtn" tabindex="-1">任务专业编辑器</button>
@@ -97,24 +98,24 @@
 
       <section class="controlCenterSection controlUtilitySection" aria-labelledby="controlSyncTitle">
         <div class="controlSectionTitle">
-          <strong id="controlSyncTitle">同步与设备</strong>
+          <span class="trSectionIcon" data-task-ui-icon="cloud" aria-hidden="true"></span><strong id="controlSyncTitle">同步与设备</strong>
           <span>SYNC / DEVICE</span>
         </div>
         <div class="controlUtilityGrid">
           <button type="button" id="controlGithubBtn" class="controlUtilityBtn">
-            <span class="controlUtilityIcon" aria-hidden="true">⌘</span>
+            <span class="controlUtilityIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span>
             <span><b>同步设置</b><em>Token 与 Gist</em></span>
           </button>
           <button type="button" id="controlPullBtn" class="controlUtilityBtn">
-            <span class="controlUtilityIcon" aria-hidden="true">↓</span>
+            <span class="controlUtilityIcon" data-task-ui-icon="cloud-download" aria-hidden="true"></span>
             <span><b>从云端读取</b><em>云端优先 · Token 失效时自动尝试只读</em></span>
           </button>
           <button type="button" id="controlPushBtn" class="controlUtilityBtn">
-            <span class="controlUtilityIcon" aria-hidden="true">↑</span>
+            <span class="controlUtilityIcon" data-task-ui-icon="cloud-upload" aria-hidden="true"></span>
             <span><b>上传本机状态</b><em>合并后保存至云端</em></span>
           </button>
           <button type="button" id="controlInstallAppBtn" class="controlUtilityBtn pwaInstallBtn" hidden>
-            <span class="controlUtilityIcon" aria-hidden="true">＋</span>
+            <span class="controlUtilityIcon" data-task-ui-icon="plus" aria-hidden="true"></span>
             <span><b id="pwaInstallLabel">安装 TaskRing</b><em id="pwaInstallHint">添加到手机桌面</em></span>
           </button>
         </div>
@@ -122,27 +123,27 @@
 
       <section class="controlCenterSection controlExportSection" aria-labelledby="controlExportTitle">
         <div class="controlSectionTitle">
-          <strong id="controlExportTitle">数据备份</strong>
+          <span class="trSectionIcon" data-task-ui-icon="database" aria-hidden="true"></span><strong id="controlExportTitle">数据备份</strong>
           <span>JSON EXPORT</span>
         </div>
         <button type="button" id="controlExportJsonBtn" class="controlExportBtn" data-command-json>
-          <span class="controlUtilityIcon" aria-hidden="true">↓</span>
+          <span class="controlUtilityIcon" data-task-ui-icon="database" aria-hidden="true"></span>
           <span class="controlExportCopy"><b>统一 JSON</b><em>导入、导出和完整备份</em></span>
         </button>
       </section>
 
       <section class="controlCenterSection controlSafetySection" aria-labelledby="controlSafetyTitle">
         <div class="controlSectionTitle">
-          <strong id="controlSafetyTitle">安全与维护</strong>
+          <span class="trSectionIcon" data-task-ui-icon="shield-check" aria-hidden="true"></span><strong id="controlSafetyTitle">安全与维护</strong>
           <span>SECURITY / CLEANUP</span>
         </div>
         <div class="controlSafetyGrid">
           <button type="button" id="controlLockBtn" class="controlSafetyBtn">
-            <span aria-hidden="true">⌁</span>
+            <span class="trSafetyIcon" data-task-ui-icon="lock-keyhole" aria-hidden="true"></span>
             <span><b>立即上锁</b><em>下次进入需要密码</em></span>
           </button>
           <button type="button" id="controlClearExpiredBtn" class="controlSafetyBtn controlDangerBtn">
-            <span aria-hidden="true">!</span>
+            <span class="trSafetyIcon" data-task-ui-icon="history" aria-hidden="true"></span>
             <span><b>处理延后任务</b><em>整理跨日未完成项目</em></span>
           </button>
         </div>
@@ -151,34 +152,34 @@
   </div>
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
-  <button type="button" class="viewDockBtn viewDockCore active" data-view-target="overview" aria-current="page" aria-label="任务总览"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><b><span class="dockDesktopLabel">任务总览</span><span class="dockMobileLabel">总览</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore active" data-view-target="overview" aria-current="page" aria-label="任务总览"><i class="dockGlyph" data-task-ui-icon="layout-dashboard" aria-hidden="true"></i><b><span class="dockDesktopLabel">任务总览</span><span class="dockMobileLabel">总览</span></b></button>
   <button type="button" class="viewDockBtn viewDockCore" data-view-target="fitness" aria-current="false" aria-label="生活改善"><i class="dockGlyph" data-task-ui-icon="sprout" aria-hidden="true"></i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore" data-view-target="game" aria-current="false" aria-label="游戏"><i class="dockGlyph" data-task-ui-icon="sparkles" aria-hidden="true"></i><span>GAME</span><b><span class="dockDesktopLabel">游戏</span><span class="dockMobileLabel">游戏</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore" data-view-target="learning" aria-current="false" aria-label="学习中心"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockDesktopLabel">学习中心</span><span class="dockMobileLabel">学习</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="tasks" aria-current="false" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="game" aria-current="false" aria-label="游戏"><i class="dockGlyph" data-task-ui-icon="gamepad-2" aria-hidden="true"></i><span>GAME</span><b><span class="dockDesktopLabel">游戏</span><span class="dockMobileLabel">游戏</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="learning" aria-current="false" aria-label="学习中心"><i class="dockGlyph" data-task-ui-icon="book-open" aria-hidden="true"></i><b><span class="dockDesktopLabel">学习中心</span><span class="dockMobileLabel">学习</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="tasks" aria-current="false" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="clipboard-check" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
   <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="weekly" aria-current="false" aria-label="周计划"><i class="dockGlyph" data-task-ui-icon="calendar-days" aria-hidden="true"></i><span>WEEK</span><b><span class="dockDesktopLabel">周计划</span><span class="dockMobileLabel">周计划</span></b></button>
-  <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart commandDesktopNav" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" data-task-ui-icon="clock" aria-hidden="true"></i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
-  <button type="button" class="viewDockBtn viewDockUtility commandDesktopNav" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
-  <button type="button" class="viewDockBtn commandMobileNav" data-view-target="more" aria-current="false" aria-label="更多"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockMobileLabel">更多</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart commandDesktopNav" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" data-task-ui-icon="timer" aria-hidden="true"></i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
+  <button type="button" class="viewDockBtn viewDockUtility commandDesktopNav" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" data-task-ui-icon="folder-open" aria-hidden="true"></i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
+  <button type="button" class="viewDockBtn commandMobileNav" data-view-target="more" aria-current="false" aria-label="更多"><i class="dockGlyph" data-task-ui-icon="grid-2x2" aria-hidden="true"></i><b><span class="dockMobileLabel">更多</span></b></button>
 </nav>
 <section class="viewPanel commandView active" id="commandCenter" data-view-panel="overview" aria-label="任务总览"></section>
 <section class="viewPanel commandView" id="learningCenter" data-view-panel="learning" aria-label="学习中心"></section>
 <section class="viewPanel commandView" id="commandMore" data-view-panel="more" aria-label="更多工作台">
   <div class="commandHero"><div><h1>更多工作台</h1></div></div>
   <div class="commandMoreGrid">
-    <button type="button" data-workbench-open="tasks">统一编辑工作台</button>
-    <button type="button" data-view-target="tasks">每日任务</button>
-    <button type="button" data-view-target="weekly">周计划</button>
-    <button type="button" data-view-target="time">时间账本</button>
-    <button type="button" data-view-target="library">资料库</button>
-    <button type="button" data-command-manage>任务管理</button>
+    <button type="button" data-workbench-open="tasks"><span class="trMoreIcon" data-task-ui-icon="sliders-horizontal" aria-hidden="true"></span><span>统一编辑工作台</span></button>
+    <button type="button" data-view-target="tasks"><span class="trMoreIcon" data-task-ui-icon="clipboard-check" aria-hidden="true"></span><span>每日任务</span></button>
+    <button type="button" data-view-target="weekly"><span class="trMoreIcon" data-task-ui-icon="calendar-days" aria-hidden="true"></span><span>周计划</span></button>
+    <button type="button" data-view-target="time"><span class="trMoreIcon" data-task-ui-icon="timer" aria-hidden="true"></span><span>时间账本</span></button>
+    <button type="button" data-view-target="library"><span class="trMoreIcon" data-task-ui-icon="folder-open" aria-hidden="true"></span><span>资料库</span></button>
+    <button type="button" data-command-manage><span class="trMoreIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span><span>任务管理</span></button>
   </div>
 </section>
 <section class="taskRingControlPanel taskAreaHeader viewPanel" data-view-panel="tasks" aria-label="每日模块筛选与进度">
   <div class="taskRingControlHead taskAreaHeaderCopy">
     <div>
       <span class="taskAreaEyebrow">TR / DAILY COMMAND</span>
-      <strong class="taskAreaTitle">每日</strong>
+      <strong class="taskAreaTitle trTitleWithIcon"><span data-task-ui-icon="clipboard-check" aria-hidden="true"></span>每日</strong>
       <div class="taskRingModeText taskAreaDescription" id="modeText">只看今日未完成模式</div>
     </div>
   </div>
@@ -203,7 +204,7 @@
 <div class="viewPanel commandView commandExtra" id="commandExtra-game" data-view-panel="game" hidden></div>
 <div class="viewPanel commandView commandExtra" id="commandExtra-fitness" data-view-panel="fitness" hidden></div>
 <section class="timePanel viewPanel" id="timePanel" data-view-panel="time" aria-label="时间配额环"></section>
-<section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" aria-hidden="true">LIB</span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
+<section class="refBox priorityRefBox viewPanel" id="refBox" data-view-panel="library"><header class="refBoxHeader"><span class="refSummaryIcon" data-task-ui-icon="folder-open" aria-hidden="true"></span><span class="refSummaryText"><span class="refSummaryTitle">资料库</span><span class="refSummarySub">固定入口 / 不定期 / 月度 / 年度项目。先收起分组快速定位，再展开查看资料。</span></span><button type="button" class="refExpandAllBtn" id="refExpandAllBtn" aria-expanded="true" title="收起所有资料分组，只显示分组标题">收起项目</button></header><div class="refGrid" id="refGrid"></div></section>
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
 <div class="commandMotto viewPanel" data-view-panel="library"><span>TR / NOTE</span><p>Avance avec intention — chaque petite victoire construit la suivante.</p></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>

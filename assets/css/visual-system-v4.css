@@ -1,0 +1,459 @@
+/*
+ TaskRing VISUAL SYSTEM 4 / Operations Atelier
+ Presentation-only enhancement. Do not mutate app state, task identities or storage.
+ One SVG icon family, semantic module accents, compact scan-friendly surfaces.
+ Loaded after task-workbench.css and the legacy visual layers.
+*/
+body.nx {
+  --tr-ink: #233747;
+  --tr-ink-strong: #172d3d;
+  --tr-muted: #5c7383;
+  --tr-line: #d3dfe5;
+  --tr-line-strong: #aabfc9;
+  --tr-panel: #ffffff;
+  --tr-panel-soft: #f4f8fa;
+  --tr-amber: #e7c979;
+  --tr-amber-ink: #624a15;
+  --tr-emerald: #347c65;
+  --tr-emerald-soft: #e9f4ed;
+  --tr-sky: #387c99;
+  --tr-violet: #6d6099;
+  --tr-danger: #a8454b;
+  --tr-danger-soft: #fbefef;
+  --tr-radius: 11px;
+  --tr-shadow: 0 2px 6px rgba(24,48,65,.045),0 10px 24px rgba(24,48,65,.025);
+  --tr-focus: #277995;
+}
+body.nx[data-app-view="overview"] { --tr-page-accent:#c9a04c; --tr-page-soft:#fbf5e7; }
+body.nx[data-app-view="tasks"] { --tr-page-accent:#518da7; --tr-page-soft:#eff6fa; }
+body.nx[data-app-view="weekly"] { --tr-page-accent:#777bb0; --tr-page-soft:#f2f2fb; }
+body.nx[data-app-view="fitness"] { --tr-page-accent:#4d9a80; --tr-page-soft:#ecf7f2; }
+body.nx[data-app-view="game"] { --tr-page-accent:#8070b0; --tr-page-soft:#f3f0fa; }
+body.nx[data-app-view="learning"] { --tr-page-accent:#498fa4; --tr-page-soft:#eaf5f8; }
+body.nx[data-app-view="time"] { --tr-page-accent:#b58a45; --tr-page-soft:#fcf5e9; }
+body.nx[data-app-view="library"] { --tr-page-accent:#768d9d; --tr-page-soft:#eff4f7; }
+body.nx .trUiIcon {width:1.1em;height:1.1em;stroke-width:1.85;display:block;overflow:visible;}
+body.nx :is(.trInlineIcon,.trSectionIcon,.trMoreIcon,.trHeaderIcon,.trSafetyIcon,.trWorkbenchLaunchIcon,.trTitleWithIcon .trUiIcon) {
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;vertical-align:middle;
+}
+body.nx .trInlineIcon {width:17px;height:17px;}
+body.nx .trSectionIcon {width:27px;height:27px;padding:5px;border-radius:8px;background:#edf5f7;color:#366d83;}
+body.nx .trSectionIcon .trUiIcon {width:17px;height:17px;}
+body.nx .trTitleWithIcon {display:inline-flex;align-items:center;gap:9px;}
+body.nx .trTitleWithIcon>.trUiIcon {width:23px;height:23px;color:var(--tr-page-accent,#6d8fa5);}
+body.nx button:focus-visible, body.nx a:focus-visible, body.nx summary:focus-visible {
+  outline:2px solid var(--tr-focus);outline-offset:2px;
+}
+/* Master header and module rail */
+body.nx .inertiaHeader {box-shadow:inset 0 2px 0 rgba(234,205,143,.78),0 5px 17px rgba(19,39,56,.09);}
+body.nx .inertiaHeroMark {border:1px solid rgba(210,238,244,.18);}
+body.nx .inertiaHeroTitle {letter-spacing:-.035em;}
+body.nx .inertiaOwnerBadge {letter-spacing:.08em;}
+body.nx .inertiaToolbar>.controlCenterBtn,
+body.nx .inertiaToolbar>.headerLockBtn {display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+body.nx .trHeaderIcon {width:16px;height:16px;}
+body.nx .headerLockBtn [data-task-ui-icon] {display:inline-flex;width:15px;height:15px;align-items:center;justify-content:center;}
+body.nx #viewDock {border:1px solid #324e62;box-shadow:0 3px 13px rgba(16,39,54,.075);}
+body.nx #viewDock .viewDockBtn {position:relative;transition:background-color .16s,border-color .16s,color .16s;}
+body.nx #viewDock [data-view-target="overview"] {--tr-nav-accent:#e0b75c;}
+body.nx #viewDock [data-view-target="tasks"] {--tr-nav-accent:#6db2cf;}
+body.nx #viewDock [data-view-target="weekly"] {--tr-nav-accent:#999de0;}
+body.nx #viewDock [data-view-target="fitness"] {--tr-nav-accent:#71c39e;}
+body.nx #viewDock [data-view-target="game"] {--tr-nav-accent:#b29ae8;}
+body.nx #viewDock [data-view-target="learning"] {--tr-nav-accent:#7ed3e2;}
+body.nx #viewDock [data-view-target="time"] {--tr-nav-accent:#eac57c;}
+body.nx #viewDock [data-view-target="library"] {--tr-nav-accent:#a7bdc9;}
+body.nx #viewDock [data-view-target="more"] {--tr-nav-accent:#c8d2dc;}
+body.nx #viewDock .viewDockBtn.active {
+  box-shadow:inset 0 -3px 0 var(--tr-nav-accent,#e0b75c),0 1px 6px rgba(18,40,53,.06);
+}
+body.nx #viewDock .viewDockBtn .dockGlyph .trUiIcon {stroke-width:1.8;}
+/* Page identity cards; keep the original HUD and its compact dimensions. */
+body.nx :is(.taskRingControlPanel,.weeklyCommandHero,.fitnessHero,.timePanelHeader,.refBoxHeader) {
+  border-left-color:var(--tr-page-accent,#9cb2bd);
+}
+body.nx .taskRingControlHead .taskAreaEyebrow,
+body.nx :is(.weeklyCommandHero,.fitnessHero) .taskAreaEyebrow,
+body.nx .timePanelHeader>div:first-child>span {
+  color:#52738a;letter-spacing:.12em;
+}
+body.nx :is(.taskRingControlPanel,.weeklyCommandHero,.fitnessHero,.timePanelHeader,.refBoxHeader) :is(.taskAreaTitle,h2,.refSummaryTitle) {
+  letter-spacing:-.025em;
+}
+/* Command Center */
+body.nx .commandHero {
+  position:relative;overflow:hidden;isolation:isolate;
+  border:1px solid #3e6175;border-top:2px solid #e5c57a;
+  border-radius:13px;background:
+    radial-gradient(circle at 93% -30%,rgba(124,183,197,.18),transparent 42%),
+    linear-gradient(123deg,#192f40 0%,#294b5d 100%);
+  box-shadow:0 5px 20px rgba(25,46,61,.09);
+}
+body.nx .commandHero::before {
+  content:"";position:absolute;inset:0 0 auto auto;width:160px;height:100px;
+  background-image:linear-gradient(to right,rgba(208,233,239,.075) 1px,transparent 1px),
+                   linear-gradient(to bottom,rgba(208,233,239,.075) 1px,transparent 1px);
+  background-size:20px 20px;opacity:.4;mask-image:linear-gradient(to left,#000,transparent);
+  pointer-events:none;z-index:-1;
+}
+body.nx .commandHero h1 {
+  display:flex;align-items:center;gap:9px;letter-spacing:-.03em;font-weight:800;
+}
+body.nx .commandHero .trHeroIcon {
+  display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;
+  color:#f3d88f;background:rgba(230,201,127,.14);border:1px solid rgba(231,201,121,.23);border-radius:10px;
+}
+body.nx .commandHero .trHeroIcon .trUiIcon {width:19px;height:19px;}
+body.nx .commandKicker {font-size:10px;font-weight:800;letter-spacing:.14em;}
+body.nx .commandHero > button {
+  display:inline-flex;justify-content:center;align-items:center;gap:7px;
+  border-radius:8px;font-size:12px;font-weight:750;
+}
+body.nx .commandHero > button .trInlineIcon {width:15px;height:15px;}
+body.nx .commandMetrics {gap:8px;}
+body.nx .commandMetrics>div {
+  position:relative;overflow:hidden;min-height:72px;border:1px solid rgba(178,214,224,.16);
+  background:rgba(12,28,39,.38);border-radius:9px;padding:10px 12px;
+}
+body.nx .commandMetrics>div:before {
+  content:"";position:absolute;top:0;left:0;width:34px;height:2px;
+  background:#e5c77e;opacity:.78;
+}
+body.nx .commandMetrics .trMetricLabel {display:flex;align-items:center;gap:6px;font-size:11px;line-height:1.35;}
+body.nx .commandMetrics .trMetricLabel .trInlineIcon {width:14px;height:14px;color:#c4e0e7;}
+body.nx .commandMetrics strong {font-size:24px;letter-spacing:-.035em;font-variant-numeric:tabular-nums;}
+body.nx .commandMetrics strong small {font-size:12px;font-weight:500;opacity:.8;}
+body.nx .commandMetrics progress {height:5px;border-radius:20px;overflow:hidden;}
+body.nx .commandTabs button {display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+body.nx .commandTabs .trInlineIcon {width:15px;height:15px;}
+body.nx .commandGroup {--tr-group-accent:#759ba9;}
+body.nx .commandGroup[data-command-group="今日必做"] {--tr-group-accent:#c39a4c;}
+body.nx .commandGroup[data-command-group="今日计划"] {--tr-group-accent:#678ca7;}
+body.nx .commandGroup[data-command-group="已逾期"] {--tr-group-accent:#bf6564;}
+body.nx .commandGroup[data-command-group="临近截止"] {--tr-group-accent:#ac8652;}
+body.nx .commandGroup[data-command-group="有余力任务"] {--tr-group-accent:#8074a2;}
+body.nx .commandGroup>h2 {
+  display:flex;align-items:center;gap:8px;padding:5px 0 10px;
+  font-size:15px;line-height:1.45;font-weight:800;letter-spacing:-.01em;
+}
+body.nx .commandGroup>h2>.trGroupIcon {
+  display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;
+  border:1px solid color-mix(in srgb,var(--tr-group-accent) 28%,white);
+  border-radius:9px;color:var(--tr-group-accent);
+  background:color-mix(in srgb,var(--tr-group-accent) 10%,white);
+}
+body.nx .commandGroup>h2>.trGroupIcon .trUiIcon {width:16px;height:16px;}
+body.nx .commandGroup>h2>small {
+  display:inline-flex;min-width:25px;justify-content:center;margin-left:2px;padding:3px 7px;
+  border-radius:7px;color:#526e80;background:#eaf1f5;
+  font-weight:800;font-variant-numeric:tabular-nums;
+}
+body.nx .commandCard {
+  border:1px solid #d1e0e6;border-top:2px solid #b3cbd4;
+  background:linear-gradient(145deg,#fff 70%,#f8fafc 100%);
+  box-shadow:var(--tr-shadow);border-radius:10px;
+  transition:box-shadow .16s,border-color .16s,background-color .16s;
+}
+body.nx .commandCard:hover {border-color:#99b6c4;box-shadow:0 3px 12px rgba(31,60,76,.095);}
+body.nx .commandCard.is-overdue {border-left:3px solid #b95455;border-top-color:#d6a3a0;}
+body.nx .commandCard.is-done {border-left:3px solid var(--tr-emerald);border-top-color:#9fcab5;background:#f9fcfa;}
+body.nx .commandCardMain {min-width:0;align-items:start;}
+body.nx .commandTaskIdentity {min-width:0;}
+body.nx .commandTaskIdentity>strong {display:block;font-weight:750;line-height:1.48;overflow-wrap:anywhere;}
+body.nx .trTaskMetaRow {display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;line-height:1.45;}
+body.nx .trTaskMeta {
+  display:inline-flex;align-items:center;gap:3px;min-height:21px;
+  border:1px solid #e0e8ed;background:#f2f6f8;color:#526b7c;border-radius:5px;
+  padding:2px 6px;font-size:10px;line-height:1.3;font-weight:650;
+}
+body.nx .trTaskMeta .trInlineIcon {width:12px;height:12px;}
+body.nx .trTaskMeta-alert {border-color:#efc5c1;background:#fbefed;color:#9e4548;}
+body.nx .trTaskMeta-deadline {border-color:#ead9b3;background:#faf5e8;color:#876428;}
+body.nx .trTaskMeta-optional {border-color:#dbd5ea;background:#f5f2fa;color:#685b8e;}
+body.nx .trTaskMeta-tier {background:#eef1f8;color:#556886;}
+body.nx .commandCardActions {display:flex;align-self:center;gap:5px;justify-content:flex-end;}
+body.nx .commandCardActions :is(a,button) {
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:40px;padding:7px 9px;border-radius:7px;font-size:11px;line-height:1.3;
+}
+body.nx .commandCardActions .trInlineIcon {width:14px;height:14px;}
+body.nx .commandCard .commandCheck:hover span {border-color:#367f96;background:#eaf4f7;}
+body.nx .commandCard.is-done .commandCheck span {border-color:#267760;}
+body.nx .commandDetails {border-top:1px dashed #e0e8ed;padding-top:7px;}
+body.nx .commandDetails summary {color:#4e6a79;}
+body.nx .commandEmpty {
+  display:flex;align-items:center;gap:9px;padding:16px 14px;
+  border:1px dashed #cbdde6;border-radius:10px;background:#f7fafb;color:#637d8e;line-height:1.5;
+}
+body.nx .commandEmpty .trEmptyIcon {display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;
+  color:#63899a;background:#eaf2f6;border-radius:9px;}
+body.nx .commandGroup.commandDone>summary {display:flex;align-items:center;gap:7px;}
+body.nx .commandGroup.commandDone>summary .trInlineIcon {color:var(--tr-emerald);}
+body.nx .commandUpcoming {border-radius:10px;}
+body.nx .commandUpcoming li {gap:10px;}
+/* Learning: two distinct tracks with the same component vocabulary */
+body.nx .trLearningHero {border-top-color:#92c7d1;}
+body.nx .studyTracks {gap:12px;}
+body.nx .studyTrack {
+  --tr-study-accent:#478a9d;
+  border:1px solid #d1e2e8;border-top:3px solid var(--tr-study-accent);
+  background:linear-gradient(150deg,#fff,#f9fcfd);border-radius:12px;box-shadow:var(--tr-shadow);
+}
+body.nx .studyTrack[data-study-track="KNOWLEDGE"] {--tr-study-accent:#7a7caf;}
+body.nx .studyTrack header {align-items:center;padding-bottom:10px;border-bottom:1px solid #e6edf1;}
+body.nx .trStudyKicker {display:flex;align-items:center;gap:6px;color:var(--tr-study-accent);
+  font-size:10px;font-weight:850;letter-spacing:.09em;}
+body.nx .trStudyKicker .trInlineIcon {width:16px;height:16px;}
+body.nx .studyTrack h2 {margin:4px 0 0;font-size:18px;letter-spacing:-.02em;}
+body.nx .studyTrack>.commandCard {margin-top:10px;}
+body.nx .studyTrack>details {border:1px solid #e1eaf0;border-radius:9px;background:#fafcfd;}
+body.nx .studyTrack>details>summary {min-height:41px;padding:9px 12px;}
+body.nx .studyQueue li {border-bottom:1px solid #e9eef2;}
+/* More dashboard and control center */
+body.nx #commandMore .commandHero {min-height:0;padding:17px 20px;}
+body.nx #commandMore .commandHero h1 {font-size:22px;}
+body.nx .commandMoreGrid {grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+body.nx .commandMoreGrid>button {
+  display:flex;align-items:center;justify-content:flex-start;gap:11px;min-height:68px;
+  padding:12px 13px;border:1px solid #d4e1e6;border-radius:11px;text-align:left;
+  background:linear-gradient(130deg,#fff,#f7fafb);box-shadow:var(--tr-shadow);color:#263d4c;
+  font-size:13px;font-weight:750;
+}
+body.nx .commandMoreGrid>button:hover {background:#eef6f9;border-color:#8caeba;}
+body.nx .trMoreIcon {
+  display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;
+  border:1px solid #d5e6eb;background:#edf5f8;color:#427f96;border-radius:10px;
+}
+body.nx .trMoreIcon .trUiIcon {width:20px;height:20px;}
+body.nx .commandMoreGrid>button:nth-child(2) .trMoreIcon {background:#eef5fa;color:#467e9a;}
+body.nx .commandMoreGrid>button:nth-child(3) .trMoreIcon {background:#f1f0fa;color:#766fa6;}
+body.nx .commandMoreGrid>button:nth-child(4) .trMoreIcon {background:#fbf5e9;color:#ad8042;}
+body.nx .commandMoreGrid>button:nth-child(5) .trMoreIcon {background:#eef2f6;color:#637e90;}
+body.nx .controlSectionTitle {display:flex;align-items:center;gap:7px;}
+body.nx .controlSectionTitle>strong {margin-right:auto;}
+body.nx .controlUtilityBtn,.controlSafetyBtn,.controlExportBtn {transition:background-color .15s,border-color .15s;}
+body.nx .controlUtilityIcon,.controlSafetyBtn>.trSafetyIcon {
+  display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
+  border-radius:9px;border:1px solid #dce5ea;background:#f2f6f9;color:#4b7287;
+}
+body.nx .controlUtilityIcon .trUiIcon,body.nx .trSafetyIcon .trUiIcon {width:20px;height:20px;}
+body.nx .controlWorkbenchLaunch {
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  border:1px solid #5a7b8b;border-left:3px solid #e6c576;
+  background:linear-gradient(115deg,#1b3445,#2b5060);
+}
+body.nx .trWorkbenchLaunchIcon {
+  flex:0 0 47px;width:47px;height:47px;display:grid;place-items:center;
+  border:1px solid rgba(230,202,130,.37);color:#f0d795;background:rgba(230,202,130,.12);border-radius:12px;
+}
+body.nx .trWorkbenchLaunchIcon .trUiIcon {width:25px;height:25px;}
+body.nx .controlWorkbenchLaunch strong {display:inline-flex;align-items:center;gap:5px;}
+body.nx .controlWorkbenchLaunch strong .trUiIcon {width:15px;height:15px;}
+/* Daily and weekly workspaces */
+body.nx .taskRingControlPanel .taskAreaTitle {font-weight:820;}
+body.nx .dailyGroup>summary {border-left-color:#7ea9ba;}
+body.nx .weeklyMissionGroup>summary {border-left-color:#8b90bf;}
+body.nx :is(.dailyCard,.weeklyMissionCard,.fitnessItem,.refItem) {
+  box-shadow:var(--tr-shadow);transition:border-color .15s,box-shadow .15s,background-color .15s;
+}
+body.nx :is(.dailyCard,.weeklyMissionCard,.fitnessItem,.refItem):hover {box-shadow:0 4px 15px rgba(28,54,70,.09);}
+body.nx .dailyCard .dailyTitle,body.nx .weeklyMissionCard .missionTitle {font-weight:740;letter-spacing:-.01em;}
+body.nx :is(.dailyCard,.weeklyMissionCard).done {background:#f9fcfa;border-top-color:#85b29e;}
+body.nx .dailyCard .dailyMetaChip {font-weight:650;}
+body.nx .weeklyHeroStats>div {font-variant-numeric:tabular-nums;}
+body.nx .weeklyHeroStats>div>b {letter-spacing:-.025em;}
+body.nx .weeklyCategoryTab {transition:background-color .15s,border-color .15s;}
+body.nx .weeklyCategoryTab.active {box-shadow:inset 0 -2px 0 #ba9861;}
+body.nx .weeklyOverview>summary {font-weight:750;}
+/* Life Improvement */
+body.nx .fitnessHero {border-left-color:#5b9d81;}
+body.nx .fitnessProgressCard {border-radius:9px;box-shadow:0 1px 5px rgba(21,51,47,.04);}
+body.nx .fitnessCommandIcon,body.nx .fitnessTimerBtn>span:first-child {
+  display:grid;place-items:center;color:#4b866f;
+}
+body.nx .fitnessCommandIcon .trUiIcon,body.nx .fitnessTimerBtn .trUiIcon {width:20px;height:20px;}
+body.nx .fitnessLane {border-color:#cfdfd8;}
+body.nx .fitnessLaneHead {background:linear-gradient(115deg,#f3faf6,#fff);}
+body.nx .fitnessLaneHead b {letter-spacing:-.02em;}
+body.nx .fitnessItem.done {border-color:#add1bf;background:#f8fcfa;}
+body.nx .fitnessItemToggle:focus-visible {outline:2px solid #277a61;outline-offset:2px;}
+/* Game Ops: visible scopes, board tabs, lanes, tier identities */
+body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {border-top:2px solid #b49de2;}
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopTitle>strong .trUiIcon {color:#d4b9f5;}
+body.nx .gameQuestV6 .gqV6BoardTab .trTabName {
+  display:inline-flex;align-items:center;gap:6px;min-width:0;
+}
+body.nx .gameQuestV6 .gqV6BoardTab .trUiIcon {width:16px;height:16px;flex:0 0 auto;}
+body.nx .gameQuestV6 .gqV6HubTab>b .trUiIcon {width:18px;height:18px;}
+body.nx .gameQuestV6 .gameCommandIcon .trUiIcon {width:20px;height:20px;}
+body.nx .gameQuestV6 .gqV6BoardTab.active {box-shadow:inset 0 -2px 0 #e5c981;}
+body.nx .gameQuestV6 .gqV6GameCard {box-shadow:var(--tr-shadow);}
+body.nx .gameQuestV6 .gqV6LaneTab .trUiIcon {stroke-width:1.8;}
+body.nx .gameQuestV6 .gqV6BoardIntro {box-shadow:0 2px 8px rgba(34,57,70,.04);}
+body.nx .gameQuestV6 .gqScopeBtn {transition:background-color .15s,border-color .15s;}
+body.nx .gameQuestV6 .gqScopeBtn.active {box-shadow:inset 0 0 0 1px rgba(247,231,190,.11);}
+/* Time Ledger */
+body.nx .timePanelHeader {border-left-color:#b89955;}
+body.nx .timeStatCards>div {background:#fafcfb;border-top:2px solid #bb985b;}
+body.nx .timeStatCards b {font-variant-numeric:tabular-nums;letter-spacing:-.025em;}
+body.nx .timeSubTabs {gap:6px;}
+body.nx .timeSubTabs button {display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+body.nx .timeSubTabs .trUiIcon {width:15px;height:15px;}
+body.nx .timeTaskRow {border-left-color:#98b5c2;}
+body.nx .timeTaskRank li,body.nx .timeLogItem {border-bottom-color:#e4eaed;}
+body.nx .activeTimerClock {font-variant-numeric:tabular-nums;letter-spacing:-.04em;}
+/* Reference Library */
+body.nx .refBoxHeader {border-left-color:#8397a5;}
+body.nx .refSummaryIcon {background:#eaf1f6;border:1px solid #d3e2eb;color:#4a7187;}
+body.nx .refSummaryIcon .trUiIcon {width:22px;height:22px;}
+body.nx .refGroup>summary {border-left-color:#8ca9bb;}
+body.nx .refItem {border-left-color:#8eb0c2;}
+body.nx .refItem:hover {transform:none;box-shadow:0 4px 12px rgba(30,55,71,.09);}
+body.nx .refGroupTitle {letter-spacing:-.01em;}
+/* Configuration Studio: icon vocabulary and strong editing hierarchy */
+body.nx .taskWorkbench {
+  --wb-ink:#223c4c;--wb-muted:#5b7585;--wb-line:#d9e5ea;
+}
+body.nx .taskWorkbench .wb-top {
+  border-bottom-color:#d8bb79;
+  background:linear-gradient(113deg,#192e3e,#2b4f60 85%);
+}
+body.nx .taskWorkbench .wb-top-actions {gap:7px;}
+body.nx .taskWorkbench .wb-btn {gap:6px;transition:background-color .15s,border-color .15s;}
+body.nx .taskWorkbench .wb-btn>.trInlineIcon {width:16px;height:16px;}
+body.nx .taskWorkbench .wb-btn.wb-history .trUiIcon {width:18px;height:18px;}
+body.nx .taskWorkbench .wb-btn.wb-close {gap:0;}
+body.nx .taskWorkbench .trStudioTitleIcon {
+  display:inline-grid;place-items:center;width:29px;height:29px;margin-right:8px;
+  border-radius:9px;background:rgba(231,201,121,.13);color:#f1d898;
+}
+body.nx .taskWorkbench .trStudioTitleIcon .trUiIcon {width:18px;height:18px;}
+body.nx .taskWorkbench .wb-nav button {gap:9px;min-height:48px;}
+body.nx .taskWorkbench .wb-num {display:none;}
+body.nx .taskWorkbench .trStudioNavIcon {display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;
+  color:#c1dae4;border-radius:7px;background:rgba(144,185,205,.10);}
+body.nx .taskWorkbench .trStudioNavIcon .trUiIcon {width:17px;height:17px;}
+body.nx .taskWorkbench .wb-nav button.active .trStudioNavIcon {
+  color:#594b23;background:rgba(172,139,66,.14);
+}
+body.nx .taskWorkbench .wb-list-entry.selected {background:#fff9ed;border-color:#d2af66;}
+body.nx .taskWorkbench .wb-tree-toggle .wb-tree-caret .trUiIcon {width:17px;height:17px;}
+body.nx .taskWorkbench .wb-search {position:relative;}
+body.nx .taskWorkbench .wb-search input {padding-left:39px;}
+body.nx .taskWorkbench .wb-search .trSearchIcon {
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;color:#7291a3;pointer-events:none;
+}
+body.nx .taskWorkbench .wb-search .trSearchIcon .trUiIcon {width:17px;height:17px;}
+body.nx .taskWorkbench .wb-editor-heading {border-color:#d9e5eb;}
+body.nx .taskWorkbench .wb-context-card {border-left-color:#8daab9;background:#f5f9fb;}
+body.nx .taskWorkbench .wb-form-section {color:#36566b;border-color:#dae5eb;}
+body.nx .taskWorkbench .wb-fields .wb-field>span {font-weight:750;color:#486477;}
+body.nx .taskWorkbench .wb-raw {background:#f7fafb;}
+body.nx .taskWorkbench .wb-feedback {border-top:1px solid rgba(255,255,255,.11);}
+/* Sizes and accessibility */
+@media (max-width:900px) {
+  body.nx .commandMoreGrid {grid-template-columns:repeat(2,minmax(0,1fr));}
+  body.nx .controlWorkbenchLaunch {gap:11px;}
+}
+@media (max-width:700px) {
+  body.nx .commandHero {border-radius:10px;}
+  body.nx .commandHero .trHeroIcon {width:30px;height:30px;flex-basis:30px;}
+  body.nx .commandMetrics>div {min-height:65px;padding:8px 9px;}
+  body.nx .commandMetrics strong {font-size:21px;}
+  body.nx .commandGroup>h2 {font-size:14px;}
+  body.nx .commandCard {border-radius:10px;}
+  body.nx .trTaskMeta {font-size:10px;padding:2px 5px;}
+  body.nx .commandCardActions :is(a,button) {padding-inline:7px;}
+  body.nx .commandMoreGrid {gap:7px;}
+  body.nx .commandMoreGrid>button {min-height:60px;padding:9px;gap:8px;font-size:12px;}
+  body.nx .trMoreIcon {width:32px;height:32px;flex-basis:32px;}
+  body.nx .trMoreIcon .trUiIcon {width:18px;height:18px;}
+  body.nx .controlSectionTitle .trSectionIcon {width:24px;height:24px;}
+  body.nx .controlWorkbenchLaunch .trWorkbenchLaunchIcon {width:39px;height:39px;flex-basis:39px;}
+  body.nx .controlWorkbenchLaunch .trWorkbenchLaunchIcon .trUiIcon {width:22px;height:22px;}
+  body.nx .taskWorkbench .wb-top .trStudioTitleIcon {width:25px;height:25px;}
+  body.nx .taskWorkbench .wb-nav button {min-height:40px;gap:6px;}
+  body.nx .taskWorkbench .trStudioNavIcon {flex-basis:20px;width:20px;height:20px;}
+  body.nx .taskWorkbench .trStudioNavIcon .trUiIcon {width:16px;height:16px;}
+}
+@media(max-width:359px) {
+  body.nx .commandMoreGrid {gap:6px;}
+  body.nx .commandMoreGrid>button {padding:8px 7px;gap:6px;min-width:0;}
+  body.nx .trMoreIcon {width:30px;height:30px;flex-basis:30px;}
+  body.nx .commandMetrics .trMetricLabel {font-size:10px;}
+  body.nx .trTaskMetaRow {gap:3px 4px;}
+  body.nx .taskWorkbench .wb-nav button {padding:6px 8px;}
+}
+@media(hover:none) {
+  body.nx .commandCard:hover, body.nx .refItem:hover {box-shadow:var(--tr-shadow);}
+}
+@media(prefers-reduced-motion:reduce) {
+  body.nx :is(.commandCard,.viewDockBtn,.commandMoreGrid>button,.wb-btn,.dailyCard,.weeklyMissionCard,.fitnessItem,.refItem) {
+    transition:none !important;animation:none !important;
+  }
+}
+@media(forced-colors:active) {
+  body.nx .commandCard.is-done,body.nx .commandCard.is-overdue,
+  body.nx #viewDock .viewDockBtn.active,body.nx .wb-list-entry.selected {outline:2px solid Highlight;}
+  body.nx .trTaskMeta {border:1px solid ButtonText;}
+}
+
+/* Header identity glyphs may be direct SVGs (generated) or hydrated spans (static). */
+body.nx .trTitleWithIcon > [data-task-ui-icon] {
+  display:inline-grid;place-items:center;flex:0 0 23px;width:23px;height:23px;
+  color:var(--tr-page-accent,#6d8fa5);
+}
+body.nx .trTitleWithIcon > [data-task-ui-icon] > .trUiIcon {width:23px;height:23px;}
+body.nx .weeklyCommandHero .trTitleWithIcon > .trUiIcon {color:#7883b5;}
+body.nx .taskRingControlPanel .trTitleWithIcon .trUiIcon {color:#558da6;}
+
+
+/* Regression hardening: dock states must switch atomically, never fade through the previous tab. */
+@media(max-width:900px) {
+  body.nx #viewDock .viewDockBtn,
+  body.nx #viewDock .viewDockBtn .dockGlyph {
+    transition:none;
+  }
+}
+/* Keep the masthead brand legible on narrow phones while retaining access to sync status. */
+@media(max-width:359px) {
+  body.nx .inertiaHeroBrand {min-width:94px;flex:0 0 auto;}
+  body.nx .inertiaToolbar > .controlCenterBtn .trHeaderIcon {display:none;}
+  body.nx .inertiaToolbar .githubInlineState {
+    width:23px;min-width:23px;max-width:23px;padding-inline:3px;
+    justify-content:center;
+  }
+  body.nx .inertiaToolbar .githubInlineState .ghInlineText {display:none;}
+}
+/* Use a two-row HUD and three fluid tabs around the 1100px sidebar breakpoint.
+   The extra glyphs must never increase document width. */
+@media(min-width:1000px) and (max-width:1199px) {
+  body.nx .gameQuestV6 {min-width:0;max-width:100%;}
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {
+    grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide {
+    width:100%;min-width:0;max-width:100%;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,.8fr));
+  }
+  body.nx .gameQuestV6 .gqV6BoardTabs {
+    min-width:0;max-width:100%;grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  body.nx .gameQuestV6 .gqV6BoardTab {min-width:0;padding-inline:7px;column-gap:3px;}
+  body.nx .gameQuestV6 .gqV6BoardTab .trTabName {min-width:0;max-width:100%;gap:3px;}
+  body.nx .gameQuestV6 .gqV6BoardTab .trTabName .trUiIcon {width:14px;height:14px;}
+}
+/* Small, meaningful reductions in chrome: first game must be visible before the scroll. */
+@media(max-width:700px) {
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {padding-block:8px;}
+}
+/* The resource folder glyph is a real identity mark, not a hidden desktop placeholder. */
+body.nx .refBoxHeader .refSummaryIcon {
+  display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
+  min-width:36px;visibility:visible;opacity:1;
+}
+body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:21px;height:21px;}
+@media(max-width:700px) {
+  body.nx .refBoxHeader .refSummaryIcon {flex-basis:30px;width:30px;height:30px;min-width:30px;}
+  body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:18px;height:18px;}
+}
