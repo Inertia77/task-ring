@@ -21,7 +21,7 @@
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
   let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
   let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
-  let undoStack=[],redoStack=[],domainMemo=new Map();
+  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map(),searchCollapsed=new Set(),listScrollMemo=new Map();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -184,14 +184,21 @@
   function editorFields(item){
     const v=item.obj;
     if(item.kind==="task")return taskEditor(item);
-    if(item.kind==="gameMeta")return field("name","游戏名称",v.name)+field("short","简称",v.short)+field("priority","显示排序",v.priority||1,"number",'min="1"')+check("enabled","启用游戏",v.enabled!==false);
+    if(item.kind==="gameMeta")return '<h3 class="wb-form-section">01 / 游戏身份</h3>'+
+      field("name","游戏名称",v.name)+field("short","简称",v.short)+
+      '<h3 class="wb-form-section">02 / 显示与管理</h3>'+
+      field("priority","显示顺序",v.priority||1,"number",'min="1"')+
+      check("enabled","启用游戏",v.enabled!==false);
     if(item.kind==="gameTask"){
       const weekly=item.group.endsWith("周常");
-      return field("title","任务名称",v.title,"text",'required maxlength="220"')+field("url","链接",v.url,"url")+
+      return '<h3 class="wb-form-section">01 / 任务基本信息</h3>'+
+        '<div class="wb-wide">'+field("title","任务名称",v.title,"text",'required maxlength="220"')+'</div>'+
         (weekly?select("weekly_lane","周常优先级",v.weekly_lane||"steady",[["sprint","优先处理"],["steady","正常周常"],["wait","等待条件"],["optional","有余力"]]):
           select("daily_lane","日常优先级",v.daily_lane||"must",[["must","必须完成"],["optional","有余力"]]))+
-        (weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
-        textarea("note","说明 / 备注",v.note,4)+check("enabled","启用此任务",v.enabled!==false);
+        check("enabled","启用此任务",v.enabled!==false)+
+        '<h3 class="wb-form-section">02 / 条件与说明</h3>'+
+        field("url","关联链接",v.url,"url")+(weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
+        textarea("note","说明 / 备注",v.note,4);
     }
     if(item.kind==="lifeSection")return field("name","分区名称",v.name)+field("short","分区简称",v.short)+select("accent","颜色",v.accent||"blue",["blue","violet","rose","cyan","slate","green","amber"].map(x=>[x,x]))+textarea("guide","分区指导说明",v.guide,6)+check("enabled","启用分区",v.enabled!==false);
     if(item.kind==="lifeTask")return field("title","行动内容",v.title,"text",'required maxlength="220"')+field("url","关联链接",v.url,"url")+textarea("note","行动说明",v.note,4)+check("optional","可选，不计入必做完成率",v.optional===true)+check("enabled","启用行动",v.enabled!==false);
@@ -201,8 +208,13 @@
         select("end","队列结束后",q.end,[["stop","停止"],["loop","从头循环"]])+check("paused","暂停学习轨道",q.paused);
     }
     if(item.kind==="studyItem")return field("title","学习内容",v.title,"text",'required maxlength="220"')+field("stage","所属阶段",v.stage)+field("url","课程链接",v.url,"url")+textarea("note","学习要点",v.note,5)+check("enabled","启用课程",v.enabled!==false);
-    if(item.kind==="refGroup")return field("title","资料组名称",v.title)+check("enabled","启用资料组",v.enabled!==false);
-    if(item.kind==="refItem")return field("title","资料名称",v.title)+field("url","链接",v.url,"url")+check("enabled","启用资料",v.enabled!==false);
+    if(item.kind==="refGroup")return '<h3 class="wb-form-section">01 / 资料分组</h3>'+
+      '<div class="wb-wide">'+field("title","分组名称",v.title)+'</div>'+
+      check("enabled","启用资料组",v.enabled!==false);
+    if(item.kind==="refItem")return '<h3 class="wb-form-section">01 / 资料信息</h3>'+
+      '<div class="wb-wide">'+field("title","资料名称",v.title)+'</div>'+
+      '<div class="wb-wide">'+field("url","原始资料链接",v.url,"url")+'</div>'+
+      check("enabled","启用资料",v.enabled!==false);
     return "";
   }
   function renderToolbar(){
@@ -238,19 +250,160 @@
       [["all","全部"],["active","已启用"],["disabled","已停用"]].map(([key,label])=>
         '<button type="button" data-wb-status="'+key+'" aria-pressed="'+(visibility===key)+'" class="'+(visibility===key?"active":"")+'">'+label+'</button>').join("")+
       '</div>';
+    if(domain==="game"||domain==="refs")
+      x+='<div class="wb-tree-controls"><span>层级浏览</span>'+
+        '<button type="button" data-wb-tree-all="expand">展开全部</button>'+
+        '<button type="button" data-wb-tree-all="collapse">收起全部</button></div>';
     return x;
   }
+  function entryMarkup(item,nested=false){
+    const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
+    return '<button type="button" class="wb-list-entry '+(nested?'wb-tree-item ':'')+
+      (selected===item.key?"selected ":"")+(item.obj.enabled===false?"disabled ":"")+
+      (recordChanged(item)?"is-changed":"")+'" data-wb-select="'+esc(item.key)+'" aria-current="'+
+      (selected===item.key?"true":"false")+'"><span class="wb-entry-name">'+esc(title)+'</span>'+
+      '<span class="wb-entry-meta"><small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+
+      '</small>'+(recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
+  }
+  function treeExpanded(key,fallback=false){
+    if(keyword.trim())return !searchCollapsed.has(key);
+    if(treeOpen.has(key))return treeOpen.get(key);
+    if(groupFilter!=="all")return true;
+    return fallback;
+  }
+  function treeToggle(key){
+    // The initial group may be expanded by default without a stored map entry.
+    // Read the rendered aria-expanded state so the first click actually closes it.
+    const trigger=[...root.querySelectorAll("[data-wb-tree-toggle]")]
+      .find(el=>el.dataset.wbTreeToggle===key);
+    const currentlyOpen=trigger?.getAttribute("aria-expanded")==="true";
+    if(keyword.trim()){
+      if(currentlyOpen)searchCollapsed.add(key);
+      else searchCollapsed.delete(key);
+    }else treeOpen.set(key,!currentlyOpen);
+    const listScroll=root.querySelector(".wb-list-items")?.scrollTop||0;
+    render();
+    const el=[...root.querySelectorAll("[data-wb-tree-toggle]")].find(x=>x.dataset.wbTreeToggle===key);
+    el?.focus({preventScroll:true});
+    const box=root.querySelector(".wb-list-items");if(box)box.scrollTop=listScroll;
+  }
+  function expandAll(expanded){
+    const keys=domain==="game"?
+      [...new Set([...draft.gameQuest.games.map(g=>g.id),
+        ...Object.keys(draft.gameQuest.boards.daily||{}),
+        ...Object.keys(draft.gameQuest.boards.weekly||{})])].flatMap(id=>
+          ["game:"+id,"game:"+id+":daily","game:"+id+":weekly"]):
+      draft.refs.map(group=>"refs:"+group.id);
+    keys.forEach(key=>{
+      treeOpen.set(key,expanded);
+      if(keyword.trim()){
+        if(expanded)searchCollapsed.delete(key);
+        else searchCollapsed.add(key);
+      }
+    });
+    render();
+  }
+  function treeHeader(key,title,summary,expanded,level=0){
+    return '<button type="button" class="wb-tree-toggle" data-wb-tree-toggle="'+esc(key)+'" aria-expanded="'+
+      expanded+'" aria-controls="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+'">'+
+      '<span class="wb-tree-caret" aria-hidden="true">'+(expanded?"⌄":"›")+'</span>'+
+      '<span class="wb-tree-heading">'+esc(title)+'</span><span class="wb-tree-summary">'+esc(summary)+'</span></button>';
+  }
+  function treePanel(key,content,expanded){
+    return '<div class="wb-tree-panel" id="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+
+      '" '+(expanded?"":"hidden")+'>'+content+'</div>';
+  }
+  function gameTree(list){
+    const set=new Set(list.map(item=>item.key));
+    const all=[...refs.values()];
+    const games=draft.gameQuest.games;
+    const ids=[...new Set([...games.map(game=>game.id),
+      ...Object.keys(draft.gameQuest.boards.daily||{}),...Object.keys(draft.gameQuest.boards.weekly||{})])];
+    let html="",visible=0;
+    ids.forEach((id,idx)=>{
+      const meta=all.find(x=>x.domain==="game"&&x.kind==="gameMeta"&&x.obj.id===id);
+      const daily=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":daily"&&set.has(x.key));
+      const weekly=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":weekly"&&set.has(x.key));
+      const showMeta=!!meta&&set.has(meta.key);
+      if(!showMeta&&!daily.length&&!weekly.length)return;
+      const game=games.find(x=>x.id===id);
+      const name=game?.name||id+" · 未登记";
+      const gameKey="game:"+id,expanded=treeExpanded(gameKey,idx===0);
+      const renderPriorityRows=(board,items)=>{
+        const priorities=board==="daily"?
+          [["must","必须完成"],["optional","有余力"]]:
+          [["sprint","优先处理"],["steady","正常周常"],["wait","等待条件"],["optional","有余力"]];
+        const field=board==="daily"?"daily_lane":"weekly_lane";
+        const normalized=v=>v|| (board==="daily"?"must":"steady");
+        const categories=[...priorities];
+        if(items.some(x=>!priorities.some(y=>y[0]===normalized(x.obj[field]))))categories.push(["other","其他设置"]);
+        return categories.map(([value,label])=>{
+          const current=items.filter(item=>{
+            const lane=normalized(item.obj[field]);
+            return value==="other"?!priorities.some(x=>x[0]===lane):lane===value;
+          });
+          if(!current.length)return "";
+          return '<div class="wb-priority-section" data-wb-priority="'+board+":"+value+'">'+
+            '<div class="wb-priority-caption"><span>'+label+'</span><small>'+current.length+' 项</small></div>'+
+            current.map(item=>entryMarkup(item,true)).join("")+'</div>';
+        }).join("")||'<p class="wb-tree-empty">此处暂无任务</p>';
+      };
+      const renderLane=(board,items)=>{
+        if(scope!=="all"&&scope!==board)return "";
+        // Keep both lanes navigable when there is no active search or status filter.
+        if(!items.length&&(keyword.trim()||visibility!=="all"))return "";
+        const laneKey=gameKey+":"+board,open=treeExpanded(laneKey,board==="daily");
+        const laneLabel=board==="daily"?"每日任务":"每周任务";
+        const groupName=board==="daily"?"日常":"周常";
+        return '<div class="wb-tree-lane"><div class="wb-tree-lane-head">'+
+          treeHeader(laneKey,laneLabel,items.length+" 项",open,1)+
+          '<button type="button" class="wb-tree-add" data-wb-add-game="'+esc(id)+'" data-wb-board="'+board+
+          '" title="新增'+esc(name)+' · '+groupName+'" aria-label="在'+esc(name)+groupName+'下新增任务">＋</button></div>'+
+          treePanel(laneKey,renderPriorityRows(board,items),open)+'</div>';
+      };
+      const d=renderLane("daily",daily),w=renderLane("weekly",weekly);
+      let inner='<div class="wb-tree-settings"><div class="wb-tree-settings-label">游戏设置</div>'+
+        (meta&&set.has(meta.key)?entryMarkup(meta,true):'<p class="wb-tree-empty">游戏设置不在当前筛选中</p>')+
+        '</div>'+d+w;
+      html+='<section class="wb-tree-group" data-wb-game="'+esc(id)+'"><div class="wb-tree-group-head">'+
+        treeHeader(gameKey,name,"日常 "+daily.length+" · 周常 "+weekly.length,expanded)+
+        (meta?'<button type="button" class="wb-tree-edit" data-wb-select="'+esc(meta.key)+
+          '" title="编辑'+esc(name)+'的游戏设置" aria-label="编辑'+esc(name)+'的游戏设置">⚙</button>':"")+
+        '</div>'+treePanel(gameKey,inner,expanded)+'</section>';
+      visible++;
+    });
+    return html||'<div class="wb-empty"><strong>没有匹配的游戏任务</strong><p>可以试着清除搜索或更改筛选条件。</p></div>';
+  }
+  function refsTree(list){
+    const set=new Set(list.map(item=>item.key));
+    const all=[...refs.values()];
+    let html="";
+    draft.refs.forEach((group,idx)=>{
+      const meta=all.find(x=>x.kind==="refGroup"&&x.obj.id===group.id);
+      const children=all.filter(x=>x.kind==="refItem"&&x.identity===group.id&&set.has(x.key));
+      const showMeta=!!meta&&set.has(meta.key);
+      if(!showMeta&&!children.length)return;
+      const key="refs:"+group.id,expanded=treeExpanded(key,idx===0);
+      html+='<section class="wb-tree-group" data-wb-ref-group="'+esc(group.id)+'"><div class="wb-tree-group-head">'+
+        treeHeader(key,group.title||"未命名分组",children.length+" 条资料",expanded)+
+        (meta?'<button type="button" class="wb-tree-edit" data-wb-select="'+esc(meta.key)+
+          '" title="编辑资料分组" aria-label="编辑分组：'+esc(group.title)+'">⚙</button>':"")+'</div>'+
+        treePanel(key,'<div class="wb-tree-settings">'+
+          (showMeta?entryMarkup(meta,true):"")+'</div><div class="wb-tree-ref-actions">'+
+          '<span>分组内资料</span><button type="button" class="wb-tree-add wb-tree-add-wide" data-wb-add-ref="'+
+          esc(group.id)+'" aria-label="向'+esc(group.title)+'添加资料">＋ 添加资料</button></div>'+
+          '<div class="wb-tree-ref-items">'+(children.map(item=>entryMarkup(item,true)).join("")||
+            '<p class="wb-tree-empty">暂无资料，点击上方添加</p>')+'</div>',expanded)+'</section>';
+    });
+    return html||'<div class="wb-empty"><strong>没有匹配的资料</strong><p>可以更改分组或搜索词，或新增一个资料分组。</p></div>';
+  }
   function listMarkup(list){
+    if(domain==="game")return gameTree(list);
+    if(domain==="refs")return refsTree(list);
     let h="",last="";
     list.forEach(item=>{
       if(item.group!==last){h+='<div class="wb-list-group">'+esc(item.group)+'</div>';last=item.group;}
-      const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
-      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+
-        (item.obj.enabled===false?"disabled ":"")+(recordChanged(item)?"is-changed":"")+
-        '" data-wb-select="'+esc(item.key)+'" aria-current="'+(selected===item.key?"true":"false")+'">'+
-        '<span class="wb-entry-name">'+esc(title)+'</span><span class="wb-entry-meta">'+
-        '<small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small>'+
-        (recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
+      h+=entryMarkup(item);
     });
     if(!list.length)h+='<div class="wb-empty"><strong>没有匹配的项目</strong><p>可以调整筛选条件，或通过「＋ 新增」添加新项目。</p></div>';
     return h;
@@ -261,6 +414,49 @@
       '<footer class="wb-list-foot"><span class="wb-count">'+list.length+' 项结果</span><span>草稿未保存前不会写入正式配置</span>'+
       '<details class="wb-compat"><summary>兼容与高级维护</summary><p>少数旧版专属设置仍可在兼容编辑器维护。</p>'+
       '<button type="button" class="wb-btn wb-subtle" data-wb-legacy>打开专业兼容编辑器</button></details></footer>';
+  }
+  function linkAction(url){
+    try{
+      const resolved=new URL(url);
+      if(!["https:","http:"].includes(resolved.protocol))return "";
+      return '<a class="wb-context-link" href="'+esc(resolved.href)+
+        '" target="_blank" rel="noopener noreferrer">↗ 打开资料链接</a>';
+    }catch(_){return ""}
+  }
+  function detailContext(item){
+    if(item.kind==="gameMeta"){
+      const id=item.obj.id,name=item.obj.name||id;
+      const daily=(draft.gameQuest.boards.daily[id]||[]).length;
+      const weekly=(draft.gameQuest.boards.weekly[id]||[]).length;
+      return '<aside class="wb-context-card"><div><strong>游戏配置</strong><p>'+
+        esc(name)+' · 日常 '+daily+' 项 / 周常 '+weekly+' 项</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-game="'+esc(id)+
+        '" data-wb-board="daily">＋ 日常任务</button><button type="button" data-wb-add-game="'+
+        esc(id)+'" data-wb-board="weekly">＋ 周常任务</button></div></aside>';
+    }
+    if(item.kind==="gameTask"){
+      const [id,board]=item.identity.split(":");
+      const game=draft.gameQuest.games.find(g=>g.id===id);
+      const title=game?.name||id,boardLabel=board==="weekly"?"周常":"日常";
+      return '<aside class="wb-context-card"><div><strong>'+esc(title)+' / '+boardLabel+
+        '</strong><p>这里维护该游戏的'+boardLabel+'任务；限时与周期运营任务仍以 Supabase 为准。</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-game="'+esc(id)+
+        '" data-wb-board="'+esc(board)+'">＋ 同组新任务</button></div></aside>';
+    }
+    if(item.kind==="refGroup"){
+      const length=(item.obj.items||[]).length;
+      return '<aside class="wb-context-card"><div><strong>资料分组</strong><p>当前分组内共有 '+
+        length+' 条资料，可直接为此分组新增条目。</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-ref="'+esc(item.obj.id)+
+        '">＋ 添加资料</button></div></aside>';
+    }
+    if(item.kind==="refItem"){
+      const group=draft.refs.find(g=>g.id===item.identity);
+      return '<aside class="wb-context-card"><div><strong>所属分组：'+esc(group?.title||item.identity)+
+        '</strong><p>仅编辑当前资料；其他分组和条目不会受到影响。</p></div>'+
+        '<div class="wb-context-actions">'+linkAction(item.obj.url||"")+'</div></aside>';
+    }
+    return "";
   }
   function renderDetail(){
     const item=refs.get(selected);
@@ -278,6 +474,7 @@
       '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+
       (recordChanged(item)?' · 草稿已修改':'')+'</span><h2>'+esc(title)+'</h2></div>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>在正式页面查看</button></div>'+
+      detailContext(item)+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
       '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
       '<p>此区域只修改当前条目。ID、状态编码保持不变；点击「应用」后仍须保存整个草稿。</p>'+
@@ -298,8 +495,12 @@
       list:root.querySelector(".wb-list-items")?.scrollTop||0,
       editor:root.querySelector(".wb-editor")?.scrollTop||0
     };
+    // Remember the last list position before mobile swaps to a detail-only screen.
+    const oldDomain=root.dataset.domain;
+    if(oldDomain&&root.dataset.screen==="list"&&root.querySelector(".wb-lists")?.getClientRects().length)
+      listScrollMemo.set(oldDomain,previousScroll.list);
     const all=index(),counts=Object.fromEntries(domains.map(([key])=>[key,all.filter(item=>item.domain===key).length]));
-    root.dataset.screen=screen;
+    root.dataset.screen=screen;root.dataset.domain=domain;
     root.innerHTML=renderToolbar()+'<div class="wb-layout"><nav class="wb-nav" aria-label="编辑区域">'+
       domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+
         '" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+
@@ -313,7 +514,7 @@
     if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
     const raw=root.querySelector("[data-wb-raw]");if(raw)raw.dataset.wbOriginal=raw.value;
     root.querySelector(".wb-nav").scrollLeft=previousScroll.nav;
-    root.querySelector(".wb-list-items").scrollTop=previousScroll.list;
+    root.querySelector(".wb-list-items").scrollTop=listScrollMemo.get(domain)??previousScroll.list;
     root.querySelector(".wb-editor").scrollTop=previousScroll.editor;
   }
   function rawPending(){
@@ -419,7 +620,7 @@
     }
     form.dataset.wbOriginal=JSON.stringify(values);
   }
-  function create(kind){
+  function create(kind,context={}){
     flush();
     checkpoint();
     let obj,parent,mod=domain;
@@ -437,9 +638,14 @@
         days:days.slice(),enabled:true,optional:false,estimated_minutes:15,weekly_minutes:60,note:"",url:"",steps:[]};
       parent=draft.tasks;parent.push(obj);
     }else if(domain==="game"){
-      const game=draft.gameQuest.games.find(g=>g.id===groupFilter)||draft.gameQuest.games[0];
+      const selectedRow=refs.get(selected);
+      const selectedId=selectedRow?.kind==="gameMeta"?selectedRow.obj.id:
+        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[0]:null;
+      const game=draft.gameQuest.games.find(g=>g.id===(context.gameId||groupFilter))||
+        draft.gameQuest.games.find(g=>g.id===selectedId)||draft.gameQuest.games[0];
       if(!game){notice="请先新增一个游戏";render();return;}
-      const board=scope==="weekly"?"weekly":"daily";
+      const board=context.board||(["daily","weekly"].includes(scope)?scope:
+        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[1]:"daily");
       parent=draft.gameQuest.boards[board][game.id] ||= [];
       obj={id:"wb-game-"+uuid(),title:"新游戏任务",enabled:true,url:"",note:""};
       if(board==="daily")obj.daily_lane="must";else obj.weekly_lane="steady";
@@ -455,22 +661,47 @@
       parent=draft.sequences[track].items;
       obj={id:"wb-study-"+uuid(),title:"新学习内容",stage:"",url:"",note:"",enabled:true};parent.push(obj);
     }else if(domain==="refs"){
-      const group=draft.refs.find(g=>g.id===groupFilter)||draft.refs[0];if(!group){create("group");return;}
+      const selectedRow=refs.get(selected);
+      const selectedGroup=selectedRow?.kind==="refGroup"?selectedRow.obj.id:
+        selectedRow?.kind==="refItem"?selectedRow.identity:null;
+      const group=draft.refs.find(g=>g.id===(context.groupId||groupFilter))||
+        draft.refs.find(g=>g.id===selectedGroup)||draft.refs[0];
+      if(!group){notice="请先新增一个资料分组";render();return;}
       parent=group.items ||= [];
       obj={id:"wb-ref-"+uuid(),title:"新资料",url:"",enabled:true};parent.push(obj);
     }else return;
+    if(kind==="group"&&(domain==="game"||domain==="refs"))
+      treeOpen.set((domain==="game"?"game:":"refs:")+obj.id,true);
     index();
     const row=[...refs.values()].find(item=>item.obj===obj);
-    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";visibility="all";
+    if(domain==="game"&&row?.kind==="gameTask"){
+      treeOpen.set("game:"+row.identity.split(":")[0],true);
+      treeOpen.set("game:"+row.identity,true);
+    }
+    if(domain==="refs"&&row?.kind==="refItem")treeOpen.set("refs:"+row.identity,true);
+    selected=row?.key||"";screen="detail";keyword="";visibility="all";
+    if(groupFilter!=="all"&&(
+      (domain==="game"&&row?.kind==="gameTask"&&row.identity.split(":")[0]!==groupFilter)||
+      (domain==="refs"&&row?.kind==="refItem"&&row.identity!==groupFilter)))groupFilter="all";
+    if(domain==="game"&&row?.kind==="gameTask")scope=row.identity.split(":")[1];
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
+  function revealSelection(item){
+    if(!item)return;
+    if(item.kind==="gameMeta")treeOpen.set("game:"+item.obj.id,true);
+    else if(item.kind==="gameTask"){
+      treeOpen.set("game:"+item.identity.split(":")[0],true);
+      treeOpen.set("game:"+item.identity,true);
+    }else if(item.kind==="refGroup")treeOpen.set("refs:"+item.obj.id,true);
+    else if(item.kind==="refItem")treeOpen.set("refs:"+item.identity,true);
+  }
   function choose(key){
-    flush();selected=key;screen="detail";notice="";render();
+    flush();selected=key;screen="detail";notice="";revealSelection(refs.get(key));render();
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function rememberDomain(){
-    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:root.querySelector(".wb-list-items")?.scrollTop||0});
+    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:listScrollMemo.get(domain)??root.querySelector(".wb-list-items")?.scrollTop??0});
   }
   function switchDomain(next){
     if(guardRaw())return;
@@ -485,7 +716,7 @@
   function stepItem(delta){
     flush();const list=filtered(),i=list.findIndex(x=>x.key===selected),next=list[i+delta];
     if(!next)return;
-    selected=next.key;screen="detail";notice="";render();
+    selected=next.key;screen="detail";notice="";revealSelection(next);render();
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function save(){
@@ -506,7 +737,7 @@
     const pendingRaw=rawPending();
     if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();searchCollapsed.clear();listScrollMemo.clear();delete root.dataset.domain;refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
     if(!root.hidden){switchDomain(next);return;}
@@ -572,6 +803,10 @@
     const d=el.dataset;
     if(rawPending()&&d.wbApplyRaw===undefined&&d.wbDiscardRaw===undefined&&d.wbClose===undefined){guardRaw();return;}
     if(d.wbDomain){switchDomain(d.wbDomain);}
+    else if(d.wbTreeToggle!==undefined){flush();treeToggle(d.wbTreeToggle);}
+    else if(d.wbTreeAll!==undefined){flush();expandAll(d.wbTreeAll==="expand");}
+    else if(d.wbAddGame!==undefined)create("item",{gameId:d.wbAddGame,board:d.wbBoard});
+    else if(d.wbAddRef!==undefined)create("item",{groupId:d.wbAddRef});
     else if(d.wbSelect){choose(d.wbSelect);}
     else if(d.wbBack!==undefined){flush();screen="list";render();}
     else if(d.wbNew!==undefined)create("item");
@@ -610,7 +845,7 @@
   root.addEventListener("input",event=>{
     const el=event.target;
     if(el.matches("[data-wb-search]")){
-      flush();keyword=el.value;
+      flush();keyword=el.value;searchCollapsed.clear();
       const list=filtered(),box=root.querySelector(".wb-list-items");
       if(!box)return;
       // Update only the results, keeping focus and the scroll position of the search input.

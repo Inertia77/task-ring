@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# Keep only the latest test run for a PR; avoids redundant browser downloads.
+concurrency:
+  group: taskring-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -56,9 +61,11 @@ jobs:
           git diff --check origin/main...HEAD
 
   browser:
-    # Playwright 1.58.2 supports Ubuntu 24.04; ubuntu-latest moved to 26.04,
-    # where its Chromium/WebKit dependency installer exits before tests run.
-    runs-on: ubuntu-24.04
+    # Pinned official image already includes Chromium/WebKit and system dependencies.
+    # Matching @playwright/test avoids flaky on-runner browser downloads.
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +73,6 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:browser
       - uses: actions/upload-artifact@v4
         if: always()
