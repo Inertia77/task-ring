@@ -154,3 +154,22 @@ test('new entries use the selected game and reference group, not the first group
   expect(data.refs.find(x=>x.id==='test-ref-b').items.some(x=>x.title==='仅工具收藏的链接')).toBe(true);
   expect(data.refs.find(x=>x.id==='test-ref-a').items.some(x=>x.title==='仅工具收藏的链接')).toBe(false);
 });
+
+test('unapplied JSON cannot be lost by switching modules or saving',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page,'overview');
+  await openStudio(page);
+  await page.locator('#taskWorkbench .wb-list-entry').first().click();
+  const raw=page.locator('#taskWorkbench [data-wb-raw]');
+  await page.locator('#taskWorkbench .wb-raw summary').click();
+  const original=await raw.inputValue();
+  await raw.fill(original.replace('"title":', '"title": "尚未应用的 JSON", "old_title":'));
+  await page.locator('#taskWorkbench [data-wb-domain="game"]').click();
+  await expect(page.locator('#taskWorkbench [data-wb-domain="tasks"]')).toHaveAttribute('aria-current','page');
+  await expect(raw).toHaveValue(original.replace('"title":','"title": "尚未应用的 JSON", "old_title":'));
+  await expect(page.locator('#taskWorkbench .wb-feedback')).toContainText('JSON 文本尚未应用');
+  await page.locator('#taskWorkbench [data-wb-discard-raw]').click();
+  await expect(raw).toHaveValue(original);
+  await page.locator('#taskWorkbench [data-wb-domain="game"]').click();
+  await expect(page.locator('#taskWorkbench [data-wb-domain="game"]')).toHaveAttribute('aria-current','page');
+});
