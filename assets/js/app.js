@@ -2140,7 +2140,7 @@ function applyActiveAppView(){
   const mobile=window.matchMedia?.("(max-width: 900px)").matches===true;
   document.querySelectorAll("[data-view-target]").forEach(btn=>{
     const mobileShortcut=mobile&&btn.classList.contains("commandDesktopNav");
-    const moreSelected=mobile&&btn.dataset.viewTarget==="more"&&["learning","fitness","time","library"].includes(activeAppView);
+    const moreSelected=mobile&&btn.dataset.viewTarget==="more"&&["tasks","weekly","time","library"].includes(activeAppView);
     const isActive=!mobileShortcut&&(btn.dataset.viewTarget===activeAppView||moreSelected);
     btn.classList.toggle("active",isActive);
     btn.setAttribute("aria-pressed",String(isActive));
