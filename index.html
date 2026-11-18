@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.fullscreen-studio">
+<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.editor-studio-v2">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary"/>
 
 <link rel="stylesheet" href="assets/css/main.css?v=20261118.1"/>
-<link rel="stylesheet" href="assets/css/task-workbench.css?v=20261118.1"/>
+<link rel="stylesheet" href="assets/css/task-workbench.css?v=20261118.2"/>
 <script src="assets/js/notion-app-links.js?v=20261109.2" defer></script>
 </head>
 <body class="nx locked">
@@ -85,67 +85,13 @@
           <strong id="controlAreaTitle">统一任务编辑</strong>
           <span>CONFIGURATION STUDIO</span>
         </div>
-        <button type="button" class="controlWorkbenchLaunch" id="controlWorkbenchBtn" data-workbench-open="tasks"><span><b>打开全屏编辑工作台</b><em>统一编辑每日、周计划、游戏、学习、生活改善和资料库；支持搜索、排序、复制、停用与安全保存。</em></span><strong>进入编辑 ↗</strong></button>
-        <div class="controlAreaGrid">
-          <button type="button" id="controlTaskEditorBtn" class="controlAreaCard controlAreaDaily" data-control-area="daily">
-            <span class="controlAreaIcon" data-task-ui-icon="check-square" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>01 / DAILY</small>
-              <b>每日</b>
-              <em>管理每天与指定日要执行的任务</em>
-            </span>
-            <span class="controlAreaAction">编辑任务 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
-
-          <button type="button" class="controlAreaCard controlAreaWeek" data-control-area="weekly" data-view-target="weekly">
-            <span class="controlAreaIcon" data-task-ui-icon="calendar-days" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>02 / WEEK</small>
-              <b>周计划</b>
-              <em>查看本周矩阵、目标与完成分布</em>
-            </span>
-            <span class="controlAreaAction">打开分区 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
-
-          <button type="button" id="controlFitnessEditorBtn" class="controlAreaCard controlAreaFitness" data-control-area="fitness">
-            <span class="controlAreaIcon" data-task-ui-icon="sprout" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>03 / LIFE</small>
-              <b>生活改善</b>
-              <em>训练、饮食、起居与护理等每日习惯</em>
-            </span>
-            <span class="controlAreaAction">编辑改善 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
-
-          <button type="button" id="controlGameQuestEditorBtn" class="controlAreaCard controlAreaGame" data-control-area="game">
-            <span class="controlAreaIcon" data-task-ui-icon="sparkles" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>04 / GAME</small>
-              <b>游戏</b>
-              <em>管理多游戏的日常、周常与限时任务</em>
-            </span>
-            <span class="controlAreaAction">编辑任务 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
-
-          <button type="button" class="controlAreaCard controlAreaTime" data-control-area="time" data-view-target="time">
-            <span class="controlAreaIcon" data-task-ui-icon="clock" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>05 / TIME</small>
-              <b>时间账本</b>
-              <em>查看计时记录与投入分布</em>
-            </span>
-            <span class="controlAreaAction">打开账本 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
-
-          <button type="button" id="controlRefEditorBtn" class="controlAreaCard controlAreaLibrary" data-control-area="library">
-            <span class="controlAreaIcon" data-task-ui-icon="files" aria-hidden="true"></span>
-            <span class="controlAreaCopy">
-              <small>06 / LIB</small>
-              <b>资料库</b>
-              <em>维护长期资料、清单与参考链接</em>
-            </span>
-            <span class="controlAreaAction">编辑资料 <i data-task-ui-icon="arrow-up-right" aria-hidden="true"></i></span>
-          </button>
+        <button type="button" class="controlWorkbenchLaunch" id="controlWorkbenchBtn" data-workbench-open="tasks"><span><b>编辑任务与配置</b><em>一个入口，编辑每日、周计划、游戏、学习、生活改善和资料库；跨区域连续编辑，统一保存。</em></span><strong>进入编辑 ↗</strong></button>
+        <!-- Legacy editors stay wired for compatibility, not as competing entry points. -->
+        <div class="controlLegacyActions" hidden aria-hidden="true">
+          <button type="button" id="controlTaskEditorBtn" tabindex="-1">任务专业编辑器</button>
+          <button type="button" id="controlGameQuestEditorBtn" tabindex="-1">游戏专业编辑器</button>
+          <button type="button" id="controlFitnessEditorBtn" tabindex="-1">生活改善专业编辑器</button>
+          <button type="button" id="controlRefEditorBtn" tabindex="-1">资料库专业编辑器</button>
         </div>
       </section>
 
@@ -444,7 +390,7 @@
 <script src="assets/js/tasks/config.js?v=20261117.1"></script>
 <script src="assets/js/tasks/sources.js?v=20261117.1"></script>
 <script src="assets/js/tasks/command.js?v=20261118.2"></script>
-<script src="assets/js/tasks/workbench.js?v=20261118.1"></script>
+<script src="assets/js/tasks/workbench.js?v=20261118.2"></script>
 <script src="assets/js/pwa.js?v=20261117.1"></script>
 </body>
 </html>
