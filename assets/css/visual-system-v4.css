@@ -407,3 +407,53 @@ body.nx .trTitleWithIcon > [data-task-ui-icon] {
 body.nx .trTitleWithIcon > [data-task-ui-icon] > .trUiIcon {width:23px;height:23px;}
 body.nx .weeklyCommandHero .trTitleWithIcon > .trUiIcon {color:#7883b5;}
 body.nx .taskRingControlPanel .trTitleWithIcon .trUiIcon {color:#558da6;}
+
+
+/* Regression hardening: dock states must switch atomically, never fade through the previous tab. */
+@media(max-width:900px) {
+  body.nx #viewDock .viewDockBtn,
+  body.nx #viewDock .viewDockBtn .dockGlyph {
+    transition:none;
+  }
+}
+/* Keep the masthead brand legible on narrow phones while retaining access to sync status. */
+@media(max-width:359px) {
+  body.nx .inertiaHeroBrand {min-width:94px;flex:0 0 auto;}
+  body.nx .inertiaToolbar > .controlCenterBtn .trHeaderIcon {display:none;}
+  body.nx .inertiaToolbar .githubInlineState {
+    width:23px;min-width:23px;max-width:23px;padding-inline:3px;
+    justify-content:center;
+  }
+  body.nx .inertiaToolbar .githubInlineState .ghInlineText {display:none;}
+}
+/* Use a two-row HUD and three fluid tabs around the 1100px sidebar breakpoint.
+   The extra glyphs must never increase document width. */
+@media(min-width:1000px) and (max-width:1199px) {
+  body.nx .gameQuestV6 {min-width:0;max-width:100%;}
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {
+    grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;
+  }
+  body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide {
+    width:100%;min-width:0;max-width:100%;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,.8fr));
+  }
+  body.nx .gameQuestV6 .gqV6BoardTabs {
+    min-width:0;max-width:100%;grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  body.nx .gameQuestV6 .gqV6BoardTab {min-width:0;padding-inline:7px;column-gap:3px;}
+  body.nx .gameQuestV6 .gqV6BoardTab .trTabName {min-width:0;max-width:100%;gap:3px;}
+  body.nx .gameQuestV6 .gqV6BoardTab .trTabName .trUiIcon {width:14px;height:14px;}
+}
+/* Small, meaningful reductions in chrome: first game must be visible before the scroll. */
+@media(max-width:700px) {
+  body.nx .gameQuestV6 .gqV6Top.gameQuestTopBar {padding-block:8px;}
+}
+/* The resource folder glyph is a real identity mark, not a hidden desktop placeholder. */
+body.nx .refBoxHeader .refSummaryIcon {
+  display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
+  min-width:36px;visibility:visible;opacity:1;
+}
+body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:21px;height:21px;}
+@media(max-width:700px) {
+  body.nx .refBoxHeader .refSummaryIcon {flex-basis:30px;width:30px;height:30px;min-width:30px;}
+  body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:18px;height:18px;}
+}
