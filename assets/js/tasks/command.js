@@ -131,7 +131,7 @@
         '<button type="button" data-study-edit="'+track+'" data-command-focus="add-'+track+'">添加学习项</button></details>'+
         (history?'<details class="commandGroup" data-command-details="history-'+track+'" '+(openedDetails.has("history-"+track)?'open':'')+'><summary>完成历史 '+state.accepted.length+'</summary><ol class="studyQueue">'+history+'</ol></details>':'')+'</section>';
     });
-    update(learn,'<div class="commandHero"><div><div class="commandKicker">LEARNING</div><h1>学习中心</h1><p>每天各一项。完成后，下一项于次日出现。</p></div></div><div class="studyTracks">'+tracks.join("")+'</div>');
+    update(learn,'<div class="commandHero"><div><div class="commandKicker">LEARNING</div><h1>学习中心</h1><p>每天各一项。完成后，下一项于次日出现。</p></div><button type="button" data-workbench-open="learning">进入全屏编辑工作台</button></div><div class="studyTracks">'+tracks.join("")+'</div>');
   }
 
   function renderExtra(view){
@@ -441,7 +441,7 @@
       row.set(!row.done,el);
     }else if(d.commandFilter){filter=d.commandFilter;renderOverview();}
     else if(d.commandSource){const row=rows.get(d.commandSource);if(row)goToSource(row);}
-    else if(d.commandManage!==undefined){closeControlCenter();taskManager();}
+    else if(d.commandManage!==undefined){closeControlCenter();if(window.TaskRingWorkbench)window.TaskRingWorkbench.open("tasks");else taskManager();}
     else if(d.commandEdit!==undefined)openTaskForm(d.commandEdit);
     else if(d.commandJson!==undefined){closeControlCenter();jsonManager();}
     else if(d.commandDismiss!==undefined)dismiss();
@@ -519,6 +519,6 @@
     if(event.key===TASK_CONFIG_LOCAL_KEY||event.key?.startsWith(GH_PREFIX)||event.key===window.TaskRingIntegrity.stateMetaKey)renderAll();
   });
 
-  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(config())};
+  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(config()),getWorkbenchConfig:()=>JSON.parse(JSON.stringify(config())),saveWorkbenchConfig:(candidate,expectedFingerprint)=>saveConfiguration(candidate,"统一编辑工作台：保存前备份",expectedFingerprint),openWorkbenchJson:()=>jsonManager()};
   render();
 })();
