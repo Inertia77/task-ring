@@ -5,8 +5,8 @@ for(const width of [320,390,768]){
   test('mobile command dock has exactly one visual current page at '+width+'px',async({page})=>{
     await page.setViewportSize({width,height:844});
     await boot(page);
-    let previous='tasks';
-    for(const target of ['weekly','fitness','game','time','library','tasks']){
+    let previous='more';
+    for(const target of ['weekly','fitness','game','learning','time','library','tasks']){
       await view(page,target);
       // Commit layout in the next frame before measuring color. Mobile HUD has
       // no navigation color transition, so the previous tab must already be neutral.
@@ -16,7 +16,7 @@ for(const width of [320,390,768]){
         current:[...document.querySelectorAll('#viewDock .viewDockBtn[aria-current="page"]')].map(b=>b.dataset.viewTarget),
         colors:[...document.querySelectorAll('#viewDock .viewDockBtn')].map(b=>({name:b.dataset.viewTarget,background:getComputedStyle(b).backgroundColor,transition:getComputedStyle(b).transitionDuration}))
       }));
-      const dockTarget=['fitness','time','library'].includes(target)?'more':target;
+      const dockTarget=['tasks','weekly','time','library'].includes(target)?'more':target;
       expect(state.active).toEqual([dockTarget]);
       expect(state.current).toEqual([dockTarget]);
       expect(state.colors.every(c=>c.transition.split(',').every(v=>parseFloat(v)===0)), 'Mobile dock colors must not animate from old active state').toBeTruthy();
