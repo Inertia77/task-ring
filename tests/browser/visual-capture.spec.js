@@ -8,8 +8,14 @@ for(const width of [390,1440])test(`reviewable key surfaces ${width}`,async({pag
  await view(page,'game');await page.locator('[data-gqv6-board="weekly"]').click();await shot('game-weekly');await page.locator('[data-gqv6-board="hub"]').click();await shot('cloud-login');
  await view(page,'time');for(const tab of ['tasks','logs']){await page.locator(`[data-time-tab="${tab}"]`).click();await shot('time-'+tab)}
  await page.locator('#controlCenterBtn').click();await shot('control-center');
- for(const [button,modal] of [['controlTaskEditorBtn','taskEditorModal'],['controlRefEditorBtn','refEditorModal'],['controlGameQuestEditorBtn','gameQuestEditorModal'],['controlFitnessEditorBtn','fitnessEditorModal']]){
-  if(!await page.locator('#controlCenterMenu').isVisible())await page.locator('#controlCenterBtn').click();
-  await page.locator('#'+button).click();const details=page.locator(`#${modal} details`).first();if(await details.count()&&await details.getAttribute('open')===null)await details.locator('summary').first().click();await shot(modal);await page.locator(`#${modal} .ghCloseBtn`).click();
+ await page.locator('#controlWorkbenchBtn').click();await shot('studio-list');
+ for(const domain of ['tasks','weekly','game','learning','fitness','refs']){
+  await page.locator('#taskWorkbench [data-wb-domain="'+domain+'"]').click();
+  await shot('studio-'+domain+'-list');
+  const first=page.locator('#taskWorkbench .wb-list-entry').first();
+  if(await first.count()){
+   await first.click();await shot('studio-'+domain+'-detail');
+  }
  }
+ await page.locator('#taskWorkbench [data-wb-close]').click();
 });
