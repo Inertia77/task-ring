@@ -272,10 +272,15 @@
     return fallback;
   }
   function treeToggle(key){
+    // The initial group may be expanded by default without a stored map entry.
+    // Read the rendered aria-expanded state so the first click actually closes it.
+    const trigger=[...root.querySelectorAll("[data-wb-tree-toggle]")]
+      .find(el=>el.dataset.wbTreeToggle===key);
+    const currentlyOpen=trigger?.getAttribute("aria-expanded")==="true";
     if(keyword.trim()){
-      if(searchCollapsed.has(key))searchCollapsed.delete(key);
-      else searchCollapsed.add(key);
-    }else treeOpen.set(key,!treeExpanded(key));
+      if(currentlyOpen)searchCollapsed.add(key);
+      else searchCollapsed.delete(key);
+    }else treeOpen.set(key,!currentlyOpen);
     const listScroll=root.querySelector(".wb-list-items")?.scrollTop||0;
     render();
     const el=[...root.querySelectorAll("[data-wb-tree-toggle]")].find(x=>x.dataset.wbTreeToggle===key);
