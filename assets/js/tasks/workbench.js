@@ -665,14 +665,6 @@
       parent=group.items ||= [];
       obj={id:"wb-ref-"+uuid(),title:"新资料",url:"",enabled:true};parent.push(obj);
     }else return;
-    if(domain==="game"&&kind!=="group"){
-      treeOpen.set("game:"+((context.gameId)||
-        [...draft.gameQuest.games].find(g=>g.id===groupFilter)?.id||
-        [...refs.values()].find(item=>item.obj===obj)?.identity.split(":")[0]),true);
-    }
-    if(domain==="refs"&&kind!=="group"){
-      treeOpen.set("refs:"+(context.groupId||groupFilter),true);
-    }
     if(kind==="group"&&(domain==="game"||domain==="refs"))
       treeOpen.set((domain==="game"?"game:":"refs:")+obj.id,true);
     index();
