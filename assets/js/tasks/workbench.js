@@ -203,7 +203,8 @@
     return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>← 返回列表</button>'+
       '<span>'+esc(item.group)+'</span></div>'+
       '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+'</span><h2>'+esc(title)+'</h2></div>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>查看原模块</button></div>'+
+      '<div class="wb-editor-shortcuts"><button type="button" class="wb-btn wb-quiet" data-wb-open-live>查看原模块</button>'+
+      (["tasks","weekly","game","fitness","refs"].includes(domain)?'<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级专业编辑器</button>':"")+'</div></div>'+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
       '<details class="wb-raw"><summary>高级 · 查看或编辑此项 JSON</summary><p>仅更改当前项目，ID 与状态编码不可修改；应用到草稿后仍需点击「保存全部」。</p>'+
       '<textarea aria-label="此项原始 JSON" data-wb-raw spellcheck="false">'+esc(JSON.stringify(raw,null,2))+'</textarea>'+
@@ -456,6 +457,13 @@
     else if(d.wbMove!==undefined)move(Number(d.wbMove));
     else if(d.wbToggleEnabled!==undefined){flush();const item=current();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
     else if(d.wbApplyRaw!==undefined)applyRaw();
+    else if(d.wbLegacy!==undefined){
+      const origin={"tasks":"controlTaskEditorBtn","weekly":"controlTaskEditorBtn","game":"controlGameQuestEditorBtn",
+        "fitness":"controlFitnessEditorBtn","refs":"controlRefEditorBtn"}[domain];
+      if(!close())return;
+      legacyBypass=true;
+      try{document.getElementById(origin)?.click();}finally{legacyBypass=false;}
+    }
     else if(d.wbOpenLive!==undefined){
       if(!close())return;
       window.setActiveAppView?.(domain==="refs"?"library":domain);
