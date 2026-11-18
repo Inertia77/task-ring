@@ -172,6 +172,8 @@
   function renderFilters(){
     let x='<div class="wb-list-head"><h2>'+esc(labels[domain])+'</h2><div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
     if(domain==="game"||domain==="fitness"||domain==="refs")x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
+    if(["tasks","weekly","game","fitness","refs"].includes(domain))
+      x+='<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级设置</button>';
     x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域</span><input type="search" data-wb-search placeholder="搜索名称、分类…" value="'+esc(keyword)+'"></label><div class="wb-filters">';
     if(domain==="game"){
       const opts=[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.name,g.name])];
