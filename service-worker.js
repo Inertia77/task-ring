@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261118-fullscreen-studio";
+const CACHE_NAME = "taskring-shell-20261118-editor-studio-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
