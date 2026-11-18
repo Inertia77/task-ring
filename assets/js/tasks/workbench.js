@@ -357,7 +357,7 @@
           treePanel(laneKey,renderPriorityRows(board,items),open)+'</div>';
       };
       const d=renderLane("daily",daily),w=renderLane("weekly",weekly);
-      let inner='<div class="wb-tree-settings">'+
+      let inner='<div class="wb-tree-settings"><div class="wb-tree-settings-label">游戏设置</div>'+
         (meta&&set.has(meta.key)?entryMarkup(meta,true):'<p class="wb-tree-empty">游戏设置不在当前筛选中</p>')+
         '</div>'+d+w;
       html+='<section class="wb-tree-group" data-wb-game="'+esc(id)+'"><div class="wb-tree-group-head">'+
