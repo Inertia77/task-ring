@@ -202,73 +202,113 @@
     return "";
   }
   function renderToolbar(){
-    return '<div class="wb-top"><div class="wb-brand"><span class="wb-kicker">TASKRING / CONFIG STUDIO</span>'+
-      '<h1 id="wbTitle">统一编辑工作台</h1><p>按区域浏览与编辑，保存时统一写入 TaskRing 配置</p></div>'+
-      '<div class="wb-top-actions"><span class="wb-status '+(isDirty()?"dirty":"")+'" aria-live="polite">'+(isDirty()?"● 有未保存修改":"✓ 已同步到草稿基线")+'</span>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>JSON 导入 / 导出</button>'+
-      '<button type="button" class="wb-btn wb-primary" data-wb-save '+(busy?"disabled":"")+'>保存全部</button>'+
-      '<button type="button" class="wb-btn wb-close" data-wb-close aria-label="关闭编辑工作台">×</button></div></div>';
+    const count=changeCount(),dirty=isDirty();
+    return '<header class="wb-top"><div class="wb-brand"><span class="wb-kicker">TASKRING / CONFIG STUDIO</span>'+
+      '<h1 id="wbTitle">任务编辑工作台</h1><p>六个区域，一份配置 · 切换区域不会丢失草稿</p></div>'+
+      '<div class="wb-top-actions"><span class="wb-status '+(dirty?"dirty":"")+'" aria-live="polite">'+
+      (dirty?'● '+count+' 处待保存':'✓ 当前修改已保存')+'</span>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-undo title="撤销（Ctrl+Z）" aria-label="撤销上一项草稿修改" '+(!undoStack.length?'disabled':'')+'>↶</button>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-redo title="重做（Ctrl+Shift+Z）" aria-label="重做草稿修改" '+(!redoStack.length?'disabled':'')+'>↷</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>JSON 管理</button>'+
+      '<button type="button" class="wb-btn wb-primary" data-wb-save '+(busy?'disabled':'')+'>'+(dirty?'保存 '+count+' 项修改':'保存全部')+'</button>'+
+      '<button type="button" class="wb-btn wb-close" data-wb-close aria-label="退出编辑工作台">×</button></div></header>';
   }
   function renderFilters(){
-    let x='<div class="wb-list-head"><h2>'+esc(labels[domain])+'</h2><div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
-    if(domain==="game"||domain==="fitness"||domain==="refs")x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
-    if(["tasks","weekly","game","fitness","refs"].includes(domain))
-      x+='<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级设置</button>';
-    x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域</span><input type="search" data-wb-search placeholder="搜索名称、分类…" value="'+esc(keyword)+'"></label><div class="wb-filters">';
+    let x='<div class="wb-list-head"><div><span class="wb-pane-kicker">CONFIGURATION</span><h2>'+esc(labels[domain])+'</h2></div>'+
+      '<div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
+    if(["game","fitness","refs"].includes(domain))
+      x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
+    x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域（Ctrl+K）</span>'+
+      '<input type="search" data-wb-search placeholder="搜索名称、分类、备注或 ID…" autocomplete="off" value="'+esc(keyword)+'"></label>';
+    x+='<div class="wb-filters">';
     if(domain==="game"){
-      const opts=[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.name,g.name])];
-      x+=select("groupFilter","游戏",groupFilter,opts)+select("scope","任务类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"]]);
-    }else if(domain==="learning")x+=select("groupFilter","轨道",groupFilter,[["all","两条轨道"],["LANGUAGE","语言"],["KNOWLEDGE","知识"]]);
-    else if(domain==="fitness")x+=select("groupFilter","星期",groupFilter,[["all","全部星期"],...days.map(d=>[String(d),dayNames[d]])]);
-    x+='</div>';
+      x+=select("groupFilter","游戏",groupFilter,[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.id,g.name])])+
+        select("scope","类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"]]);
+    }else if(domain==="learning")
+      x+=select("groupFilter","学习轨道",groupFilter,[["all","全部轨道"],["LANGUAGE","语言"],["KNOWLEDGE","知识"]]);
+    else if(domain==="fitness")
+      x+=select("groupFilter","星期",groupFilter,[["all","全部星期"],...days.map(day=>[String(day),dayNames[day]])]);
+    else if(domain==="refs")
+      x+=select("groupFilter","资料分组",groupFilter,[["all","全部分组"],...draft.refs.map(g=>[g.id,g.title])]);
+    x+='</div><div class="wb-visibility" aria-label="启用状态筛选">'+
+      [["all","全部"],["active","已启用"],["disabled","已停用"]].map(([key,label])=>
+        '<button type="button" data-wb-status="'+key+'" aria-pressed="'+(visibility===key)+'" class="'+(visibility===key?"active":"")+'">'+label+'</button>').join("")+
+      '</div>';
     return x;
   }
-  function renderList(){
-    const list=filtered();
-    let h='<div class="wb-list-items" role="listbox" aria-label="配置项目">';
-    let last="";
+  function listMarkup(list){
+    let h="",last="";
     list.forEach(item=>{
       if(item.group!==last){h+='<div class="wb-list-group">'+esc(item.group)+'</div>';last=item.group;}
       const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
-      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+(item.obj.enabled===false?"disabled":"")+'" data-wb-select="'+esc(item.key)+'" role="option" aria-selected="'+(selected===item.key)+'">'+
-        '<span class="wb-entry-name">'+esc(title)+'</span><small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small></button>';
+      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+
+        (item.obj.enabled===false?"disabled ":"")+(recordChanged(item)?"is-changed":"")+
+        '" data-wb-select="'+esc(item.key)+'" aria-current="'+(selected===item.key?"true":"false")+'">'+
+        '<span class="wb-entry-name">'+esc(title)+'</span><span class="wb-entry-meta">'+
+        '<small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small>'+
+        (recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
     });
-    if(!list.length)h+='<p class="wb-empty">这里还没有内容。可以新增，或从其他区域切换过来。</p>';
-    return h+'</div><div class="wb-list-foot">'+list.length+' 项 · 所有修改先暂存在本机草稿</div>';
+    if(!list.length)h+='<div class="wb-empty"><strong>没有匹配的项目</strong><p>可以调整筛选条件，或通过「＋ 新增」添加新项目。</p></div>';
+    return h;
+  }
+  function renderList(){
+    const list=filtered();
+    return '<div class="wb-list-items" role="group" aria-label="配置项目列表">'+listMarkup(list)+'</div>'+
+      '<footer class="wb-list-foot"><span class="wb-count">'+list.length+' 项结果</span><span>草稿未保存前不会写入正式配置</span>'+
+      '<details class="wb-compat"><summary>兼容与高级维护</summary><p>少数旧版专属设置仍可在兼容编辑器维护。</p>'+
+      '<button type="button" class="wb-btn wb-subtle" data-wb-legacy>打开专业兼容编辑器</button></details></footer>';
   }
   function renderDetail(){
     const item=refs.get(selected);
-    if(!item)return '<div class="wb-empty-detail"><span>✦</span><h2>选择一个项目开始编辑</h2><p>从左侧选择已有任务，或者点击「新增」。</p></div>';
-    const obj=item.obj,stable=item.kind==="studySettings"?false:true;
+    if(!item)return '<div class="wb-empty-detail"><span aria-hidden="true">✦</span><h2>选择任务，开始编辑</h2>'+
+      '<p>左侧选择已有条目，修改会保留在跨区域草稿中。<br>也可以新建一个项目，最后统一保存。</p>'+
+      '<p class="wb-keytips">快捷键：Ctrl/⌘ + K 搜索 · Ctrl/⌘ + S 保存 · Ctrl/⌘ + Z 撤销</p></div>';
+    const obj=item.obj,stable=item.kind!=="studySettings";
     const title=obj.title||obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
     const raw=item.kind==="studySettings"?draft.sequences[obj.track]:obj;
+    const all=filtered(),position=all.findIndex(row=>row.key===selected);
     return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>← 返回列表</button>'+
-      '<span>'+esc(item.group)+'</span></div>'+
-      '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+'</span><h2>'+esc(title)+'</h2></div>'+
-      '<div class="wb-editor-shortcuts"><button type="button" class="wb-btn wb-quiet" data-wb-open-live>查看原模块</button>'+
-      (["tasks","weekly","game","fitness","refs"].includes(domain)?'<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级专业编辑器</button>':"")+'</div></div>'+
+      '<span class="wb-breadcrumb">'+esc(labels[domain])+' / '+esc(item.group)+'</span>'+
+      '<div class="wb-switch-record"><button type="button" class="wb-btn wb-quiet" data-wb-step="-1" aria-label="上一项" '+(position<=0?'disabled':'')+'>← 上一项</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-step="1" aria-label="下一项" '+(position<0||position>=all.length-1?'disabled':'')+'>下一项 →</button></div></div>'+
+      '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+
+      (recordChanged(item)?' · 草稿已修改':'')+'</span><h2>'+esc(title)+'</h2></div>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>在正式页面查看</button></div>'+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
-      '<details class="wb-raw"><summary>高级 · 查看或编辑此项 JSON</summary><p>仅更改当前项目，ID 与状态编码不可修改；应用到草稿后仍需点击「保存全部」。</p>'+
+      '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
+      '<p>此区域只修改当前条目。ID、状态编码保持不变；点击「应用」后仍须保存整个草稿。</p>'+
       '<textarea aria-label="此项原始 JSON" data-wb-raw spellcheck="false">'+esc(JSON.stringify(raw,null,2))+'</textarea>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button></details>'+
-      '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制项目</button>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">上移</button><button type="button" class="wb-btn wb-quiet" data-wb-move="1">下移</button>':'')+
-      ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+(obj.enabled===false?"重新启用":"停用项目")+'</button>':"")+
+      '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制为新项</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">↑ 上移</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-move="1">↓ 下移</button>':'')+
+      ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+
+        (obj.enabled===false?"启用":"停用")+'</button>':"")+
       '<button type="button" class="wb-btn wb-primary" data-wb-save>保存全部修改</button></div>';
   }
   function render(){
     if(root.hidden||!draft)return;
-    ensure();
-    index();
-    // Keep the current selection when filtering; the search controls only the list.
+    ensure();const previousScroll={
+      nav:root.querySelector(".wb-nav")?.scrollLeft||0,
+      list:root.querySelector(".wb-list-items")?.scrollTop||0,
+      editor:root.querySelector(".wb-editor")?.scrollTop||0
+    };
+    const all=index(),counts=Object.fromEntries(domains.map(([key])=>[key,all.filter(item=>item.domain===key).length]));
     root.dataset.screen=screen;
     root.innerHTML=renderToolbar()+'<div class="wb-layout"><nav class="wb-nav" aria-label="编辑区域">'+
-      domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+'" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+'</span>'+name+'</button>').join("")+
-      '<div class="wb-nav-tip">配置与完成记录分开存储。保存草稿不会清空原有打卡。</div></nav>'+
-      '<div class="wb-lists">'+renderFilters()+renderList()+'</div><main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+
-      '<div class="wb-feedback" role="status" aria-live="polite">'+esc(notice)+'</div>';
+      domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+
+        '" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+
+        '</span><span>'+name+'</span><small>'+counts[key]+'</small></button>').join("")+
+      '<div class="wb-nav-tip">本工作台编辑的是任务配置，不会清除打卡历史。游戏限时与周期活动仍由 Supabase 独立维护。</div></nav>'+
+      '<section class="wb-lists" aria-label="配置项目">'+renderFilters()+renderList()+'</section>'+
+      '<main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+
+      '<footer class="wb-feedback" role="status" aria-live="polite"><span>'+esc(notice||"按 Ctrl/⌘ + S 保存 · Esc 退出 · Ctrl/⌘ + K 搜索")+
+      '</span><span class="wb-feedback-progress">'+(isDirty()?changeCount()+' 处待保存':'工作台就绪')+'</span></footer>';
     const form=root.querySelector("[data-wb-editor-form]");
     if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
+    root.querySelector(".wb-nav").scrollLeft=previousScroll.nav;
+    root.querySelector(".wb-list-items").scrollTop=previousScroll.list;
+    root.querySelector(".wb-editor").scrollTop=previousScroll.editor;
   }
   function current(){return refs.get(selected)}
   function flush(){
