@@ -21,7 +21,7 @@
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
   let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
   let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
-  let undoStack=[],redoStack=[],domainMemo=new Map();
+  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -240,17 +240,111 @@
       '</div>';
     return x;
   }
+  function entryMarkup(item,nested=false){
+    const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
+    return '<button type="button" class="wb-list-entry '+(nested?'wb-tree-item ':'')+
+      (selected===item.key?"selected ":"")+(item.obj.enabled===false?"disabled ":"")+
+      (recordChanged(item)?"is-changed":"")+'" data-wb-select="'+esc(item.key)+'" aria-current="'+
+      (selected===item.key?"true":"false")+'"><span class="wb-entry-name">'+esc(title)+'</span>'+
+      '<span class="wb-entry-meta"><small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+
+      '</small>'+(recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
+  }
+  function treeExpanded(key,fallback=false){
+    if(treeOpen.has(key))return treeOpen.get(key);
+    if(keyword.trim()||groupFilter!=="all")return true;
+    return fallback;
+  }
+  function treeToggle(key){
+    treeOpen.set(key,!treeExpanded(key));
+    const listScroll=root.querySelector(".wb-list-items")?.scrollTop||0;
+    render();
+    const el=[...root.querySelectorAll("[data-wb-tree-toggle]")].find(x=>x.dataset.wbTreeToggle===key);
+    el?.focus({preventScroll:true});
+    const box=root.querySelector(".wb-list-items");if(box)box.scrollTop=listScroll;
+  }
+  function treeHeader(key,title,summary,expanded,level=0){
+    return '<button type="button" class="wb-tree-toggle" data-wb-tree-toggle="'+esc(key)+'" aria-expanded="'+
+      expanded+'" aria-controls="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+'">'+
+      '<span class="wb-tree-caret" aria-hidden="true">'+(expanded?"⌄":"›")+'</span>'+
+      '<span class="wb-tree-heading">'+esc(title)+'</span><span class="wb-tree-summary">'+esc(summary)+'</span></button>';
+  }
+  function treePanel(key,content,expanded){
+    return '<div class="wb-tree-panel" id="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+
+      '" '+(expanded?"":"hidden")+'>'+content+'</div>';
+  }
+  function gameTree(list){
+    const set=new Set(list.map(item=>item.key));
+    const all=[...refs.values()];
+    const games=draft.gameQuest.games;
+    const ids=[...new Set([...games.map(game=>game.id),
+      ...Object.keys(draft.gameQuest.boards.daily||{}),...Object.keys(draft.gameQuest.boards.weekly||{})])];
+    let html="",visible=0;
+    ids.forEach((id,idx)=>{
+      const meta=all.find(x=>x.domain==="game"&&x.kind==="gameMeta"&&x.obj.id===id);
+      const daily=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":daily"&&set.has(x.key));
+      const weekly=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":weekly"&&set.has(x.key));
+      const showMeta=!!meta&&set.has(meta.key);
+      if(!showMeta&&!daily.length&&!weekly.length)return;
+      const game=games.find(x=>x.id===id);
+      const name=game?.name||id+" · 未登记";
+      const gameKey="game:"+id,expanded=treeExpanded(gameKey,idx===0);
+      const renderLane=(board,items)=>{
+        if(scope!=="all"&&scope!==board)return "";
+        // Keep both lanes navigable when there is no active search or status filter.
+        if(!items.length&&(keyword.trim()||visibility!=="all"))return "";
+        const laneKey=gameKey+":"+board,open=treeExpanded(laneKey,board==="daily");
+        const laneLabel=board==="daily"?"每日任务":"每周任务";
+        const groupName=board==="daily"?"日常":"周常";
+        return '<div class="wb-tree-lane"><div class="wb-tree-lane-head">'+
+          treeHeader(laneKey,laneLabel,items.length+" 项",open,1)+
+          '<button type="button" class="wb-tree-add" data-wb-add-game="'+esc(id)+'" data-wb-board="'+board+
+          '" title="新增'+esc(name)+' · '+groupName+'" aria-label="在'+esc(name)+groupName+'下新增任务">＋</button></div>'+
+          treePanel(laneKey,items.map(item=>entryMarkup(item,true)).join("")||
+            '<p class="wb-tree-empty">此处暂无任务</p>',open)+'</div>';
+      };
+      const d=renderLane("daily",daily),w=renderLane("weekly",weekly);
+      let inner='<div class="wb-tree-settings">'+
+        (meta&&set.has(meta.key)?entryMarkup(meta,true):'<p class="wb-tree-empty">游戏设置不在当前筛选中</p>')+
+        '</div>'+d+w;
+      html+='<section class="wb-tree-group" data-wb-game="'+esc(id)+'"><div class="wb-tree-group-head">'+
+        treeHeader(gameKey,name,"日常 "+daily.length+" · 周常 "+weekly.length,expanded)+
+        (meta?'<button type="button" class="wb-tree-edit" data-wb-select="'+esc(meta.key)+
+          '" title="编辑'+esc(name)+'的游戏设置" aria-label="编辑'+esc(name)+'的游戏设置">⚙</button>':"")+
+        '</div>'+treePanel(gameKey,inner,expanded)+'</section>';
+      visible++;
+    });
+    return html||'<div class="wb-empty"><strong>没有匹配的游戏任务</strong><p>可以试着清除搜索或更改筛选条件。</p></div>';
+  }
+  function refsTree(list){
+    const set=new Set(list.map(item=>item.key));
+    const all=[...refs.values()];
+    let html="";
+    draft.refs.forEach((group,idx)=>{
+      const meta=all.find(x=>x.kind==="refGroup"&&x.obj.id===group.id);
+      const children=all.filter(x=>x.kind==="refItem"&&x.identity===group.id&&set.has(x.key));
+      const showMeta=!!meta&&set.has(meta.key);
+      if(!showMeta&&!children.length)return;
+      const key="refs:"+group.id,expanded=treeExpanded(key,idx===0);
+      html+='<section class="wb-tree-group" data-wb-ref-group="'+esc(group.id)+'"><div class="wb-tree-group-head">'+
+        treeHeader(key,group.title||"未命名分组",children.length+" 条资料",expanded)+
+        (meta?'<button type="button" class="wb-tree-edit" data-wb-select="'+esc(meta.key)+
+          '" title="编辑资料分组" aria-label="编辑分组：'+esc(group.title)+'">⚙</button>':"")+'</div>'+
+        treePanel(key,'<div class="wb-tree-settings">'+
+          (showMeta?entryMarkup(meta,true):"")+'</div><div class="wb-tree-ref-actions">'+
+          '<span>分组内资料</span><button type="button" class="wb-tree-add wb-tree-add-wide" data-wb-add-ref="'+
+          esc(group.id)+'" aria-label="向'+esc(group.title)+'添加资料">＋ 添加资料</button></div>'+
+          '<div class="wb-tree-ref-items">'+(children.map(item=>entryMarkup(item,true)).join("")||
+            '<p class="wb-tree-empty">暂无资料，点击上方添加</p>')+'</div>',expanded)+'</section>';
+    });
+    return html||'<div class="wb-empty"><strong>没有匹配的资料</strong><p>可以更改分组或搜索词，或新增一个资料分组。</p></div>';
+  }
   function listMarkup(list){
+    if(domain==="game")return gameTree(list);
+    if(domain==="refs")return refsTree(list);
     let h="",last="";
     list.forEach(item=>{
       if(item.group!==last){h+='<div class="wb-list-group">'+esc(item.group)+'</div>';last=item.group;}
-      const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
-      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+
-        (item.obj.enabled===false?"disabled ":"")+(recordChanged(item)?"is-changed":"")+
-        '" data-wb-select="'+esc(item.key)+'" aria-current="'+(selected===item.key?"true":"false")+'">'+
-        '<span class="wb-entry-name">'+esc(title)+'</span><span class="wb-entry-meta">'+
-        '<small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small>'+
-        (recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
+      h+=entryMarkup(item);
     });
     if(!list.length)h+='<div class="wb-empty"><strong>没有匹配的项目</strong><p>可以调整筛选条件，或通过「＋ 新增」添加新项目。</p></div>';
     return h;
