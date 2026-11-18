@@ -52,11 +52,11 @@ test('cloud tasks, Done/Skip persist, archive filtering is paged, daily/weekly s
     await s.click('[data-gqv6-board="daily"]');await s.click('[data-gqv5-task]');assert.equal(s.w.document.querySelector('[data-gqv5-task]').getAttribute('aria-pressed'),'true');
     await s.click('[data-gqv6-board="weekly"]');await s.click('[data-gqv5-task]');assert.equal(s.w.document.querySelector('[data-gqv5-task]').getAttribute('aria-pressed'),'true');
     await s.click('[data-gqv6-board="daily"]');assert.equal(s.w.document.querySelector('[data-gqv5-task]').getAttribute('aria-pressed'),'true');
-    await s.click('#controlGameQuestEditorBtn');
+    await s.click('#controlGameQuestEditorBtn');await s.click('#taskWorkbench [data-wb-legacy]');
     const before=s.w.document.querySelectorAll('[data-gqv6-editor-task]').length;assert(before>0);
     const title=s.w.document.querySelector('.gqV6TitleInput');title.value='编辑保留测试';
     await s.click('#saveGameQuestBtn');
-    await s.click('#controlGameQuestEditorBtn');assert.equal(s.w.document.querySelectorAll('[data-gqv6-editor-task]').length,before);assert.equal(s.w.document.querySelector('.gqV6TitleInput').value,'编辑保留测试');
+    await s.click('#controlGameQuestEditorBtn');await s.click('#taskWorkbench [data-wb-legacy]');assert.equal(s.w.document.querySelectorAll('[data-gqv6-editor-task]').length,before);assert.equal(s.w.document.querySelector('.gqV6TitleInput').value,'编辑保留测试');
     const refreshed=await boot(db,s.cache());try{assert(!refreshed.w.document.querySelector('[data-ops-card="ACTIVE"]'));await refreshed.click('[data-ops-history]');assert.equal(refreshed.w.document.querySelectorAll('.opsCard').length,2);}finally{refreshed.dom.window.close();}
   }finally{s.dom.window.close();}
 });
