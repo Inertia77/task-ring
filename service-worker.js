@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261118-view-persistence";
+const CACHE_NAME = "taskring-shell-20261118-fullscreen-studio";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -69,7 +69,9 @@ const APP_SHELL = [
   "./assets/js/tasks/config.js",
   "./assets/js/tasks/sources.js",
   "./assets/js/tasks/command.js",
+  "./assets/js/tasks/workbench.js",
   "./assets/css/command-center.css",
+  "./assets/css/task-workbench.css",
   "./assets/js/pwa.js"
 ];
 
