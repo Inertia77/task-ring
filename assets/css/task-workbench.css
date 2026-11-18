@@ -390,3 +390,5 @@ body.workbenchOpen { overflow: hidden !important; }
   padding:4px 5px;min-height:28px;border-radius:6px;}
 .wb-tree-controls button:hover {background:#e6f1f6;}
 .wb-tree-controls button:focus-visible {outline:2px solid #478eac;outline-offset:1px;}
+
+.wb-tree-settings-label {padding:4px 9px 3px;font-size:10px;font-weight:850;color:#7a919e;letter-spacing:.04em;}
