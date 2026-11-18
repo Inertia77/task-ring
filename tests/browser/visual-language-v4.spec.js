@@ -37,7 +37,8 @@ test('control-center and editor use the same icon family while keeping all actio
   await page.setViewportSize({width:390,height:844});
   await boot(page,'overview');
   await page.locator('#controlCenterBtn').click();
-  await expect(page.locator('#controlCenterMenu .trSectionIcon .trUiIcon')).toHaveCount(4);
+  // The compact maintenance panel consolidates one of the original section titles at runtime.
+  await expect(page.locator('#controlCenterMenu .trSectionIcon .trUiIcon')).toHaveCount(3);
   await expect(page.locator('#controlCenterMenu .controlUtilityIcon .trUiIcon').first()).toBeVisible();
   await expect(page.locator('#controlCenterMenu .trWorkbenchLaunchIcon .trUiIcon')).toBeVisible();
   await page.locator('#controlWorkbenchBtn').click();
