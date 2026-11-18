@@ -168,3 +168,106 @@ body.workbenchOpen { overflow: hidden !important; }
   .wb-editor-actions>.wb-primary { width:100%; margin-left:0; }
 }
 @media(prefers-reduced-motion:reduce){ .taskWorkbench * { scroll-behavior:auto !important; transition:none !important; }}
+
+
+/* CONFIG STUDIO v2: single entry, compact tool palette, stable editing surfaces. */
+.controlLegacyActions[hidden] { display:none !important; }
+.controlWorkbenchLaunch { margin:0; min-height:96px; padding:19px 23px; border-color:#bba56e;
+  box-shadow:0 8px 24px #1a39461c; }
+.controlWorkbenchLaunch b {font-size:19px;}
+.controlWorkbenchLaunch strong {font-size:13px; min-height:42px; display:flex; align-items:center;}
+.wb-top { min-height:82px; padding:11px 20px; }
+.wb-brand h1 {font-size:clamp(20px,2vw,25px);}
+.wb-brand p {line-height:1.55;}
+.wb-top-actions { gap:7px; }
+.wb-top .wb-btn.wb-history { width:37px; min-width:37px; padding:0; font-size:21px; }
+.wb-top .wb-btn:disabled {opacity:.43;}
+.wb-status { display:inline-flex; align-items:center; padding:6px 9px; border-radius:7px;
+  color:#c2e7dd; background:#294c51; font-weight:700; }
+.wb-status.dirty {color:#ffe5a5; background:#5d4d32;}
+.wb-layout {grid-template-columns:clamp(176px,15.5vw,232px) clamp(294px,25vw,390px) minmax(0,1fr);}
+.wb-nav button {gap:10px;}
+.wb-nav button>span:nth-child(2) {flex:1; overflow:hidden; text-overflow:ellipsis;}
+.wb-nav button>small {display:grid; place-items:center; min-width:25px; min-height:24px;
+  padding:2px 5px; border-radius:7px; font-size:10px; font-weight:800;
+  background:#355064; color:#c5d6e1; }
+.wb-nav button.active>small {background:#e3c578; color:#273947;}
+.wb-nav button:hover>small {background:#49697f;}
+.wb-lists {padding:20px 13px 9px;}
+.wb-pane-kicker {display:block; color:#778d9b; font-size:10px; font-weight:800; letter-spacing:.09em; margin-bottom:3px;}
+.wb-list-head h2 {font-size:18px;}
+.wb-visibility {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; background:#eaf0f3;
+  padding:4px; border-radius:9px; margin:2px 0 11px; }
+.wb-visibility button {border:0; border-radius:7px; background:transparent; color:#607989;
+  font-size:12px; font-weight:750; min-height:35px; cursor:pointer;}
+.wb-visibility button.active {background:#fff; color:#243f51; box-shadow:0 1px 5px #253d4a15;}
+.wb-list-entry {padding:12px 13px; transition:border-color .14s,background-color .14s;}
+.wb-list-entry.is-changed {border-left:3px solid #c99435;}
+.wb-entry-meta {display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.wb-entry-meta em {font-size:10px; font-style:normal; font-weight:750;
+  white-space:nowrap; color:#a17522; background:#fff0c8; border-radius:6px; padding:2px 6px;}
+.wb-list-foot {display:flex; flex-direction:column; gap:3px; padding:9px 5px; line-height:1.5;}
+.wb-list-foot>span:first-child {font-size:12px; font-weight:800; color:#4b6271;}
+.wb-list-foot>span:nth-child(2) {font-size:10px;}
+.wb-compat {margin-top:5px; border-top:1px dashed #d7e0e7; padding-top:5px;}
+.wb-compat summary {font-size:11px; cursor:pointer; color:#748b99;}
+.wb-compat p {font-size:11px; line-height:1.5;}
+.wb-compat button {font-size:11px; min-height:33px;}
+.wb-editor {padding-top:0;}
+.wb-editor-top {position:sticky; top:0; z-index:4; background:#fff; border-bottom:1px solid #e8eef1;
+  padding:13px 0 10px; margin-bottom:18px; flex-wrap:wrap;}
+.wb-breadcrumb {font-size:12px; color:#6e8797; overflow-wrap:anywhere;}
+.wb-switch-record {margin-left:auto; display:flex; gap:6px;}
+.wb-switch-record .wb-btn {min-height:32px; padding:5px 9px; font-size:11px;}
+.wb-editor-heading {margin-bottom:20px;}
+.wb-editor-heading h2 {max-width:58ch; overflow-wrap:anywhere;}
+.wb-fields {gap:15px 18px;}
+.wb-form-section {grid-column:1/-1; display:flex; align-items:center; gap:10px; padding:0 0 8px;
+  margin:12px 0 0; border-bottom:1px solid #e1e9ee; color:#2b4c60; font-size:13px; font-weight:850;}
+.wb-form-section:first-child {margin-top:0;}
+.wb-field input:hover,.wb-field select:hover,.wb-field textarea:hover,.wb-search input:hover {border-color:#a0b9c7;}
+.wb-field :is(input,select,textarea):focus,.wb-search input:focus {outline:2px solid #83b5c8; outline-offset:1px;}
+.wb-edit-form {max-width:940px;}
+.wb-raw {max-width:940px;}
+.wb-editor-actions {max-width:940px; background:#fff;}
+.wb-keytips {font-size:12px !important; color:#688798; margin-top:8px;}
+.wb-feedback {min-height:39px; gap:14px; justify-content:space-between; padding-block:7px;}
+.wb-feedback-progress {font-weight:800; white-space:nowrap; color:#e7cc8c;}
+@media(max-width:1100px){
+  .wb-layout {grid-template-columns:154px minmax(245px,290px) minmax(0,1fr);}
+  .wb-list-head {align-items:flex-start;}
+  .wb-list-head h2 {font-size:16px;}
+  .wb-editor-top {margin-bottom:11px;}
+}
+@media(max-width:760px){
+  .wb-top {padding:9px max(10px,env(safe-area-inset-right)) 9px max(10px,env(safe-area-inset-left));}
+  .wb-brand {width:100%; display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+  .wb-brand h1 {font-size:18px;}
+  .wb-brand .wb-kicker {font-size:9px;}
+  .wb-top-actions {width:100%; justify-content:space-between;}
+  .wb-top-actions .wb-status {display:none;}
+  .wb-top-actions .wb-btn {min-height:36px;}
+  .wb-top .wb-btn.wb-history {min-width:34px; width:34px; font-size:19px;}
+  .wb-nav {gap:5px; padding-block:6px; min-height:54px; max-height:61px;}
+  .wb-nav button {font-size:12px; gap:5px; padding:7px 9px;}
+  .wb-nav button>small {min-width:21px; min-height:20px; font-size:10px;}
+  .wb-num {display:none;}
+  .wb-lists {padding:12px;}
+  .wb-editor {padding:0 13px 30px;}
+  .wb-editor-top {top:0; padding:9px 0; flex-wrap:wrap;}
+  .wb-breadcrumb {flex:1;}
+  .wb-switch-record {width:100%; justify-content:flex-end;}
+  .wb-editor-heading h2 {font-size:19px;}
+  .wb-list-foot {padding-bottom:max(10px,env(safe-area-inset-bottom));}
+  .wb-feedback {font-size:11px; min-height:34px; padding-inline:12px;}
+  .wb-feedback-progress {font-size:10px;}
+  .wb-empty-detail {min-height:45vh;}
+  .controlWorkbenchLaunch {min-height:83px;}
+}
+@media(max-width:390px){
+  .wb-brand h1 {font-size:17px;}
+  .wb-top-actions .wb-btn.wb-quiet {font-size:11px;}
+  .wb-top-actions .wb-btn.wb-primary {font-size:11px; padding-inline:8px;}
+  .wb-top-actions .wb-btn.wb-close {width:35px;}
+  .wb-editor-actions .wb-btn {min-height:37px;}
+}
