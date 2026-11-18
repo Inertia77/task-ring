@@ -68,7 +68,7 @@ test('mobile studio uses full-page list/detail navigation and retains existing J
   await page.locator('#taskWorkbench [data-wb-back]').click();
   await expect(page.locator('#taskWorkbench')).toHaveAttribute('data-screen','list');
   await page.locator('#taskWorkbench [data-wb-json-export]').click();
-  await expect(page.locator('#taskWorkbench')).toBeHidden();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
   await expect(page.locator('#commandDialog')).toBeVisible();
   await expect(page.locator('#commandDialog')).toContainText('统一 JSON');
   await expect(page.getByRole('button',{name:'导出完整备份'})).toBeVisible();
