@@ -101,7 +101,7 @@
       return true;
     });
   }
-  function itemSnapshot(item){return JSON.stringify(item.kind==="studySettings"?draft.sequences[item.obj.track]:item.obj)}
+  function itemSnapshot(item){const q=draft.sequences[item.obj.track];return JSON.stringify(item.kind==="studySettings"?{end:q.end,paused:q.paused}:item.obj)}
   function prepareBaseline(){
     baseline=clone(draft);base=fingerprint(draft);index();
     baselineItems=new Map([...refs.values()].map(item=>[item.key,itemSnapshot(item)]));
@@ -495,7 +495,7 @@
     if(!root.hidden){switchDomain(next);return;}
     const saved=storedConfig();
     if(!saved){window.showToast?.("配置仍在初始化，请稍后重试","warn");return;}
-    returnFocus=document.activeElement;
+    returnFocus=document.getElementById("controlCenterMenu")?.contains(document.activeElement)?document.getElementById("controlCenterBtn"):document.activeElement;
     expectedBase=fingerprint(saved);draft=clone(saved);ensure();prepareBaseline();undoStack=[];redoStack=[];domainMemo.clear();
     domain=labels[next]?next:"tasks";groupFilter="all";scope="all";visibility="all";keyword="";selected="";screen="list";notice="";busy=false;
     window.closeControlCenter?.();
@@ -588,7 +588,7 @@
   root.addEventListener("input",event=>{
     const el=event.target;
     if(el.matches("[data-wb-search]")){
-      keyword=el.value;
+      flush();keyword=el.value;
       const list=filtered(),box=root.querySelector(".wb-list-items");
       if(!box)return;
       // Update only the results, keeping focus and the scroll position of the search input.
