@@ -271,3 +271,5 @@ body.workbenchOpen { overflow: hidden !important; }
   .wb-top-actions .wb-btn.wb-close {width:35px;}
   .wb-editor-actions .wb-btn {min-height:37px;}
 }
+
+.wb-raw-actions {display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
