@@ -335,7 +335,7 @@
       busy=true;
       const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),base);
       if(!saved)throw Error("统一保存接口暂不可用");
-      draft=clone(saved);base=fingerprint(saved);
+      const current=storedConfig()||saved;draft=clone(current);base=fingerprint(current);
       notice="✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
@@ -385,6 +385,7 @@
   function applyRaw(){
     const item=current();if(!item)return;
     const txt=root.querySelector("[data-wb-raw]")?.value;let next;
+    const rollback=clone(draft);
     try{next=JSON.parse(txt);if(!next||typeof next!=="object"||Array.isArray(next))throw Error("需要一个 JSON 对象");
       if(item.kind==="studySettings"){
         if(next.items||next.end){if(next.end!=="stop"&&next.end!=="loop")throw Error("结束规则无效");
@@ -399,7 +400,7 @@
         parent[index]=next;
       }
       C.validateConfig(draft);notice="JSON 已应用到草稿，仍需保存全部";render();
-    }catch(err){notice="JSON 校验失败："+String(err.message||err);root.querySelector(".wb-feedback").textContent=notice;}
+    }catch(err){draft=rollback;index();notice="JSON 校验失败："+String(err.message||err);root.querySelector(".wb-feedback").textContent=notice;}
   }
   function onClick(event){
     const el=event.target.closest("button");if(!el)return;
