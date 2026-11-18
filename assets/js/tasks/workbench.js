@@ -596,7 +596,9 @@
       const count=root.querySelector(".wb-count");if(count)count.textContent=list.length+" 项结果";
     }else if(el.closest("[data-wb-editor-form]")){
       const badge=root.querySelector(".wb-status");
-      if(badge){badge.textContent="● 正在编辑草稿";badge.classList.add("dirty");}
+      if(badge){badge.textContent="● 当前编辑尚未保存";badge.classList.add("dirty");}
+      const undoButton=root.querySelector("[data-wb-undo]");if(undoButton)undoButton.disabled=false;
+      const pending=root.querySelector(".wb-feedback-progress");if(pending)pending.textContent="当前条目待保存";
     }
   });
   root.addEventListener("change",event=>{
