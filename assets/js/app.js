@@ -836,8 +836,11 @@ const UI_SCROLL_STATE_KEY="taskring_ui_scroll_state_v1";
 const ORBIT_DRAWER_OPEN_KEY="taskring_orbit_drawer_open_v1";
 const APP_VIEWS=new Set(["overview","tasks","weekly","fitness","game","learning","time","library","more"]);
 const LOCAL_PREVIEW_UNLOCK=["localhost","127.0.0.1","::1"].includes(location.hostname)&&new URLSearchParams(location.search).has("preview");
-let activeAppView=new URLSearchParams(location.search).get("view");
-if(!APP_VIEWS.has(activeAppView))activeAppView=urlDateOverride?"tasks":"overview";
+const requestedAppView=new URLSearchParams(location.search).get("view");
+const savedAppView=localStorage.getItem(APP_VIEW_KEY);
+let activeAppView=APP_VIEWS.has(requestedAppView)?requestedAppView:
+  urlDateOverride?"tasks":
+  APP_VIEWS.has(savedAppView)?savedAppView:"overview";
 let gameQuestBoardMode="today";
 let gameQuestWeeklyFilter=localStorage.getItem(GQ_WEEKLY_FILTER_KEY)||"all";
 let ghSaveTimer=null;
@@ -2155,6 +2158,13 @@ function setActiveAppView(view){
   closeControlCenter();
   activeAppView=next;
   localStorage.setItem(APP_VIEW_KEY,next);
+  // A deep link should follow in-app navigation too; otherwise its original
+  // ?view= value would override the saved page on the next refresh.
+  if(new URLSearchParams(location.search).has("view")||urlDateOverride){
+    const address=new URL(location.href);
+    address.searchParams.set("view",next);
+    history.replaceState(history.state,"",address.pathname+address.search+address.hash);
+  }
   applyActiveAppView();
   window.TaskRingCommand?.onView(next);
   if(next==="time")renderTimePanel();
