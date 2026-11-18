@@ -22,4 +22,4 @@ T3 和原游戏选做进入「有余力」。游戏周常在周日进入执行�
 - assets/js/tasks/sources.js 连接各模块的读取、身份和写入。
 - assets/js/tasks/config.js 验证配置、备份与导入差异。
 - assets/js/tasks/command.js 提供总览、学习、任务管理和周计划共用控件。
-- assets/css/command-center.css 提供新页面样式。手机「更多」打开学习、生活、账本与资料。
+- assets/css/command-center.css 提供新页面样式。手机底栏依次是「总览 → 生活改善 → 游戏 → 学习 → 更多」；「每日」「周计划」「时间账本」「资料库」和任务管理由「更多」进入。桌面保留全模块直接导航。

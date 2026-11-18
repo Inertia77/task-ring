@@ -113,9 +113,11 @@ body.nx #viewDock .commandMobileNav { display: none; }
 @media (max-width: 900px) {
   body.nx #viewDock { grid-template-columns: repeat(5,minmax(0,1fr)); }
   body.nx #viewDock .commandDesktopNav { display: none; }
-  body.nx #viewDock .commandMobileNav { display: grid; order: 5; }
+  body.nx #viewDock [data-view-target="overview"] { order: 1; }
+  body.nx #viewDock [data-view-target="fitness"] { order: 2; }
   body.nx #viewDock [data-view-target="game"] { order: 3; }
-  body.nx #viewDock [data-view-target="weekly"] { order: 4; }
+  body.nx #viewDock [data-view-target="learning"] { order: 4; }
+  body.nx #viewDock .commandMobileNav { display: grid; order: 5; }
   .commandSelects select { font-size: 13px; }
 }
 @media (max-width: 520px) {

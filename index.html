@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261117.taskring-next">
+<html lang="zh-CN" data-gamequest-sheet-v6 data-build="20261118.mobile-nav">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -21,7 +21,7 @@
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
 
-<link rel="stylesheet" href="assets/css/main.css?v=20261117.1"/>
+<link rel="stylesheet" href="assets/css/main.css?v=20261118.1"/>
 <script src="assets/js/notion-app-links.js?v=20261109.2" defer></script>
 </head>
 <body class="nx locked">
@@ -204,11 +204,11 @@
 </header>
 <nav class="viewDock" id="viewDock" aria-label="TASK RING 执行模块与工具页面切换">
   <button type="button" class="viewDockBtn viewDockCore active" data-view-target="overview" aria-current="page" aria-label="任务总览"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><b><span class="dockDesktopLabel">任务总览</span><span class="dockMobileLabel">总览</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore" data-view-target="tasks" aria-current="false" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore" data-view-target="weekly" aria-current="false" aria-label="周计划"><i class="dockGlyph" data-task-ui-icon="calendar-days" aria-hidden="true"></i><span>WEEK</span><b><span class="dockDesktopLabel">周计划</span><span class="dockMobileLabel">周计划</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="fitness" aria-current="false" aria-label="生活改善"><i class="dockGlyph" data-task-ui-icon="sprout" aria-hidden="true"></i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="fitness" aria-current="false" aria-label="生活改善"><i class="dockGlyph" data-task-ui-icon="sprout" aria-hidden="true"></i><span>LIFE</span><b><span class="dockDesktopLabel">生活改善</span><span class="dockMobileLabel">生活改善</span></b></button>
   <button type="button" class="viewDockBtn viewDockCore" data-view-target="game" aria-current="false" aria-label="游戏"><i class="dockGlyph" data-task-ui-icon="sparkles" aria-hidden="true"></i><span>GAME</span><b><span class="dockDesktopLabel">游戏</span><span class="dockMobileLabel">游戏</span></b></button>
-  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="learning" aria-current="false" aria-label="学习中心"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockDesktopLabel">学习中心</span><span class="dockMobileLabel">学习</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore" data-view-target="learning" aria-current="false" aria-label="学习中心"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockDesktopLabel">学习中心</span><span class="dockMobileLabel">学习</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="tasks" aria-current="false" aria-label="每日"><i class="dockGlyph" data-task-ui-icon="check-square" aria-hidden="true"></i><span>DAILY</span><b><span class="dockDesktopLabel">每日</span><span class="dockMobileLabel">每日</span></b></button>
+  <button type="button" class="viewDockBtn viewDockCore commandDesktopNav" data-view-target="weekly" aria-current="false" aria-label="周计划"><i class="dockGlyph" data-task-ui-icon="calendar-days" aria-hidden="true"></i><span>WEEK</span><b><span class="dockDesktopLabel">周计划</span><span class="dockMobileLabel">周计划</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility viewDockUtilityStart commandDesktopNav" data-view-target="time" aria-current="false" aria-label="工具：时间账本" title="工具：查看时间记录"><i class="dockGlyph" data-task-ui-icon="clock" aria-hidden="true"></i><span>TRACK</span><b><span class="dockDesktopLabel">时间账本</span><span class="dockMobileLabel">账本</span></b></button>
   <button type="button" class="viewDockBtn viewDockUtility commandDesktopNav" data-view-target="library" aria-current="false" aria-label="资源：资料库" title="资源：管理参考资料"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><span>REFERENCE</span><b><span class="dockDesktopLabel">资料库</span><span class="dockMobileLabel">资料</span></b></button>
   <button type="button" class="viewDockBtn commandMobileNav" data-view-target="more" aria-current="false" aria-label="更多"><i class="dockGlyph" data-task-ui-icon="files" aria-hidden="true"></i><b><span class="dockMobileLabel">更多</span></b></button>
@@ -218,8 +218,8 @@
 <section class="viewPanel commandView" id="commandMore" data-view-panel="more" aria-label="更多工作台">
   <div class="commandHero"><div><h1>更多工作台</h1></div></div>
   <div class="commandMoreGrid">
-    <button type="button" data-view-target="learning">学习中心</button>
-    <button type="button" data-view-target="fitness">生活改善</button>
+    <button type="button" data-view-target="tasks">每日任务</button>
+    <button type="button" data-view-target="weekly">周计划</button>
     <button type="button" data-view-target="time">时间账本</button>
     <button type="button" data-view-target="library">资料库</button>
     <button type="button" data-command-manage>任务管理</button>
@@ -421,7 +421,7 @@
 <script src="assets/js/data/default-data.js?v=20261007.1"></script>
 <dialog id="commandDialog" class="commandDialog" aria-label="TaskRing 任务管理"></dialog>
 <script src="assets/js/tasks/engine.js?v=20261117.1"></script>
-<script src="assets/js/app.js?v=20261117.1"></script>
+<script src="assets/js/app.js?v=20261118.1"></script>
 <script src="assets/js/data/integrity-core.js?v=20261117.1"></script>
 <script src="assets/js/data-integrity.js?v=20261117.1"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
