@@ -21,7 +21,7 @@
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
   let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
   let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
-  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map(),searchCollapsed=new Set();
+  let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map(),searchCollapsed=new Set(),listScrollMemo=new Map();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -490,8 +490,12 @@
       list:root.querySelector(".wb-list-items")?.scrollTop||0,
       editor:root.querySelector(".wb-editor")?.scrollTop||0
     };
+    // Remember the last list position before mobile swaps to a detail-only screen.
+    const oldDomain=root.dataset.domain;
+    if(oldDomain&&root.dataset.screen==="list"&&root.querySelector(".wb-lists")?.getClientRects().length)
+      listScrollMemo.set(oldDomain,previousScroll.list);
     const all=index(),counts=Object.fromEntries(domains.map(([key])=>[key,all.filter(item=>item.domain===key).length]));
-    root.dataset.screen=screen;
+    root.dataset.screen=screen;root.dataset.domain=domain;
     root.innerHTML=renderToolbar()+'<div class="wb-layout"><nav class="wb-nav" aria-label="编辑区域">'+
       domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+
         '" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+
@@ -505,7 +509,7 @@
     if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
     const raw=root.querySelector("[data-wb-raw]");if(raw)raw.dataset.wbOriginal=raw.value;
     root.querySelector(".wb-nav").scrollLeft=previousScroll.nav;
-    root.querySelector(".wb-list-items").scrollTop=previousScroll.list;
+    root.querySelector(".wb-list-items").scrollTop=listScrollMemo.get(domain)??previousScroll.list;
     root.querySelector(".wb-editor").scrollTop=previousScroll.editor;
   }
   function rawPending(){
@@ -691,7 +695,7 @@
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function rememberDomain(){
-    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:root.querySelector(".wb-list-items")?.scrollTop||0});
+    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:listScrollMemo.get(domain)??root.querySelector(".wb-list-items")?.scrollTop??0});
   }
   function switchDomain(next){
     if(guardRaw())return;
@@ -727,7 +731,7 @@
     const pendingRaw=rawPending();
     if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();searchCollapsed.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();searchCollapsed.clear();listScrollMemo.clear();delete root.dataset.domain;refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
     if(!root.hidden){switchDomain(next);return;}
