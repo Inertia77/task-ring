@@ -19,7 +19,9 @@
   const uuid=()=>crypto.randomUUID();
   const fingerprint=value=>window.TaskRingIntegrityCore.configFingerprint(value);
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
-  let draft=null,base="",expectedBase="",domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
+  let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
+  let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
+  let undoStack=[],redoStack=[],domainMemo=new Map();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -51,7 +53,7 @@
     function push(kind,mod,group,value,parent,identity=group){
       if(!value||!value.id&&kind!=="studySettings")return;
       const key=kind+":"+mod+":"+identity+":"+value.id;
-      const item={key,kind,domain:mod,group,obj:value,parent};
+      const item={key,kind,domain:mod,group,identity,obj:value,parent};
       rows.push(item);refs.set(key,item);
     }
     draft.tasks.forEach(task=>push("task",area(task),task.cat||"普通",task,draft.tasks,"root"));
@@ -85,15 +87,53 @@
     const query=keyword.trim().toLocaleLowerCase();
     return index().filter(item=>{
       if(item.domain!==domain)return false;
-      if(query&&!(item.obj.title||item.obj.name||item.group||kindName[item.kind]).toLocaleLowerCase().includes(query))return false;
+      if(visibility==="active"&&item.obj.enabled===false)return false;
+      if(visibility==="disabled"&&item.obj.enabled!==false)return false;
+      const hay=[item.obj.title,item.obj.name,item.obj.note,item.group,item.obj.id,kindName[item.kind]].filter(Boolean).join(" ").toLocaleLowerCase();
+      if(query&&!hay.includes(query))return false;
       if(groupFilter!=="all"){
         if(domain==="learning"&&!item.group.startsWith(groupFilter==="LANGUAGE"?"语言":"知识"))return false;
-        if(domain==="game"&&item.group!=="游戏设置"&&!item.group.startsWith(groupFilter))return false;
-        if(domain==="fitness"&&item.kind==="lifeTask"&&!item.group.startsWith(dayNames[groupFilter]))return false;
+        if(domain==="game"&&!(item.kind==="gameMeta"?item.obj.id===groupFilter:item.identity.startsWith(groupFilter+":")))return false;
+        if(domain==="fitness"&&item.kind==="lifeTask"&&!item.identity.startsWith(groupFilter+":"))return false;
+        if(domain==="refs"&&!(item.kind==="refGroup"?item.obj.id===groupFilter:item.identity===groupFilter))return false;
       }
-      if(domain==="game"&&scope!=="all"&&item.kind==="gameTask"&&!item.group.endsWith(scope==="daily"?"日常":"周常"))return false;
+      if(domain==="game"&&scope!=="all"&&item.kind==="gameTask"&&!item.identity.endsWith(":"+scope))return false;
       return true;
     });
+  }
+  function itemSnapshot(item){return JSON.stringify(item.kind==="studySettings"?draft.sequences[item.obj.track]:item.obj)}
+  function prepareBaseline(){
+    baseline=clone(draft);base=fingerprint(draft);index();
+    baselineItems=new Map([...refs.values()].map(item=>[item.key,itemSnapshot(item)]));
+  }
+  function recordChanged(item){return baselineItems.get(item.key)!==itemSnapshot(item)}
+  function changeCount(){
+    if(!baseline)return 0;
+    const diff=C.difference(baseline,draft);
+    return Math.max(isDirty()?1:0,diff.added.length+diff.changed.length+diff.removed.length);
+  }
+  function snapshot(){return {draft:clone(draft),domain,selected,keyword,groupFilter,scope,visibility,screen}}
+  function checkpoint(){
+    if(!draft)return;
+    undoStack.push(snapshot());if(undoStack.length>30)undoStack.shift();
+    redoStack.length=0;
+  }
+  function restoreSnapshot(state){
+    draft=clone(state.draft);domain=state.domain;selected=state.selected;keyword=state.keyword;
+    groupFilter=state.groupFilter;scope=state.scope;visibility=state.visibility;screen=state.screen;
+    render();
+  }
+  function undo(){
+    flush();
+    if(!undoStack.length)return;
+    const previous=undoStack.pop();redoStack.push(snapshot());restoreSnapshot(previous);
+    notice="已撤销上一步（仍未保存）";render();
+  }
+  function redo(){
+    flush();
+    if(!redoStack.length)return;
+    const next=redoStack.pop();undoStack.push(snapshot());restoreSnapshot(next);
+    notice="已恢复上一步（仍未保存）";render();
   }
   function field(name,title,value,type="text",extra=""){
     return '<label class="wb-field"><span>'+esc(title)+'</span><input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>';
@@ -239,6 +279,7 @@
     if(JSON.stringify(values)===JSON.stringify(initial))return;
     const previous=new Map(initial);
     const item=refs.get(form.dataset.wbItem);if(!item)return;
+    checkpoint();
     const e=form.elements,get=name=>e.namedItem(name),text=name=>get(name)?.value??"";
     const data=new Map(values),has=name=>data.has(name);
     const changed=name=>String(data.get(name)??"")!==String(previous.get(name)??"")||data.has(name)!==previous.has(name);
