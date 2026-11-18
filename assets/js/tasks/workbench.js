@@ -224,60 +224,99 @@
       '<div class="wb-nav-tip">配置与完成记录分开存储。保存草稿不会清空原有打卡。</div></nav>'+
       '<div class="wb-lists">'+renderFilters()+renderList()+'</div><main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+
       '<div class="wb-feedback" role="status" aria-live="polite">'+esc(notice)+'</div>';
+    const form=root.querySelector("[data-wb-editor-form]");
+    if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
   }
   function current(){return refs.get(selected)}
   function flush(){
     const form=root.querySelector("[data-wb-editor-form]");
     if(!form)return;
+    const values=[...new FormData(form).entries()];
+    const initial=JSON.parse(form.dataset.wbOriginal||"[]");
+    if(JSON.stringify(values)===JSON.stringify(initial))return;
+    const previous=new Map(initial);
     const item=refs.get(form.dataset.wbItem);if(!item)return;
-    const e=form.elements,get=name=>e.namedItem(name),text=name=>get(name)?.value??"",has=name=>!!get(name)?.checked;
+    const e=form.elements,get=name=>e.namedItem(name),text=name=>get(name)?.value??"";
+    const data=new Map(values),has=name=>data.has(name);
+    const changed=name=>String(data.get(name)??"")!==String(previous.get(name)??"")||data.has(name)!==previous.has(name);
+    const set=(target,prop,name,transform=value=>value)=>{if(changed(name))target[prop]=transform(text(name));};
     const v=item.obj;
     if(item.kind==="task"){
-      v.title=text("title").trim();v.url=text("url").trim();v.note=text("note");
-      v.cat=text("cat").trim()||"life";v.time_category=text("time_category").trim()||"life";
-      v.estimated_minutes=Math.max(0,Number(text("estimated_minutes"))||0);
-      v.weekly_minutes=Math.max(0,Number(text("weekly_minutes"))||0);
-      v.enabled=has("enabled");
-      const p=text("priority");v.core=p==="core"?1:0;v.important=p==="important"?1:0;v.optional=p==="optional";
-      v.days=days.filter(day=>has("day"+day));
-      const module=text("module");v.plan_mode=module==="weekly"?"weekly":"daily";
-      if(v.nextSchedule||module==="game"||module==="fitness")v.nextModule=module;
-      else delete v.nextModule;
-      if(module==="game")v.nextGameId=text("nextGameId");else if(v.nextGameId)delete v.nextGameId;
-      const titles=text("steps").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-      const prior=v.steps||[],used=new Set(prior.map(x=>x.code)),allocated=new Set();
-      v.steps=titles.map((name,i)=>{
-        const existing=prior.find((s,j)=>!allocated.has(j)&&s.title===name);
-        let j=existing?prior.indexOf(existing):i<prior.length&&!allocated.has(i)?i:-1;
-        if(j>=0){allocated.add(j);return {...prior[j],title:name}}
-        const code=idCode("s",[...used],2);used.add(code);
-        return {id:code,code,title:name,enabled:true};
-      });
-      if(has("advanced")){
-        const previous=v.nextSchedule||{},type=text("scheduleType");
-        const bound=(old,date)=>!date?null:old?.date===date?old:{date,precision:"date"};
-        const date=text("scheduleDate"),opts={...previous,type,missed:text("missed"),date:date||null,
-          start:bound(previous.start,text("scheduleStart")),due:bound(previous.due,text("scheduleDue")),showToday:has("showToday")};
-        if(type==="WEEKDAY")opts.days=v.days.slice();
-        if(type==="RECURRING"){opts.anchor=date;opts.intervalDays=Math.max(1,Number(text("interval"))||7)}
-        v.nextSchedule=opts;v.nextModule=module;
-      }else delete v.nextSchedule;
+      set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());set(v,"note","note");
+      set(v,"cat","cat",x=>x.trim()||"life");set(v,"time_category","time_category",x=>x.trim()||"life");
+      set(v,"estimated_minutes","estimated_minutes",x=>Math.max(0,Number(x)||0));
+      set(v,"weekly_minutes","weekly_minutes",x=>Math.max(0,Number(x)||0));
+      if(changed("enabled"))v.enabled=has("enabled");
+      if(changed("priority")){
+        const p=text("priority");v.core=p==="core"?1:0;v.important=p==="important"?1:0;v.optional=p==="optional";
+      }
+      const dayChange=days.some(day=>changed("day"+day));
+      if(dayChange)v.days=days.filter(day=>has("day"+day));
+      const module=text("module");
+      if(changed("module")){
+        v.plan_mode=module==="weekly"?"weekly":"daily";
+        v.nextModule=module;
+        if(module!=="game")delete v.nextGameId;
+      }
+      if(module==="game")set(v,"nextGameId","nextGameId");
+      if(changed("steps")){
+        const titles=text("steps").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+        const prior=v.steps||[],used=new Set(prior.map(x=>x.code)),allocated=new Set();
+        v.steps=titles.map((name,i)=>{
+          const old=prior.find((s,j)=>!allocated.has(j)&&s.title===name);
+          const j=old?prior.indexOf(old):i<prior.length&&!allocated.has(i)?i:-1;
+          if(j>=0){allocated.add(j);return {...prior[j],title:name}}
+          const code=idCode("s",[...used],2);used.add(code);
+          return {id:code,code,title:name,enabled:true};
+        });
+      }
+      const scheduleChanged=["advanced","scheduleType","scheduleDate","scheduleStart","scheduleDue","missed","interval","showToday"].some(changed)||
+        dayChange&&!!v.nextSchedule&&v.nextSchedule.type==="WEEKDAY";
+      if(scheduleChanged){
+        if(!has("advanced"))delete v.nextSchedule;
+        else {
+          const prior=v.nextSchedule||{},type=text("scheduleType");
+          const bound=(old,date)=>!date?null:old?.date===date?old:{date,precision:"date"};
+          const date=text("scheduleDate");
+          const opts={...prior,type,missed:text("missed"),date:date||null,
+            start:bound(prior.start,text("scheduleStart")),due:bound(prior.due,text("scheduleDue")),showToday:has("showToday")};
+          if(type==="WEEKDAY")opts.days=days.filter(day=>has("day"+day));
+          if(type==="RECURRING"){opts.anchor=date;opts.intervalDays=Math.max(1,Number(text("interval"))||7)}
+          v.nextSchedule=opts;v.nextModule=module;
+        }
+      }
     }else if(item.kind==="gameMeta"){
-      v.name=text("name").trim();v.short=text("short").trim();v.priority=Math.max(1,Number(text("priority"))||1);v.enabled=has("enabled");
+      set(v,"name","name",x=>x.trim());set(v,"short","short",x=>x.trim());
+      set(v,"priority","priority",x=>Math.max(1,Number(x)||1));
+      if(changed("enabled"))v.enabled=has("enabled");
     }else if(item.kind==="gameTask"){
-      v.title=text("title").trim();v.url=text("url").trim();v.note=text("note");v.enabled=has("enabled");
-      if(item.group.endsWith("周常")){v.weekly_lane=text("weekly_lane");v.unlock_hint=text("unlock_hint");}
-      else v.daily_lane=text("daily_lane");
+      set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());set(v,"note","note");
+      if(changed("enabled"))v.enabled=has("enabled");
+      if(item.group.endsWith("周常")){
+        set(v,"weekly_lane","weekly_lane");set(v,"unlock_hint","unlock_hint");
+      }else set(v,"daily_lane","daily_lane");
     }else if(item.kind==="lifeSection"){
-      v.name=text("name").trim();v.short=text("short").trim();v.accent=text("accent");v.guide=text("guide");v.enabled=has("enabled");
+      set(v,"name","name",x=>x.trim());set(v,"short","short",x=>x.trim());
+      set(v,"accent","accent");set(v,"guide","guide");
+      if(changed("enabled"))v.enabled=has("enabled");
     }else if(item.kind==="lifeTask"){
-      v.title=text("title").trim();v.url=text("url").trim();v.note=text("note");v.optional=has("optional");v.enabled=has("enabled");
+      set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());set(v,"note","note");
+      if(changed("optional"))v.optional=has("optional");
+      if(changed("enabled"))v.enabled=has("enabled");
     }else if(item.kind==="studySettings"){
-      const q=draft.sequences[v.track];q.end=text("end");q.paused=has("paused");
+      const q=draft.sequences[v.track];set(q,"end","end");
+      if(changed("paused"))q.paused=has("paused");
     }else if(item.kind==="studyItem"){
-      v.title=text("title").trim();v.stage=text("stage").trim();v.url=text("url").trim();v.note=text("note");v.enabled=has("enabled");
-    }else if(item.kind==="refGroup"){v.title=text("title").trim();v.enabled=has("enabled")}
-    else if(item.kind==="refItem"){v.title=text("title").trim();v.url=text("url").trim();v.enabled=has("enabled")}
+      set(v,"title","title",x=>x.trim());set(v,"stage","stage",x=>x.trim());
+      set(v,"url","url",x=>x.trim());set(v,"note","note");
+      if(changed("enabled"))v.enabled=has("enabled");
+    }else if(item.kind==="refGroup"){
+      set(v,"title","title",x=>x.trim());if(changed("enabled"))v.enabled=has("enabled");
+    }else if(item.kind==="refItem"){
+      set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());
+      if(changed("enabled"))v.enabled=has("enabled");
+    }
+    form.dataset.wbOriginal=JSON.stringify(values);
   }
   function create(kind){
     flush();
@@ -330,6 +369,7 @@
   function save(){
     if(busy)return;
     flush();
+    if(!isDirty()){notice="当前没有需要保存的修改";render();return;}
     try{
       C.validateConfig(draft);
       busy=true;
