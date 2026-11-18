@@ -250,6 +250,10 @@
       [["all","全部"],["active","已启用"],["disabled","已停用"]].map(([key,label])=>
         '<button type="button" data-wb-status="'+key+'" aria-pressed="'+(visibility===key)+'" class="'+(visibility===key?"active":"")+'">'+label+'</button>').join("")+
       '</div>';
+    if(domain==="game"||domain==="refs")
+      x+='<div class="wb-tree-controls"><span>层级浏览</span>'+
+        '<button type="button" data-wb-tree-all="expand">展开全部</button>'+
+        '<button type="button" data-wb-tree-all="collapse">收起全部</button></div>';
     return x;
   }
   function entryMarkup(item,nested=false){
@@ -277,6 +281,22 @@
     const el=[...root.querySelectorAll("[data-wb-tree-toggle]")].find(x=>x.dataset.wbTreeToggle===key);
     el?.focus({preventScroll:true});
     const box=root.querySelector(".wb-list-items");if(box)box.scrollTop=listScroll;
+  }
+  function expandAll(expanded){
+    const keys=domain==="game"?
+      [...new Set([...draft.gameQuest.games.map(g=>g.id),
+        ...Object.keys(draft.gameQuest.boards.daily||{}),
+        ...Object.keys(draft.gameQuest.boards.weekly||{})])].flatMap(id=>
+          ["game:"+id,"game:"+id+":daily","game:"+id+":weekly"]):
+      draft.refs.map(group=>"refs:"+group.id);
+    keys.forEach(key=>{
+      treeOpen.set(key,expanded);
+      if(keyword.trim()){
+        if(expanded)searchCollapsed.delete(key);
+        else searchCollapsed.add(key);
+      }
+    });
+    render();
   }
   function treeHeader(key,title,summary,expanded,level=0){
     return '<button type="button" class="wb-tree-toggle" data-wb-tree-toggle="'+esc(key)+'" aria-expanded="'+
@@ -774,6 +794,7 @@
     if(rawPending()&&d.wbApplyRaw===undefined&&d.wbDiscardRaw===undefined&&d.wbClose===undefined){guardRaw();return;}
     if(d.wbDomain){switchDomain(d.wbDomain);}
     else if(d.wbTreeToggle!==undefined){flush();treeToggle(d.wbTreeToggle);}
+    else if(d.wbTreeAll!==undefined){flush();expandAll(d.wbTreeAll==="expand");}
     else if(d.wbAddGame!==undefined)create("item",{gameId:d.wbAddGame,board:d.wbBoard});
     else if(d.wbAddRef!==undefined)create("item",{groupId:d.wbAddRef});
     else if(d.wbSelect){choose(d.wbSelect);}
