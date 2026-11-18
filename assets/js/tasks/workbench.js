@@ -682,8 +682,17 @@
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
+  function revealSelection(item){
+    if(!item)return;
+    if(item.kind==="gameMeta")treeOpen.set("game:"+item.obj.id,true);
+    else if(item.kind==="gameTask"){
+      treeOpen.set("game:"+item.identity.split(":")[0],true);
+      treeOpen.set("game:"+item.identity,true);
+    }else if(item.kind==="refGroup")treeOpen.set("refs:"+item.obj.id,true);
+    else if(item.kind==="refItem")treeOpen.set("refs:"+item.identity,true);
+  }
   function choose(key){
-    flush();selected=key;screen="detail";notice="";render();
+    flush();selected=key;screen="detail";notice="";revealSelection(refs.get(key));render();
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function rememberDomain(){
@@ -702,7 +711,7 @@
   function stepItem(delta){
     flush();const list=filtered(),i=list.findIndex(x=>x.key===selected),next=list[i+delta];
     if(!next)return;
-    selected=next.key;screen="detail";notice="";render();
+    selected=next.key;screen="detail";notice="";revealSelection(next);render();
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function save(){
