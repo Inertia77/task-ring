@@ -22,7 +22,7 @@ for(const width of [320,390,768,1440]){
     await expect(page.locator('#learningCenter .studyTrack .trStudyKicker .trUiIcon')).toHaveCount(2);
     await view(page,'game');
     await expect(page.locator('#gameQuestPanel .gqV6Top .trTitleWithIcon .trUiIcon')).toBeVisible();
-    await expect(page.locator('#gameQuestPanel .gqV6BoardTab .trTabName .trUiIcon')).toHaveCount(2);
+    await expect(page.locator('#gameQuestPanel .gqV6BoardTab .trTabName .trUiIcon')).toHaveCount(3);
     await view(page,'fitness');
     await expect(page.locator('#fitnessPanel .fitnessHero h2 .trUiIcon')).toBeVisible();
     await view(page,'time');
