@@ -404,6 +404,7 @@
   }
   function create(kind){
     flush();
+    checkpoint();
     let obj,parent,mod=domain;
     if(kind==="group"&&domain==="game"){
       obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
@@ -419,7 +420,7 @@
         days:days.slice(),enabled:true,optional:false,estimated_minutes:15,weekly_minutes:60,note:"",url:"",steps:[]};
       parent=draft.tasks;parent.push(obj);
     }else if(domain==="game"){
-      const game=draft.gameQuest.games.find(g=>g.name===groupFilter)||draft.gameQuest.games[0];
+      const game=draft.gameQuest.games.find(g=>g.id===groupFilter)||draft.gameQuest.games[0];
       if(!game){notice="请先新增一个游戏";render();return;}
       const board=scope==="weekly"?"weekly":"daily";
       parent=draft.gameQuest.boards[board][game.id] ||= [];
@@ -437,18 +438,37 @@
       parent=draft.sequences[track].items;
       obj={id:"wb-study-"+uuid(),title:"新学习内容",stage:"",url:"",note:"",enabled:true};parent.push(obj);
     }else if(domain==="refs"){
-      const group=draft.refs[0];if(!group){create("group");return;}
+      const group=draft.refs.find(g=>g.id===groupFilter)||draft.refs[0];if(!group){create("group");return;}
       parent=group.items ||= [];
       obj={id:"wb-ref-"+uuid(),title:"新资料",url:"",enabled:true};parent.push(obj);
     }else return;
     index();
     const row=[...refs.values()].find(item=>item.obj===obj);
-    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";
+    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";visibility="all";
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
   function choose(key){
     flush();selected=key;screen="detail";notice="";render();
+    root.querySelector(".wb-editor").scrollTop=0;
+  }
+  function rememberDomain(){
+    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:root.querySelector(".wb-list-items")?.scrollTop||0});
+  }
+  function switchDomain(next){
+    if(!labels[next]||next===domain)return;
+    flush();rememberDomain();
+    domain=next;const saved=domainMemo.get(next)||{};
+    selected=saved.selected||"";keyword=saved.keyword||"";groupFilter=saved.groupFilter||"all";
+    scope=saved.scope||"all";visibility=saved.visibility||"all";screen="list";notice="";
+    render();
+    root.querySelector(".wb-list-items").scrollTop=saved.scroll||0;
+  }
+  function stepItem(delta){
+    flush();const list=filtered(),i=list.findIndex(x=>x.key===selected),next=list[i+delta];
+    if(!next)return;
+    selected=next.key;screen="detail";notice="";render();
+    root.querySelector(".wb-editor").scrollTop=0;
   }
   function save(){
     if(busy)return;
@@ -459,7 +479,7 @@
       busy=true;
       const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
-      const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();base=fingerprint(draft);
+      const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();undoStack=[];redoStack=[];
       notice="✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
@@ -467,21 +487,22 @@
   function close(force=false){
     if(!force){flush();if(isDirty()&&!confirm("还有未保存的编辑草稿。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
-    if(!root.hidden){flush();domain=labels[next]?next:"tasks";groupFilter="all";scope="all";selected="";screen="list";render();return;}
+    if(!root.hidden){switchDomain(next);return;}
     const saved=storedConfig();
     if(!saved){window.showToast?.("配置仍在初始化，请稍后重试","warn");return;}
     returnFocus=document.activeElement;
-    expectedBase=fingerprint(saved);draft=clone(saved);ensure();base=fingerprint(draft);
-    domain=labels[next]?next:"tasks";groupFilter="all";scope="all";keyword="";selected="";screen="list";notice="";busy=false;
+    expectedBase=fingerprint(saved);draft=clone(saved);ensure();prepareBaseline();undoStack=[];redoStack=[];domainMemo.clear();
+    domain=labels[next]?next:"tasks";groupFilter="all";scope="all";visibility="all";keyword="";selected="";screen="list";notice="";busy=false;
     window.closeControlCenter?.();
     root.hidden=false;document.body.classList.add("workbenchOpen");render();
     root.querySelector("[data-wb-domain='"+domain+"']")?.focus({preventScroll:true});
   }
   function duplicate(){
     flush();const item=current();if(!item?.parent)return;
+    checkpoint();
     const copy=clone(item.obj);copy.id="wb-"+uuid();
     if(item.kind==="task"){copy.code=idCode("t",[...draft.tasks.map(t=>t.code),...(draft.retired_task_codes||[])],3);
       const used=new Set();copy.steps=(copy.steps||[]).map(s=>{const code=idCode("s",[...used],2);used.add(code);return {...s,id:code,code}});}
@@ -504,7 +525,7 @@
     flush();const item=current();if(!item?.parent)return;
     const parent=item.parent,from=parent.indexOf(item.obj),to=from+delta;
     if(from<0||to<0||to>=parent.length)return;
-    parent.splice(to,0,parent.splice(from,1)[0]);notice="已调整顺序，尚未保存";render();
+    checkpoint();parent.splice(to,0,parent.splice(from,1)[0]);notice="已调整顺序，尚未保存";render();
   }
   function applyRaw(){
     const item=current();if(!item)return;
@@ -523,7 +544,8 @@
         if(index<0)throw Error("找不到原项目");
         parent[index]=next;
       }
-      C.validateConfig(draft);notice="JSON 已应用到草稿，仍需保存全部";render();
+      C.validateConfig(draft);undoStack.push({...snapshot(),draft:rollback});if(undoStack.length>30)undoStack.shift();redoStack=[];
+      notice="JSON 已应用到草稿，仍需保存全部";render();
     }catch(err){draft=rollback;index();notice="JSON 校验失败："+String(err.message||err);root.querySelector(".wb-feedback").textContent=notice;}
   }
   function onClick(event){
