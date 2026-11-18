@@ -19,7 +19,7 @@
   const uuid=()=>crypto.randomUUID();
   const fingerprint=value=>window.TaskRingIntegrityCore.configFingerprint(value);
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
-  let draft=null,base="",domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
+  let draft=null,base="",expectedBase="",domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -376,9 +376,9 @@
     try{
       C.validateConfig(draft);
       busy=true;
-      const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),base);
+      const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
-      const current=storedConfig()||saved;draft=clone(current);base=fingerprint(current);
+      const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();base=fingerprint(draft);
       notice="✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
@@ -393,7 +393,7 @@
     const saved=storedConfig();
     if(!saved){window.showToast?.("配置仍在初始化，请稍后重试","warn");return;}
     returnFocus=document.activeElement;
-    draft=clone(saved);ensure();base=fingerprint(saved);
+    expectedBase=fingerprint(saved);draft=clone(saved);ensure();base=fingerprint(draft);
     domain=labels[next]?next:"tasks";groupFilter="all";scope="all";keyword="";selected="";screen="list";notice="";busy=false;
     window.closeControlCenter?.();
     root.hidden=false;document.body.classList.add("workbenchOpen");render();
