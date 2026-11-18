@@ -184,14 +184,21 @@
   function editorFields(item){
     const v=item.obj;
     if(item.kind==="task")return taskEditor(item);
-    if(item.kind==="gameMeta")return field("name","游戏名称",v.name)+field("short","简称",v.short)+field("priority","显示排序",v.priority||1,"number",'min="1"')+check("enabled","启用游戏",v.enabled!==false);
+    if(item.kind==="gameMeta")return '<h3 class="wb-form-section">01 / 游戏身份</h3>'+
+      field("name","游戏名称",v.name)+field("short","简称",v.short)+
+      '<h3 class="wb-form-section">02 / 显示与管理</h3>'+
+      field("priority","显示顺序",v.priority||1,"number",'min="1"')+
+      check("enabled","启用游戏",v.enabled!==false);
     if(item.kind==="gameTask"){
       const weekly=item.group.endsWith("周常");
-      return field("title","任务名称",v.title,"text",'required maxlength="220"')+field("url","链接",v.url,"url")+
+      return '<h3 class="wb-form-section">01 / 任务基本信息</h3>'+
+        '<div class="wb-wide">'+field("title","任务名称",v.title,"text",'required maxlength="220"')+'</div>'+
         (weekly?select("weekly_lane","周常优先级",v.weekly_lane||"steady",[["sprint","优先处理"],["steady","正常周常"],["wait","等待条件"],["optional","有余力"]]):
           select("daily_lane","日常优先级",v.daily_lane||"must",[["must","必须完成"],["optional","有余力"]]))+
-        (weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
-        textarea("note","说明 / 备注",v.note,4)+check("enabled","启用此任务",v.enabled!==false);
+        check("enabled","启用此任务",v.enabled!==false)+
+        '<h3 class="wb-form-section">02 / 条件与说明</h3>'+
+        field("url","关联链接",v.url,"url")+(weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
+        textarea("note","说明 / 备注",v.note,4);
     }
     if(item.kind==="lifeSection")return field("name","分区名称",v.name)+field("short","分区简称",v.short)+select("accent","颜色",v.accent||"blue",["blue","violet","rose","cyan","slate","green","amber"].map(x=>[x,x]))+textarea("guide","分区指导说明",v.guide,6)+check("enabled","启用分区",v.enabled!==false);
     if(item.kind==="lifeTask")return field("title","行动内容",v.title,"text",'required maxlength="220"')+field("url","关联链接",v.url,"url")+textarea("note","行动说明",v.note,4)+check("optional","可选，不计入必做完成率",v.optional===true)+check("enabled","启用行动",v.enabled!==false);
@@ -201,8 +208,13 @@
         select("end","队列结束后",q.end,[["stop","停止"],["loop","从头循环"]])+check("paused","暂停学习轨道",q.paused);
     }
     if(item.kind==="studyItem")return field("title","学习内容",v.title,"text",'required maxlength="220"')+field("stage","所属阶段",v.stage)+field("url","课程链接",v.url,"url")+textarea("note","学习要点",v.note,5)+check("enabled","启用课程",v.enabled!==false);
-    if(item.kind==="refGroup")return field("title","资料组名称",v.title)+check("enabled","启用资料组",v.enabled!==false);
-    if(item.kind==="refItem")return field("title","资料名称",v.title)+field("url","链接",v.url,"url")+check("enabled","启用资料",v.enabled!==false);
+    if(item.kind==="refGroup")return '<h3 class="wb-form-section">01 / 资料分组</h3>'+
+      '<div class="wb-wide">'+field("title","分组名称",v.title)+'</div>'+
+      check("enabled","启用资料组",v.enabled!==false);
+    if(item.kind==="refItem")return '<h3 class="wb-form-section">01 / 资料信息</h3>'+
+      '<div class="wb-wide">'+field("title","资料名称",v.title)+'</div>'+
+      '<div class="wb-wide">'+field("url","原始资料链接",v.url,"url")+'</div>'+
+      check("enabled","启用资料",v.enabled!==false);
     return "";
   }
   function renderToolbar(){
@@ -356,6 +368,49 @@
       '<details class="wb-compat"><summary>兼容与高级维护</summary><p>少数旧版专属设置仍可在兼容编辑器维护。</p>'+
       '<button type="button" class="wb-btn wb-subtle" data-wb-legacy>打开专业兼容编辑器</button></details></footer>';
   }
+  function linkAction(url){
+    try{
+      const resolved=new URL(url);
+      if(!["https:","http:"].includes(resolved.protocol))return "";
+      return '<a class="wb-context-link" href="'+esc(resolved.href)+
+        '" target="_blank" rel="noopener noreferrer">↗ 打开资料链接</a>';
+    }catch(_){return ""}
+  }
+  function detailContext(item){
+    if(item.kind==="gameMeta"){
+      const id=item.obj.id,name=item.obj.name||id;
+      const daily=(draft.gameQuest.boards.daily[id]||[]).length;
+      const weekly=(draft.gameQuest.boards.weekly[id]||[]).length;
+      return '<aside class="wb-context-card"><div><strong>游戏配置</strong><p>'+
+        esc(name)+' · 日常 '+daily+' 项 / 周常 '+weekly+' 项</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-game="'+esc(id)+
+        '" data-wb-board="daily">＋ 日常任务</button><button type="button" data-wb-add-game="'+
+        esc(id)+'" data-wb-board="weekly">＋ 周常任务</button></div></aside>';
+    }
+    if(item.kind==="gameTask"){
+      const [id,board]=item.identity.split(":");
+      const game=draft.gameQuest.games.find(g=>g.id===id);
+      const title=game?.name||id,boardLabel=board==="weekly"?"周常":"日常";
+      return '<aside class="wb-context-card"><div><strong>'+esc(title)+' / '+boardLabel+
+        '</strong><p>这里维护该游戏的'+boardLabel+'任务；限时与周期运营任务仍以 Supabase 为准。</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-game="'+esc(id)+
+        '" data-wb-board="'+esc(board)+'">＋ 同组新任务</button></div></aside>';
+    }
+    if(item.kind==="refGroup"){
+      const length=(item.obj.items||[]).length;
+      return '<aside class="wb-context-card"><div><strong>资料分组</strong><p>当前分组内共有 '+
+        length+' 条资料，可直接为此分组新增条目。</p></div>'+
+        '<div class="wb-context-actions"><button type="button" data-wb-add-ref="'+esc(item.obj.id)+
+        '">＋ 添加资料</button></div></aside>';
+    }
+    if(item.kind==="refItem"){
+      const group=draft.refs.find(g=>g.id===item.identity);
+      return '<aside class="wb-context-card"><div><strong>所属分组：'+esc(group?.title||item.identity)+
+        '</strong><p>仅编辑当前资料；其他分组和条目不会受到影响。</p></div>'+
+        '<div class="wb-context-actions">'+linkAction(item.obj.url||"")+'</div></aside>';
+    }
+    return "";
+  }
   function renderDetail(){
     const item=refs.get(selected);
     if(!item)return '<div class="wb-empty-detail"><span aria-hidden="true">✦</span><h2>选择任务，开始编辑</h2>'+
@@ -372,6 +427,7 @@
       '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+
       (recordChanged(item)?' · 草稿已修改':'')+'</span><h2>'+esc(title)+'</h2></div>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>在正式页面查看</button></div>'+
+      detailContext(item)+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
       '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
       '<p>此区域只修改当前条目。ID、状态编码保持不变；点击「应用」后仍须保存整个草稿。</p>'+
