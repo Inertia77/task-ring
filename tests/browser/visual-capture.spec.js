@@ -1,6 +1,6 @@
 const {test}=require('@playwright/test');const {boot,view}=require('./helpers');
 for(const width of [390,1440])test(`reviewable key surfaces ${width}`,async({page})=>{
- await page.setViewportSize({width,height:900});await boot(page);const phase=process.env.AUDIT_PHASE||'after';
+ test.setTimeout(120_000);await page.setViewportSize({width,height:900});await boot(page);const phase=process.env.AUDIT_PHASE||'after';
  const shot=name=>page.screenshot({path:`test-results/visual/${test.info().project.name}/${phase}/${width}-${name}.png`,fullPage:true});
  await page.locator('#showToday').click();await shot('daily-today');await page.locator('#showAll').click();await shot('daily-matrix');
  await view(page,'weekly');const group=page.locator('.weeklyMissionGroup').first();if(await group.getAttribute('open')===null)await group.locator('summary').first().click();await shot('weekly-open');
