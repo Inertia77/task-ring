@@ -4,6 +4,8 @@ const fs=require('node:fs');
 const phase=process.env.AUDIT_PHASE||'after';
 for(const width of [320,360,390,430,700,768,820,1024,1280,1440,1920]){
  test(`six modules at ${width}px`,async({page})=>{
+  // Six full-page 1920px captures can exceed the default 30s limit on a busy CI runner.
+  if(width>=1920)test.setTimeout(90_000);
   await page.setViewportSize({width,height:900});await boot(page);
   const metrics=[];
   for(const module of ['tasks','weekly','fitness','game','time','library']){
