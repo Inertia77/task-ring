@@ -25,7 +25,7 @@ test('floating timer, toast and modal actions do not collide with mobile navigat
  await page.setViewportSize({width:390,height:700});await boot(page);
  await page.locator('[data-timer-start-task="test-task-2"]').first().click();
  const dock=await page.locator('#timerFloatDock').boundingBox(),nav=await page.locator('#viewDock').boundingBox();expect(dock.y+dock.height).toBeLessThan(nav.y);
- await page.locator('#controlCenterBtn').click();await page.locator('#controlTaskEditorBtn').click();await expect(page.locator('#timerFloatDock')).toBeHidden();
+ await page.locator('#controlCenterBtn').click();await page.locator('#controlTaskEditorBtn').click();await page.locator('#taskWorkbench [data-wb-legacy]').click();await expect(page.locator('#timerFloatDock')).toBeHidden();
  await page.locator('#taskEditorBottomSaveBtn').scrollIntoViewIfNeeded();const save=await page.locator('#taskEditorBottomSaveBtn').boundingBox();expect(save.y+save.height).toBeLessThanOrEqual(700);
 });
 test('sync UI distinguishes pending, failure and conflict without sending requests',async({page})=>{
