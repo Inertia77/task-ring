@@ -1,6 +1,56 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 
+
+for(const width of [390,1440]){
+  test('active workspace survives reload on '+width+'px including deep links',async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await boot(page,'overview');
+    await view(page,'game');
+    await page.reload();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','game');
+    await expect(page).toHaveURL(/(?:\?|&)view=game(?:&|$)/);
+    await view(page,'learning');
+    await page.reload();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','learning');
+    await expect(page).toHaveURL(/(?:\?|&)view=learning(?:&|$)/);
+    // Without a view query parameter, a saved workspace should still win.
+    await page.goto('/?preview');
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','learning');
+    // Opening an intentional deep link overrides the previous saved workspace.
+    await page.goto('/?preview&view=weekly');
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','weekly');
+    await view(page,'fitness');
+    await page.reload();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view','fitness');
+  });
+}
+
+test('mobile More subpages survive reload and retain More highlighting',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page,'overview');
+  for(const target of ['tasks','weekly','time','library','more']){
+    await view(page,target);
+    await page.reload();
+    await expect(page.locator('body')).toHaveAttribute('data-app-view',target);
+    await expect(page.locator('#viewDock [data-view-target="more"]')).toHaveAttribute('aria-current','page');
+  }
+});
+
+test('first visit defaults to overview while date-preview navigation is preserved',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page,'overview');
+  await page.evaluate(()=>localStorage.removeItem('taskring_github_v2_active_view_v1'));
+  await page.goto('/?preview');
+  await expect(page.locator('body')).toHaveAttribute('data-app-view','overview');
+  await page.goto('/?preview&date=2026-11-18');
+  await expect(page.locator('body')).toHaveAttribute('data-app-view','tasks');
+  await view(page,'fitness');
+  await expect(page).toHaveURL(/view=fitness/);
+  await page.reload();
+  await expect(page.locator('body')).toHaveAttribute('data-app-view','fitness');
+});
+
 for(const width of [320,390,768]){
   test('mobile dock prioritizes daily workspaces and routes legacy pages via More at '+width+'px',async({page})=>{
     await page.setViewportSize({width,height:844});
@@ -67,6 +117,8 @@ test('overview completion shares daily state and supports undo after refresh',as
   await view(page,'tasks');
   await expect.poll(()=>page.evaluate(()=>isDone('test-task-0',today))).toBe(true);
   await page.reload();
+  await expect(page.locator('body')).toHaveAttribute('data-app-view','tasks');
+  await view(page,'overview');
   const done=page.locator('#commandCenter .commandDone');
   await expect(done).toBeVisible();
   if(await done.getAttribute('open')===null)await done.locator(':scope > summary').click();
@@ -108,6 +160,8 @@ test('learning editor, daily completion and next-day progression stay independen
   await expect(language.getByRole('button',{name:'撤销完成：语言 A',exact:true})).toBeVisible();
   await page.clock.setSystemTime(new Date('2026-11-18T03:00:00Z'));
   await page.reload();
+  await expect(page.locator('body')).toHaveAttribute('data-app-view','learning');
+  await view(page,'overview');
   await expect(page.getByRole('button',{name:'完成：语言 B',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'完成：知识 1',exact:true})).toBeVisible();
 });
