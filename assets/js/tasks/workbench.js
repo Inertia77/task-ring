@@ -124,12 +124,14 @@
     render();
   }
   function undo(){
+    if(guardRaw())return;
     flush();
     if(!undoStack.length)return;
     const previous=undoStack.pop();redoStack.push(snapshot());restoreSnapshot(previous);
     notice="已撤销上一步（仍未保存）";render();
   }
   function redo(){
+    if(guardRaw())return;
     flush();
     if(!redoStack.length)return;
     const next=redoStack.pop();undoStack.push(snapshot());restoreSnapshot(next);
@@ -280,7 +282,8 @@
       '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
       '<p>此区域只修改当前条目。ID、状态编码保持不变；点击「应用」后仍须保存整个草稿。</p>'+
       '<textarea aria-label="此项原始 JSON" data-wb-raw spellcheck="false">'+esc(JSON.stringify(raw,null,2))+'</textarea>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button></details>'+
+      '<div class="wb-raw-actions"><button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button>'+
+      '<button type="button" class="wb-btn wb-subtle" data-wb-discard-raw>恢复原始文本</button></div></details>'+
       '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制为新项</button>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">↑ 上移</button>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-move="1">↓ 下移</button>':'')+
@@ -308,9 +311,21 @@
       '</span><span class="wb-feedback-progress">'+(isDirty()?changeCount()+' 处待保存':'工作台就绪')+'</span></footer>';
     const form=root.querySelector("[data-wb-editor-form]");
     if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
+    const raw=root.querySelector("[data-wb-raw]");if(raw)raw.dataset.wbOriginal=raw.value;
     root.querySelector(".wb-nav").scrollLeft=previousScroll.nav;
     root.querySelector(".wb-list-items").scrollTop=previousScroll.list;
     root.querySelector(".wb-editor").scrollTop=previousScroll.editor;
+  }
+  function rawPending(){
+    const raw=root.querySelector("[data-wb-raw]");
+    return !!raw&&raw.value!==raw.dataset.wbOriginal;
+  }
+  function guardRaw(){
+    if(!rawPending())return false;
+    notice="JSON 文本尚未应用：请点击「应用 JSON 到草稿」或「恢复原始文本」后继续。";
+    const feedback=root.querySelector(".wb-feedback > span");
+    if(feedback)feedback.textContent=notice;
+    return true;
   }
   function current(){return refs.get(selected)}
   function flush(){
@@ -458,6 +473,7 @@
     domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:root.querySelector(".wb-list-items")?.scrollTop||0});
   }
   function switchDomain(next){
+    if(guardRaw())return;
     if(!labels[next]||next===domain)return;
     flush();rememberDomain();
     domain=next;const saved=domainMemo.get(next)||{};
@@ -473,7 +489,7 @@
     root.querySelector(".wb-editor").scrollTop=0;
   }
   function save(){
-    if(busy)return;
+    if(busy||guardRaw())return;
     flush();
     if(!isDirty()){notice="当前没有需要保存的修改";render();return;}
     try{
@@ -487,7 +503,8 @@
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
   }
   function close(force=false){
-    if(!force){flush();if(isDirty()&&!confirm("还有未保存的编辑草稿。关闭会放弃这些修改，确定关闭吗？"))return false;}
+    const pendingRaw=rawPending();
+    if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
     draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
@@ -553,6 +570,7 @@
   function onClick(event){
     const el=event.target.closest("button");if(!el)return;
     const d=el.dataset;
+    if(rawPending()&&d.wbApplyRaw===undefined&&d.wbDiscardRaw===undefined&&d.wbClose===undefined){guardRaw();return;}
     if(d.wbDomain){switchDomain(d.wbDomain);}
     else if(d.wbSelect){choose(d.wbSelect);}
     else if(d.wbBack!==undefined){flush();screen="list";render();}
@@ -568,6 +586,10 @@
     else if(d.wbMove!==undefined)move(Number(d.wbMove));
     else if(d.wbToggleEnabled!==undefined){flush();const item=current();if(!item)return;checkpoint();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
     else if(d.wbApplyRaw!==undefined)applyRaw();
+    else if(d.wbDiscardRaw!==undefined){
+      const raw=root.querySelector("[data-wb-raw]");
+      if(raw){raw.value=raw.dataset.wbOriginal;notice="已恢复原始 JSON 文本";const tip=root.querySelector(".wb-feedback > span");if(tip)tip.textContent=notice;}
+    }
     else if(d.wbLegacy!==undefined){
       const origin={"tasks":"controlTaskEditorBtn","weekly":"controlTaskEditorBtn","game":"controlGameQuestEditorBtn",
         "fitness":"controlFitnessEditorBtn","refs":"controlRefEditorBtn"}[domain];
@@ -604,6 +626,7 @@
   root.addEventListener("change",event=>{
     const el=event.target;
     if(el.name==="groupFilter"||el.name==="scope"){
+      if(guardRaw()){el.value=el.name==="groupFilter"?groupFilter:scope;return;}
       flush();if(el.name==="groupFilter")groupFilter=el.value;else scope=el.value;render();
     }
   });
@@ -625,7 +648,7 @@
     if(event.shiftKey&&document.activeElement===focusable[0]){event.preventDefault();focusable.at(-1).focus();}
     else if(!event.shiftKey&&document.activeElement===focusable.at(-1)){event.preventDefault();focusable[0].focus();}
   });
-  window.addEventListener("beforeunload",event=>{if(!root.hidden&&draft){flush();if(isDirty()){event.preventDefault();event.returnValue="";}}});
+  window.addEventListener("beforeunload",event=>{if(!root.hidden&&draft){const pendingRaw=rawPending();flush();if(isDirty()||pendingRaw){event.preventDefault();event.returnValue="";}}});
   // Route the original control-center edit cards into the same full-screen workbench.
   // Their old editors remain in the code for compatibility and recovery.
   document.addEventListener("click",event=>{
@@ -637,7 +660,7 @@
   },true);
   function hasPendingForm(){
     const form=root.querySelector("[data-wb-editor-form]");
-    return !!form&&JSON.stringify([...new FormData(form).entries()])!==form.dataset.wbOriginal;
+    return rawPending()||(!!form&&JSON.stringify([...new FormData(form).entries()])!==form.dataset.wbOriginal);
   }
   document.getElementById("commandDialog")?.addEventListener("close",()=>{
     if(root.hidden||!draft)return;
