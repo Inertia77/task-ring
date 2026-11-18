@@ -19,7 +19,9 @@
   const uuid=()=>crypto.randomUUID();
   const fingerprint=value=>window.TaskRingIntegrityCore.configFingerprint(value);
   const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
-  let draft=null,base="",expectedBase="",domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
+  let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
+  let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
+  let undoStack=[],redoStack=[],domainMemo=new Map();
   let refs=new Map();
   function storedConfig(){return window.TaskRingCommand?.getWorkbenchConfig?.()}
   function isDirty(){return !!draft&&fingerprint(draft)!==base}
@@ -51,7 +53,7 @@
     function push(kind,mod,group,value,parent,identity=group){
       if(!value||!value.id&&kind!=="studySettings")return;
       const key=kind+":"+mod+":"+identity+":"+value.id;
-      const item={key,kind,domain:mod,group,obj:value,parent};
+      const item={key,kind,domain:mod,group,identity,obj:value,parent};
       rows.push(item);refs.set(key,item);
     }
     draft.tasks.forEach(task=>push("task",area(task),task.cat||"普通",task,draft.tasks,"root"));
@@ -85,15 +87,55 @@
     const query=keyword.trim().toLocaleLowerCase();
     return index().filter(item=>{
       if(item.domain!==domain)return false;
-      if(query&&!(item.obj.title||item.obj.name||item.group||kindName[item.kind]).toLocaleLowerCase().includes(query))return false;
+      if(visibility==="active"&&item.obj.enabled===false)return false;
+      if(visibility==="disabled"&&item.obj.enabled!==false)return false;
+      const hay=[item.obj.title,item.obj.name,item.obj.note,item.group,item.obj.id,kindName[item.kind]].filter(Boolean).join(" ").toLocaleLowerCase();
+      if(query&&!hay.includes(query))return false;
       if(groupFilter!=="all"){
         if(domain==="learning"&&!item.group.startsWith(groupFilter==="LANGUAGE"?"语言":"知识"))return false;
-        if(domain==="game"&&item.group!=="游戏设置"&&!item.group.startsWith(groupFilter))return false;
-        if(domain==="fitness"&&item.kind==="lifeTask"&&!item.group.startsWith(dayNames[groupFilter]))return false;
+        if(domain==="game"&&!(item.kind==="gameMeta"?item.obj.id===groupFilter:item.identity.startsWith(groupFilter+":")))return false;
+        if(domain==="fitness"&&item.kind==="lifeTask"&&!item.identity.startsWith(groupFilter+":"))return false;
+        if(domain==="refs"&&!(item.kind==="refGroup"?item.obj.id===groupFilter:item.identity===groupFilter))return false;
       }
-      if(domain==="game"&&scope!=="all"&&item.kind==="gameTask"&&!item.group.endsWith(scope==="daily"?"日常":"周常"))return false;
+      if(domain==="game"&&scope!=="all"&&item.kind==="gameTask"&&!item.identity.endsWith(":"+scope))return false;
       return true;
     });
+  }
+  function itemSnapshot(item){const q=draft.sequences[item.obj.track];return JSON.stringify(item.kind==="studySettings"?{end:q.end,paused:q.paused}:item.obj)}
+  function prepareBaseline(){
+    baseline=clone(draft);base=fingerprint(draft);index();
+    baselineItems=new Map([...refs.values()].map(item=>[item.key,itemSnapshot(item)]));
+  }
+  function recordChanged(item){return baselineItems.get(item.key)!==itemSnapshot(item)}
+  function changeCount(){
+    if(!baseline)return 0;
+    const diff=C.difference(baseline,draft);
+    return Math.max(isDirty()?1:0,diff.added.length+diff.changed.length+diff.removed.length);
+  }
+  function snapshot(){return {draft:clone(draft),domain,selected,keyword,groupFilter,scope,visibility,screen}}
+  function checkpoint(){
+    if(!draft)return;
+    undoStack.push(snapshot());if(undoStack.length>30)undoStack.shift();
+    redoStack.length=0;
+  }
+  function restoreSnapshot(state){
+    draft=clone(state.draft);domain=state.domain;selected=state.selected;keyword=state.keyword;
+    groupFilter=state.groupFilter;scope=state.scope;visibility=state.visibility;screen=state.screen;
+    render();
+  }
+  function undo(){
+    if(guardRaw())return;
+    flush();
+    if(!undoStack.length)return;
+    const previous=undoStack.pop();redoStack.push(snapshot());restoreSnapshot(previous);
+    notice="已撤销上一步（仍未保存）";render();
+  }
+  function redo(){
+    if(guardRaw())return;
+    flush();
+    if(!redoStack.length)return;
+    const next=redoStack.pop();undoStack.push(snapshot());restoreSnapshot(next);
+    notice="已恢复上一步（仍未保存）";render();
   }
   function field(name,title,value,type="text",extra=""){
     return '<label class="wb-field"><span>'+esc(title)+'</span><input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>';
@@ -110,14 +152,16 @@
   const ON=[["core","核心保底"],["important","重要"],["normal","普通"],["optional","可选"]];
   function priority(task){return task.optional?"optional":task.core?"core":task.important?"important":"normal"}
   function taskEditor(item){
-    const t=item.obj;let h="";
+    const t=item.obj;let h='<h3 class="wb-form-section">01 / 基本信息</h3>';
     h+=field("title","任务名称",t.title,"text",'required maxlength="220"');
     h+=select("module","任务所属区域",area(t),domains.filter(x=>["tasks","weekly","game","fitness"].includes(x[0])).map(x=>[x[0],x[1]]));
     h+=select("priority","任务优先级",priority(t),ON);
     h+=field("cat","分类",t.cat||"life");
     h+=field("time_category","计时类别",t.time_category||"life");
+    h+='<h3 class="wb-form-section">02 / 时间与安排</h3>';
     h+=field("estimated_minutes","单次预计时间（分钟）",t.estimated_minutes||0,"number",'min="0"');
     h+=field("weekly_minutes","每周计划时间（分钟）",t.weekly_minutes||0,"number",'min="0"');
+    h+='<h3 class="wb-form-section">03 / 任务内容</h3>';
     h+=field("url","目标链接",t.url,"url");
     if(area(t)==="game")h+=select("nextGameId","关联游戏",t.nextGameId||"",[["","无"],...draft.gameQuest.games.map(g=>[g.id,g.name])]);
     h+='<fieldset class="wb-wide wb-days"><legend>计划星期</legend>'+days.map(d=>check("day"+d,dayNames[d],(t.days||[]).includes(d))).join("")+'</fieldset>';
@@ -162,73 +206,126 @@
     return "";
   }
   function renderToolbar(){
-    return '<div class="wb-top"><div class="wb-brand"><span class="wb-kicker">TASKRING / CONFIG STUDIO</span>'+
-      '<h1 id="wbTitle">统一编辑工作台</h1><p>按区域浏览与编辑，保存时统一写入 TaskRing 配置</p></div>'+
-      '<div class="wb-top-actions"><span class="wb-status '+(isDirty()?"dirty":"")+'" aria-live="polite">'+(isDirty()?"● 有未保存修改":"✓ 已同步到草稿基线")+'</span>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>JSON 导入 / 导出</button>'+
-      '<button type="button" class="wb-btn wb-primary" data-wb-save '+(busy?"disabled":"")+'>保存全部</button>'+
-      '<button type="button" class="wb-btn wb-close" data-wb-close aria-label="关闭编辑工作台">×</button></div></div>';
+    const count=changeCount(),dirty=isDirty();
+    return '<header class="wb-top"><div class="wb-brand"><span class="wb-kicker">TASKRING / CONFIG STUDIO</span>'+
+      '<h1 id="wbTitle">任务编辑工作台</h1><p>六个区域，一份配置 · 切换区域不会丢失草稿</p></div>'+
+      '<div class="wb-top-actions"><span class="wb-status '+(dirty?"dirty":"")+'" aria-live="polite">'+
+      (dirty?'● '+count+' 处待保存':'✓ 当前修改已保存')+'</span>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-undo title="撤销（Ctrl+Z）" aria-label="撤销上一项草稿修改" '+(!undoStack.length?'disabled':'')+'>↶</button>'+
+      '<button type="button" class="wb-btn wb-history" data-wb-redo title="重做（Ctrl+Shift+Z）" aria-label="重做草稿修改" '+(!redoStack.length?'disabled':'')+'>↷</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-json-export>JSON 管理</button>'+
+      '<button type="button" class="wb-btn wb-primary" data-wb-save '+(busy?'disabled':'')+'>'+(dirty?'保存 '+count+' 项修改':'保存全部')+'</button>'+
+      '<button type="button" class="wb-btn wb-close" data-wb-close aria-label="退出编辑工作台">×</button></div></header>';
   }
   function renderFilters(){
-    let x='<div class="wb-list-head"><h2>'+esc(labels[domain])+'</h2><div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
-    if(domain==="game"||domain==="fitness"||domain==="refs")x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
-    if(["tasks","weekly","game","fitness","refs"].includes(domain))
-      x+='<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级设置</button>';
-    x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域</span><input type="search" data-wb-search placeholder="搜索名称、分类…" value="'+esc(keyword)+'"></label><div class="wb-filters">';
+    let x='<div class="wb-list-head"><div><span class="wb-pane-kicker">CONFIGURATION</span><h2>'+esc(labels[domain])+'</h2></div>'+
+      '<div class="wb-list-actions"><button type="button" class="wb-btn wb-quiet" data-wb-new>＋ 新增</button>';
+    if(["game","fitness","refs"].includes(domain))
+      x+='<button type="button" class="wb-btn wb-subtle" data-wb-new-group>＋ '+(domain==="game"?"游戏":domain==="fitness"?"分区":"分组")+'</button>';
+    x+='</div></div><label class="wb-search"><span class="wb-sr">搜索当前区域（Ctrl+K）</span>'+
+      '<input type="search" data-wb-search placeholder="搜索名称、分类、备注或 ID…" autocomplete="off" value="'+esc(keyword)+'"></label>';
+    x+='<div class="wb-filters">';
     if(domain==="game"){
-      const opts=[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.name,g.name])];
-      x+=select("groupFilter","游戏",groupFilter,opts)+select("scope","任务类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"]]);
-    }else if(domain==="learning")x+=select("groupFilter","轨道",groupFilter,[["all","两条轨道"],["LANGUAGE","语言"],["KNOWLEDGE","知识"]]);
-    else if(domain==="fitness")x+=select("groupFilter","星期",groupFilter,[["all","全部星期"],...days.map(d=>[String(d),dayNames[d]])]);
-    x+='</div>';
+      x+=select("groupFilter","游戏",groupFilter,[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.id,g.name])])+
+        select("scope","类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"]]);
+    }else if(domain==="learning")
+      x+=select("groupFilter","学习轨道",groupFilter,[["all","全部轨道"],["LANGUAGE","语言"],["KNOWLEDGE","知识"]]);
+    else if(domain==="fitness")
+      x+=select("groupFilter","星期",groupFilter,[["all","全部星期"],...days.map(day=>[String(day),dayNames[day]])]);
+    else if(domain==="refs")
+      x+=select("groupFilter","资料分组",groupFilter,[["all","全部分组"],...draft.refs.map(g=>[g.id,g.title])]);
+    x+='</div><div class="wb-visibility" aria-label="启用状态筛选">'+
+      [["all","全部"],["active","已启用"],["disabled","已停用"]].map(([key,label])=>
+        '<button type="button" data-wb-status="'+key+'" aria-pressed="'+(visibility===key)+'" class="'+(visibility===key?"active":"")+'">'+label+'</button>').join("")+
+      '</div>';
     return x;
   }
-  function renderList(){
-    const list=filtered();
-    let h='<div class="wb-list-items" role="listbox" aria-label="配置项目">';
-    let last="";
+  function listMarkup(list){
+    let h="",last="";
     list.forEach(item=>{
       if(item.group!==last){h+='<div class="wb-list-group">'+esc(item.group)+'</div>';last=item.group;}
       const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
-      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+(item.obj.enabled===false?"disabled":"")+'" data-wb-select="'+esc(item.key)+'" role="option" aria-selected="'+(selected===item.key)+'">'+
-        '<span class="wb-entry-name">'+esc(title)+'</span><small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small></button>';
+      h+='<button type="button" class="wb-list-entry '+(selected===item.key?"selected ":"")+
+        (item.obj.enabled===false?"disabled ":"")+(recordChanged(item)?"is-changed":"")+
+        '" data-wb-select="'+esc(item.key)+'" aria-current="'+(selected===item.key?"true":"false")+'">'+
+        '<span class="wb-entry-name">'+esc(title)+'</span><span class="wb-entry-meta">'+
+        '<small>'+esc(kindName[item.kind])+(item.obj.enabled===false?" · 已停用":"")+'</small>'+
+        (recordChanged(item)?'<em>已修改</em>':'')+'</span></button>';
     });
-    if(!list.length)h+='<p class="wb-empty">这里还没有内容。可以新增，或从其他区域切换过来。</p>';
-    return h+'</div><div class="wb-list-foot">'+list.length+' 项 · 所有修改先暂存在本机草稿</div>';
+    if(!list.length)h+='<div class="wb-empty"><strong>没有匹配的项目</strong><p>可以调整筛选条件，或通过「＋ 新增」添加新项目。</p></div>';
+    return h;
+  }
+  function renderList(){
+    const list=filtered();
+    return '<div class="wb-list-items" role="group" aria-label="配置项目列表">'+listMarkup(list)+'</div>'+
+      '<footer class="wb-list-foot"><span class="wb-count">'+list.length+' 项结果</span><span>草稿未保存前不会写入正式配置</span>'+
+      '<details class="wb-compat"><summary>兼容与高级维护</summary><p>少数旧版专属设置仍可在兼容编辑器维护。</p>'+
+      '<button type="button" class="wb-btn wb-subtle" data-wb-legacy>打开专业兼容编辑器</button></details></footer>';
   }
   function renderDetail(){
     const item=refs.get(selected);
-    if(!item)return '<div class="wb-empty-detail"><span>✦</span><h2>选择一个项目开始编辑</h2><p>从左侧选择已有任务，或者点击「新增」。</p></div>';
-    const obj=item.obj,stable=item.kind==="studySettings"?false:true;
+    if(!item)return '<div class="wb-empty-detail"><span aria-hidden="true">✦</span><h2>选择任务，开始编辑</h2>'+
+      '<p>左侧选择已有条目，修改会保留在跨区域草稿中。<br>也可以新建一个项目，最后统一保存。</p>'+
+      '<p class="wb-keytips">快捷键：Ctrl/⌘ + K 搜索 · Ctrl/⌘ + S 保存 · Ctrl/⌘ + Z 撤销</p></div>';
+    const obj=item.obj,stable=item.kind!=="studySettings";
     const title=obj.title||obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
     const raw=item.kind==="studySettings"?draft.sequences[obj.track]:obj;
+    const all=filtered(),position=all.findIndex(row=>row.key===selected);
     return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>← 返回列表</button>'+
-      '<span>'+esc(item.group)+'</span></div>'+
-      '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+'</span><h2>'+esc(title)+'</h2></div>'+
-      '<div class="wb-editor-shortcuts"><button type="button" class="wb-btn wb-quiet" data-wb-open-live>查看原模块</button>'+
-      (["tasks","weekly","game","fitness","refs"].includes(domain)?'<button type="button" class="wb-btn wb-subtle" data-wb-legacy>高级专业编辑器</button>':"")+'</div></div>'+
+      '<span class="wb-breadcrumb">'+esc(labels[domain])+' / '+esc(item.group)+'</span>'+
+      '<div class="wb-switch-record"><button type="button" class="wb-btn wb-quiet" data-wb-step="-1" aria-label="上一项" '+(position<=0?'disabled':'')+'>← 上一项</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-step="1" aria-label="下一项" '+(position<0||position>=all.length-1?'disabled':'')+'>下一项 →</button></div></div>'+
+      '<div class="wb-editor-heading"><div><span class="wb-kicker">'+esc(kindName[item.kind])+
+      (recordChanged(item)?' · 草稿已修改':'')+'</span><h2>'+esc(title)+'</h2></div>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-open-live>在正式页面查看</button></div>'+
       '<form class="wb-edit-form" data-wb-editor-form data-wb-item="'+esc(item.key)+'"><div class="wb-fields">'+editorFields(item)+'</div></form>'+
-      '<details class="wb-raw"><summary>高级 · 查看或编辑此项 JSON</summary><p>仅更改当前项目，ID 与状态编码不可修改；应用到草稿后仍需点击「保存全部」。</p>'+
+      '<details class="wb-raw"><summary>高级 · 编辑单项 JSON</summary>'+
+      '<p>此区域只修改当前条目。ID、状态编码保持不变；点击「应用」后仍须保存整个草稿。</p>'+
       '<textarea aria-label="此项原始 JSON" data-wb-raw spellcheck="false">'+esc(JSON.stringify(raw,null,2))+'</textarea>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button></details>'+
-      '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制项目</button>'+
-      '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">上移</button><button type="button" class="wb-btn wb-quiet" data-wb-move="1">下移</button>':'')+
-      ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+(obj.enabled===false?"重新启用":"停用项目")+'</button>':"")+
+      '<div class="wb-raw-actions"><button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button>'+
+      '<button type="button" class="wb-btn wb-subtle" data-wb-discard-raw>恢复原始文本</button></div></details>'+
+      '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制为新项</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">↑ 上移</button>'+
+      '<button type="button" class="wb-btn wb-quiet" data-wb-move="1">↓ 下移</button>':'')+
+      ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+
+        (obj.enabled===false?"启用":"停用")+'</button>':"")+
       '<button type="button" class="wb-btn wb-primary" data-wb-save>保存全部修改</button></div>';
   }
   function render(){
     if(root.hidden||!draft)return;
-    ensure();
-    index();
-    // Keep the current selection when filtering; the search controls only the list.
+    ensure();const previousScroll={
+      nav:root.querySelector(".wb-nav")?.scrollLeft||0,
+      list:root.querySelector(".wb-list-items")?.scrollTop||0,
+      editor:root.querySelector(".wb-editor")?.scrollTop||0
+    };
+    const all=index(),counts=Object.fromEntries(domains.map(([key])=>[key,all.filter(item=>item.domain===key).length]));
     root.dataset.screen=screen;
     root.innerHTML=renderToolbar()+'<div class="wb-layout"><nav class="wb-nav" aria-label="编辑区域">'+
-      domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+'" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+'</span>'+name+'</button>').join("")+
-      '<div class="wb-nav-tip">配置与完成记录分开存储。保存草稿不会清空原有打卡。</div></nav>'+
-      '<div class="wb-lists">'+renderFilters()+renderList()+'</div><main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+
-      '<div class="wb-feedback" role="status" aria-live="polite">'+esc(notice)+'</div>';
+      domains.map(([key,name],i)=>'<button type="button" data-wb-domain="'+key+'" class="'+(domain===key?"active":"")+
+        '" aria-current="'+(domain===key?"page":"false")+'"><span class="wb-num">'+String(i+1).padStart(2,"0")+
+        '</span><span>'+name+'</span><small>'+counts[key]+'</small></button>').join("")+
+      '<div class="wb-nav-tip">本工作台编辑的是任务配置，不会清除打卡历史。游戏限时与周期活动仍由 Supabase 独立维护。</div></nav>'+
+      '<section class="wb-lists" aria-label="配置项目">'+renderFilters()+renderList()+'</section>'+
+      '<main class="wb-editor" id="wbEditor">'+renderDetail()+'</main></div>'+
+      '<footer class="wb-feedback" role="status" aria-live="polite"><span>'+esc(notice||"按 Ctrl/⌘ + S 保存 · Esc 退出 · Ctrl/⌘ + K 搜索")+
+      '</span><span class="wb-feedback-progress">'+(isDirty()?changeCount()+' 处待保存':'工作台就绪')+'</span></footer>';
     const form=root.querySelector("[data-wb-editor-form]");
     if(form)form.dataset.wbOriginal=JSON.stringify([...new FormData(form).entries()]);
+    const raw=root.querySelector("[data-wb-raw]");if(raw)raw.dataset.wbOriginal=raw.value;
+    root.querySelector(".wb-nav").scrollLeft=previousScroll.nav;
+    root.querySelector(".wb-list-items").scrollTop=previousScroll.list;
+    root.querySelector(".wb-editor").scrollTop=previousScroll.editor;
+  }
+  function rawPending(){
+    const raw=root.querySelector("[data-wb-raw]");
+    return !!raw&&raw.value!==raw.dataset.wbOriginal;
+  }
+  function guardRaw(){
+    if(!rawPending())return false;
+    notice="JSON 文本尚未应用：请点击「应用 JSON 到草稿」或「恢复原始文本」后继续。";
+    const feedback=root.querySelector(".wb-feedback > span");
+    if(feedback)feedback.textContent=notice;
+    return true;
   }
   function current(){return refs.get(selected)}
   function flush(){
@@ -239,6 +336,7 @@
     if(JSON.stringify(values)===JSON.stringify(initial))return;
     const previous=new Map(initial);
     const item=refs.get(form.dataset.wbItem);if(!item)return;
+    checkpoint();
     const e=form.elements,get=name=>e.namedItem(name),text=name=>get(name)?.value??"";
     const data=new Map(values),has=name=>data.has(name);
     const changed=name=>String(data.get(name)??"")!==String(previous.get(name)??"")||data.has(name)!==previous.has(name);
@@ -323,6 +421,7 @@
   }
   function create(kind){
     flush();
+    checkpoint();
     let obj,parent,mod=domain;
     if(kind==="group"&&domain==="game"){
       obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
@@ -338,7 +437,7 @@
         days:days.slice(),enabled:true,optional:false,estimated_minutes:15,weekly_minutes:60,note:"",url:"",steps:[]};
       parent=draft.tasks;parent.push(obj);
     }else if(domain==="game"){
-      const game=draft.gameQuest.games.find(g=>g.name===groupFilter)||draft.gameQuest.games[0];
+      const game=draft.gameQuest.games.find(g=>g.id===groupFilter)||draft.gameQuest.games[0];
       if(!game){notice="请先新增一个游戏";render();return;}
       const board=scope==="weekly"?"weekly":"daily";
       parent=draft.gameQuest.boards[board][game.id] ||= [];
@@ -356,21 +455,41 @@
       parent=draft.sequences[track].items;
       obj={id:"wb-study-"+uuid(),title:"新学习内容",stage:"",url:"",note:"",enabled:true};parent.push(obj);
     }else if(domain==="refs"){
-      const group=draft.refs[0];if(!group){create("group");return;}
+      const group=draft.refs.find(g=>g.id===groupFilter)||draft.refs[0];if(!group){create("group");return;}
       parent=group.items ||= [];
       obj={id:"wb-ref-"+uuid(),title:"新资料",url:"",enabled:true};parent.push(obj);
     }else return;
     index();
     const row=[...refs.values()].find(item=>item.obj===obj);
-    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";
+    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";visibility="all";
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
   function choose(key){
     flush();selected=key;screen="detail";notice="";render();
+    root.querySelector(".wb-editor").scrollTop=0;
+  }
+  function rememberDomain(){
+    domainMemo.set(domain,{selected,keyword,groupFilter,scope,visibility,scroll:root.querySelector(".wb-list-items")?.scrollTop||0});
+  }
+  function switchDomain(next){
+    if(guardRaw())return;
+    if(!labels[next]||next===domain)return;
+    flush();rememberDomain();
+    domain=next;const saved=domainMemo.get(next)||{};
+    selected=saved.selected||"";keyword=saved.keyword||"";groupFilter=saved.groupFilter||"all";
+    scope=saved.scope||"all";visibility=saved.visibility||"all";screen="list";notice="";
+    render();
+    root.querySelector(".wb-list-items").scrollTop=saved.scroll||0;
+  }
+  function stepItem(delta){
+    flush();const list=filtered(),i=list.findIndex(x=>x.key===selected),next=list[i+delta];
+    if(!next)return;
+    selected=next.key;screen="detail";notice="";render();
+    root.querySelector(".wb-editor").scrollTop=0;
   }
   function save(){
-    if(busy)return;
+    if(busy||guardRaw())return;
     flush();
     if(!isDirty()){notice="当前没有需要保存的修改";render();return;}
     try{
@@ -378,29 +497,31 @@
       busy=true;
       const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
-      const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();base=fingerprint(draft);
+      const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();undoStack=[];redoStack=[];
       notice="✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
   }
   function close(force=false){
-    if(!force){flush();if(isDirty()&&!confirm("还有未保存的编辑草稿。关闭会放弃这些修改，确定关闭吗？"))return false;}
+    const pendingRaw=rawPending();
+    if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
-    if(!root.hidden){flush();domain=labels[next]?next:"tasks";groupFilter="all";scope="all";selected="";screen="list";render();return;}
+    if(!root.hidden){switchDomain(next);return;}
     const saved=storedConfig();
     if(!saved){window.showToast?.("配置仍在初始化，请稍后重试","warn");return;}
-    returnFocus=document.activeElement;
-    expectedBase=fingerprint(saved);draft=clone(saved);ensure();base=fingerprint(draft);
-    domain=labels[next]?next:"tasks";groupFilter="all";scope="all";keyword="";selected="";screen="list";notice="";busy=false;
+    returnFocus=document.getElementById("controlCenterMenu")?.contains(document.activeElement)?document.getElementById("controlCenterBtn"):document.activeElement;
+    expectedBase=fingerprint(saved);draft=clone(saved);ensure();prepareBaseline();undoStack=[];redoStack=[];domainMemo.clear();
+    domain=labels[next]?next:"tasks";groupFilter="all";scope="all";visibility="all";keyword="";selected="";screen="list";notice="";busy=false;
     window.closeControlCenter?.();
     root.hidden=false;document.body.classList.add("workbenchOpen");render();
     root.querySelector("[data-wb-domain='"+domain+"']")?.focus({preventScroll:true});
   }
   function duplicate(){
     flush();const item=current();if(!item?.parent)return;
+    checkpoint();
     const copy=clone(item.obj);copy.id="wb-"+uuid();
     if(item.kind==="task"){copy.code=idCode("t",[...draft.tasks.map(t=>t.code),...(draft.retired_task_codes||[])],3);
       const used=new Set();copy.steps=(copy.steps||[]).map(s=>{const code=idCode("s",[...used],2);used.add(code);return {...s,id:code,code}});}
@@ -423,7 +544,7 @@
     flush();const item=current();if(!item?.parent)return;
     const parent=item.parent,from=parent.indexOf(item.obj),to=from+delta;
     if(from<0||to<0||to>=parent.length)return;
-    parent.splice(to,0,parent.splice(from,1)[0]);notice="已调整顺序，尚未保存";render();
+    checkpoint();parent.splice(to,0,parent.splice(from,1)[0]);notice="已调整顺序，尚未保存";render();
   }
   function applyRaw(){
     const item=current();if(!item)return;
@@ -442,23 +563,33 @@
         if(index<0)throw Error("找不到原项目");
         parent[index]=next;
       }
-      C.validateConfig(draft);notice="JSON 已应用到草稿，仍需保存全部";render();
+      C.validateConfig(draft);undoStack.push({...snapshot(),draft:rollback});if(undoStack.length>30)undoStack.shift();redoStack=[];
+      notice="JSON 已应用到草稿，仍需保存全部";render();
     }catch(err){draft=rollback;index();notice="JSON 校验失败："+String(err.message||err);root.querySelector(".wb-feedback").textContent=notice;}
   }
   function onClick(event){
     const el=event.target.closest("button");if(!el)return;
     const d=el.dataset;
-    if(d.wbDomain){flush();domain=d.wbDomain;selected="";keyword="";groupFilter="all";scope="all";screen="list";render();}
+    if(rawPending()&&d.wbApplyRaw===undefined&&d.wbDiscardRaw===undefined&&d.wbClose===undefined){guardRaw();return;}
+    if(d.wbDomain){switchDomain(d.wbDomain);}
     else if(d.wbSelect){choose(d.wbSelect);}
     else if(d.wbBack!==undefined){flush();screen="list";render();}
     else if(d.wbNew!==undefined)create("item");
     else if(d.wbNewGroup!==undefined)create("group");
     else if(d.wbSave!==undefined)save();
+    else if(d.wbUndo!==undefined)undo();
+    else if(d.wbRedo!==undefined)redo();
+    else if(d.wbStep!==undefined)stepItem(Number(d.wbStep));
+    else if(d.wbStatus!==undefined){flush();visibility=d.wbStatus;render();}
     else if(d.wbClose!==undefined)close();
     else if(d.wbDuplicate!==undefined)duplicate();
     else if(d.wbMove!==undefined)move(Number(d.wbMove));
-    else if(d.wbToggleEnabled!==undefined){flush();const item=current();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
+    else if(d.wbToggleEnabled!==undefined){flush();const item=current();if(!item)return;checkpoint();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}
     else if(d.wbApplyRaw!==undefined)applyRaw();
+    else if(d.wbDiscardRaw!==undefined){
+      const raw=root.querySelector("[data-wb-raw]");
+      if(raw){raw.value=raw.dataset.wbOriginal;notice="已恢复原始 JSON 文本";const tip=root.querySelector(".wb-feedback > span");if(tip)tip.textContent=notice;}
+    }
     else if(d.wbLegacy!==undefined){
       const origin={"tasks":"controlTaskEditorBtn","weekly":"controlTaskEditorBtn","game":"controlGameQuestEditorBtn",
         "fitness":"controlFitnessEditorBtn","refs":"controlRefEditorBtn"}[domain];
@@ -470,7 +601,8 @@
       if(!close())return;
       window.setActiveAppView?.(domain==="refs"?"library":domain);
     }else if(d.wbJsonExport!==undefined){
-      if(!close())return;
+      flush();
+      if(isDirty()){notice="请先保存全部草稿，再打开 JSON 管理，避免导入时覆盖未保存内容";render();return;}
       window.TaskRingCommand?.openWorkbenchJson?.();
     }
   }
@@ -478,35 +610,45 @@
   root.addEventListener("input",event=>{
     const el=event.target;
     if(el.matches("[data-wb-search]")){
-      keyword=el.value;
-      const list=filtered();
-      const box=root.querySelector(".wb-list-items");
+      flush();keyword=el.value;
+      const list=filtered(),box=root.querySelector(".wb-list-items");
       if(!box)return;
-      // Re-render just the list without stealing search focus.
-      const originalSelected=selected;
-      const text=list.map(item=>'<button type="button" class="wb-list-entry '+(originalSelected===item.key?"selected":"")+'" data-wb-select="'+esc(item.key)+'"><span class="wb-entry-name">'+esc(item.obj.title||item.obj.name||"轨道设置")+'</span><small>'+esc(item.group)+'</small></button>').join("");
-      box.innerHTML=text||'<p class="wb-empty">没有匹配项目</p>';
+      // Update only the results, keeping focus and the scroll position of the search input.
+      box.innerHTML=listMarkup(list);
+      const count=root.querySelector(".wb-count");if(count)count.textContent=list.length+" 项结果";
     }else if(el.closest("[data-wb-editor-form]")){
       const badge=root.querySelector(".wb-status");
-      if(badge){badge.textContent="● 正在编辑草稿";badge.classList.add("dirty");}
+      if(badge){badge.textContent="● 当前编辑尚未保存";badge.classList.add("dirty");}
+      const undoButton=root.querySelector("[data-wb-undo]");if(undoButton)undoButton.disabled=false;
+      const pending=root.querySelector(".wb-feedback-progress");if(pending)pending.textContent="当前条目待保存";
     }
   });
   root.addEventListener("change",event=>{
     const el=event.target;
     if(el.name==="groupFilter"||el.name==="scope"){
+      if(guardRaw()){el.value=el.name==="groupFilter"?groupFilter:scope;return;}
       flush();if(el.name==="groupFilter")groupFilter=el.value;else scope=el.value;render();
     }
   });
   root.addEventListener("keydown",event=>{
-    if(event.key==="Escape"){event.preventDefault();close();return;}
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"){event.preventDefault();save();return;}
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();root.querySelector("[data-wb-search]")?.focus();return;}
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"&&!event.target.matches("input,textarea,[contenteditable]")){
+      event.preventDefault();if(event.shiftKey)redo();else undo();return;
+    }
+    if(event.key==="Escape"){
+      event.preventDefault();
+      if(screen==="detail"&&matchMedia("(max-width:760px)").matches){flush();screen="list";render();}
+      else close();
+      return;
+    }
     if(event.key!=="Tab")return;
     const focusable=[...root.querySelectorAll("button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary")].filter(el=>el.getClientRects().length);
     if(!focusable.length)return;
     if(event.shiftKey&&document.activeElement===focusable[0]){event.preventDefault();focusable.at(-1).focus();}
     else if(!event.shiftKey&&document.activeElement===focusable.at(-1)){event.preventDefault();focusable[0].focus();}
   });
-  window.addEventListener("beforeunload",event=>{if(!root.hidden&&draft){flush();if(isDirty()){event.preventDefault();event.returnValue="";}}});
+  window.addEventListener("beforeunload",event=>{if(!root.hidden&&draft){const pendingRaw=rawPending();flush();if(isDirty()||pendingRaw){event.preventDefault();event.returnValue="";}}});
   // Route the original control-center edit cards into the same full-screen workbench.
   // Their old editors remain in the code for compatibility and recovery.
   document.addEventListener("click",event=>{
@@ -516,5 +658,17 @@
     const target=el.dataset.workbenchOpen||({controlTaskEditorBtn:"tasks",controlGameQuestEditorBtn:"game",controlFitnessEditorBtn:"fitness",controlRefEditorBtn:"refs"}[el.id])||"tasks";
     event.preventDefault();event.stopImmediatePropagation();open(target);
   },true);
-  window.TaskRingWorkbench={open,close,isOpen:()=>!root.hidden};
+  function hasPendingForm(){
+    const form=root.querySelector("[data-wb-editor-form]");
+    return rawPending()||(!!form&&JSON.stringify([...new FormData(form).entries()])!==form.dataset.wbOriginal);
+  }
+  document.getElementById("commandDialog")?.addEventListener("close",()=>{
+    if(root.hidden||!draft)return;
+    const current=storedConfig();
+    if(current&&fingerprint(current)!==expectedBase&&!isDirty()&&!hasPendingForm()){
+      expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();
+      undoStack=[];redoStack=[];notice="JSON 导入后已重新读取最新配置";render();
+    }
+  });
+  window.TaskRingWorkbench={open,close,isOpen:()=>!root.hidden,dirty:()=>!root.hidden&&(isDirty()||hasPendingForm())};
 })();

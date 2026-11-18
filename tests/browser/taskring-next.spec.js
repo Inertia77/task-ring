@@ -169,13 +169,16 @@ test('learning editor, daily completion and next-day progression stay independen
 test('unified editor saves a scheduled task and exports one configuration',async({page})=>{
   await boot(page,'overview');
   await page.getByRole('button',{name:'任务管理',exact:true}).click();
-  await page.getByRole('button',{name:'新建任务'}).click();
-  await page.locator('#commandDialog').getByLabel('任务名称',{exact:true}).fill('计划测试');
-  await page.locator('#commandDialog').getByLabel('子任务（每行一项）',{exact:true}).fill('收集资料\n整理摘要');
-  await page.getByRole('button',{name:'保存任务'}).click();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
+  await page.locator('#taskWorkbench [data-wb-new]').click();
+  await page.locator('#taskWorkbench [name="title"]').fill('计划测试');
+  await page.locator('#taskWorkbench [name="steps"]').fill('收集资料\n整理摘要');
+  await page.locator('#taskWorkbench .wb-top [data-wb-save]').click();
+  await expect(page.locator('#taskWorkbench .wb-feedback')).toContainText('已保存');
+  await page.locator('#taskWorkbench [data-wb-close]').click();
   await expect(page.getByRole('button',{name:'完成：计划测试',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'任务管理',exact:true}).click();
-  await page.getByRole('button',{name:'统一 JSON',exact:true}).click();
+  await page.locator('#taskWorkbench [data-wb-json-export]').click();
   const download=page.waitForEvent('download');
   await page.getByRole('button',{name:'导出配置',exact:true}).click();
   expect((await download).suggestedFilename()).toMatch(/^taskring-config-.*\.json$/);

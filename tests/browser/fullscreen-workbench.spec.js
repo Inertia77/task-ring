@@ -68,7 +68,7 @@ test('mobile studio uses full-page list/detail navigation and retains existing J
   await page.locator('#taskWorkbench [data-wb-back]').click();
   await expect(page.locator('#taskWorkbench')).toHaveAttribute('data-screen','list');
   await page.locator('#taskWorkbench [data-wb-json-export]').click();
-  await expect(page.locator('#taskWorkbench')).toBeHidden();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
   await expect(page.locator('#commandDialog')).toBeVisible();
   await expect(page.locator('#commandDialog')).toContainText('统一 JSON');
   await expect(page.getByRole('button',{name:'导出完整备份'})).toBeVisible();
@@ -88,4 +88,88 @@ test('unsaved draft warns on closing and never changes the persisted config',asy
   await page.locator('#taskWorkbench [data-wb-close]').click();
   await expect(page.locator('#taskWorkbench')).toBeHidden();
   expect(await page.evaluate(()=>loadLocalTaskConfig().tasks.some(t=>t.title==='不应意外保存'))).toBe(false);
+});
+
+
+test('control center has one visible editor entrance and advanced legacy path remains opt-in',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page,'overview');
+  await page.locator('#controlCenterBtn').click();
+  await expect(page.locator('#controlWorkbenchBtn')).toBeVisible();
+  for(const id of ['controlTaskEditorBtn','controlGameQuestEditorBtn','controlFitnessEditorBtn','controlRefEditorBtn'])
+    await expect(page.locator('#'+id)).toBeHidden();
+  await page.locator('#controlWorkbenchBtn').click();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
+  await expect(page.locator('#taskWorkbench [data-wb-domain]')).toHaveCount(6);
+  await page.locator('#taskWorkbench .wb-compat summary').click();
+  await page.locator('#taskWorkbench [data-wb-legacy]').click();
+  await expect(page.locator('#taskEditorModal')).toBeVisible();
+});
+
+test('studio preserves category context and supports search, status filters and reversible draft edits',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await boot(page,'overview');
+  await openStudio(page);
+  const original='阅读与笔记：长标题用于验证手机和电脑换行与操作入口';
+  await page.locator('#taskWorkbench .wb-list-entry').filter({hasText:original}).click();
+  await page.locator('#taskWorkbench [name="title"]').fill('工作台草稿的标题');
+  await page.locator('#taskWorkbench [data-wb-undo]').click();
+  await expect(page.locator('#taskWorkbench [name="title"]')).toHaveValue(original);
+  await page.locator('#taskWorkbench [data-wb-redo]').click();
+  await expect(page.locator('#taskWorkbench [name="title"]')).toHaveValue('工作台草稿的标题');
+  await page.locator('#taskWorkbench [data-wb-domain="weekly"]').click();
+  await page.locator('#taskWorkbench [data-wb-status="disabled"]').click();
+  await expect(page.locator('#taskWorkbench .wb-list-entry')).toHaveCount(1);
+  await page.locator('#taskWorkbench [data-wb-search]').fill('隔离测试任务 11');
+  await expect(page.locator('#taskWorkbench .wb-list-entry')).toHaveCount(1);
+  await page.locator('#taskWorkbench [data-wb-domain="tasks"]').click();
+  await expect(page.locator('#taskWorkbench [name="title"]')).toHaveValue('工作台草稿的标题');
+  await page.locator('#taskWorkbench [data-wb-save]').first().click();
+  await expect(page.locator('#taskWorkbench .wb-feedback')).toContainText('已保存');
+  await page.locator('#taskWorkbench [data-wb-json-export]').click();
+  await expect(page.locator('#commandDialog')).toBeVisible();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
+  await page.locator('#commandDialog [data-command-dismiss]').click();
+  await expect(page.locator('#commandDialog')).not.toBeVisible();
+  await expect(page.locator('#taskWorkbench')).toBeVisible();
+});
+
+test('new entries use the selected game and reference group, not the first group',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await boot(page,'overview');
+  await openStudio(page,'game');
+  await page.locator('#taskWorkbench [name="groupFilter"]').selectOption('endfield');
+  await page.locator('#taskWorkbench [name="scope"]').selectOption('weekly');
+  await page.locator('#taskWorkbench [data-wb-new]').click();
+  await page.locator('#taskWorkbench [name="title"]').fill('仅终末地周常测试');
+  await page.locator('#taskWorkbench [data-wb-domain="refs"]').click();
+  await page.locator('#taskWorkbench [name="groupFilter"]').selectOption('test-ref-b');
+  await page.locator('#taskWorkbench [data-wb-new]').click();
+  await page.locator('#taskWorkbench [name="title"]').fill('仅工具收藏的链接');
+  await page.locator('#taskWorkbench .wb-top [data-wb-save]').click();
+  await expect(page.locator('#taskWorkbench .wb-feedback')).toContainText('已保存');
+  const data=await page.evaluate(()=>loadLocalTaskConfig());
+  expect(data.gameQuest.boards.weekly.endfield.some(x=>x.title==='仅终末地周常测试')).toBe(true);
+  expect(data.gameQuest.boards.weekly.zzz.some(x=>x.title==='仅终末地周常测试')).toBe(false);
+  expect(data.refs.find(x=>x.id==='test-ref-b').items.some(x=>x.title==='仅工具收藏的链接')).toBe(true);
+  expect(data.refs.find(x=>x.id==='test-ref-a').items.some(x=>x.title==='仅工具收藏的链接')).toBe(false);
+});
+
+test('unapplied JSON cannot be lost by switching modules or saving',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await boot(page,'overview');
+  await openStudio(page);
+  await page.locator('#taskWorkbench .wb-list-entry').first().click();
+  const raw=page.locator('#taskWorkbench [data-wb-raw]');
+  await page.locator('#taskWorkbench .wb-raw summary').click();
+  const original=await raw.inputValue();
+  await raw.fill(original.replace('"title":', '"title": "尚未应用的 JSON", "old_title":'));
+  await page.locator('#taskWorkbench [data-wb-domain="game"]').click();
+  await expect(page.locator('#taskWorkbench [data-wb-domain="tasks"]')).toHaveAttribute('aria-current','page');
+  await expect(raw).toHaveValue(original.replace('"title":','"title": "尚未应用的 JSON", "old_title":'));
+  await expect(page.locator('#taskWorkbench .wb-feedback')).toContainText('JSON 文本尚未应用');
+  await page.locator('#taskWorkbench [data-wb-discard-raw]').click();
+  await expect(raw).toHaveValue(original);
+  await page.locator('#taskWorkbench [data-wb-domain="game"]').click();
+  await expect(page.locator('#taskWorkbench [data-wb-domain="game"]')).toHaveAttribute('aria-current','page');
 });

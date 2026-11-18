@@ -15,11 +15,13 @@ test('PWA upgrades assets without reloading an unsaved editor draft',async({brow
  try{
   await page.goto(base+'/?preview');await page.waitForFunction(()=>!!window.TaskRingProductUi);await page.evaluate(()=>navigator.serviceWorker.ready);
   await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
-  await page.locator('#controlCenterBtn').click();await page.locator('#controlTaskEditorBtn').click();
-  const row=page.locator('.cfgTask').first();await row.locator('summary').first().click();await row.locator('.cfgTitle').fill('PWA 未保存草稿');
+  await page.locator('#controlCenterBtn').click();await page.locator('#controlWorkbenchBtn').click();
+  await page.locator('#taskWorkbench .wb-list-entry').first().click();
+  const row=page.locator('#taskWorkbench [data-wb-editor-form]');
+  await row.locator('[name="title"]').fill('PWA 未保存草稿');
   revision='next';await page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update()});
   await page.waitForFunction(async()=>!!(await caches.keys()).find(k=>k==='taskring-shell-test-next'));
-  await expect(row.locator('.cfgTitle')).toHaveValue('PWA 未保存草稿');
+  await expect(row.locator('[name="title"]')).toHaveValue('PWA 未保存草稿');
   await expect(page.locator('#toastBox')).toContainText('先保存草稿');
   const cached=await page.evaluate(async()=>{const cache=await caches.open('taskring-shell-test-next');return (await cache.match('./assets/css/main.css')).text()});expect(cached).toContain('game-weekly-flow.css');
  }finally{await context.close();await new Promise(r=>server.close(r))}
