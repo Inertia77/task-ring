@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 test.beforeEach(async({page})=>{await page.setViewportSize({width:390,height:844});await boot(page)});
-async function editor(page,id='controlTaskEditorBtn'){await page.locator('#controlCenterBtn').click();await page.locator('#'+id).click()}
+async function editor(page,id='controlTaskEditorBtn'){await page.locator('#controlCenterBtn').click();await page.locator('#'+id).click();await page.locator('#taskWorkbench [data-wb-legacy]').click()}
 test('editor keeps full draft across scopes, search, additions, copies and reload',async({page})=>{
  await editor(page);
  const row=page.locator('.cfgTask[data-id="test-task-0"]');await row.locator('summary').first().click();
