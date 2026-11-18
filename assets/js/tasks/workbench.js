@@ -513,7 +513,7 @@
     }
     form.dataset.wbOriginal=JSON.stringify(values);
   }
-  function create(kind){
+  function create(kind,context={}){
     flush();
     checkpoint();
     let obj,parent,mod=domain;
@@ -531,9 +531,14 @@
         days:days.slice(),enabled:true,optional:false,estimated_minutes:15,weekly_minutes:60,note:"",url:"",steps:[]};
       parent=draft.tasks;parent.push(obj);
     }else if(domain==="game"){
-      const game=draft.gameQuest.games.find(g=>g.id===groupFilter)||draft.gameQuest.games[0];
+      const selectedRow=refs.get(selected);
+      const selectedId=selectedRow?.kind==="gameMeta"?selectedRow.obj.id:
+        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[0]:null;
+      const game=draft.gameQuest.games.find(g=>g.id===(context.gameId||groupFilter))||
+        draft.gameQuest.games.find(g=>g.id===selectedId)||draft.gameQuest.games[0];
       if(!game){notice="请先新增一个游戏";render();return;}
-      const board=scope==="weekly"?"weekly":"daily";
+      const board=context.board||(["daily","weekly"].includes(scope)?scope:
+        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[1]:"daily");
       parent=draft.gameQuest.boards[board][game.id] ||= [];
       obj={id:"wb-game-"+uuid(),title:"新游戏任务",enabled:true,url:"",note:""};
       if(board==="daily")obj.daily_lane="must";else obj.weekly_lane="steady";
@@ -549,13 +554,37 @@
       parent=draft.sequences[track].items;
       obj={id:"wb-study-"+uuid(),title:"新学习内容",stage:"",url:"",note:"",enabled:true};parent.push(obj);
     }else if(domain==="refs"){
-      const group=draft.refs.find(g=>g.id===groupFilter)||draft.refs[0];if(!group){create("group");return;}
+      const selectedRow=refs.get(selected);
+      const selectedGroup=selectedRow?.kind==="refGroup"?selectedRow.obj.id:
+        selectedRow?.kind==="refItem"?selectedRow.identity:null;
+      const group=draft.refs.find(g=>g.id===(context.groupId||groupFilter))||
+        draft.refs.find(g=>g.id===selectedGroup)||draft.refs[0];
+      if(!group){notice="请先新增一个资料分组";render();return;}
       parent=group.items ||= [];
       obj={id:"wb-ref-"+uuid(),title:"新资料",url:"",enabled:true};parent.push(obj);
     }else return;
+    if(domain==="game"&&kind!=="group"){
+      treeOpen.set("game:"+((context.gameId)||
+        [...draft.gameQuest.games].find(g=>g.id===groupFilter)?.id||
+        [...refs.values()].find(item=>item.obj===obj)?.identity.split(":")[0]),true);
+    }
+    if(domain==="refs"&&kind!=="group"){
+      treeOpen.set("refs:"+(context.groupId||groupFilter),true);
+    }
+    if(kind==="group"&&(domain==="game"||domain==="refs"))
+      treeOpen.set((domain==="game"?"game:":"refs:")+obj.id,true);
     index();
     const row=[...refs.values()].find(item=>item.obj===obj);
-    selected=row?.key||"";screen="detail";keyword="";groupFilter="all";scope="all";visibility="all";
+    if(domain==="game"&&row?.kind==="gameTask"){
+      treeOpen.set("game:"+row.identity.split(":")[0],true);
+      treeOpen.set("game:"+row.identity,true);
+    }
+    if(domain==="refs"&&row?.kind==="refItem")treeOpen.set("refs:"+row.identity,true);
+    selected=row?.key||"";screen="detail";keyword="";visibility="all";
+    if(groupFilter!=="all"&&(
+      (domain==="game"&&row?.kind==="gameTask"&&row.identity.split(":")[0]!==groupFilter)||
+      (domain==="refs"&&row?.kind==="refItem"&&row.identity!==groupFilter)))groupFilter="all";
+    if(domain==="game"&&row?.kind==="gameTask")scope=row.identity.split(":")[1];
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
@@ -600,7 +629,7 @@
     const pendingRaw=rawPending();
     if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
-    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
+    draft=null;baseline=null;baselineItems.clear();undoStack=[];redoStack=[];domainMemo.clear();treeOpen.clear();refs.clear();returnFocus?.focus?.({preventScroll:true});return true;
   }
   function open(next="tasks"){
     if(!root.hidden){switchDomain(next);return;}
@@ -666,6 +695,9 @@
     const d=el.dataset;
     if(rawPending()&&d.wbApplyRaw===undefined&&d.wbDiscardRaw===undefined&&d.wbClose===undefined){guardRaw();return;}
     if(d.wbDomain){switchDomain(d.wbDomain);}
+    else if(d.wbTreeToggle!==undefined){flush();treeToggle(d.wbTreeToggle);}
+    else if(d.wbAddGame!==undefined)create("item",{gameId:d.wbAddGame,board:d.wbBoard});
+    else if(d.wbAddRef!==undefined)create("item",{groupId:d.wbAddRef});
     else if(d.wbSelect){choose(d.wbSelect);}
     else if(d.wbBack!==undefined){flush();screen="list";render();}
     else if(d.wbNew!==undefined)create("item");
