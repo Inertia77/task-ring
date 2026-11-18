@@ -150,14 +150,16 @@
   const ON=[["core","核心保底"],["important","重要"],["normal","普通"],["optional","可选"]];
   function priority(task){return task.optional?"optional":task.core?"core":task.important?"important":"normal"}
   function taskEditor(item){
-    const t=item.obj;let h="";
+    const t=item.obj;let h='<h3 class="wb-form-section">01 / 基本信息</h3>';
     h+=field("title","任务名称",t.title,"text",'required maxlength="220"');
     h+=select("module","任务所属区域",area(t),domains.filter(x=>["tasks","weekly","game","fitness"].includes(x[0])).map(x=>[x[0],x[1]]));
     h+=select("priority","任务优先级",priority(t),ON);
     h+=field("cat","分类",t.cat||"life");
     h+=field("time_category","计时类别",t.time_category||"life");
+    h+='<h3 class="wb-form-section">02 / 时间与安排</h3>';
     h+=field("estimated_minutes","单次预计时间（分钟）",t.estimated_minutes||0,"number",'min="0"');
     h+=field("weekly_minutes","每周计划时间（分钟）",t.weekly_minutes||0,"number",'min="0"');
+    h+='<h3 class="wb-form-section">03 / 任务内容</h3>';
     h+=field("url","目标链接",t.url,"url");
     if(area(t)==="game")h+=select("nextGameId","关联游戏",t.nextGameId||"",[["","无"],...draft.gameQuest.games.map(g=>[g.id,g.name])]);
     h+='<fieldset class="wb-wide wb-days"><legend>计划星期</legend>'+days.map(d=>check("day"+d,dayNames[d],(t.days||[]).includes(d))).join("")+'</fieldset>';
