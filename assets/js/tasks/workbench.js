@@ -308,7 +308,7 @@
   function treeHeader(key,title,summary,expanded,level=0){
     return '<button type="button" class="wb-tree-toggle" data-wb-tree-toggle="'+esc(key)+'" aria-expanded="'+
       expanded+'" aria-controls="'+esc("wb-tree-"+key.replace(/[^a-z0-9-]/gi,"-"))+'">'+
-      '<span class="wb-tree-caret" aria-hidden="true">'+(expanded?"⌄":"›")+'</span>'+
+      '<span class="wb-tree-caret" aria-hidden="true">'+glyph(expanded?"chevron-down":"chevron-right")+'</span>'+
       '<span class="wb-tree-heading">'+esc(title)+'</span><span class="wb-tree-summary">'+esc(summary)+'</span></button>';
   }
   function treePanel(key,content,expanded){
