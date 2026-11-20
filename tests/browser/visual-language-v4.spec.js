@@ -56,7 +56,11 @@ test('More actions and compact page navigation render visible labels as well as 
   await page.setViewportSize({width:320,height:740});
   await boot(page,'overview');
   await view(page,'more');
-  await expect(page.locator('#commandMore .trMoreIcon .trUiIcon')).toHaveCount(6);
+  await expect(page.locator('#commandMore .trMoreIcon .trUiIcon')).toHaveCount(4);
+  await expect(page.locator('#commandMore .commandMoreGrid>button')).toHaveCount(4);
+  await expect(page.locator('#commandMore [data-workbench-open], #commandMore [data-command-manage]')).toHaveCount(0);
+  await expect(page.locator('#commandMore [data-view-target="time"]')).toContainText('时间账本');
+  await expect(page.locator('#controlWorkbenchBtn')).toHaveAttribute('data-workbench-open','tasks');
   await expect(page.locator('#commandMore [data-view-target="tasks"]')).toContainText('每日任务');
   await expect(page.locator('#commandMore [data-view-target="weekly"]')).toContainText('周计划');
   await expect(page.locator('#commandMore [data-view-target="library"]')).toContainText('资料库');
