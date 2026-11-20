@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261120-mobile-workbench-single-pane";
+const CACHE_NAME = "taskring-shell-20261120-dedup-more";
 const APP_SHELL = [
   "./",
   "./index.html",

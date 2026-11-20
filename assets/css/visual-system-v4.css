@@ -225,10 +225,10 @@ body.nx .trMoreIcon {
   border:1px solid #d5e6eb;background:#edf5f8;color:#427f96;border-radius:10px;
 }
 body.nx .trMoreIcon .trUiIcon {width:20px;height:20px;}
-body.nx .commandMoreGrid>button:nth-child(2) .trMoreIcon {background:#eef5fa;color:#467e9a;}
-body.nx .commandMoreGrid>button:nth-child(3) .trMoreIcon {background:#f1f0fa;color:#766fa6;}
-body.nx .commandMoreGrid>button:nth-child(4) .trMoreIcon {background:#fbf5e9;color:#ad8042;}
-body.nx .commandMoreGrid>button:nth-child(5) .trMoreIcon {background:#eef2f6;color:#637e90;}
+body.nx .commandMoreGrid>button:nth-child(1) .trMoreIcon {background:#eef5fa;color:#467e9a;}
+body.nx .commandMoreGrid>button:nth-child(2) .trMoreIcon {background:#f1f0fa;color:#766fa6;}
+body.nx .commandMoreGrid>button:nth-child(3) .trMoreIcon {background:#fbf5e9;color:#ad8042;}
+body.nx .commandMoreGrid>button:nth-child(4) .trMoreIcon {background:#eef2f6;color:#637e90;}
 body.nx .controlSectionTitle {display:flex;align-items:center;gap:7px;}
 body.nx .controlSectionTitle>strong {margin-right:auto;}
 body.nx .controlUtilityBtn,.controlSafetyBtn,.controlExportBtn {transition:background-color .15s,border-color .15s;}
