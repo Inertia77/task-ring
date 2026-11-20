@@ -432,6 +432,8 @@ body.workbenchOpen { overflow: hidden !important; }
     font-size:9px;
     letter-spacing:.08em;
     white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
   .taskWorkbench .wb-top .trStudioTitleIcon {
     width:25px;
