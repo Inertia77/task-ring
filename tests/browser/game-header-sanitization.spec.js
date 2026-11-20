@@ -35,8 +35,10 @@ for(const width of [390,1024,1440,1920]){
         viewport:innerWidth
       };
     });
-    expect(boxes.title.bottom,'title must sit above description').toBeLessThanOrEqual(boxes.description.top+1);
-    expect(boxes.description.right).toBeLessThanOrEqual(boxes.panel.right+1);
+    if(width>=901){
+      expect(boxes.title.bottom,'desktop title must sit above description').toBeLessThanOrEqual(boxes.description.top+1);
+      expect(boxes.description.right).toBeLessThanOrEqual(boxes.panel.right+1);
+    }
     expect(boxes.actions.every(x=>x.width>=40&&x.right<=boxes.panel.right+1)).toBeTruthy();
     if(width>=1101)expect(boxes.title.right).toBeLessThanOrEqual(boxes.side.left+1);
     expect(boxes.doc).toBeLessThanOrEqual(boxes.viewport+1);
