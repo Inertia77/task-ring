@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261118-visual-language-v4";
+const CACHE_NAME = "taskring-shell-20261120-mobile-overview";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -73,6 +73,7 @@ const APP_SHELL = [
   "./assets/css/command-center.css",
   "./assets/css/task-workbench.css",
   "./assets/css/visual-system-v4.css",
+  "./assets/css/mobile-command-center.css",
   "./assets/js/pwa.js"
 ];
 
