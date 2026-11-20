@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261120-mobile-overview";
+const CACHE_NAME = "taskring-shell-20261120-game-desktop-header";
 const APP_SHELL = [
   "./",
   "./index.html",
