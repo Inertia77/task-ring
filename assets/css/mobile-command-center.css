@@ -1,0 +1,327 @@
+/* TaskRing mobile Command Center: compact hierarchy without changing task state. */
+/* This file loads after visual-system-v4.css so the narrow-screen fixes win. */
+@media (max-width: 700px) {
+  body.nx .wrap {
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  /* Masthead: brand, one main action, a status dot and an accessible lock. */
+  body.nx .inertiaHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 56px;
+    padding: 7px 9px;
+    margin-bottom: 8px;
+  }
+  body.nx .inertiaHeroBrand { min-width: 0; gap: 6px; }
+  body.nx .inertiaHeroMark {
+    flex: 0 0 30px;
+    width: 30px;
+    padding: 5px;
+  }
+  body.nx .inertiaHeroCopy { min-width: 0; }
+  body.nx .inertiaHeader .inertiaHeroTitle {
+    margin: 0;
+    font-size: clamp(16px, 4.5vw, 19px);
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  body.nx .inertiaToolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    width: auto;
+    max-width: 100%;
+    overflow: visible;
+  }
+  body.nx .inertiaToolbar > .ghSetupBtn { display: none; }
+  body.nx .inertiaToolbar > .controlCenterBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 63px;
+    min-height: 42px;
+    padding: 6px 9px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  body.nx .inertiaToolbar > .controlCenterBtn .trHeaderIcon {
+    display: inline-flex;
+    width: 15px;
+    height: 15px;
+  }
+  body.nx .inertiaToolbar .githubInlineState {
+    display: inline-flex;
+    flex: 0 0 21px;
+    align-items: center;
+    justify-content: center;
+    width: 21px;
+    min-width: 21px;
+    max-width: 21px;
+    min-height: 40px;
+    padding: 0;
+  }
+  body.nx .inertiaToolbar .githubInlineState .ghInlineText { display: none; }
+  body.nx .inertiaToolbar > .headerLockBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 40px;
+    width: 40px;
+    min-height: 42px;
+    padding: 0;
+  }
+  body.nx .inertiaToolbar > .headerLockBtn > span:last-child { display: none; }
+  body.nx .inertiaToolbar .returnTodayBtn:not([hidden]) {
+    min-width: 0;
+    min-height: 40px;
+    padding: 5px;
+    font-size: 11px;
+  }
+
+  /* Metrics: two readable primary completion meters, two short secondary stats. */
+  body.nx #commandCenter .commandHero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px 7px;
+    padding: 11px;
+  }
+  body.nx #commandCenter .commandHero > div:first-child { min-width: 0; }
+  body.nx #commandCenter .commandKicker {
+    margin-bottom: 3px;
+    font-size: 9px;
+    letter-spacing: .1em;
+  }
+  body.nx #commandCenter .commandHero h1 {
+    gap: 7px;
+    font-size: clamp(19px, 5.3vw, 23px);
+    line-height: 1.2;
+  }
+  body.nx #commandCenter .commandHero .trHeroIcon {
+    flex: 0 0 29px;
+    width: 29px;
+    height: 29px;
+  }
+  body.nx #commandCenter .commandHero p {
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  body.nx #commandCenter .commandHero > button {
+    align-self: center;
+    min-height: 42px;
+    padding: 6px 9px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  body.nx #commandCenter .commandMetrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    min-width: 0;
+  }
+  body.nx #commandCenter .commandMetrics > .trMetric {
+    min-width: 0;
+    padding: 7px 9px;
+  }
+  body.nx #commandCenter .commandMetrics > .trMetric:nth-child(-n+2) {
+    min-height: 65px;
+    gap: 2px;
+  }
+  body.nx #commandCenter .commandMetrics > .trMetric:nth-child(-n+2) strong {
+    font-size: 22px;
+    line-height: 1.05;
+  }
+  body.nx #commandCenter .commandMetrics > .trMetric:nth-child(n+3) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px;
+    min-height: 40px;
+    padding: 6px 9px;
+  }
+  body.nx #commandCenter .commandMetrics > .trMetric:nth-child(n+3) strong {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 20px;
+    line-height: 1.1;
+  }
+  body.nx #commandCenter .commandMetrics .trMetricLabel {
+    gap: 5px;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  body.nx #commandCenter .commandMetrics .trMetricLabel .trInlineIcon {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+  }
+  body.nx #commandCenter .commandMetrics strong small { font-size: 11px; }
+  body.nx #commandCenter .commandMetrics progress { height: 4px; }
+
+  /* All scope chips and all 3 selects now use the full available width. */
+  body.nx #commandCenter .commandFilters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    margin: 10px 0 12px;
+  }
+  body.nx #commandCenter .commandTabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    min-width: 0;
+  }
+  body.nx #commandCenter .commandTabs button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 3px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  body.nx #commandCenter .commandTabs .trInlineIcon {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+  }
+  body.nx #commandCenter .commandSelects {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+  body.nx #commandCenter .commandSelects select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 42px;
+    padding: 6px 5px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+  }
+
+  /* Task actions stay touch-sized, but notes don't consume a whole empty row. */
+  body.nx #commandCenter .commandGroup { margin-top: 11px; }
+  body.nx #commandCenter .commandGroup > h2 {
+    gap: 6px;
+    margin-bottom: 5px;
+    padding: 3px 0 5px;
+    font-size: 14px;
+  }
+  body.nx #commandCenter .commandGroup > h2 > .trGroupIcon {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+  }
+  body.nx #commandCenter .commandGrid { gap: 6px; }
+  body.nx #commandCenter .commandCard {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 3px 5px;
+    min-width: 0;
+    padding: 7px 8px;
+  }
+  body.nx #commandCenter .commandCardMain {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 5px;
+    min-width: 0;
+    align-items: center;
+  }
+  body.nx #commandCenter .commandTaskIdentity > strong {
+    font-size: 14px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  body.nx #commandCenter .trTaskMetaRow {
+    gap: 3px 4px;
+    margin-top: 3px;
+  }
+  body.nx #commandCenter .trTaskMeta {
+    min-height: 19px;
+    padding: 1px 5px;
+    font-size: 10px;
+  }
+  body.nx #commandCenter .commandCardActions {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  body.nx #commandCenter .commandCardActions :is(a,button) {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 5px 7px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  body.nx #commandCenter .commandDetails {
+    grid-column: 1 / -1;
+    margin-top: 1px;
+    padding: 0 2px;
+  }
+  body.nx #commandCenter .commandDetails > summary {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 3px 2px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  body.nx #commandCenter .commandDetails[open] { padding-bottom: 6px; }
+  body.nx #commandCenter .commandDetails > p { margin: 5px 2px; line-height: 1.45; }
+
+  /* Stable five-item bottom rail; preserve safe-area inset and 44px targets. */
+  body.nx #viewDock {
+    gap: 4px;
+    padding-top: 4px;
+    padding-bottom: max(5px, env(safe-area-inset-bottom));
+  }
+  body.nx #viewDock .viewDockBtn {
+    grid-template-rows: 26px 17px;
+    row-gap: 2px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 4px 1px;
+  }
+  body.nx #viewDock .viewDockBtn .dockGlyph {
+    width: 28px;
+    height: 26px;
+  }
+  body.nx #viewDock .viewDockBtn b,
+  body.nx #viewDock .viewDockBtn .dockMobileLabel {
+    line-height: 17px;
+  }
+}
+
+@media (max-width: 359px) {
+  body.nx .inertiaHeader { gap: 4px; padding-inline: 7px; }
+  body.nx .inertiaHeroBrand { gap: 4px; }
+  body.nx .inertiaHeroMark { flex-basis: 27px; width: 27px; }
+  body.nx .inertiaHeader .inertiaHeroTitle { font-size: 16px; }
+  body.nx .inertiaToolbar { gap: 3px; }
+  body.nx .inertiaToolbar > .controlCenterBtn { min-width: 57px; padding-inline: 6px; }
+  body.nx .inertiaToolbar > .headerLockBtn { flex-basis: 37px; width: 37px; }
+  body.nx #commandCenter .commandTabs button { gap: 3px; padding-inline: 2px; font-size: 11px; }
+  body.nx #commandCenter .commandSelects { gap: 4px; }
+  body.nx #commandCenter .commandSelects select { font-size: 11px; padding-inline: 4px; }
+  body.nx #commandCenter .commandMetrics .trMetricLabel { font-size: 10px; }
+  body.nx #commandCenter .commandMetrics > .trMetric { padding-inline: 6px; }
+  body.nx #commandCenter .commandCardActions :is(a,button) { gap: 2px; padding-inline: 5px; }
+}
