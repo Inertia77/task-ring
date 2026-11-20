@@ -457,3 +457,38 @@ body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:21px;height:21px;}
   body.nx .refBoxHeader .refSummaryIcon {flex-basis:30px;width:30px;height:30px;min-width:30px;}
   body.nx .refBoxHeader .refSummaryIcon .trUiIcon {width:18px;height:18px;}
 }
+
+/* Game command title and description are distinct grid rows.
+   The icon title was inline-flex and the em description was inline, causing
+   the desktop hero copy to run together and collide with the right controls. */
+@media (min-width: 901px) {
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopTitle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: start;
+  gap: 5px;
+  min-width: 0;
+}
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopTitle > strong.trTitleWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  line-height: 1.25;
+}
+body.nx .gameQuestV6 .gqV6Top .gameQuestTopTitle > em {
+  display: block;
+  margin: 0;
+  max-width: 100%;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
+  min-width: 0;
+}
+}
