@@ -266,6 +266,46 @@
     if(sync)syncConfiguration(saved);
     return saved;
   }
+  // Workbench sees the cloud projection; the encrypted Gist keeps only its legacy
+  // routine snapshot for backward compatibility. Normal JSON import never writes the catalog.
+  function workbenchConfig(){
+    const raw=config(),cloud=window.TaskRingGameOpsCloud;
+    return {...raw,gameQuest:cloud?.routineView?.(raw.gameQuest)||raw.gameQuest};
+  }
+  function saveWorkbenchConfig(candidate,expectedFingerprint){
+    const before=workbenchConfig(),raw=config(),cloud=window.TaskRingGameOpsCloud;
+    if(expectedFingerprint&&expectedFingerprint!==fingerprint(before))throw Error("配置在编辑期间发生变化，请重新打开编辑台。");
+    const active=cloud?.routineState?.().active;
+    if(!active){
+      // Migrated accounts must not silently save edits to an obsolete JSON while the
+      // first authenticated catalog read is in progress or failed.
+      if(cloud?.routineState?.().authenticated&&cloud.routineChanges(raw.gameQuest,candidate.gameQuest).length)
+        throw Error("游戏云端任务尚未同步，请刷新后再保存。");
+      return saveConfiguration(candidate,"统一编辑工作台：保存前备份",fingerprint(raw));
+    }
+    C.validateConfig(candidate);
+    const guard=fingerprint(raw);
+    const latest=loadLocalTaskConfig();
+    if(latest&&fingerprint(latest)!==guard)throw Error("另一标签页已修改配置，请刷新后再应用。");
+    const changes=cloud.routineChanges(before.gameQuest,candidate.gameQuest);
+    // Keep explicit game presentation edits, but do not copy cloud task definitions
+    // or catalog revisions into local config or Gist.
+    const rawGames=raw.gameQuest?.games||[],beforeGames=new Map((before.gameQuest?.games||[]).map(g=>[g.id,g]));
+    const originalIds=new Set(rawGames.map(g=>g.id));
+    const games=(candidate.gameQuest?.games||[]).filter(g=>originalIds.has(g.id)||JSON.stringify(g)!==JSON.stringify(beforeGames.get(g.id)));
+    const localGameQuest={...raw.gameQuest,games};
+    const next={...candidate,gameQuest:localGameQuest};
+    const localChanged=fingerprint(next)!==guard;
+    if(!changes.length)return localChanged?saveConfiguration(next,"统一编辑工作台：保存前备份",guard):raw;
+    return (async()=>{
+      await cloud.saveRoutines(before.gameQuest,candidate.gameQuest);
+      if(localChanged){
+        try{return saveConfiguration(next,"统一编辑工作台：保存前备份",guard);}
+        catch(e){throw Error("游戏日常/周常已写入 Supabase；其他配置未保存："+e.message);}
+      }
+      return raw;
+    })();
+  }
   function syncConfiguration(saved){
     if(!ghToken()||!navigator.onLine)return;
     setGhStatus("GitHub：保存配置中","sync");
@@ -564,6 +604,6 @@
     if(event.key===TASK_CONFIG_LOCAL_KEY||event.key?.startsWith(GH_PREFIX)||event.key===window.TaskRingIntegrity.stateMetaKey)renderAll();
   });
 
-  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(config()),getWorkbenchConfig:()=>JSON.parse(JSON.stringify(config())),saveWorkbenchConfig:(candidate,expectedFingerprint)=>saveConfiguration(candidate,"统一编辑工作台：保存前备份",expectedFingerprint),openWorkbenchJson:()=>jsonManager()};
+  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(config()),getWorkbenchConfig:()=>JSON.parse(JSON.stringify(workbenchConfig())),saveWorkbenchConfig,openWorkbenchJson:()=>jsonManager()};
   render();
 })();
