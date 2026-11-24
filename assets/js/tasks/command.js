@@ -62,7 +62,7 @@
     const meta=[
       [names[d.module],"module"],
       [category,"category"],
-      [d.tier?({1:"S",2:"A",3:"B"})[d.tier]+"级":"","tier"],
+      [d.tier?({1:"S",2:"A",3:"B",4:"D",5:"F"})[d.tier]+"级":"","tier"],
       [d.periodLabel,"period"],
       [when,row.overdue?"alert":"deadline"],
       [condition,"optional"]

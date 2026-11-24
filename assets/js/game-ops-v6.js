@@ -4,8 +4,8 @@
   const VERSION=6;
   const PLAY=window.TaskRingGamePlayPolicy;
   function tierOf(game){return PLAY?.get(game).tier??null;}
-  function tierLabel(t){return ({1:'核心玩',2:'余力游玩',3:'自由游玩'})[t]||'未分级';}
-  function tierCode(t){return ({1:'S',2:'A',3:'B'})[t]||'';}
+  function tierLabel(t){return ({1:'核心玩',2:'余力游玩',3:'自由游玩',4:'待公测',5:'封存'})[t]||'未分级';}
+  function tierCode(t){return ({1:'S',2:'A',3:'B',4:'D',5:'F'})[t]||'';}
   function focusOnStory(game){return PLAY?.get(game).storyFocus===true;}
   function tierRank(game){return tierOf(game)??2;}
 
@@ -14,9 +14,10 @@
   const VIEW_ORDER=["daily","weekly","hub"];
   // UI scope only. Task identity, completion keys and compulsory accounting stay unchanged.
   let activeScope="core";
-  const scopeScroll={core:{board:0,lanes:{}},reserve:{board:0,lanes:{}},interest:{board:0,lanes:{}}};
+  const scopeScroll={core:{board:0,lanes:{}},reserve:{board:0,lanes:{}},interest:{board:0,lanes:{}},preview:{board:0,lanes:{}}};
   const isReserve=()=>activeScope==="reserve";
-  const isInterest=()=>activeScope==="interest";
+  const isPreview=()=>activeScope==="preview";
+  const isInterest=()=>activeScope==="interest"||isPreview();
   const scopeKey=key=>activeScope==="core"?key:key+"_"+activeScope;
   const BOARD_META={
     daily:{label:"日常",short:"DAILY",sub:"必做先清 · 可选随时做，跳过不影响今日完成率。"},
@@ -295,7 +296,7 @@
     return {game:g,tasks:tasks,done:done,total:tasks.length,cardDone:tasks.length>0&&done>=tasks.length};
   }
   function entriesFor(board,cfg){
-    return sortedGames(cfg||gameQuestConfig).filter(g=>tierOf(g)!==3).map(function(g){return entryFor(board,g,cfg||gameQuestConfig)});
+    return sortedGames(cfg||gameQuestConfig).filter(g=>tierOf(g)===null||tierOf(g)<=2).map(function(g){return entryFor(board,g,cfg||gameQuestConfig)});
   }
   function viewEntriesFor(board,cfg){
     return entriesFor(board,cfg).filter(e=>isReserve()?tierOf(e.game)===2:tierOf(e.game)!==2);
@@ -374,13 +375,14 @@
     renderGameQuestPanel();
   }
   function setScope(scope){
-    if(!["core","reserve","interest"].includes(scope)||activeScope===scope)return;
+    if(!["core","reserve","interest","preview"].includes(scope)||activeScope===scope)return;
     activeScope=scope;
     window.TaskRingGameOpsCloud?.setScope?.(scope);
     renderGameQuestPanel();
   }
   window.TaskRingGameOpsV6.showTask=function(board,game,task,tier,lane){
-    setScope(tier===3?"interest":tier===2?"reserve":"core");
+    if(tier===5)return;
+    setScope(tier===4?"preview":tier===3?"interest":tier===2?"reserve":"core");
     setCurrentBoard(board);
     if(lane&&board!=="hub"){
       setCurrentLane(board,lane);
@@ -498,8 +500,10 @@
   function scopeNavigation(){
     const s=scopeInfo();
     const b=window.TaskRingGameOpsCloud?.summary?.("interest",false);
+    const d=window.TaskRingGameOpsCloud?.summary?.("preview",false);
+    const dText=d?.ready?(d.active?d.active+" 项公测前活动":"等待上线"):"情报待同步";
     const bText=b?.ready?(b.active?b.active+" 项活动"+(b.due?" · "+b.due+" 项临期":""):"暂无限时活动"):"限时待同步";
-    return '<nav class="gqScopeNav" aria-label="游戏作战区域"><button type="button" class="gqScopeBtn core '+(activeScope==="core"?"active":"")+'" data-gqv6-scope="core" aria-pressed="'+(activeScope==='core')+'"><span class="gqScopeTitle">主线作战 <small>S级</small></span><span class="gqScopeMeta" data-gq-scope-core>'+(s.gate.total?s.gate.total+" 项待处理":"主线待办已清")+'</span></button><button type="button" class="gqScopeBtn reserve '+(isReserve()?"active":"")+(s.clear?" ready":"")+(s.due?" urgent":"")+'" data-gqv6-scope="reserve" aria-pressed="'+isReserve()+'"><span class="gqScopeTitle">余力作战 <small>A级</small><span class="gqScopeArrow" aria-hidden="true">→</span></span><span class="gqScopeMeta" data-gq-scope-reserve>'+esc(s.reserveText)+'</span></button><button type="button" class="gqScopeBtn interest '+(isInterest()?"active":"")+'" data-gqv6-scope="interest" aria-pressed="'+isInterest()+'"><span class="gqScopeTitle">自由游玩 <small>B级</small></span><span class="gqScopeMeta" data-gq-scope-interest>'+esc(bText)+'</span></button><p class="gqScopeHint" data-gq-scope-hint>'+esc(isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint)+'</p></nav>';
+    return '<nav class="gqScopeNav" aria-label="游戏作战区域"><button type="button" class="gqScopeBtn core '+(activeScope==="core"?"active":"")+'" data-gqv6-scope="core" aria-pressed="'+(activeScope==='core')+'"><span class="gqScopeTitle">主线作战 <small>S级</small></span><span class="gqScopeMeta" data-gq-scope-core>'+(s.gate.total?s.gate.total+" 项待处理":"主线待办已清")+'</span></button><button type="button" class="gqScopeBtn reserve '+(isReserve()?"active":"")+(s.clear?" ready":"")+(s.due?" urgent":"")+'" data-gqv6-scope="reserve" aria-pressed="'+isReserve()+'"><span class="gqScopeTitle">余力作战 <small>A级</small><span class="gqScopeArrow" aria-hidden="true">→</span></span><span class="gqScopeMeta" data-gq-scope-reserve>'+esc(s.reserveText)+'</span></button><button type="button" class="gqScopeBtn interest '+(activeScope==="interest"?"active":"")+'" data-gqv6-scope="interest" aria-pressed="'+(activeScope==="interest")+'"><span class="gqScopeTitle">自由游玩 <small>B级</small></span><span class="gqScopeMeta" data-gq-scope-interest>'+esc(bText)+'</span></button><button type="button" class="gqScopeBtn preview '+(isPreview()?"active":"")+'" data-gqv6-scope="preview" aria-pressed="'+isPreview()+'"><span class="gqScopeTitle">待公测 <small>D级</small></span><span class="gqScopeMeta" data-gq-scope-preview>'+esc(dText)+'</span></button><p class="gqScopeHint" data-gq-scope-hint>'+esc(isPreview()?"追踪测试、公测与预约活动 · 不管理日常周常":isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint)+'</p></nav>';
   }
   // Cloud refresh changes the reminder in place instead of replacing the active board.
   window.TaskRingGameOpsV6.refreshScopeNavigation=function(){
@@ -508,8 +512,9 @@
     nav.querySelector("[data-gq-scope-core]").textContent=s.gate.total?s.gate.total+" 项待处理":"主线待办已清";
     nav.querySelector("[data-gq-scope-reserve]").textContent=s.reserveText;
     const b=window.TaskRingGameOpsCloud?.summary?.("interest",false);
+    const d=window.TaskRingGameOpsCloud?.summary?.("preview",false);const dMeta=nav.querySelector("[data-gq-scope-preview]");if(dMeta)dMeta.textContent=d?.ready?(d.active?d.active+" 项公测前活动":"等待上线"):"情报待同步";
     const bMeta=nav.querySelector("[data-gq-scope-interest]");if(bMeta)bMeta.textContent=b?.ready?(b.active?b.active+" 项活动"+(b.due?" · "+b.due+" 项临期":""):"暂无限时活动"):"限时待同步";
-    nav.querySelector("[data-gq-scope-hint]").textContent=isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint;
+    nav.querySelector("[data-gq-scope-hint]").textContent=isPreview()?"追踪测试、公测与预约活动 · 不管理日常周常":isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint;
     button.classList.toggle("ready",s.clear);button.classList.toggle("urgent",Boolean(s.due));
   };
   function cycleVersionHub(){
@@ -546,8 +551,8 @@
     // The policy explanation is optional context, not a blocking action or a task lock.
     // Keep the full rule one tap away instead of pushing all game tasks below the fold.
     const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'S级 待处理 '+gate.total+' 项':'S级 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 S级：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。A级 任务仍可随时勾选、撤销。':'A级 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
-    const extras=(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>g.tier===(isInterest()?3:isReserve()?2:1));
-    const untracked=extras.length?'<aside class="gqV6Untracked"><strong>游戏储备 · 无常规任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">'+tierCode(g.tier)+'级 '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
+    const extras=isInterest()?(PLAY?.allGames()||[]).filter(g=>g.tier===(isPreview()?4:3)).map(g=>({...g,name:g.gameName||g.name})):(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>g.tier===(isReserve()?2:1));
+    const untracked=extras.length?'<aside class="gqV6Untracked"><strong>游戏清单 · 无常规任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">'+tierCode(g.tier)+'级 '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+(isReserve()?'reserve-'+board:board)+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+ (isReserve()?'余力任务 · 不影响主线完成度':meta.sub)+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+(isReserve()?' gqReserveScope':'')+'">'+top+scopeNavigation()+boardTabs(board)+(isReserve()||isInterest()?'':gateNote)+body+untracked+'</div>';
     window.TaskRingGameOpsCloud?.restoreFilterScroll?.();
@@ -619,11 +624,11 @@
     const cfg=normalizeGameQuestConfig(gameQuestDraftConfig||gameQuestConfig||defaultGameQuestConfig);
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
-    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>S 核心 · A 余力 · B 自由</b><em>分级及剧情标记优先读取个人 Supabase 策略；S 级延续原 T1 任务规则，A 级不计入必做，B 级不管理日常周常。</em></div>';
+    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>S 核心 · A 余力 · B 自由 · D 待公测 · F 封存</b><em>分级及剧情标记优先读取个人 Supabase 策略；S 级延续原 T1 任务规则，A 级不计入必做，B/D 级不管理日常周常，F 级仅保留档案。</em></div>';
     const cloudHint='<div class="gqV6PriorityRule"><span>GAME FLOW</span><em>日常：必做 / 可选。周常：速攻 / 中速 / 等待 / 可选。可选不计入完成率；限时・周期仍由独立板块管理。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];
-      return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).filter(g=>tierOf(g)!==3).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
+      return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).filter(g=>tierOf(g)===null||tierOf(g)<=2).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
     }).join("");
     list.innerHTML=order+cloudHint+sections;
     if(typeof syncEditorSectionToggle==="function")syncEditorSectionToggle("game");

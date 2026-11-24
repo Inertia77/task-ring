@@ -8,19 +8,19 @@
   let manualDraft={},recentDone=[],recentRequest=0,authGeneration=0;
   // Display scopes share the same authenticated task source and mutation path.
   let scope='core';
-  const scopeFilters={core:'',reserve:'',interest:''};
+  const scopeFilters={core:'',reserve:'',interest:'',preview:''};
   function tierForTask(code){
     const policy=P?.forCode(code);
     const configured=typeof gameQuestConfig!=='undefined'?(gameQuestConfig?.games||[]).find(g=>String(g.id||'').toLowerCase()===policy?.key):null;
     return policy?.tier??P?.get(configured)?.tier??null;
   }
-  function inScope(t,which=scope){const tier=tierForTask(t.game);return which==='interest'?tier===3:which==='reserve'?tier===2:tier!==2&&tier!==3;}
+  function inScope(t,which=scope){const tier=tierForTask(t.game);return which==='preview'?tier===4:which==='interest'?tier===3:which==='reserve'?tier===2:tier===1||tier===null;}
   function gameNames(){return {...C.games,...Object.fromEntries((P?.allGames()||[]).map(g=>[g.code,g.name||g.code]))};}
   function scopeGames(which=scope){return Object.entries(gameNames()).filter(([game])=>inScope({game},which));}
   function effectiveFilter(which=scope){const selected=which===scope?filter:scopeFilters[which];return scopeGames(which).some(([game])=>game===selected)?selected:'';}
   function scopedRows(which=scope,respectFilter=true){const selected=respectFilter?effectiveFilter(which):'';return rows.filter(t=>inScope(t,which)&&(!selected||t.game===selected));}
   function setScope(next){
-    if(!['core','reserve','interest'].includes(next)||next===scope)return;
+    if(!['core','reserve','interest','preview'].includes(next)||next===scope)return;
     scopeFilters[scope]=filter;
     const wasHistory=history;
     scope=next;filter=scopeFilters[next]||'';history=false;page=0;archive=[];hasMore=false;
@@ -42,7 +42,7 @@
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
   }
-  const filterStripLeft={core:0,reserve:0,interest:0};
+  const filterStripLeft={core:0,reserve:0,interest:0,preview:0};
   function rememberFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
     if(strip)filterStripLeft[strip.dataset.opsScope||scope]=strip.scrollLeft;
@@ -85,7 +85,7 @@
     const selected=respectFilter?effectiveFilter(which):'';
     const list=scopedRows(which,respectFilter);
     const result={ready:true,active:0,due:0,upcoming:0,expired:0,unknown:0,
-      scope:selected?(gameNames()[selected]||selected):(which==='interest'?'自由游玩':which==='reserve'?'余力作战':'主线作战')};
+      scope:selected?(gameNames()[selected]||selected):(which==='preview'?'待公测':which==='interest'?'自由游玩':which==='reserve'?'余力作战':'主线作战')};
     for(const t of list){
       const state=C.state(t),days=C.daysUntilEnd(t);
       if(state==='UPCOMING')result.upcoming++;
@@ -113,7 +113,7 @@
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
     const gp=P?.forCode(t.game);
     const tier=tierForTask(t.game);
-    const tierTag=tier?'<span class="opsTag gqOpsTier">'+({1:'S',2:'A',3:'B'})[tier]+'级</span>':'';
+    const tierTag=tier?'<span class="opsTag gqOpsTier">'+({1:'S',2:'A',3:'B',4:'D',5:'F'})[tier]+'级</span>':'';
     const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
     const claimable=!history&&t.gameplay_end_at&&Date.parse(t.gameplay_end_at)<Date.now()&&t.claim_end_at&&Date.parse(t.claim_end_at)>Date.now();
@@ -124,7 +124,7 @@
   }
   function manualForm(){
     const val=k=>esc(manualDraft[k]||'');
-    return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+Object.entries(gameNames()).map(([id,name])=>'<option value="'+id+'"'+selected(manualDraft.game||'ZZZ',id)+'>'+esc(name)+'</option>').join('')+'</select></label><label>任务名<input name="task_name" maxlength="240" value="'+val('task_name')+'" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME"'+selected(manualDraft.task_type,'LIMITED_TIME')+'>限时</option><option value="RECURRING"'+selected(manualDraft.task_type,'RECURRING')+'>周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次" value="'+val('period')+'"></label><label>开始（JST）<input name="open_at" type="datetime-local" value="'+val('open_at')+'"></label><label>截止（JST）<input name="deadline_at" type="datetime-local" value="'+val('deadline_at')+'"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000">'+val('notes')+'</textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';
+    return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+Object.entries(gameNames()).filter(([id])=>tierForTask(id)!==5).map(([id,name])=>'<option value="'+id+'"'+selected(manualDraft.game||'ZZZ',id)+'>'+esc(name)+'</option>').join('')+'</select></label><label>任务名<input name="task_name" maxlength="240" value="'+val('task_name')+'" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME"'+selected(manualDraft.task_type,'LIMITED_TIME')+'>限时</option><option value="RECURRING"'+selected(manualDraft.task_type,'RECURRING')+'>周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次" value="'+val('period')+'"></label><label>开始（JST）<input name="open_at" type="datetime-local" value="'+val('open_at')+'"></label><label>截止（JST）<input name="deadline_at" type="datetime-local" value="'+val('deadline_at')+'"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000">'+val('notes')+'</textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';
   }
   function html(){
     if(!authReady)return '<div class="opsEmpty" role="status">正在恢复登录会话…</div>';
@@ -243,7 +243,7 @@
     const values=Object.fromEntries(new FormData(f));busy=true;error='';f.querySelector('button').disabled=true;
     try{
       if(f.matches('[data-ops-login]')){const {error:e}=await client.auth.signInWithPassword({email:values.email,password:values.password});if(e)throw e;f.reset();}
-      else{if(!navigator.onLine)throw new Error('离线时无法提交任务');const payload=C.manual(values,user.id,crypto.randomUUID());const {data,error:e}=await client.from('game_ops_tasks').insert(payload).select('*').single();if(e)throw e;if(data.task_key!==payload.task_key)throw new Error('服务器回读不一致');manualOpen=false;manualDraft={};rows.push(data);cachePut(PREFIX+user.id+':active',{rows,at:new Date().toISOString()});}
+      else{if(!navigator.onLine)throw new Error('离线时无法提交任务');if(tierForTask(values.game)===5)throw new Error('F级游戏仅保留档案，不创建任务');const payload=C.manual(values,user.id,crypto.randomUUID());const {data,error:e}=await client.from('game_ops_tasks').insert(payload).select('*').single();if(e)throw e;if(data.task_key!==payload.task_key)throw new Error('服务器回读不一致');manualOpen=false;manualDraft={};rows.push(data);cachePut(PREFIX+user.id+':active',{rows,at:new Date().toISOString()});}
     }catch(e){error=e.message||String(e);status='同步失败';}
     finally{busy=false;if(error){f.querySelector('button').disabled=false;let err=f.parentElement.querySelector('.opsError');if(!err){err=document.createElement('p');err.className='opsError';err.setAttribute('role','alert');f.after(err);}err.textContent=error;}else{render();await fetchTasks();}}
   });

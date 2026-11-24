@@ -9,7 +9,7 @@
   // or from an explicitly imported gameQuest config, never from public demo data.
   const OPS_KEYS={ZZZ:"zzz",WUWA:"wuwa",NTE:"nte",HSR:"hsr",ONMYOJI:"onmyoji",ENF:"endfield",WWM:"wwm"};
   let owner="",policyRows=new Map(),opsRows=[];
-  function validTier(value){const n=Number(value);return [1,2,3].includes(n)?n:null;}
+  function validTier(value){const n=Number(value);return [1,2,3,4,5].includes(n)?n:null;}
   function gameKey(game){return String(game?.id||game?.game_key||game?.key||"").trim().toLowerCase();}
   function notify(){
     if(typeof window!=="undefined"&&typeof window.dispatchEvent==="function"){
