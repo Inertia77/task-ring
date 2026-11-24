@@ -495,22 +495,22 @@ body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
 
 
 /* Game scope identity is independent of selection and reserve readiness.
-   S: command blue; A: amber; B: jade; D: violet. */
+   S: gold; A: violet; B: blue; D: jade. */
 body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.core {
-  --scope-bg:#e3eef8;--scope-ink:#214c73;--scope-line:#8eafcf;
-  --scope-accent:#4582b7;--scope-active:#244e73;--scope-lit:#a6d7ff;
-}
-body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.reserve {
   --scope-bg:#fbefd9;--scope-ink:#795018;--scope-line:#d7b36e;
   --scope-accent:#c18a30;--scope-active:#76501e;--scope-lit:#ffe0a0;
 }
-body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.interest {
-  --scope-bg:#e2f2ea;--scope-ink:#225d48;--scope-line:#8cbea7;
-  --scope-accent:#409471;--scope-active:#28664f;--scope-lit:#a6efd0;
-}
-body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.preview {
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.reserve {
   --scope-bg:#eee7f8;--scope-ink:#58407d;--scope-line:#b6a1d5;
   --scope-accent:#8b6cb9;--scope-active:#60468a;--scope-lit:#e2ccff;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.interest {
+  --scope-bg:#e3eef8;--scope-ink:#214c73;--scope-line:#8eafcf;
+  --scope-accent:#4582b7;--scope-active:#244e73;--scope-lit:#a6d7ff;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.preview {
+  --scope-bg:#e2f2ea;--scope-ink:#225d48;--scope-line:#8cbea7;
+  --scope-accent:#409471;--scope-active:#28664f;--scope-lit:#a6efd0;
 }
 body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn:is(.core,.reserve,.interest,.preview) {
   background:var(--scope-bg);color:var(--scope-ink);

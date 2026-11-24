@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261124-tier-colors";
+const CACHE_NAME = "taskring-shell-20261124-rarity-colors";
 const APP_SHELL = [
   "./",
   "./index.html",
