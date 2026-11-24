@@ -54,7 +54,7 @@ test('game policy remains accessible without filling the first phone screen',asy
   await expect(summary).toBeVisible();
   await summary.click();
   await expect(advice).toHaveAttribute('open','');
-  await expect(advice).toContainText('T3');
+  await expect(advice).toContainText('A级');
   await page.evaluate(()=>renderAll(['game']));
   await expect(advice).toHaveAttribute('open','');
   await summary.click();
@@ -128,7 +128,7 @@ for(const width of [320,390,430]){
 
     await advice.locator('summary').click();
     await expect(advice).toHaveAttribute('open','');
-    await expect(advice).toContainText('T3');
+    await expect(advice).toContainText('A级');
     await expect(action).toBeEnabled();
     await expect(page.locator('.gqV6LaneTabs')).toBeVisible();
     await advice.locator('summary').click();
