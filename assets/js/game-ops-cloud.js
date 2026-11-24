@@ -42,6 +42,98 @@
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
   }
+  // The catalog is account-scoped and authoritative once a migrated catalog exists.
+  // Keep the legacy configuration only as a fallback for unmigrated/offline installations.
+  let routineCatalog=null,routineOwner='',routineRequest=0,routineSaving=false,routineError='';
+  const routineBoards=['daily','weekly'];
+  function setRoutineOwner(uid){
+    uid=String(uid||'');
+    if(uid===routineOwner)return;
+    routineOwner=uid;routineRequest++;routineSaving=false;routineError='';
+    const cached=uid?cacheGet(PREFIX+uid+':routines'):null;
+    routineCatalog=cached&&Array.isArray(cached.rows)?cached:null;
+  }
+  function acceptRoutine(data,uid){
+    if(uid!==routineOwner||uid!==user?.id)return;
+    if(data!==null&&(!Array.isArray(data?.rows)||!Number.isSafeInteger(Number(data.revision))))throw Error('Invalid routine catalog');
+    const changed=JSON.stringify(routineCatalog)!==JSON.stringify(data);
+    routineCatalog=data;routineError='';
+    if(data)cachePut(PREFIX+uid+':routines',data);
+    else localStorage.removeItem(PREFIX+uid+':routines');
+    if(changed){window.TaskRingGameOpsV6?.refreshRoutines?.();window.TaskRingCommand?.renderOverview?.();}
+  }
+  async function fetchRoutines(){
+    setRoutineOwner(user?.id);
+    if(!user||!navigator.onLine||routineSaving)return;
+    const uid=user.id,token=++routineRequest;
+    try{
+      const {data,error:e}=await client.rpc('get_game_routine_catalog');
+      if(e)throw e;
+      if(token===routineRequest&&uid===user?.id)acceptRoutine(data,uid);
+    }catch(e){if(token===routineRequest){routineError=e.message||String(e);console.warn('Game routines unavailable; retaining account cache',e);}}
+  }
+  function routineView(config){
+    if(!routineCatalog)return config;
+    const source=config||{},games=(source.games||[]).map(g=>({...g})),byId=new Map(games.map(g=>[g.id,g]));
+    const known=P?.allGames()||[];
+    for(const row of routineCatalog.rows){
+      if(byId.has(row.game_key))continue;
+      const policy=known.find(g=>g.key===row.game_key);
+      const name=policy?.name||row.game_key;
+      const g={id:row.game_key,name,short:name==='蓝色星原：旅谣'?'蓝色星原':name,icon:name.slice(0,1),accent:'violet',enabled:true,priority:policy?.sortOrder??999,playTier:policy?.tier??null,storyFocus:policy?.storyFocus===true};
+      games.push(g);byId.set(g.id,g);
+    }
+    for(const policy of known.filter(g=>[1,2].includes(g.tier))){
+      if(byId.has(policy.key))continue;
+      const name=policy.name;
+      const g={id:policy.key,name,short:name==='蓝色星原：旅谣'?'蓝色星原':name,icon:name.slice(0,1),accent:'violet',enabled:true,priority:policy.sortOrder,playTier:policy.tier,storyFocus:policy.storyFocus};
+      games.push(g);byId.set(g.id,g);
+    }
+    const boards={...source.boards,daily:{},weekly:{}};
+    for(const b of routineBoards)for(const g of games)boards[b][g.id]=[];
+    for(const r of routineCatalog.rows){
+      if(!routineBoards.includes(r.board)||!boards[r.board][r.game_key])continue;
+      boards[r.board][r.game_key].push({id:r.task_key,title:r.title,note:r.note||'',url:r.url||'',enabled:r.enabled!==false,[r.board+'_lane']:r.lane,
+        ...(r.unlock_hint?{unlock_hint:r.unlock_hint}:{}),...(r.active_from?{active_from:r.active_from}:{}),...(r.active_until?{active_until:r.active_until}:{}),
+        ...(r.verification?{verification:r.verification}:{}),...(r.source_url?{source_url:r.source_url}:{})});
+    }
+    return {...source,games,boards,routineRevision:Number(routineCatalog.revision)};
+  }
+  function routineMap(config){
+    const out=new Map();
+    for(const board of routineBoards)for(const [game_key,tasks] of Object.entries(config?.boards?.[board]||{})){
+      (tasks||[]).forEach((t,sort_order)=>{
+        const lane=t[board+'_lane']||(board==='daily'?'must':'steady');
+        const row={game_key,board,task_key:t.id,title:t.title,note:t.note||'',url:t.url||'',enabled:t.enabled!==false,lane,unlock_hint:t.unlock_hint||'',sort_order,active_from:t.active_from||null,active_until:t.active_until||null};
+        const key=JSON.stringify([game_key,board,t.id]);
+        if(out.has(key))throw Error('Duplicate routine task ID');
+        out.set(key,row);
+      });
+    }
+    return out;
+  }
+  function routineChanges(before,after){
+    const a=routineMap(before),b=routineMap(after),changes=[];
+    for(const [key,row] of b)if(JSON.stringify(a.get(key))!==JSON.stringify(row))changes.push({op:'upsert',...row});
+    for(const [key,row] of a)if(!b.has(key))changes.push({op:'archive',game_key:row.game_key,board:row.board,task_key:row.task_key});
+    return changes;
+  }
+  async function saveRoutines(before,after){
+    const changes=routineChanges(before,after);
+    if(!changes.length)return false;
+    if(!routineCatalog||!user||!navigator.onLine||routineSaving)throw Error('请登录游戏云端并联网后保存日常/周常');
+    if(Number(before.routineRevision)!==Number(routineCatalog.revision))throw Error('云端游戏任务已更新，请重新打开编辑台');
+    const uid=user.id;routineSaving=true;routineRequest++;
+    try{
+      const {data,error:e}=await client.rpc('save_game_routine_catalog',{expected_revision:before.routineRevision,changes});
+      if(e)throw e;
+      if(uid!==user?.id||uid!==routineOwner)throw Error('登录账号已变化');
+      if(!data||!Array.isArray(data.rows))throw Error('云端未返回保存确认');
+      acceptRoutine(data,uid);
+      return true;
+    }finally{if(uid===routineOwner)routineSaving=false;}
+  }
+  function routineState(){return {active:!!routineCatalog,authenticated:!!user,error:routineError,revision:routineCatalog?.revision??null};}
   const filterStripLeft={core:0,reserve:0,interest:0,preview:0};
   function rememberFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
@@ -250,18 +342,18 @@
   client.auth.onAuthStateChange((_event,session)=>{
     const next=session?.user||null,changed=next?.id!==user?.id;
     user=next;authReady=true;
-    if(changed){authGeneration++;request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
+    if(changed){setRoutineOwner(user?.id);authGeneration++;request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
-    if(user)setTimeout(()=>{fetchTasks();fetchPolicy();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);
+    if(user)setTimeout(()=>{fetchTasks();fetchPolicy();fetchRoutines();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);
   });
-  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();});
+  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');setRoutineOwner(user?.id);if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();});
   addEventListener('offline',()=>{request++;busy=false;status='离线缓存';error='';render();});
   const overviewActive=()=>typeof activeAppView!=='undefined'&&activeAppView==='overview';
   function refreshOverview(){return Promise.all([fetchTasks(true),fetchRecent()]);}
-  addEventListener('online',()=>{if(overviewActive())refreshOverview();else fetchTasks();fetchPolicy();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(overviewActive())refreshOverview();else fetchTasks();}});
-  setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId){if(overviewActive())refreshOverview();else fetchTasks();}},60000);
+  addEventListener('online',()=>{if(overviewActive())refreshOverview();else fetchTasks();fetchPolicy();fetchRoutines();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(overviewActive())refreshOverview();else fetchTasks();fetchPolicy();fetchRoutines();}});
+  setInterval(()=>{if(!document.hidden&&!manualOpen&&!mutationId){if(overviewActive())refreshOverview();else fetchTasks();fetchPolicy();fetchRoutines();}},60000);
   function commandSnapshot(){
     return {rows:[...rows,...recentDone.filter(freshDone)].map(row=>({row,tier:tierForTask(row.game)})),
       status:authReady?user?status:'未登录':'同步中',error,canWrite:!!user&&navigator.onLine&&!mutationId};
@@ -281,6 +373,6 @@
     if(history)fetchTasks();
     return [...document.querySelectorAll('[data-ops-card]')].find(card=>card.dataset.opsCard===id)||document.getElementById('gameOpsCloud');
   }
-  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy()]),
+  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
     rememberFilterScroll,restoreFilterScroll,commandSnapshot,commandSetDone,refreshOverview,showTask};
 })();
