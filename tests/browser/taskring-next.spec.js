@@ -191,3 +191,34 @@ test('unified editor saves a scheduled task and exports one configuration',async
   await page.getByRole('button',{name:'导出配置',exact:true}).click();
   expect((await download).suggestedFilename()).toMatch(/^taskring-config-.*\.json$/);
 });
+
+for(const width of [390,1440]){
+  test('future-dated reserve game remains visible without inflating completion totals at '+width+'px',async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await boot(page,'game');
+    await page.evaluate(()=>{
+      const cfg=JSON.parse(JSON.stringify(taskConfig));
+      const id='fixture-upcoming-game',start=window.TaskRingTasks.offset(ymd(operationalNow),1);
+      cfg.gameQuest.games.push({id,name:'即将开放测试游戏',short:'测试游戏',icon:'测',accent:'violet',enabled:true,priority:20,playTier:2});
+      cfg.gameQuest.boards.daily[id]=[{id:'future-daily',title:'未来日常',daily_lane:'must',enabled:true,active_from:start}];
+      cfg.gameQuest.boards.weekly[id]=[{id:'future-weekly',title:'未来周常',weekly_lane:'steady',enabled:true,active_from:start}];
+      applyTaskConfig(cfg,true);
+    });
+    await page.locator('[data-gqv6-scope="reserve"]').click();
+    await page.locator('[data-gqv6-board="daily"]').click();
+    const upcoming=page.locator('[data-gq-upcoming-game="fixture-upcoming-game"]');
+    await expect(upcoming).toBeVisible();
+    await expect(upcoming).toContainText('1 项日常');
+    await expect(page.locator('[data-gqv5-task][data-game="fixture-upcoming-game"]')).toHaveCount(0);
+    await page.locator('[data-gqv6-board="weekly"]').click();
+    await expect(upcoming).toContainText('1 项周常');
+    await page.evaluate(()=>{
+      const cfg=JSON.parse(JSON.stringify(taskConfig));
+      cfg.gameQuest.boards.daily['fixture-upcoming-game'][0].active_from=ymd(operationalNow);
+      applyTaskConfig(cfg,true);
+    });
+    await page.locator('[data-gqv6-board="daily"]').click();
+    await expect(upcoming).toHaveCount(0);
+    await expect(page.locator('[data-gqv5-task][data-game="fixture-upcoming-game"][data-task="future-daily"]')).toHaveCount(1);
+  });
+}
