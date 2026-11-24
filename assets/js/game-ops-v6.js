@@ -553,7 +553,7 @@
     const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'S级 待处理 '+gate.total+' 项':'S级 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 S级：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。A级 任务仍可随时勾选、撤销。':'A级 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
     const extras=isInterest()?(PLAY?.allGames()||[]).filter(g=>g.tier===(isPreview()?4:3)).map(g=>({...g,name:g.gameName||g.name})):(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>g.tier===(isReserve()?2:1));
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>游戏清单 · 无常规任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">'+tierCode(g.tier)+'级 '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
-    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+(isReserve()?'reserve-'+board:board)+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+ (isReserve()?'余力任务 · 不影响主线完成度':meta.sub)+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
+    const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>'+(isPreview()?"PRE-RELEASE":"LIVE OPS")+'</span><b>'+(isPreview()?"新游情报 · 预约 / 测试":"限时・周期")+'</b><em>'+(isPreview()?"公测前参与窗口 · 无日常周常":"当前任务与领取窗口")+'</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+(isReserve()?'reserve-'+board:board)+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+ (isReserve()?'余力任务 · 不影响主线完成度':meta.sub)+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+(isReserve()?' gqReserveScope':'')+'">'+top+scopeNavigation()+boardTabs(board)+(isReserve()||isInterest()?'':gateNote)+body+untracked+'</div>';
     window.TaskRingGameOpsCloud?.restoreFilterScroll?.();
     if(policyWasOpen){const note=panel.querySelector(".gqV6GateNotice");if(note)note.open=true;}
@@ -624,7 +624,7 @@
     const cfg=normalizeGameQuestConfig(gameQuestDraftConfig||gameQuestConfig||defaultGameQuestConfig);
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
-    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>S 核心 · A 余力 · B 自由 · D 待公测 · F 封存</b><em>分级及剧情标记优先读取个人 Supabase 策略；S 级延续原 T1 任务规则，A 级不计入必做，B/D 级不管理日常周常，F 级仅保留档案。</em></div>';
+    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>S 核心 · A 余力 · B 自由 · D 待公测 · F 封存</b><em>分级及剧情标记优先读取个人 Supabase 策略；S 级执行核心任务规则，A 级不计入必做，B/D 级不管理日常周常，F 级仅保留档案。</em></div>';
     const cloudHint='<div class="gqV6PriorityRule"><span>GAME FLOW</span><em>日常：必做 / 可选。周常：速攻 / 中速 / 等待 / 可选。可选不计入完成率；限时・周期仍由独立板块管理。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];

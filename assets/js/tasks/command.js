@@ -57,7 +57,7 @@
     rows.set(row.instanceId,row);
     const d=row.definition,key=esc(row.instanceId),when=deadlineText(row)||(!row.done&&row.overdue?"原定日期已过":"");
     const category=d.category&&d.category!==names[d.module]?d.category:"";
-    const condition=row.optional?(d.tier>=2?"有余力":d.note?"见备注":"按需安排"):"";
+    const condition=row.optional?(d.tier===4?"待公测":d.tier>=2?"有余力":d.note?"见备注":"按需安排"):"";
     const details=row.steps?.length||d.note;
     const meta=[
       [names[d.module],"module"],

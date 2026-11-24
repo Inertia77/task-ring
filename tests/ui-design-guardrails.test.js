@@ -38,7 +38,7 @@ test('browser regression suite keeps Chromium and WebKit enabled', () => {
 
 test('game play tiers remain separate from blocked core task accounting', () => {
   const policy = read('assets/js/game-play-policy.js');
-  assert.match(policy, /tier\s*>\s*2\)\s*return false/);
+  assert.match(policy, /tier\s*!==\s*1\)\s*return false/);
   assert.match(policy, /blockedOpsCount/);
 });
 
