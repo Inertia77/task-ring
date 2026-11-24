@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
-test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page})=>{
+test('A级 optional tasks stay interactive when S级 are incomplete',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await boot(page);
   await view(page,'game');
@@ -11,9 +11,9 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
       {game_key:'zzz',game_name:'绝区零',play_tier:1,story_focus:true,sort_order:1},
       {game_key:'nte',game_name:'异环',play_tier:1,story_focus:true,sort_order:2},
       {game_key:'wuwa',game_name:'鸣潮',play_tier:1,story_focus:true,sort_order:3},
-      {game_key:'hsr',game_name:'崩铁',play_tier:2,story_focus:true,sort_order:4},
-      {game_key:'onmyoji',game_name:'阴阳师',play_tier:2,story_focus:false,sort_order:5},
-      {game_key:'endfield',game_name:'终末地',play_tier:3,story_focus:true,sort_order:6}
+      {game_key:'hsr',game_name:'崩铁',play_tier:1,story_focus:true,sort_order:4},
+      {game_key:'onmyoji',game_name:'阴阳师',play_tier:1,story_focus:false,sort_order:5},
+      {game_key:'endfield',game_name:'终末地',play_tier:2,story_focus:true,sort_order:6}
     ],uid);
   });
   await expect(page.locator('.gqV6GateNotice.advisory')).toBeVisible();
@@ -45,7 +45,7 @@ test('T3 optional tasks stay interactive when T1/T2 are incomplete',async({page}
   await expect(t3Weekly).toHaveAttribute('aria-pressed','true');
   await t3Weekly.click();
   await expect(t3Weekly).toHaveAttribute('aria-pressed','false');
-  // Returning to the core scope keeps its own daily board and does not mark T3.
+  // Returning to the core scope keeps its own daily board and does not mark A级.
   await page.locator('[data-gqv6-scope="core"]').click();
   await expect(page.locator('[data-gqv6-board="daily"]')).toHaveClass(/active/);
   await expect(page.locator('[data-gqv5-task][data-game="zzz"]').first()).toHaveAttribute('aria-pressed','false');
@@ -71,7 +71,7 @@ test('desktop keeps both scope entries visible but renders only the selected sco
   await page.evaluate(()=>{
     const P=window.TaskRingGamePlayPolicy,uid='desktop-reserve-fixture';
     P.setOwner(uid);
-    P.setRows([{game_key:'zzz',play_tier:1,sort_order:1},{game_key:'endfield',play_tier:3,sort_order:6}],uid);
+    P.setRows([{game_key:'zzz',play_tier:1,sort_order:1},{game_key:'endfield',play_tier:2,sort_order:6}],uid);
   });
   const reserve=page.locator('[data-gqv6-scope="reserve"]');
   await expect(reserve).toBeVisible();
@@ -89,3 +89,5 @@ test('desktop keeps both scope entries visible but renders only the selected sco
   expect(dims.button).toBeGreaterThanOrEqual(44);
   await page.screenshot({path:'test-results/visual/'+test.info().project.name+'/after/1440-game-reserve.png',fullPage:true});
 });
+
+test('B scope exposes only live operations',async({page})=>{await boot(page);await view(page,'game');await page.evaluate(()=>{const P=window.TaskRingGamePlayPolicy;P.setOwner('b-fixture');P.setRows([{game_key:'zzz',game_name:'绝区零',play_tier:1,sort_order:1},{game_key:'endfield',game_name:'终末地',play_tier:3,sort_order:2}], 'b-fixture')});await page.locator('[data-gqv6-scope="interest"]').click();await expect(page.locator('[data-gqv6-board="daily"]')).toHaveCount(0);await expect(page.locator('[data-gqv6-board="weekly"]')).toHaveCount(0);await expect(page.locator('[data-gqv6-board="hub"]')).toHaveClass(/active/);await expect(page.locator('[data-gqv5-task][data-game="endfield"]')).toHaveCount(0);});

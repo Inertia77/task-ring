@@ -8,18 +8,19 @@
   let manualDraft={},recentDone=[],recentRequest=0,authGeneration=0;
   // Display scopes share the same authenticated task source and mutation path.
   let scope='core';
-  const scopeFilters={core:'',reserve:''};
+  const scopeFilters={core:'',reserve:'',interest:''};
   function tierForTask(code){
     const policy=P?.forCode(code);
     const configured=typeof gameQuestConfig!=='undefined'?(gameQuestConfig?.games||[]).find(g=>String(g.id||'').toLowerCase()===policy?.key):null;
     return policy?.tier??P?.get(configured)?.tier??null;
   }
-  function inScope(t,which=scope){return (tierForTask(t.game)===3)===(which==='reserve');}
-  function scopeGames(which=scope){return Object.entries(C.games).filter(([game])=>inScope({game},which));}
+  function inScope(t,which=scope){const tier=tierForTask(t.game);return which==='interest'?tier===3:which==='reserve'?tier===2:tier!==2&&tier!==3;}
+  function gameNames(){return {...C.games,...Object.fromEntries((P?.allGames()||[]).map(g=>[g.code,g.name||g.code]))};}
+  function scopeGames(which=scope){return Object.entries(gameNames()).filter(([game])=>inScope({game},which));}
   function effectiveFilter(which=scope){const selected=which===scope?filter:scopeFilters[which];return scopeGames(which).some(([game])=>game===selected)?selected:'';}
   function scopedRows(which=scope,respectFilter=true){const selected=respectFilter?effectiveFilter(which):'';return rows.filter(t=>inScope(t,which)&&(!selected||t.game===selected));}
   function setScope(next){
-    if(!['core','reserve'].includes(next)||next===scope)return;
+    if(!['core','reserve','interest'].includes(next)||next===scope)return;
     scopeFilters[scope]=filter;
     const wasHistory=history;
     scope=next;filter=scopeFilters[next]||'';history=false;page=0;archive=[];hasMore=false;
@@ -41,7 +42,7 @@
     const p=cacheGet(PREFIX+user.id+':policy');if(p?.rows)P?.setRows(p.rows,user.id);
     P?.setOpsTasks(rows,user.id);
   }
-  const filterStripLeft={core:0,reserve:0};
+  const filterStripLeft={core:0,reserve:0,interest:0};
   function rememberFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
     if(strip)filterStripLeft[strip.dataset.opsScope||scope]=strip.scrollLeft;
@@ -84,7 +85,7 @@
     const selected=respectFilter?effectiveFilter(which):'';
     const list=scopedRows(which,respectFilter);
     const result={ready:true,active:0,due:0,upcoming:0,expired:0,unknown:0,
-      scope:selected?(C.games[selected]||selected):(which==='reserve'?'余力作战':'主线作战')};
+      scope:selected?(gameNames()[selected]||selected):(which==='interest'?'自由游玩':which==='reserve'?'余力作战':'主线作战')};
     for(const t of list){
       const state=C.state(t),days=C.daysUntilEnd(t);
       if(state==='UPCOMING')result.upcoming++;
@@ -112,24 +113,24 @@
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
     const gp=P?.forCode(t.game);
     const tier=tierForTask(t.game);
-    const tierTag=tier?'<span class="opsTag gqOpsTier">T'+tier+'</span>':'';
+    const tierTag=tier?'<span class="opsTag gqOpsTier">'+({1:'S',2:'A',3:'B'})[tier]+'级+'</span>':'';
     const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
     const claimable=!history&&t.gameplay_end_at&&Date.parse(t.gameplay_end_at)<Date.now()&&t.claim_end_at&&Date.parse(t.claim_end_at)>Date.now();
     const urgencyTag=urgency==='red'?'<span class="opsTag opsUrgency red">3天内</span>':urgency==='yellow'?'<span class="opsTag opsUrgency yellow">7天内</span>':'';
     const verify=t.verification!=='CONFIRMED'?'<span class="opsTag uncertain">'+esc(labels[t.verification])+'</span>':'';
     const source=/^https?:\/\//i.test(t.source_url||'')?'<a href="'+esc(t.source_url)+'" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>':'来源尚未确认';
-    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(C.games[t.game])+'</span>'+tierTag+storyTag+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
+    return '<article class="opsCard '+(urgency==='red'?'urgency-red':urgency==='yellow'?'urgency-yellow':'')+'" data-ops-card="'+esc(t.id)+'"><div class="opsCardHead"><span class="opsGame">'+esc(gameNames()[t.game]||t.game)+'</span>'+tierTag+storyTag+urgencyTag+verify+(t.priority==='HIGH'?'<span class="opsTag">优先</span>':'')+'</div><h3>'+esc(t.task_name)+'</h3><div class="opsMeta"><b>'+esc(history?(t.archive_reason==='EXPIRED'?'已过期':labels[t.archive_reason]):labels[s])+'</b><span>'+ (t.task_type==='RECURRING'?'周期':'限时')+' · '+(t.server==='GLOBAL'?'国际服':'国服')+(t.period?' · '+esc(t.period):'')+'</span></div><p class="opsDeadline">'+(history?'归档 '+date(t.archived_at):'截止 '+precise(end,t.deadline_date))+'</p>'+(t.open_at||t.open_date?'<p class="opsWindow">开始 '+precise(t.open_at,t.open_date)+'</p>':'')+(!history?'<p class="opsRemaining">'+esc(remainingLabel(t))+(claimable?' · 游玩已截止，仍可领取':'')+'</p>':'')+'<details class="opsDetails"><summary>详情 / 来源</summary><div>'+source+'<p>核验：'+esc(labels[t.verification])+' · 来源：'+esc(t.source_level||'未标注')+'</p>'+(t.gameplay_end_at?'<p>游玩截止 '+date(t.gameplay_end_at)+'</p>':'')+(t.claim_end_at?'<p>领取截止 '+date(t.claim_end_at)+'</p>':'')+'<p class="opsNotes">'+esc(t.notes||'暂无备注')+'</p><small>最近核验 '+precise(t.last_verified_at,t.last_verified_date)+'</small><label class="opsPriority">优先级 <select aria-label="'+esc(t.task_name)+'优先级" data-ops-priority="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>'+['HIGH','NORMAL','LOW'].map(v=>'<option value="'+v+'"'+selected(t.priority,v)+'>'+({HIGH:'High',NORMAL:'Normal',LOW:'Low'}[v])+'</option>').join('')+'</select></label></div></details>'+(!history?'<div class="opsActions"><button type="button" data-ops-action="DONE" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>✓ 完成</button><button type="button" data-ops-action="SKIP" data-id="'+esc(t.id)+'" '+(disabled?'disabled':'')+'>不做</button>'+(pending?'<small>同步中</small>':!navigator.onLine?'<small>联网后可操作</small>':'')+'</div>':'')+'</article>';
   }
   function manualForm(){
     const val=k=>esc(manualDraft[k]||'');
-    return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+Object.entries(C.games).map(([id,name])=>'<option value="'+id+'"'+selected(manualDraft.game||'ZZZ',id)+'>'+name+'</option>').join('')+'</select></label><label>任务名<input name="task_name" maxlength="240" value="'+val('task_name')+'" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME"'+selected(manualDraft.task_type,'LIMITED_TIME')+'>限时</option><option value="RECURRING"'+selected(manualDraft.task_type,'RECURRING')+'>周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次" value="'+val('period')+'"></label><label>开始（JST）<input name="open_at" type="datetime-local" value="'+val('open_at')+'"></label><label>截止（JST）<input name="deadline_at" type="datetime-local" value="'+val('deadline_at')+'"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000">'+val('notes')+'</textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';
+    return '<form class="opsForm" data-ops-manual><h3>补一条任务</h3><label>游戏<select name="game">'+Object.entries(gameNames()).map(([id,name])=>'<option value="'+id+'"'+selected(manualDraft.game||'ZZZ',id)+'>'+esc(name)+'</option>').join('')+'</select></label><label>任务名<input name="task_name" maxlength="240" value="'+val('task_name')+'" required></label><label>类型<select name="task_type"><option value="LIMITED_TIME"'+selected(manualDraft.task_type,'LIMITED_TIME')+'>限时</option><option value="RECURRING"'+selected(manualDraft.task_type,'RECURRING')+'>周期</option></select></label><label>Period<input name="period" maxlength="160" placeholder="版本 / 期次" value="'+val('period')+'"></label><label>开始（JST）<input name="open_at" type="datetime-local" value="'+val('open_at')+'"></label><label>截止（JST）<input name="deadline_at" type="datetime-local" value="'+val('deadline_at')+'"></label><label class="opsFormWide">备注<textarea name="notes" rows="2" maxlength="10000">'+val('notes')+'</textarea></label><div class="opsFormWide opsActions"><button '+(busy?'disabled':'')+'>保存任务</button><button type="button" data-ops-toggle-manual>取消</button></div><small class="opsFormWide">手动补充默认标记为待核验，可由每日维护补充官方来源。</small></form>';
   }
   function html(){
     if(!authReady)return '<div class="opsEmpty" role="status">正在恢复登录会话…</div>';
     if(!user)return '<div class="opsLogin"><div><span class="opsEyebrow">LIMITED / RECURRING</span><h3>登录后查看限时・周期任务</h3><p>使用已有 Supabase 账号。登录会话会保存在这台设备。</p></div><form data-ops-login><label>邮箱<input name="email" type="email" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="current-password" required></label><button '+(busy?'disabled':'')+'>登录</button></form>'+(error?'<p class="opsError" role="alert">'+esc(error)+'</p>':'')+'</div>';
     const selectedFilter=effectiveFilter();
-    const chips='<nav class="opsFilters" data-ops-scope="'+scope+'" aria-label="限时周期游戏筛选">'+[['','本区全部'],...scopeGames()].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(selectedFilter===id)+'" class="'+(selectedFilter===id?'active':'')+'">'+name+'</button>').join('')+'</nav>';
+    const chips='<nav class="opsFilters" data-ops-scope="'+scope+'" aria-label="限时周期游戏筛选">'+[['','本区全部'],...scopeGames()].map(([id,name])=>'<button type="button" data-ops-filter="'+id+'" aria-pressed="'+(selectedFilter===id)+'" class="'+(selectedFilter===id?'active':'')+'">'+esc(name)+'</button>').join('')+'</nav>';
     let content='';
     if(history){content='<div class="opsArchiveFilter"><label>归档原因 <select data-ops-reason><option value="">全部</option>'+['DONE','SKIP','EXPIRED','REPLACED','INVALID'].map(v=>'<option value="'+v+'"'+selected(reason,v)+'>'+({DONE:'Done · 完成',SKIP:'Skip · 不做',EXPIRED:'Expired · 过期',REPLACED:'Replaced · 替代',INVALID:'Invalid · 无效'}[v])+'</option>').join('')+'</select></label><span>最近归档 · 第 '+(page+1)+' 页</span></div><div class="opsGrid">'+archive.filter(t=>inScope(t)&&(!selectedFilter||t.game===selectedFilter)).map(card).join('')+'</div><div class="opsPagination"><button type="button" data-ops-page="-1" '+(page===0||busy?'disabled':'')+'>上一页</button><button type="button" data-ops-page="1" '+(!hasMore||busy?'disabled':'')+'>下一页</button></div>';}
     else {

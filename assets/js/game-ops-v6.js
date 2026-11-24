@@ -4,7 +4,8 @@
   const VERSION=6;
   const PLAY=window.TaskRingGamePlayPolicy;
   function tierOf(game){return PLAY?.get(game).tier??null;}
-  function tierLabel(t){return ({1:'核心玩',2:'次要玩',3:'有余力再玩'})[t]||'未分级';}
+  function tierLabel(t){return ({1:'核心玩',2:'余力游玩',3:'自由游玩'})[t]||'未分级';}
+  function tierCode(t){return ({1:'S',2:'A',3:'B'})[t]||'';}
   function focusOnStory(game){return PLAY?.get(game).storyFocus===true;}
   function tierRank(game){return tierOf(game)??2;}
 
@@ -13,9 +14,10 @@
   const VIEW_ORDER=["daily","weekly","hub"];
   // UI scope only. Task identity, completion keys and compulsory accounting stay unchanged.
   let activeScope="core";
-  const scopeScroll={core:{board:0,lanes:{}},reserve:{board:0,lanes:{}}};
+  const scopeScroll={core:{board:0,lanes:{}},reserve:{board:0,lanes:{}},interest:{board:0,lanes:{}}};
   const isReserve=()=>activeScope==="reserve";
-  const scopeKey=key=>isReserve()?key+"_reserve":key;
+  const isInterest=()=>activeScope==="interest";
+  const scopeKey=key=>activeScope==="core"?key:key+"_"+activeScope;
   const BOARD_META={
     daily:{label:"日常",short:"DAILY",sub:"必做先清 · 可选随时做，跳过不影响今日完成率。"},
     weekly:{label:"周常",short:"WEEKLY",sub:"速攻 / 中速 / 等待 / 可选 · 跳过可选不影响周完成率。"},
@@ -293,13 +295,13 @@
     return {game:g,tasks:tasks,done:done,total:tasks.length,cardDone:tasks.length>0&&done>=tasks.length};
   }
   function entriesFor(board,cfg){
-    return sortedGames(cfg||gameQuestConfig).map(function(g){return entryFor(board,g,cfg||gameQuestConfig)});
+    return sortedGames(cfg||gameQuestConfig).filter(g=>tierOf(g)!==3).map(function(g){return entryFor(board,g,cfg||gameQuestConfig)});
   }
   function viewEntriesFor(board,cfg){
-    return entriesFor(board,cfg).filter(e=>(tierOf(e.game)===3)===isReserve());
+    return entriesFor(board,cfg).filter(e=>isReserve()?tierOf(e.game)===2:tierOf(e.game)!==2);
   }
   function reserveStats(board){
-    const entries=entriesFor(board).filter(e=>tierOf(e.game)===3);
+    const entries=entriesFor(board).filter(e=>tierOf(e.game)===2);
     const done=entries.reduce((n,e)=>n+e.done,0),total=entries.reduce((n,e)=>n+e.total,0);
     return {done,total,pct:total?Math.round(done/total*100):0};
   }
@@ -311,15 +313,15 @@
   function boardStats(board,cfg){
     const entries=entriesFor(board,cfg);
     let done=0,total=0,allDone=0,allTotal=0,cardsDone=0;
-    const priorityEntries=entries.filter(function(entry){return tierOf(entry.game)!==3});
+    const priorityEntries=entries.filter(function(entry){return tierOf(entry.game)!==2});
     priorityEntries.forEach(function(entry){
       const required=entry.tasks.filter(function(t){return !isOptionalTask(board,t)});
       const cardDone=required.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
       total+=required.length;done+=cardDone;
       if(required.length&&cardDone===required.length)cardsDone++;
     });
-    // "All" means every configured daily/weekly task, including T3.
-    // T3 never affects the compulsory meter or the one-click compulsory action.
+    // "All" means every configured daily/weekly task, including A级.
+    // A级 never affects the compulsory meter or the one-click compulsory action.
     entries.forEach(function(entry){allDone+=entry.done;allTotal+=entry.total});
     return {done:done,total:total,pct:total?Math.round(done/total*100):0,
       allDone:allDone,allTotal:allTotal,allPct:allTotal?Math.round(allDone/allTotal*100):0,
@@ -328,20 +330,20 @@
   }
 
   function pendingCore(){
-    const primary=entriesFor('daily').filter(e=>tierOf(e.game)!==3);
-    const weekly=entriesFor('weekly').filter(e=>tierOf(e.game)!==3);
+    const primary=entriesFor('daily').filter(e=>tierOf(e.game)!==2);
+    const weekly=entriesFor('weekly').filter(e=>tierOf(e.game)!==2);
     const daily=primary.reduce((n,e)=>n+e.tasks.filter(t=>dailyLane(t)==='must'&&!taskDone('daily',e.game.id,t)).length,0);
     // Waiting weeklies and optional tasks are excluded from priority reminders.
-    // T3 tasks remain fully operable regardless of this count.
+    // A级 tasks remain fully operable regardless of this count.
     const week=weekly.reduce((n,e)=>n+e.tasks.filter(t=>!['optional','wait'].includes(weeklyLane(t))&&!taskDone('weekly',e.game.id,t)).length,0);
     const limited=PLAY?.blockedOpsCount()??0;
     return {daily,weekly:week,limited,total:daily+week+limited};
   }
-  // Advisory count only; never used as a permission gate for T3.
+  // Advisory count only; never used as a permission gate for A级.
   window.TaskRingGameOpsV6.pendingCore=pendingCore;
   window.TaskRingGameOpsV6.commandTasks=()=>["daily","weekly"].flatMap(board=>entriesFor(board).flatMap(({game,tasks})=>tasks.map(task=>({
     board,game,task,tier:tierOf(game),lane:board==="daily"?dailyLane(task):weeklyLane(task),
-    required:tierOf(game)!==3&&!isOptionalTask(board,task),key:taskKey(board,game.id,task),
+    required:tierOf(game)!==2&&!isOptionalTask(board,task),key:taskKey(board,game.id,task),
     set:(value,el)=>setTaskDone(board,game.id,task,value,el)
   }))));
 
@@ -354,6 +356,7 @@
   gameQuestWeeklyTasksFor=function(gid,cfg){return boardTasks("weekly",gid,cfg||gameQuestConfig)};
 
   function currentBoard(){
+    if(isInterest())return "hub";
     const saved=localStorage.getItem(scopeKey(BOARD_STORAGE_KEY))||(!isReserve()&&localStorage.getItem(LEGACY_BOARD_STORAGE_KEY));
     if(saved==="cycle"||saved==="version"||saved==="interest")return "hub";
     return VIEW_ORDER.includes(saved)?saved:"daily";
@@ -365,18 +368,19 @@
     if(currentBoard()!=="daily")localStorage.setItem(BOARD_STORAGE_KEY,"daily");
   };
   function setCurrentBoard(board){
-    if(!VIEW_ORDER.includes(board))board="daily";
+    if(isInterest())board="hub";
+    else if(!VIEW_ORDER.includes(board))board="daily";
     localStorage.setItem(scopeKey(BOARD_STORAGE_KEY),board);
     renderGameQuestPanel();
   }
   function setScope(scope){
-    if(!["core","reserve"].includes(scope)||activeScope===scope)return;
+    if(!["core","reserve","interest"].includes(scope)||activeScope===scope)return;
     activeScope=scope;
     window.TaskRingGameOpsCloud?.setScope?.(scope);
     renderGameQuestPanel();
   }
   window.TaskRingGameOpsV6.showTask=function(board,game,task,tier,lane){
-    setScope(tier===3?"reserve":"core");
+    setScope(tier===3?"interest":tier===2?"reserve":"core");
     setCurrentBoard(board);
     if(lane&&board!=="hub"){
       setCurrentLane(board,lane);
@@ -432,10 +436,10 @@
   function gameCard(board,entry,lane="",mobileExpanded=true,allExpanded=false){
     const g=entry.game,pct=entry.total?Math.round(entry.done/entry.total*100):0;
     const priority=priorityOf(g,0),tier=tierOf(g);
-    const tierBadge=tier?'<span class="gqV6PlayTier t'+tier+'">T'+tier+' · '+tierLabel(tier)+'</span>':'';
+    const tierBadge=tier?'<span class="gqV6PlayTier t'+tier+'">'+tierCode(tier)+'级 · '+tierLabel(tier)+'</span>':'';
     const storyBadge=focusOnStory(g)?'<span class="gqV6StoryFocus">剧情重点</span>':'';
     const bodyId="gqv6-body-"+board+"-"+lane+"-"+g.id;
-    return '<article class="gameQuestCard gameQuestCardV2 gqV6GameCard accent-'+esc(g.accent)+' '+(entry.cardDone?"done":"")+(mobileExpanded?'':' gqV6MobileCollapsed')+'" style="--gq-p:'+pct+'%"><div class="gameQuestCardTop"><button type="button" class="gameQuestCheck '+(entry.cardDone?"done":"")+'" data-gqv5-card="1" data-board="'+esc(board)+'" data-game="'+esc(g.id)+'" data-task-lane="'+esc(lane)+'"'+' aria-label="'+esc(g.name)+'该分类全部'+(entry.cardDone?'取消':'标记')+'完成" aria-pressed="'+(entry.cardDone?"true":"false")+'" '+(entry.total?"":"disabled")+'><span></span></button><span class="gqV6Priority">0'+priority+'</span><span class="gameQuestIcon">'+esc(String(g.icon||g.name).slice(0,4))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+esc(g.name)+'</span>'+tierBadge+storyBadge+'<span class="gameQuestShort">'+(tier?'T'+tier+' · '+tierLabel(tier):'优先度 #'+priority)+' · '+entry.total+' 项'+'</span></div><span class="gameQuestCount">'+entry.done+'/'+entry.total+'</span><button type="button" class="gqV6MobileGameToggle" data-gqv6-game-toggle="1" data-board="'+esc(board)+'" data-lane="'+esc(lane)+'" data-game="'+esc(g.id)+'" data-all-open="'+allExpanded+'" aria-label="'+esc(g.name)+' · '+(allExpanded?'只看此游戏':(mobileExpanded?'收起':'展开')+'任务')+'" aria-expanded="'+mobileExpanded+'" aria-controls="'+esc(bodyId)+'"><span class="gqV6ToggleChevron" aria-hidden="true">⌄</span></button></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody" id="'+esc(bodyId)+'">'+taskRows(board,entry)+'</div></article>';
+    return '<article class="gameQuestCard gameQuestCardV2 gqV6GameCard accent-'+esc(g.accent)+' '+(entry.cardDone?"done":"")+(mobileExpanded?'':' gqV6MobileCollapsed')+'" style="--gq-p:'+pct+'%"><div class="gameQuestCardTop"><button type="button" class="gameQuestCheck '+(entry.cardDone?"done":"")+'" data-gqv5-card="1" data-board="'+esc(board)+'" data-game="'+esc(g.id)+'" data-task-lane="'+esc(lane)+'"'+' aria-label="'+esc(g.name)+'该分类全部'+(entry.cardDone?'取消':'标记')+'完成" aria-pressed="'+(entry.cardDone?"true":"false")+'" '+(entry.total?"":"disabled")+'><span></span></button><span class="gqV6Priority">0'+priority+'</span><span class="gameQuestIcon">'+esc(String(g.icon||g.name).slice(0,4))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+esc(g.name)+'</span>'+tierBadge+storyBadge+'<span class="gameQuestShort">'+(tier?tierCode(tier)+'级 · '+tierLabel(tier):'优先度 #'+priority)+' · '+entry.total+' 项'+'</span></div><span class="gameQuestCount">'+entry.done+'/'+entry.total+'</span><button type="button" class="gqV6MobileGameToggle" data-gqv6-game-toggle="1" data-board="'+esc(board)+'" data-lane="'+esc(lane)+'" data-game="'+esc(g.id)+'" data-all-open="'+allExpanded+'" aria-label="'+esc(g.name)+' · '+(allExpanded?'只看此游戏':(mobileExpanded?'收起':'展开')+'任务')+'" aria-expanded="'+mobileExpanded+'" aria-controls="'+esc(bodyId)+'"><span class="gqV6ToggleChevron" aria-hidden="true">⌄</span></button></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody" id="'+esc(bodyId)+'">'+taskRows(board,entry)+'</div></article>';
   }
   function flowBoard(board,entries){
     const isDaily=board==="daily";
@@ -444,7 +448,7 @@
     const selected=currentLane(board);
     const groups=lanes.map(function(lane){
       const original=descriptions[lane];
-      const meta=isReserve()&&isDaily&&lane==="must"?{...original,name:"常规",hint:"T3 日常资源 · 按余力安排，不计入主线必做"}:original;
+      const meta=isReserve()&&isDaily&&lane==="must"?{...original,name:"常规",hint:"A级 日常资源 · 按余力安排，不计入主线必做"}:original;
       const grouped=entries.map(function(entry){
         const tasks=entry.tasks.filter(function(t){return (isDaily?dailyLane(t):weeklyLane(t))===lane});
         const done=tasks.filter(function(t){return taskDone(board,entry.game.id,t)}).length;
@@ -469,13 +473,13 @@
         '<span class="gqWeeklyLaneCount" aria-label="'+group.meta.name+'已完成'+group.done+'项，总共'+group.total+'项">'+group.done+'/'+group.total+'</span></header>'+
 
         '<div class="gameQuestGrid gqV6Grid gqWeeklyGrid">'+
-        (group.grouped.length?group.grouped.slice().sort((a,b)=>tierRank(a.game)-tierRank(b.game)||(PLAY?.get(a.game).sortOrder??0)-(PLAY?.get(b.game).sortOrder??0)).map(function(e,i,arr){const t=tierOf(e.game),prev=i?tierOf(arr[i-1].game):-1;const head=(i===0||t!==prev)?'<header class="gqV6TierDivider tier-'+(t??0)+'"><strong>'+(t?'T'+t+'｜'+tierLabel(t):'尚未分级')+'</strong><span>'+(t===3?(pendingCore().total?'建议先做 T1/T2，T3 仍可随时勾选':'可按余力安排，也可随时勾选'):t===1?'核心任务优先':t===2?'日常周常同样必做':'登录同步策略后显示分级')+'</span>'+(i===0?'<button type="button" class="gqV6TierExpand" data-gqv6-expand-all="1" data-board="'+board+'" data-lane="'+group.lane+'" aria-pressed="'+expandAll+'">'+(expandAll?'收起其他':'全部展开')+'</button>':'')+'</header>':'';return head+gameCard(board,e,group.lane,expandAll||focus===e.game.id,expandAll)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
+        (group.grouped.length?group.grouped.slice().sort((a,b)=>tierRank(a.game)-tierRank(b.game)||(PLAY?.get(a.game).sortOrder??0)-(PLAY?.get(b.game).sortOrder??0)).map(function(e,i,arr){const t=tierOf(e.game),prev=i?tierOf(arr[i-1].game):-1;const head=(i===0||t!==prev)?'<header class="gqV6TierDivider tier-'+(t??0)+'"><strong>'+(t?tierCode(t)+'级｜'+tierLabel(t):'尚未分级')+'</strong><span>'+(t===2?(pendingCore().total?'建议先做 S 级，A 级仍可随时勾选':'可按余力安排，也可随时勾选'):t===1?'核心任务优先':t===3?'仅限时活动':'登录同步策略后显示分级')+'</span>'+(i===0?'<button type="button" class="gqV6TierExpand" data-gqv6-expand-all="1" data-board="'+board+'" data-lane="'+group.lane+'" aria-pressed="'+expandAll+'">'+(expandAll?'收起其他':'全部展开')+'</button>':'')+'</header>':'';return head+gameCard(board,e,group.lane,expandAll||focus===e.game.id,expandAll)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
         '</section>';
     }).join("");
     return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+tabs+panels+'</div>';
   }
   function boardTabs(active){
-    return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+VIEW_ORDER.map(function(view){
+    return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+(isInterest()?["hub"]:VIEW_ORDER).map(function(view){
       if(view==="hub")return '<button type="button" class="gqV6BoardTab gqV6HubTab '+(active==="hub"?"active":"")+'" data-gqv6-board="hub"><span class="trTabName">'+taskUiIcon("hourglass")+'限时・周期</span><b>'+taskUiIcon("cloud")+'</b><em>任务态势</em></button>';
       const s=isReserve()?reserveStats(view):boardStats(view);
       return '<button type="button" class="gqV6BoardTab '+(active===view?"active":"")+'" data-gqv6-board="'+view+'" aria-label="'+BOARD_META[view].label+(isReserve()?"余力完成 ":"必做 ")+s.done+'/'+s.total+(isReserve()?"":'，全游戏全部 '+s.allDone+'/'+s.allTotal)+'"><span class="trTabName">'+taskUiIcon(view==="weekly"?"calendar-days":"clipboard-check")+BOARD_META[view].label+'</span><b>'+s.done+'/'+s.total+'</b><em>'+(isReserve()?"余力任务":'全部 '+s.allDone+'/'+s.allTotal)+'</em></button>';
@@ -493,7 +497,9 @@
   }
   function scopeNavigation(){
     const s=scopeInfo();
-    return '<nav class="gqScopeNav" aria-label="游戏作战区域"><button type="button" class="gqScopeBtn core '+(!isReserve()?"active":"")+'" data-gqv6-scope="core" aria-pressed="'+!isReserve()+'"><span class="gqScopeTitle">主线作战 <small>T1 / T2</small></span><span class="gqScopeMeta" data-gq-scope-core>'+(s.gate.total?s.gate.total+" 项待处理":"主线待办已清")+'</span></button><button type="button" class="gqScopeBtn reserve '+(isReserve()?"active":"")+(s.clear?" ready":"")+(s.due?" urgent":"")+'" data-gqv6-scope="reserve" aria-pressed="'+isReserve()+'"><span class="gqScopeTitle">余力作战 <small>T3</small><span class="gqScopeArrow" aria-hidden="true">→</span></span><span class="gqScopeMeta" data-gq-scope-reserve>'+esc(s.reserveText)+'</span></button><p class="gqScopeHint" data-gq-scope-hint>'+esc(isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint)+'</p></nav>';
+    const b=window.TaskRingGameOpsCloud?.summary?.("interest",false);
+    const bText=b?.ready?(b.active?b.active+" 项活动"+(b.due?" · "+b.due+" 项临期":""):"暂无限时活动"):"限时待同步";
+    return '<nav class="gqScopeNav" aria-label="游戏作战区域"><button type="button" class="gqScopeBtn core '+(activeScope==="core"?"active":"")+'" data-gqv6-scope="core" aria-pressed="'+(activeScope==='core')+'"><span class="gqScopeTitle">主线作战 <small>S级</small></span><span class="gqScopeMeta" data-gq-scope-core>'+(s.gate.total?s.gate.total+" 项待处理":"主线待办已清")+'</span></button><button type="button" class="gqScopeBtn reserve '+(isReserve()?"active":"")+(s.clear?" ready":"")+(s.due?" urgent":"")+'" data-gqv6-scope="reserve" aria-pressed="'+isReserve()+'"><span class="gqScopeTitle">余力作战 <small>A级</small><span class="gqScopeArrow" aria-hidden="true">→</span></span><span class="gqScopeMeta" data-gq-scope-reserve>'+esc(s.reserveText)+'</span></button><button type="button" class="gqScopeBtn interest '+(isInterest()?"active":"")+'" data-gqv6-scope="interest" aria-pressed="'+isInterest()+'"><span class="gqScopeTitle">自由游玩 <small>B级</small></span><span class="gqScopeMeta" data-gq-scope-interest>'+esc(bText)+'</span></button><p class="gqScopeHint" data-gq-scope-hint>'+esc(isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint)+'</p></nav>';
   }
   // Cloud refresh changes the reminder in place instead of replacing the active board.
   window.TaskRingGameOpsV6.refreshScopeNavigation=function(){
@@ -501,7 +507,9 @@
     const s=scopeInfo(),button=nav.querySelector("[data-gqv6-scope=reserve]");
     nav.querySelector("[data-gq-scope-core]").textContent=s.gate.total?s.gate.total+" 项待处理":"主线待办已清";
     nav.querySelector("[data-gq-scope-reserve]").textContent=s.reserveText;
-    nav.querySelector("[data-gq-scope-hint]").textContent=isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint;
+    const b=window.TaskRingGameOpsCloud?.summary?.("interest",false);
+    const bMeta=nav.querySelector("[data-gq-scope-interest]");if(bMeta)bMeta.textContent=b?.ready?(b.active?b.active+" 项活动"+(b.due?" · "+b.due+" 项临期":""):"暂无限时活动"):"限时待同步";
+    nav.querySelector("[data-gq-scope-hint]").textContent=isInterest()?"仅限时活动 · 不管理日常及周常":isReserve()?"自由安排 · 不计入主线必做，随时可完成或撤销":s.hint;
     button.classList.toggle("ready",s.clear);button.classList.toggle("urgent",Boolean(s.due));
   };
   function cycleVersionHub(){
@@ -530,18 +538,18 @@
     const readingY=document.body.dataset.appView==="game"?window.scrollY:null;
     const board=currentBoard(),isHub=board==="hub",stats=isHub?{done:0,total:0,pct:0}:isReserve()?reserveStats(board):boardStats(board),meta=BOARD_META[board]||BOARD_META.daily,entries=isHub?[]:viewEntriesFor(board);
     const active=readActiveTimer(),gqActive=active&&active.kind==="gamequest";
-    const meter=isHub?'<div class="gameQuestTopMeter gqOpsMeter" id="gameQuestTopMeter" aria-label="限时周期任务态势">'+(window.TaskRingGameOpsCloud?.summaryHtml?.()||'<span class="gqOpsMeterPending">正在读取任务…</span>')+'</div>':isReserve()?'<div class="gameQuestTopMeter gqDualMeter gqReserveMeter" role="group" aria-label="余力任务完成度"><div class="gqMeterItem isAll"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gqMeterCopy"><small>余力完成度</small><b>'+stats.done+'/'+stats.total+'</b></span></div></div>':'<div class="gameQuestTopMeter gqDualMeter" role="group" aria-label="'+meta.label+'任务完成度；必做仅统计 T1/T2，全部包含 T3"><div class="gqMeterItem isRequired" title="T1/T2 必做完成度'+(board==="weekly"?'，含等待分类':'')+'"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gqMeterCopy"><small>必做完成度</small><b>'+stats.done+'/'+stats.total+'</b></span></div><div class="gqMeterItem isAll" title="全部游戏的任务完成度（T1/T2/T3 均含，含可选）"><span class="gameQuestMiniRing" style="--p:'+stats.allPct+'%"><i>'+stats.allPct+'%</i></span><span class="gqMeterCopy"><small>全部完成度</small><b>'+stats.allDone+'/'+stats.allTotal+'</b></span></div></div>';
+    const meter=isHub?'<div class="gameQuestTopMeter gqOpsMeter" id="gameQuestTopMeter" aria-label="限时周期任务态势">'+(window.TaskRingGameOpsCloud?.summaryHtml?.()||'<span class="gqOpsMeterPending">正在读取任务…</span>')+'</div>':isReserve()?'<div class="gameQuestTopMeter gqDualMeter gqReserveMeter" role="group" aria-label="余力任务完成度"><div class="gqMeterItem isAll"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gqMeterCopy"><small>余力完成度</small><b>'+stats.done+'/'+stats.total+'</b></span></div></div>':'<div class="gameQuestTopMeter gqDualMeter" role="group" aria-label="'+meta.label+'任务完成度；必做仅统计 S级，全部包含 A级"><div class="gqMeterItem isRequired" title="S级 必做完成度'+(board==="weekly"?'，含等待分类':'')+'"><span class="gameQuestMiniRing" style="--p:'+stats.pct+'%"><i>'+stats.pct+'%</i></span><span class="gqMeterCopy"><small>必做完成度</small><b>'+stats.done+'/'+stats.total+'</b></span></div><div class="gqMeterItem isAll" title="全部游戏的任务完成度（S/A 均含，含可选）"><span class="gameQuestMiniRing" style="--p:'+stats.allPct+'%"><i>'+stats.allPct+'%</i></span><span class="gqMeterCopy"><small>全部完成度</small><b>'+stats.allDone+'/'+stats.allTotal+'</b></span></div></div>';
     const top='<div class="gameQuestTopBar gqV6Top"><div class="gameQuestTopTitle"><span>GAME QUEST / DAILY OPS</span><strong class="trTitleWithIcon">'+taskUiIcon("gamepad-2")+'游戏作战区</strong><em>TaskRing 统一管理日常、周常与限时・周期任务；版本 / 前瞻 / 卡池排期由 Calendar 独立维护。</em></div><div class="gameQuestHeroSide">'+meter+'<button type="button" class="gameQuestTopTimer '+(gqActive?"active":"")+'" data-timer-start-gamequest="1" data-cycle="'+esc(cycleYmd)+'"><span class="gameCommandIcon">'+taskUiIcon(gqActive&&active.paused?"pause-circle":"timer")+'</span><span class="gameCommandCopy"><small>TIMER</small><b '+(gqActive?'data-live-timer="1"':"")+'>'+(gqActive?fmtTimer(activeTimerElapsedSeconds(active)):"开始计时")+'</b><em>'+(gqActive?(active.paused?"已暂停":"游戏计时中"):"整体计时")+'</em></span></button><button type="button" class="gameCommandBtn gameQuestTopManual" data-manual-time-entry="gamequest"><span class="gameCommandIcon">'+taskUiIcon("plus")+'</span><span class="gameCommandCopy"><small>MANUAL</small><b>补记</b><em>游戏时间</em></span></button><button type="button" class="gameCommandBtn gameQuestEditQuick" data-open-game-editor><span class="gameCommandIcon">'+taskUiIcon("pencil")+'</span><span class="gameCommandCopy"><small>QUEST</small><b>编辑任务</b><em>日常 / 周常</em></span></button></div></div>';
     const dailyAllDone=board==="daily"&&stats.total>0&&stats.done>=stats.total;
-    const boardAction=isReserve()?'<strong title="余力完成数">余力 '+stats.done+'/'+stats.total+'</strong>':board==="daily"?'<div class="gqV6BoardActions"><strong title="T1/T2 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"必做已完成":"一键完成必做")+'</b></button></div>':'<strong title="T1/T2 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong>';
+    const boardAction=isReserve()?'<strong title="余力完成数">余力 '+stats.done+'/'+stats.total+'</strong>':board==="daily"?'<div class="gqV6BoardActions"><strong title="S级 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong><button type="button" class="gqV6CompleteAll '+(dailyAllDone?"done":"")+'" data-gqv6-complete-daily="1" '+((stats.total===0||dailyAllDone)?"disabled":"")+'><span aria-hidden="true">✓</span><b>'+(dailyAllDone?"必做已完成":"一键完成必做")+'</b></button></div>':'<strong title="S级 必做完成数">必做 '+stats.done+'/'+stats.total+'</strong>';
     const gate=pendingCore();
     // The policy explanation is optional context, not a blocking action or a task lock.
     // Keep the full rule one tap away instead of pushing all game tasks below the fold.
-    const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'T1/T2 待处理 '+gate.total+' 项':'T1/T2 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 T1/T2：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。T3 任务仍可随时勾选、撤销。':'T3 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
-    const extras=(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>(g.tier===3)===isReserve());
-    const untracked=extras.length?'<aside class="gqV6Untracked"><strong>已分级 · 尚未添加任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">T'+g.tier+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
+    const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'S级 待处理 '+gate.total+' 项':'S级 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 S级：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。A级 任务仍可随时勾选、撤销。':'A级 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
+    const extras=(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>g.tier===(isInterest()?3:isReserve()?2:1));
+    const untracked=extras.length?'<aside class="gqV6Untracked"><strong>游戏储备 · 无常规任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">'+tierCode(g.tier)+'级+' '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>LIVE OPS</span><b>限时・周期</b><em>当前任务与领取窗口</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+(isReserve()?'reserve-'+board:board)+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+ (isReserve()?'余力任务 · 不影响主线完成度':meta.sub)+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
-    panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+(isReserve()?' gqReserveScope':'')+'">'+top+scopeNavigation()+boardTabs(board)+(isReserve()?'':gateNote)+body+untracked+'</div>';
+    panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+(isReserve()?' gqReserveScope':'')+'">'+top+scopeNavigation()+boardTabs(board)+(isReserve()||isInterest()?'':gateNote)+body+untracked+'</div>';
     window.TaskRingGameOpsCloud?.restoreFilterScroll?.();
     if(policyWasOpen){const note=panel.querySelector(".gqV6GateNotice");if(note)note.open=true;}
     const boardStrip=panel.querySelector(".gqV6BoardTabs");
@@ -572,7 +580,7 @@
 
   function completeDailyBoard(el){
     let changed=0,total=0;
-    entriesFor("daily").filter(function(entry){return tierOf(entry.game)!==3}).forEach(function(entry){
+    entriesFor("daily").filter(function(entry){return tierOf(entry.game)!==2}).forEach(function(entry){
       entry.tasks.filter(function(t){return dailyLane(t)==="must"}).forEach(function(task){
         total++;
         if(taskDone("daily",entry.game.id,task))return;
@@ -611,11 +619,11 @@
     const cfg=normalizeGameQuestConfig(gameQuestDraftConfig||gameQuestConfig||defaultGameQuestConfig);
     gameQuestDraftConfig=deepClone(cfg);
     if(tabs)tabs.innerHTML="";
-    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>T1 核心 · T2 次要 · T3 余力</b><em>分级及剧情标记优先读取个人 Supabase 策略；每日／每周的必做与可选仍由任务自身决定。</em></div>';
+    const order='<div class="gqV6PriorityRule"><span>PLAY TIER</span><b>S 核心 · A 余力 · B 自由</b><em>分级及剧情标记优先读取个人 Supabase 策略；S 级延续原 T1 任务规则，A 级不计入必做，B 级不管理日常周常。</em></div>';
     const cloudHint='<div class="gqV6PriorityRule"><span>GAME FLOW</span><em>日常：必做 / 可选。周常：速攻 / 中速 / 等待 / 可选。可选不计入完成率；限时・周期仍由独立板块管理。</em></div>';
     const sections=EDIT_BOARD_ORDER.map(function(board,bi){
       const meta=BOARD_META[board];
-      return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
+      return '<details class="gameQuestEditGroup gqV6EditorBoard" data-gqv5-editor-board="'+board+'" '+(bi===0?"open":"")+'><summary class="gameQuestEditHead"><div><b>'+meta.label+'</b><span>'+meta.sub+'</span></div><em>'+meta.short+'</em></summary><div class="gqV6EditorGames">'+sortedGames(cfg).filter(g=>tierOf(g)!==3).map(function(g){return editorGameCard(board,g,cfg)}).join("")+'</div></details>';
     }).join("");
     list.innerHTML=order+cloudHint+sections;
     if(typeof syncEditorSectionToggle==="function")syncEditorSectionToggle("game");

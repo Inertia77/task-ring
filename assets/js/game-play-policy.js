@@ -55,6 +55,7 @@
     return get({id:key}).tier;
   }
   function forCode(code){return get({id:OPS_KEYS[String(code||"").toUpperCase()]||String(code||"").toLowerCase()});}
+  function allGames(){return [...policyRows.values()].sort((a,b)=>a.sort_order-b.sort_order).map(row=>({code:Object.keys(OPS_KEYS).find(code=>OPS_KEYS[code]===row.game_key)||row.game_key.toUpperCase(),name:row.game_name,...get({id:row.game_key})}));}
   function untrackedGames(games){
     const tracked=new Set((Array.isArray(games)?games:[]).map(gameKey));
     return [...policyRows.values()].filter(row=>!tracked.has(String(row.game_key).toLowerCase()))
@@ -79,12 +80,12 @@
   function blockedOpsCount(now=Date.now()){
     return opsRows.filter(function(task){
       const tier=tierForCode(task.game);
-      if(tier===null||tier>2)return false;
+      if(tier!==1)return false;
       if(task.archived_at||task.lifecycle_status==="ARCHIVED"||task.user_action==="DONE"||task.user_action==="SKIP")return false;
       if(task.verification!=="CONFIRMED"||startsLater(task,now))return false;
       const end=endMs(task);
       return Number.isFinite(end)&&end>now;
     }).length;
   }
-  return {validTier,get,gameKey,forCode,tierForCode,untrackedGames,blockedOpsCount,setOwner,setRows,setOpsTasks};
+  return {validTier,get,gameKey,forCode,tierForCode,allGames,untrackedGames,blockedOpsCount,setOwner,setRows,setOpsTasks};
 });

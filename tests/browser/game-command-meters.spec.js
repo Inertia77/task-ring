@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 const {boot,view}=require('./helpers');
 
-test('daily and weekly required meters exclude T3 while all meters include it',async({page})=>{
+test('daily and weekly required meters exclude A级 while all meters include it',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await boot(page);
   await view(page,'game');
@@ -12,9 +12,9 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
       {game_key:'zzz',play_tier:1,sort_order:1},
       {game_key:'nte',play_tier:1,sort_order:2},
       {game_key:'wuwa',play_tier:1,sort_order:3},
-      {game_key:'hsr',play_tier:2,sort_order:4},
-      {game_key:'onmyoji',play_tier:2,sort_order:5},
-      {game_key:'endfield',play_tier:3,sort_order:6}
+      {game_key:'hsr',play_tier:1,sort_order:4},
+      {game_key:'onmyoji',play_tier:1,sort_order:5},
+      {game_key:'endfield',play_tier:2,sort_order:6}
     ],uid);
     renderAll(['game']);
   });
@@ -34,7 +34,7 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
   await expect(required.locator('b')).toHaveText('1/5');
   await expect(all.locator('b')).toHaveText('2/12');
 
-  // T3 remains checkable in its own scope and advances the global all-task meter only.
+  // A级 remains checkable in its own scope and advances the global all-task meter only.
   await expect(page.locator('[data-gqv5-task][data-game="endfield"]')).toHaveCount(0);
   await page.locator('[data-gqv6-scope="reserve"]').click();
   await page.locator('[data-gqv6-lane="optional"][data-board="daily"]').click();
@@ -50,7 +50,7 @@ test('daily and weekly required meters exclude T3 while all meters include it',a
 
   await page.locator('[data-gqv6-board="weekly"]').click();
   await expect(required.locator('b')).toHaveText('0/15'); // sprint + steady + wait
-  await expect(all.locator('b')).toHaveText('0/24'); // plus T1/T2 optional and all T3 weekly tasks
+  await expect(all.locator('b')).toHaveText('0/24'); // plus S级 optional and all A级 weekly tasks
   await page.locator('[data-gqv5-task][data-board="weekly"][data-game="zzz"]').first().click();
   await expect(required.locator('b')).toHaveText('1/15');
   await expect(all.locator('b')).toHaveText('1/24');
@@ -90,7 +90,7 @@ test('LIVE OPS meter follows JST task status and active game filter, not a compl
         auth:{onAuthStateChange(){},getSession:async()=>({data:{session:{user:{id:'meter-fixture'}}}})},
         from(name){return {select(){return this},eq(){return this},is(){return this},not(){return this},
           order(){return this},range(){return this},
-          then(ok,fail){return Promise.resolve({data:name==='game_play_policies'?[{game_key:'endfield',play_tier:3,sort_order:6}]:window.mockRows,error:null}).then(ok,fail)}
+          then(ok,fail){return Promise.resolve({data:name==='game_play_policies'?[{game_key:'endfield',play_tier:2,sort_order:6}]:window.mockRows,error:null}).then(ok,fail)}
         };}
       })};
     `

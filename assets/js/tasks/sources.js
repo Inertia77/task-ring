@@ -62,7 +62,7 @@
     const tier=game?window.TaskRingGamePlayPolicy?.get(game).tier:null;
     return {
       ...task,id:E.id("task",task.id),sourceId:task.id,module,source:"local",
-      schedule:task.nextSchedule,category:game?.name,tier,required:!task.optional&&tier!==3,optional:!!task.optional||tier===3,
+      schedule:task.nextSchedule,category:game?.name,tier,required:!task.optional&&(tier===null||tier===1),optional:!!task.optional||tier===2||tier===3,
       priority:task.nextPriority??(task.important?2:0),
       read({period}){
         const prefix=GH_PREFIX+"next_task_"+task.code+"|"+period;
@@ -111,8 +111,8 @@
       const deadline=windowValue(due,preciseEnd,verified);
       return [{
         id:E.id("supabase",row.id),sourceId:row.id,sourceKey:row.task_key,source:"supabase",module:"game",
-        title:row.task_name,category:core.games[row.game],tier,board:"hub",url:row.source_url,note:row.notes,
-        periodLabel:row.period,priority:row.priority==="HIGH"?2:0,required:tier!==3&&verified,optional:tier===3,
+        title:row.task_name,category:window.TaskRingGamePlayPolicy?.forCode(row.game).gameName||core.games[row.game]||row.game,tier,board:"hub",url:row.source_url,note:row.notes,
+        periodLabel:row.period,priority:row.priority==="HIGH"?2:0,required:(tier===1||tier===null)&&verified,optional:tier===2||tier===3,
         schedule:{type:due?"DEADLINE":"ONE_TIME",start:opening,due:deadline,showToday:done,missed:"KEEP"},
         calendarWindow:true,completedToday:done,
         read:()=>({done,completedAt:row.archived_at,canWrite:cloud.commandSnapshot().canWrite,
@@ -154,7 +154,7 @@
   function definitions(date,preview=false){
     const scheduled=[
       ...weeklyPoolBlocks().map(task=>weeklyPlan(task,date)),
-      ...(taskConfig?.tasks||[]).filter(task=>task.nextSchedule&&E.validSchedule(task.nextSchedule)).map(nativeTask),
+      ...(taskConfig?.tasks||[]).filter(task=>task.nextSchedule&&E.validSchedule(task.nextSchedule)).map(nativeTask).filter(t=>!(t.module==='game'&&t.tier===3&&['DAILY','WEEKDAY','WEEKLY','MONTHLY','INTERVAL'].includes(t.schedule?.type))),
       ...cloud()
     ];
     if(preview)return scheduled;

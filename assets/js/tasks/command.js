@@ -57,12 +57,12 @@
     rows.set(row.instanceId,row);
     const d=row.definition,key=esc(row.instanceId),when=deadlineText(row)||(!row.done&&row.overdue?"原定日期已过":"");
     const category=d.category&&d.category!==names[d.module]?d.category:"";
-    const condition=row.optional?(d.tier===3?"有余力":d.note?"见备注":"按需安排"):"";
+    const condition=row.optional?(d.tier>=2?"有余力":d.note?"见备注":"按需安排"):"";
     const details=row.steps?.length||d.note;
     const meta=[
       [names[d.module],"module"],
       [category,"category"],
-      [d.tier?"T"+d.tier:"","tier"],
+      [d.tier?({1:"S",2:"A",3:"B"})[d.tier]+"级":"","tier"],
       [d.periodLabel,"period"],
       [when,row.overdue?"alert":"deadline"],
       [condition,"optional"]

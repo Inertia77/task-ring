@@ -91,12 +91,12 @@ test('an older in-flight read cannot restore a task archived by a confirmed writ
   }finally{s.dom.window.close();}
 });
 
-test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 remains outstanding',async()=>{
+test('A级 is a soft priority: checked, unchecked and cloud Done even while S级 remains outstanding',async()=>{
   const policies=[
     {user_id:uid,game_key:'zzz',game_name:'示例主游戏',play_tier:1,story_focus:true,sort_order:1},
-    {user_id:uid,game_key:'endfield',game_name:'示例余力游戏',play_tier:3,story_focus:true,sort_order:6}
+    {user_id:uid,game_key:'endfield',game_name:'示例余力游戏',play_tier:2,story_focus:true,sort_order:6}
   ];
-  const db=[task('T3_CLOUD',{game:'ENF'})];
+  const db=[task('A级_CLOUD',{game:'ENF'})];
   const s=await boot(db,{},true,uid,policies);
   try{
     const cfg={
@@ -107,14 +107,14 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     s.w.eval('gameQuestConfig=TaskRingGameOpsV6.normalizeConfig('+JSON.stringify(cfg)+');renderGameQuestPanel()');
     await s.click('[data-gqv6-board="daily"]');
     const panel=s.w.document.querySelector('#gameQuestPanel');
-    assert.match(panel.textContent,/T1.*核心玩/);
-    assert.match(panel.textContent,/余力作战 T3/);
+    assert.match(panel.textContent,/S级.*核心玩/);
+    assert.match(panel.textContent,/余力作战 A级/);
     assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]'),null);
     assert.match(panel.textContent,/剧情重点/);
     assert.equal(s.w.TaskRingGameOpsV6.pendingCore().daily,1);
-    assert.match(panel.textContent,/T3 任务仍可随时勾选/);
+    assert.match(panel.textContent,/A级 任务仍可随时勾选/);
     await s.click('[data-gqv6-scope="reserve"]');
-    assert.match(panel.textContent,/T3.*有余力再玩/);
+    assert.match(panel.textContent,/A级.*余力游玩/);
     assert.equal(panel.querySelector('[data-gqv5-task][data-game="zzz"]'),null);
     assert.equal(panel.querySelector('[data-gqv5-task][data-game="endfield"]').disabled,false);
     assert.equal(panel.querySelector('[data-gqv5-card][data-game="endfield"]').disabled,false);
@@ -126,16 +126,16 @@ test('T3 is a soft priority: checked, unchecked and cloud Done even while T1 rem
     await s.click('[data-gqv5-card][data-game="endfield"]');
     assert.equal(s.w.document.querySelector('[data-gqv5-task][data-game="endfield"]').getAttribute('aria-pressed'),'true');
     await s.click('[data-gqv6-board="hub"]');
-    assert.equal(s.w.document.querySelector('[data-ops-action="DONE"][data-id="T3_CLOUD"]').disabled,false);
-    await s.click('[data-ops-action="DONE"][data-id="T3_CLOUD"]');
+    assert.equal(s.w.document.querySelector('[data-ops-action="DONE"][data-id="A级_CLOUD"]').disabled,false);
+    await s.click('[data-ops-action="DONE"][data-id="A级_CLOUD"]');
     assert.equal(db[0].user_action,'DONE');
-    assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
+    assert.equal(s.w.document.querySelector('[data-ops-card="A级_CLOUD"]'),null);
     await s.click('[data-ops-history]');
-    assert(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'));
+    assert(s.w.document.querySelector('[data-ops-card="A级_CLOUD"]'));
     await s.click('[data-gqv6-scope="core"]');
     await s.click('[data-gqv6-board="hub"]');
     await s.click('[data-ops-history]');
-    assert.equal(s.w.document.querySelector('[data-ops-card="T3_CLOUD"]'),null);
+    assert.equal(s.w.document.querySelector('[data-ops-card="A级_CLOUD"]'),null);
     assert.deepEqual(s.errors,[]);
   }finally{s.dom.window.close();}
 });
