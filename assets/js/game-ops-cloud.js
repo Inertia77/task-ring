@@ -44,12 +44,12 @@
   }
   // The catalog is account-scoped and authoritative once a migrated catalog exists.
   // Keep the legacy configuration only as a fallback for unmigrated/offline installations.
-  let routineCatalog=null,routineOwner='',routineRequest=0,routineSaving=false,routineError='';
+  let routineCatalog=null,routineOwner='',routineRequest=0,routineSaving=false,routineError='',routineReady=false;
   const routineBoards=['daily','weekly'];
   function setRoutineOwner(uid){
     uid=String(uid||'');
     if(uid===routineOwner)return;
-    routineOwner=uid;routineRequest++;routineSaving=false;routineError='';
+    routineOwner=uid;routineRequest++;routineSaving=false;routineError='';routineReady=false;
     const cached=uid?cacheGet(PREFIX+uid+':routines'):null;
     routineCatalog=cached&&Array.isArray(cached.rows)?cached:null;
   }
@@ -57,8 +57,8 @@
     if(uid!==routineOwner||uid!==user?.id)return;
     if(data!==null&&(!Array.isArray(data?.rows)||!Number.isSafeInteger(Number(data.revision))))throw Error('Invalid routine catalog');
     const changed=JSON.stringify(routineCatalog)!==JSON.stringify(data);
-    routineCatalog=data;routineError='';
-    if(data)cachePut(PREFIX+uid+':routines',data);
+    routineCatalog=data;routineError='';routineReady=true;
+    if(data){cachePut(PREFIX+uid+':routines',data);cachePut(PREFIX+'migrated-device',true);}
     else localStorage.removeItem(PREFIX+uid+':routines');
     if(changed){window.TaskRingGameOpsV6?.refreshRoutines?.();window.TaskRingCommand?.renderOverview?.();}
   }
@@ -133,7 +133,7 @@
       return true;
     }finally{if(uid===routineOwner)routineSaving=false;}
   }
-  function routineState(){return {active:!!routineCatalog,authenticated:!!user,error:routineError,revision:routineCatalog?.revision??null};}
+  function routineState(){return {active:!!routineCatalog,authenticated:!!user,ready:routineReady,migratedDevice:!!cacheGet(PREFIX+'migrated-device'),error:routineError,revision:routineCatalog?.revision??null};}
   const filterStripLeft={core:0,reserve:0,interest:0,preview:0};
   function rememberFilterScroll(){
     const strip=document.querySelector('#gameOpsCloud .opsFilters');
