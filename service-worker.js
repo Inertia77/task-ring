@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261124-sabdf-compact";
+const CACHE_NAME = "taskring-shell-20261124-optional-game-group";
 const APP_SHELL = [
   "./",
   "./index.html",
