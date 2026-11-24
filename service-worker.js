@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261124-cloud-routines";
+const CACHE_NAME = "taskring-shell-20261125-upcoming-routines";
 const APP_SHELL = [
   "./",
   "./index.html",
