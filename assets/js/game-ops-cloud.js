@@ -113,7 +113,7 @@
     const s=history?'ARCHIVED':C.state(t),end=C.deadline(t),pending=mutationId===t.id,disabled=!user||!navigator.onLine||pending;
     const gp=P?.forCode(t.game);
     const tier=tierForTask(t.game);
-    const tierTag=tier?'<span class="opsTag gqOpsTier">'+({1:'S',2:'A',3:'B'})[tier]+'级+'</span>':'';
+    const tierTag=tier?'<span class="opsTag gqOpsTier">'+({1:'S',2:'A',3:'B'})[tier]+'级</span>':'';
     const storyTag=gp?.storyFocus?'<span class="opsTag gqOpsStory">剧情重点</span>':'';
     const urgency=history?'none':C.urgency(t);
     const claimable=!history&&t.gameplay_end_at&&Date.parse(t.gameplay_end_at)<Date.now()&&t.claim_end_at&&Date.parse(t.claim_end_at)>Date.now();
