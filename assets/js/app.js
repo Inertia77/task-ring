@@ -3278,6 +3278,7 @@ function renderGameQuestPanel(){
 }
 
 function openGameQuestEditor(){
+  if(window.TaskRingGameOpsCloud?.routineState?.().active&&window.TaskRingWorkbench){window.TaskRingWorkbench.open("game");return;}
   closeControlCenter();
   closeGhModal();
   const modal=document.getElementById("gameQuestEditorModal");
@@ -3585,6 +3586,8 @@ function renderGameQuestEditor(){
 }
 
 async function saveGameQuestConfig(){
+  const cloud=window.TaskRingGameOpsCloud?.routineState?.();
+  if(cloud?.active||cloud?.authenticated){showToast("请在统一编辑台保存游戏日常/周常，避免旧配置覆盖云端","warn");return;}
   const btn=document.getElementById("saveGameQuestBtn");
   try{
     setBtnBusy(btn,true,"保存中…");

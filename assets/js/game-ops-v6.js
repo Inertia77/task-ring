@@ -255,7 +255,13 @@
 
   gameQuestTaskStoreList=function(value,context){return normList(value,context==="weekly"?"weekly":"daily")};
 
+  function effectiveConfig(cfg){
+    const raw=cfg||gameQuestConfig;
+    return (!cfg||cfg===gameQuestConfig)?(window.TaskRingGameOpsCloud?.routineView?.(raw)||raw):raw;
+  }
+  window.TaskRingGameOpsV6.refreshRoutines=()=>renderAll(["game"]);
   function sortedGames(cfg){
+    cfg=effectiveConfig(cfg);
     return (cfg&&cfg.games||[]).filter(function(g){return g.enabled!==false}).slice().sort(function(a,b){
       return tierRank(a)-tierRank(b)||(PLAY?.get(a).sortOrder??priorityOf(a,0))-(PLAY?.get(b).sortOrder??priorityOf(b,0))||a.name.localeCompare(b.name,"zh-CN");
     });
@@ -266,11 +272,14 @@
     try{return typeof ymd==="function"?ymd(operationalNow):new Date().toISOString().slice(0,10)}catch(_){return new Date().toISOString().slice(0,10)}
   }
   function boardTasksAll(board,gid,cfg){
-    const source=cfg||gameQuestConfig;
+    const source=effectiveConfig(cfg);
     if(!EDIT_BOARD_ORDER.includes(board))return [];
     return normList(source&&source.boards&&source.boards[board]&&source.boards[board][gid]||[],board);
   }
-  function boardTasks(board,gid,cfg){return boardTasksAll(board,gid,cfg)}
+  function boardTasks(board,gid,cfg){
+    const today=operationalDate();
+    return boardTasksAll(board,gid,cfg).filter(t=>(!t.active_from||t.active_from<=today)&&(!t.active_until||t.active_until>=today));
+  }
   function resetScope(board){return board==="daily"?operationalDate():String(cycleYmd||"week")}
   function taskKey(board,gid,task){
     // Daily/weekly keep the v4 namespace so upgrading to v5 does not wipe today's/week's checks.
@@ -551,7 +560,7 @@
     // The policy explanation is optional context, not a blocking action or a task lock.
     // Keep the full rule one tap away instead of pushing all game tasks below the fold.
     const gateNote='<details class="gqV6GateNotice '+(gate.total?'advisory':'open')+'"><summary><strong>'+(gate.total?'S级 待处理 '+gate.total+' 项':'S级 已清')+'</strong><span class="gqV6GateToggle">查看规则</span></summary><p>'+(gate.total?'建议优先处理 S级：日常 '+gate.daily+' · 周常 '+gate.weekly+' · 已确认限时 '+gate.limited+'。A级 任务仍可随时勾选、撤销。':'A级 有余力再玩，但随时可勾选、撤销，不设强制解锁。')+'</p></details>';
-    const extras=isInterest()?(PLAY?.allGames()||[]).filter(g=>g.tier===(isPreview()?4:3)).map(g=>({...g,name:g.gameName||g.name})):(PLAY?.untrackedGames(gameQuestConfig?.games||[])||[]).filter(g=>g.tier===(isReserve()?2:1));
+    const extras=isInterest()?(PLAY?.allGames()||[]).filter(g=>g.tier===(isPreview()?4:3)).map(g=>({...g,name:g.gameName||g.name})):(PLAY?.untrackedGames(effectiveConfig()?.games||[])||[]).filter(g=>g.tier===(isReserve()?2:1));
     const untracked=extras.length?'<aside class="gqV6Untracked"><strong>游戏清单 · 无常规任务</strong><span>'+extras.map(g=>'<span class="gqV6UntrackedTag">'+tierCode(g.tier)+'级 '+esc(g.name)+(g.storyFocus?' · 剧情重点':'')+'</span>').join('')+'</span></aside>':'';
     const body=isHub?'<div class="gqV6BoardIntro hub"><div><span>'+(isPreview()?"PRE-RELEASE":"LIVE OPS")+'</span><b>'+(isPreview()?"新游情报 · 预约 / 测试":"限时・周期")+'</b><em>'+(isPreview()?"公测前参与窗口 · 无日常周常":"当前任务与领取窗口")+'</em></div><strong>JST</strong></div>'+cycleVersionHub():'<div class="gqV6BoardIntro '+(isReserve()?'reserve-'+board:board)+'"><div><span>'+meta.short+'</span><b>'+meta.label+'</b><em>'+ (isReserve()?'余力任务 · 不影响主线完成度':meta.sub)+'</em></div>'+boardAction+'</div>'+flowBoard(board,entries) ;
     panel.innerHTML='<div class="gameQuestShell gameQuestV6'+(isHub?' gameOpsHub':'')+(isReserve()?' gqReserveScope':'')+'">'+top+scopeNavigation()+boardTabs(board)+(isReserve()||isInterest()?'':gateNote)+body+untracked+'</div>';

@@ -256,6 +256,13 @@
   function saveConfiguration(candidate,reason,guard=editorFingerprint,sync=true){
     if(guard&&guard!==fingerprint(config()))throw new Error("配置在编辑期间发生变化。请保留本页输入，重新打开编辑器后再应用。");
     C.validateConfig(candidate);
+    // Imported/legacy JSON may contain stale game task lists. It is never allowed
+    // to replace the canonical cloud routines, nor persist a projected revision.
+    if(window.TaskRingGameOpsCloud?.routineState?.().active&&candidate.gameQuest){
+      const rawGame=config().gameQuest;
+      candidate={...candidate,gameQuest:{...candidate.gameQuest,boards:{...candidate.gameQuest.boards,daily:rawGame?.boards?.daily||{},weekly:rawGame?.boards?.weekly||{}}}};
+      delete candidate.gameQuest.routineRevision;
+    }
     const latest=loadLocalTaskConfig();
     const stored=latest&&fingerprint(latest);
     if(stored&&stored!==fingerprint(config()))throw new Error("另一标签页已修改配置。刷新后再应用。");
@@ -265,6 +272,47 @@
     applyTaskConfig(saved,true);
     if(sync)syncConfiguration(saved);
     return saved;
+  }
+  // Workbench sees the cloud projection; the encrypted Gist keeps only its legacy
+  // routine snapshot for backward compatibility. Normal JSON import never writes the catalog.
+  function workbenchConfig(){
+    const raw=config(),cloud=window.TaskRingGameOpsCloud;
+    return {...raw,gameQuest:cloud?.routineView?.(raw.gameQuest)||raw.gameQuest};
+  }
+  function saveWorkbenchConfig(candidate,expectedFingerprint){
+    const before=workbenchConfig(),raw=config(),cloud=window.TaskRingGameOpsCloud;
+    if(expectedFingerprint&&expectedFingerprint!==fingerprint(before))throw Error("配置在编辑期间发生变化，请重新打开编辑台。");
+    const active=cloud?.routineState?.().active;
+    if(!active){
+      // Migrated accounts must not silently save edits to an obsolete JSON while the
+      // first authenticated catalog read is in progress or failed.
+      const state=cloud?.routineState?.();
+      if(state&&((state.authenticated&&!state.ready)||(!state.authenticated&&state.migratedDevice))&&cloud.routineChanges(raw.gameQuest,candidate.gameQuest).length)
+        throw Error("游戏云端任务尚未同步，请刷新后再保存。");
+      return saveConfiguration(candidate,"统一编辑工作台：保存前备份",fingerprint(raw));
+    }
+    C.validateConfig(candidate);
+    const guard=fingerprint(raw);
+    const latest=loadLocalTaskConfig();
+    if(latest&&fingerprint(latest)!==guard)throw Error("另一标签页已修改配置，请刷新后再应用。");
+    const changes=cloud.routineChanges(before.gameQuest,candidate.gameQuest);
+    // Keep explicit game presentation edits, but do not copy cloud task definitions
+    // or catalog revisions into local config or Gist.
+    const rawGames=raw.gameQuest?.games||[],beforeGames=new Map((before.gameQuest?.games||[]).map(g=>[g.id,g]));
+    const originalIds=new Set(rawGames.map(g=>g.id));
+    const games=(candidate.gameQuest?.games||[]).filter(g=>originalIds.has(g.id)||JSON.stringify(g)!==JSON.stringify(beforeGames.get(g.id)));
+    const localGameQuest={...raw.gameQuest,games};
+    const next={...candidate,gameQuest:localGameQuest};
+    const localChanged=fingerprint(next)!==guard;
+    if(!changes.length)return localChanged?saveConfiguration(next,"统一编辑工作台：保存前备份",guard):raw;
+    return (async()=>{
+      await cloud.saveRoutines(before.gameQuest,candidate.gameQuest);
+      if(localChanged){
+        try{return saveConfiguration(next,"统一编辑工作台：保存前备份",guard);}
+        catch(e){throw Error("游戏日常/周常已写入 Supabase；其他配置未保存："+e.message);}
+      }
+      return raw;
+    })();
   }
   function syncConfiguration(saved){
     if(!ghToken()||!navigator.onLine)return;
@@ -351,7 +399,7 @@
   }
 
   function snapshot(){
-    return {kind:"taskring-backup",schemaVersion:C.VERSION,createdAt:new Date().toISOString(),configuration:C.exportConfig(config()),
+    return {kind:"taskring-backup",schemaVersion:C.VERSION,createdAt:new Date().toISOString(),configuration:C.exportConfig(workbenchConfig()),
       execution:{states:collectGhLocalStates(),state_meta:window.TaskRingIntegrity.readStateMeta(),
         time_logs:readTimeLogs(),time_logs_deleted:readDeletedTimeLogMap()}};
   }
@@ -490,7 +538,7 @@
     else if(d.commandEdit!==undefined)openTaskForm(d.commandEdit);
     else if(d.commandJson!==undefined){closeControlCenter();jsonManager();}
     else if(d.commandDismiss!==undefined)dismiss();
-    else if(d.commandExport){const value=d.commandExport==="backup"?snapshot():C.exportConfig(config());downloadJsonBackupFile("taskring-"+d.commandExport+"-"+date()+".json",value);}
+    else if(d.commandExport){const value=d.commandExport==="backup"?snapshot():C.exportConfig(workbenchConfig());downloadJsonBackupFile("taskring-"+d.commandExport+"-"+date()+".json",value);}
     else if(d.commandApplyImport!==undefined)applyImport();
     else if(d.commandRollback!==undefined)showRollback();
     else if(d.commandRestore!==undefined)restorePreview(Number(d.commandRestore));
@@ -564,6 +612,6 @@
     if(event.key===TASK_CONFIG_LOCAL_KEY||event.key?.startsWith(GH_PREFIX)||event.key===window.TaskRingIntegrity.stateMetaKey)renderAll();
   });
 
-  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(config()),getWorkbenchConfig:()=>JSON.parse(JSON.stringify(config())),saveWorkbenchConfig:(candidate,expectedFingerprint)=>saveConfiguration(candidate,"统一编辑工作台：保存前备份",expectedFingerprint),openWorkbenchJson:()=>jsonManager()};
+  window.TaskRingCommand={render,renderOverview,onView,weeklyControls,dirty,weekTodayOnly:()=>weeklyToday,resetWeekFilter:()=>{weeklyToday=false},exportConfig:()=>C.exportConfig(workbenchConfig()),getWorkbenchConfig:()=>JSON.parse(JSON.stringify(workbenchConfig())),saveWorkbenchConfig,openWorkbenchJson:()=>jsonManager()};
   render();
 })();
