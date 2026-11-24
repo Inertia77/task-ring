@@ -721,21 +721,23 @@
     selected=next.key;screen="detail";notice="";revealSelection(next);render();
     root.querySelector(".wb-editor").scrollTop=0;
   }
-  function save(){
+  async function save(){
     if(busy||guardRaw())return;
     flush();
     if(!isDirty()){notice="当前没有需要保存的修改";render();return;}
     try{
       C.validateConfig(draft);
       busy=true;
-      const saved=window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
+      render();
+      const saved=await window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
       const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();undoStack=[];redoStack=[];
-      notice="✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
+      notice=window.TaskRingGameOpsCloud?.routineState?.().active?"✓ 已保存；游戏日常/周常以 Supabase 为准，其他配置沿用原有同步":"✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
   }
   function close(force=false){
+    if(busy)return false;
     const pendingRaw=rawPending();
     if(!force){flush();if((isDirty()||pendingRaw)&&!confirm("还有未保存的编辑草稿或尚未应用的 JSON。关闭会放弃这些修改，确定关闭吗？"))return false;}
     root.hidden=true;root.innerHTML="";document.body.classList.remove("workbenchOpen");
