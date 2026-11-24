@@ -222,3 +222,21 @@ for(const width of [390,1440]){
     await expect(page.locator('[data-gqv5-task][data-game="fixture-upcoming-game"][data-task="future-daily"]')).toHaveCount(1);
   });
 }
+
+for(const width of [390,1440]){
+  test('inactive optional tab is neutral while both selections keep their shared highlight at '+width+'px',async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await boot(page,'game');
+    await page.locator('[data-gqv6-board="daily"]').click();
+    const must=page.locator('[data-gqv6-lane="must"][data-board="daily"]');
+    const optional=page.locator('[data-gqv6-lane="optional"][data-board="daily"]');
+    await must.click();
+    await expect(must).toHaveCSS('background-color','rgb(36, 61, 80)');
+    await expect(optional).toHaveCSS('background-color','rgb(220, 224, 228)');
+    await expect(optional).toBeEnabled();
+    await optional.click();
+    await expect(optional).toHaveCSS('background-color','rgb(36, 61, 80)');
+    await expect(optional).toHaveAttribute('aria-selected','true');
+    await expect(must).not.toHaveCSS('background-color','rgb(36, 61, 80)');
+  });
+}
