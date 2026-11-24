@@ -84,6 +84,17 @@
       '<span>'+title+'</span><small>'+items.length+'</small></h2>'+
       (items.length?'<div class="commandGrid">'+items.map(row=>card(row)).join("")+'</div>':empty(blank))+'</section>';
   }
+  // Keep optional gaming out of the primary discretionary task list.
+  // Native disclosure preserves keyboard access and the shared completion handlers.
+  function optionalGameGroup(items){
+    if(!items.length)return "";
+    const pending=items.filter(row=>!row.done),completed=items.filter(row=>row.done);
+    const key="optional-game-section";
+    return '<details class="commandGroup commandDone" data-command-details="'+key+'" data-command-group="游戏作战区 · 有余力" '+(openedDetails.has(key)?'open':'')+'>'+
+      '<summary>'+uiIcon("gamepad-2")+'<span>游戏作战区 · 有余力</span> <small>'+pending.length+' 待做 · '+completed.length+' 已完成</small>'+uiIcon("chevron-down")+'</summary>'+
+      (pending.length?'<div class="commandGrid">'+pending.map(row=>card(row)).join("")+'</div>':"")+
+      (completed.length?'<details class="commandGroup commandDone" data-command-details="optional-game-done" '+(openedDetails.has("optional-game-done")||statusFilter==="done"||!pending.length?'open':'')+'><summary>'+uiIcon("check-circle")+'已完成 <span>'+completed.length+'</span></summary><div class="commandGrid">'+completed.map(row=>card(row)).join("")+'</div></details>':"")+'</details>';
+  }
   function upcoming(){
     const seen=new Set();
     const dates=Array.from({length:7},(_,i)=>E.offset(date(),i+1));
@@ -111,7 +122,9 @@
     if(sort==="module")shown.sort((a,b)=>names[a.definition.module].localeCompare(names[b.definition.module],"zh-CN"));
     const selected=shown.filter(row=>filter==="all"||filter==="required"&&(row.required||row.overdue&&!row.optional)||filter==="optional"&&row.optional);
     const unfinished=selected.filter(row=>!row.done);
-    const done=selected.filter(row=>row.done);
+    const isOptionalGame=row=>row.optional&&row.definition.module==="game";
+    const optionalGame=selected.filter(isOptionalGame);
+    const done=selected.filter(row=>row.done&&!isOptionalGame(row));
     const near=filter==="all"||filter==="upcoming"?upcoming():[];
     const upcomingList=near.map(({day,row})=>'<li><time>'+day.slice(5)+'</time><span>'+esc(row.definition.title)+'</span><small>'+esc(names[row.definition.module])+'</small></li>').join("");
     const running=readActiveTimer();
@@ -130,8 +143,9 @@
         group("今日必做",unfinished.filter(x=>x.bucket==="required"&&!x.overdue))+
         group("今日计划",unfinished.filter(x=>x.bucket==="planned"&&!x.overdue))+
         group("临近截止",unfinished.filter(x=>x.bucket==="deadline"&&!x.overdue))+
-        group("有余力任务",unfinished.filter(x=>x.optional))+
+        group("有余力任务",unfinished.filter(x=>x.optional&&!isOptionalGame(x)))+
         (done.length?'<details class="commandGroup commandDone" data-command-details="done-section" '+(openedDetails.has("done-section")||statusFilter==="done"||unfinished.length===0?'open':'')+'><summary>'+uiIcon("check-circle")+'已完成 <span>'+done.length+'</span></summary><div class="commandGrid">'+done.map(row=>card(row)).join("")+'</div></details>':'')+
+        optionalGameGroup(optionalGame)+
         (!selected.length?empty("没有符合当前筛选条件的任务。"):"")+
         (filter==="all"&&upcomingList?'<section class="commandGroup"><h2>'+groupIcon("近期预览")+'<span>近期预览</span></h2><ul class="commandUpcoming">'+upcomingList+'</ul></section>':'')
       ));
@@ -468,7 +482,7 @@
     if(d.commandToggle){
       const row=rows.get(d.commandToggle);
       if(!row?.set||row.canWrite===false)return;
-      if(activeAppView==="overview"&&!row.done)openedDetails.add("done-section");
+      if(activeAppView==="overview"&&!row.done)openedDetails.add(row.optional&&row.definition.module==="game"?"optional-game-done":"done-section");
       row.set(!row.done,el);
     }else if(d.commandFilter){filter=d.commandFilter;renderOverview();}
     else if(d.commandSource){const row=rows.get(d.commandSource);if(row)goToSource(row);}
@@ -514,7 +528,7 @@
   document.addEventListener("change",event=>{
     const el=event.target,d=el.dataset;
     if(d.commandImport!==undefined){readImport(el).catch(err=>{if(el.isConnected)dialogError(err.message)});return;}
-    if(d.commandModule!==undefined){moduleFilter=el.value;renderOverview();}
+    if(d.commandModule!==undefined){moduleFilter=el.value;if(moduleFilter==="game")openedDetails.add("optional-game-section");renderOverview();}
     if(d.commandStatus!==undefined){statusFilter=el.value;renderOverview();}
     if(d.commandSort!==undefined){sort=el.value;renderOverview();}
     if(d.commandStep!==undefined){
