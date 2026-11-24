@@ -452,6 +452,22 @@
     const bodyId="gqv6-body-"+board+"-"+lane+"-"+g.id;
     return '<article class="gameQuestCard gameQuestCardV2 gqV6GameCard accent-'+esc(g.accent)+' '+(entry.cardDone?"done":"")+(mobileExpanded?'':' gqV6MobileCollapsed')+'" style="--gq-p:'+pct+'%"><div class="gameQuestCardTop"><button type="button" class="gameQuestCheck '+(entry.cardDone?"done":"")+'" data-gqv5-card="1" data-board="'+esc(board)+'" data-game="'+esc(g.id)+'" data-task-lane="'+esc(lane)+'"'+' aria-label="'+esc(g.name)+'该分类全部'+(entry.cardDone?'取消':'标记')+'完成" aria-pressed="'+(entry.cardDone?"true":"false")+'" '+(entry.total?"":"disabled")+'><span></span></button><span class="gqV6Priority">0'+priority+'</span><span class="gameQuestIcon">'+esc(String(g.icon||g.name).slice(0,4))+'</span><div class="gameQuestNameWrap"><span class="gameQuestName">'+esc(g.name)+'</span>'+tierBadge+storyBadge+'<span class="gameQuestShort">'+(tier?tierCode(tier)+'级 · '+tierLabel(tier):'优先度 #'+priority)+' · '+entry.total+' 项'+'</span></div><span class="gameQuestCount">'+entry.done+'/'+entry.total+'</span><button type="button" class="gqV6MobileGameToggle" data-gqv6-game-toggle="1" data-board="'+esc(board)+'" data-lane="'+esc(lane)+'" data-game="'+esc(g.id)+'" data-all-open="'+allExpanded+'" aria-label="'+esc(g.name)+' · '+(allExpanded?'只看此游戏':(mobileExpanded?'收起':'展开')+'任务')+'" aria-expanded="'+mobileExpanded+'" aria-controls="'+esc(bodyId)+'"><span class="gqV6ToggleChevron" aria-hidden="true">⌄</span></button></div><div class="gameQuestProgressRail"><span></span></div><div class="gameQuestCardBody" id="'+esc(bodyId)+'">'+taskRows(board,entry)+'</div></article>';
   }
+  // Keep future-dated games visible even when all their routine tasks are
+  // excluded from today's actionable lanes and completion totals.
+  function upcomingRoutineGames(board,entries){
+    const today=operationalDate();
+    return entries.filter(entry=>entry.total===0).map(entry=>{
+      const pending=boardTasksAll(board,entry.game.id).filter(t=>t.active_from&&t.active_from>today&&(!t.active_until||t.active_until>=t.active_from));
+      if(!pending.length)return null;
+      const start=pending.map(t=>t.active_from).sort()[0];
+      return {game:entry.game,start,count:pending.length};
+    }).filter(Boolean);
+  }
+  function upcomingRoutineHtml(board,entries){
+    const upcoming=upcomingRoutineGames(board,entries);
+    if(!upcoming.length)return "";
+    return '<aside class="gqV6Untracked gqV6UpcomingRoutines" aria-label="即将开放的游戏任务"><strong>即将开放 · 不计入当前完成度</strong><span>'+upcoming.map(({game,start,count})=>'<span class="gqV6UntrackedTag" data-gq-upcoming-game="'+esc(game.id)+'">'+esc(game.name)+' · '+esc(start.slice(5).replace("-","/"))+' 开放 · '+count+' 项'+(board==="daily"?"日常":"周常")+'</span>').join("")+'</span></aside>';
+  }
   function flowBoard(board,entries){
     const isDaily=board==="daily";
     const lanes=isDaily?DAILY_LANE_ORDER:WEEKLY_LANE_ORDER;
@@ -487,7 +503,7 @@
         (group.grouped.length?group.grouped.slice().sort((a,b)=>tierRank(a.game)-tierRank(b.game)||(PLAY?.get(a.game).sortOrder??0)-(PLAY?.get(b.game).sortOrder??0)).map(function(e,i,arr){const t=tierOf(e.game),prev=i?tierOf(arr[i-1].game):-1;const head=(i===0||t!==prev)?'<header class="gqV6TierDivider tier-'+(t??0)+'"><strong>'+(t?tierCode(t)+'级｜'+tierLabel(t):'尚未分级')+'</strong><span>'+(t===2?(pendingCore().total?'建议先做 S 级，A 级仍可随时勾选':'可按余力安排，也可随时勾选'):t===1?'核心任务优先':t===3?'仅限时活动':'登录同步策略后显示分级')+'</span>'+(i===0?'<button type="button" class="gqV6TierExpand" data-gqv6-expand-all="1" data-board="'+board+'" data-lane="'+group.lane+'" aria-pressed="'+expandAll+'">'+(expandAll?'收起其他':'全部展开')+'</button>':'')+'</header>':'';return head+gameCard(board,e,group.lane,expandAll||focus===e.game.id,expandAll)}).join(""):'<p class="gqWeeklyEmpty">本组暂无任务。</p>')+'</div>'+
         '</section>';
     }).join("");
-    return '<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+tabs+panels+'</div>';
+    return upcomingRoutineHtml(board,entries)+'<div class="gqWeeklyFlow gqTaskFlow '+(isDaily?"gqDailyFlow":"gqWeeklyFlowBoard")+'">'+tabs+panels+'</div>';
   }
   function boardTabs(active){
     return '<nav class="gqV6BoardTabs" aria-label="游戏作战区板块">'+(isInterest()?["hub"]:VIEW_ORDER).map(function(view){
