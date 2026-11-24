@@ -119,10 +119,18 @@ test('overview completion shares daily state and supports undo after refresh',as
   await page.reload();
   await expect(page.locator('body')).toHaveAttribute('data-app-view','tasks');
   await view(page,'overview');
-  const done=page.locator('#commandCenter .commandDone');
+  const done=page.locator('#commandCenter [data-command-details="done-section"]');
+  const optionalGames=page.locator('#commandCenter [data-command-details="optional-game-section"]');
+  await expect(done).toHaveCount(1);
   await expect(done).toBeVisible();
+  await expect(optionalGames).toHaveCount(1);
+  await expect(optionalGames).toBeVisible();
+  await expect(optionalGames).not.toHaveAttribute('open','');
+  await expect(optionalGames).not.toContainText(title);
+  await expect(done.locator('[data-command-details="optional-game-section"]')).toHaveCount(0);
   if(await done.getAttribute('open')===null)await done.locator(':scope > summary').click();
-  await page.getByRole('button',{name:'撤销完成：'+title,exact:true}).click();
+  await done.getByRole('button',{name:'撤销完成：'+title,exact:true}).click();
+  await expect(optionalGames).not.toHaveAttribute('open','');
   await expect.poll(()=>page.evaluate(()=>isDone('test-task-0',today))).toBe(false);
 });
 
