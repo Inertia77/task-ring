@@ -492,3 +492,64 @@ body.nx .gameQuestV6 .gqV6Top .gameQuestHeroSide > * {
   min-width: 0;
 }
 }
+
+
+/* Game scope identity is independent of selection and reserve readiness.
+   S: command blue; A: amber; B: jade; D: violet. */
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.core {
+  --scope-bg:#e3eef8;--scope-ink:#214c73;--scope-line:#8eafcf;
+  --scope-accent:#4582b7;--scope-active:#244e73;--scope-lit:#a6d7ff;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.reserve {
+  --scope-bg:#fbefd9;--scope-ink:#795018;--scope-line:#d7b36e;
+  --scope-accent:#c18a30;--scope-active:#76501e;--scope-lit:#ffe0a0;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.interest {
+  --scope-bg:#e2f2ea;--scope-ink:#225d48;--scope-line:#8cbea7;
+  --scope-accent:#409471;--scope-active:#28664f;--scope-lit:#a6efd0;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.preview {
+  --scope-bg:#eee7f8;--scope-ink:#58407d;--scope-line:#b6a1d5;
+  --scope-accent:#8b6cb9;--scope-active:#60468a;--scope-lit:#e2ccff;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn {
+  background:var(--scope-bg);color:var(--scope-ink);
+  border:1px solid var(--scope-line);
+  box-shadow:inset 3px 0 0 var(--scope-accent);
+  transition:background-color .15s,border-color .15s,box-shadow .15s;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn:not(.active):hover {
+  border-color:var(--scope-accent);
+  box-shadow:inset 3px 0 0 var(--scope-accent),0 2px 6px rgba(30,55,71,.09);
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.active {
+  background:var(--scope-active);color:#fff;
+  border-color:var(--scope-active);
+  box-shadow:inset 3px 0 0 var(--scope-lit),inset 0 -2px 0 var(--scope-lit);
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn .gqScopeTitle small {
+  color:inherit;opacity:1;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.active .gqScopeTitle small {
+  color:var(--scope-lit);
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn .gqScopeMeta {
+  color:inherit;opacity:1;
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.reserve.urgent:not(.active) {
+  border-color:var(--scope-accent);
+}
+body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn:focus-visible {
+  outline:2px solid var(--scope-active);outline-offset:2px;
+}
+@media(max-width:480px) {
+  body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn {
+    box-shadow:inset 0 3px 0 var(--scope-accent);
+  }
+  body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.active {
+    box-shadow:inset 0 3px 0 var(--scope-lit),inset 0 -2px 0 var(--scope-lit);
+  }
+}
+@media(forced-colors:active) {
+  body.nx .gameQuestV6 .gqScopeNav > .gqScopeBtn.active {outline:2px solid Highlight;}
+}
