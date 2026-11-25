@@ -407,10 +407,10 @@
     showToast("任务已保存到本机","ok",2200);
   }
 
-  function snapshot(){
+  async function snapshot(){
     const ws=window.TaskRingWorkspace;
     return {kind:"taskring-backup",schemaVersion:C.VERSION,createdAt:new Date().toISOString(),configuration:C.exportConfig(workbenchConfig()),
-      execution:ws?.connected()?ws.exportExecution():{states:collectGhLocalStates(),state_meta:window.TaskRingIntegrity.readStateMeta(),
+      execution:ws?.connected()?await ws.exportExecution():{states:collectGhLocalStates(),state_meta:window.TaskRingIntegrity.readStateMeta(),
         time_logs:readTimeLogs(),time_logs_deleted:readDeletedTimeLogMap()}};
   }
   function jsonManager(){
@@ -495,7 +495,7 @@
       TASK_CONFIG_LOCAL_KEY,window.TaskRingIntegrity.stateMetaKey,TIME_LOGS_KEY,TIME_LOG_DELETED_KEY
     ].includes(key);
     const before=execution?new Map(Object.keys(localStorage).filter(protectedKey).map(key=>[key,localStorage.getItem(key)])):null;
-    if(execution)downloadJsonBackupFile("taskring-backup-before-import-"+date()+".json",snapshot());
+    if(execution)downloadJsonBackupFile("taskring-backup-before-import-"+date()+".json",await snapshot());
     try{
       const saved=saveConfiguration(importPreview.config,"统一 JSON 导入前",editorFingerprint,!execution);
       if(execution){
@@ -580,7 +580,10 @@
     else if(d.commandEdit!==undefined)openTaskForm(d.commandEdit);
     else if(d.commandJson!==undefined){closeControlCenter();jsonManager();}
     else if(d.commandDismiss!==undefined)dismiss();
-    else if(d.commandExport){const value=d.commandExport==="backup"?snapshot():C.exportConfig(workbenchConfig());downloadJsonBackupFile("taskring-"+d.commandExport+"-"+date()+".json",value);}
+    else if(d.commandExport){
+      const type=d.commandExport;el.disabled=true;
+      Promise.resolve().then(()=>type==="backup"?snapshot():C.exportConfig(workbenchConfig())).then(value=>downloadJsonBackupFile("taskring-"+type+"-"+date()+".json",value)).catch(e=>dialogError(String(e.message||e))).finally(()=>{el.disabled=false;});
+    }
     else if(d.commandApplyImport!==undefined)applyImport().catch(e=>dialogError(String(e.message||e)));
     else if(d.commandRollback!==undefined)showRollback();
     else if(d.commandRestore!==undefined)restorePreview(Number(d.commandRestore));
