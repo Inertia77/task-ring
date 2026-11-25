@@ -1003,7 +1003,8 @@ function ghLog(msg){const el=document.getElementById("ghLog");if(el)el.textConte
 function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus");if(!el)return;const short=String(text||"").replace(/^GitHub：?/,"")||"未设置";el.className=`githubInlineState ${cls||"off"}`;el.setAttribute("title",String(text||"GitHub：未设置"));const label=el.querySelector(".ghInlineText");if(label)label.textContent=short;else el.textContent=short;}
 let ghReadOnlyFallback=false;
 let ghReadOnlyReason="";
-function ghToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
+function legacyGistToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
+function ghToken(){return legacyGistToken()}
 function setGhToken(v){
   if(v)localStorage.setItem(GH_TOKEN_KEY,v.trim());else localStorage.removeItem(GH_TOKEN_KEY);
   ghReadOnlyFallback=false;
@@ -1011,7 +1012,7 @@ function setGhToken(v){
 }
 function ghHeaders(includeAuth=true){
   const h={"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"};
-  const t=ghToken();
+  const t=legacyGistToken();
   if(includeAuth&&t)h.Authorization=`Bearer ${t}`;
   return h;
 }
@@ -1111,12 +1112,12 @@ async function ghFetchGistRawFile(file,name){
   if(!file?.raw_url)throw new Error(`${name} 缺少 raw_url，无法读取完整内容`);
   const rawRequest=includeAuth=>{
     const headers={Accept:"text/plain"};
-    const token=ghToken();
+    const token=legacyGistToken();
     if(includeAuth&&token)headers.Authorization=`Bearer ${token}`;
     return fetch(file.raw_url,{headers,cache:"no-store"});
   };
   let res=await rawRequest(false);
-  if(!res.ok&&ghToken()&&(res.status===401||res.status===403||res.status===404))res=await rawRequest(true);
+  if(!res.ok&&legacyGistToken()&&(res.status===401||res.status===403||res.status===404))res=await rawRequest(true);
   if(!res.ok)throw new Error(`${name} 完整内容读取失败（HTTP ${res.status}）：${(await res.text()).slice(0,260)}`);
   return await res.text();
 }
@@ -1137,7 +1138,7 @@ async function ghHydrateGistFile(gist,name,{alwaysRaw=false}={}){
 }
 async function ghFetchGist(){
   const url=`https://api.github.com/gists/${GITHUB_GIST_ID}`;
-  const token=ghToken();
+  const token=legacyGistToken();
   ghReadOnlyFallback=false;
   ghReadOnlyReason="";
   const request=includeAuth=>fetch(url,{headers:ghHeaders(includeAuth),cache:"no-store"});
