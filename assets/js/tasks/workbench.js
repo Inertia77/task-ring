@@ -631,7 +631,7 @@
     checkpoint();
     let obj,parent,mod=domain;
     if(kind==="group"&&domain==="game"){
-      obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,playTier:2,gameKind:"live_service",priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
+      obj={id:"game_"+uuid().replaceAll("-","_"),name:"新游戏",short:"NEW",enabled:true,playTier:2,gameKind:"live_service",priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
       parent=draft.gameQuest.games;parent.push(obj);draft.gameQuest.boards.daily[obj.id]=[];draft.gameQuest.boards.weekly[obj.id]=[];
     }else if(kind==="group"&&domain==="fitness"){
       obj={id:"life-"+uuid(),name:"新改善分区",short:"LIFE",icon:"＋",accent:"blue",locked:false,enabled:true};parent=draft.fitness.sections;parent.push(obj);
@@ -766,6 +766,7 @@
       const used=new Set();copy.steps=(copy.steps||[]).map(s=>{const code=idCode("s",[...used],2);used.add(code);return {...s,id:code,code}});}
     if(item.kind==="refGroup")copy.items=(copy.items||[]).map(entry=>({...entry,id:"wb-ref-"+uuid()}));
     if(item.kind==="gameMeta"){
+      copy.id="game_"+uuid().replaceAll("-","_");
       for(const board of ["daily","weekly"]){
         draft.gameQuest.boards[board][copy.id]=(draft.gameQuest.boards[board][item.obj.id]||[]).map(task=>({...task,id:"wb-game-"+uuid()}));
       }
