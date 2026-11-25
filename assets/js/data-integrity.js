@@ -478,6 +478,7 @@
     configConflictKey:CONFIG_CONFLICT_KEY,
     hasConfigConflict,
     readStateMeta,
+    workspaceBridge:{mergeWithRemoteState,applyMergedState,stateSignature,deviceId,recordConfigBaseline,configBaseFingerprint,rememberConflict},
     patchConfig:config=>patchConfigSafely(config,{interactive:false}),
     importState(snapshot){applyMergedState(mergeWithRemoteState(snapshot));renderAll()}
   };
