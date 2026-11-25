@@ -6,7 +6,7 @@
   const OWNER="taskring_workspace_owner_v1",BASE="taskring_workspace_config_base_v1";
   const legacyFetch=ghFetchGist,legacyParse=ghParseConfig,legacyState=ghParseState;
   const saveLocal=saveLocalTaskConfig,oldStatus=setGhStatus;
-  let workspace=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false,initializing=false,attemptedOwner="";
+  let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false,initializing=false,attemptedOwner="";
   const session=()=>cloud.workspaceSession();
   const copy=v=>JSON.parse(JSON.stringify(v));
   const fp=Core.configFingerprint;
@@ -29,7 +29,8 @@
   function baseline(){return localStorage.getItem(BASE)||"";}
   function recordBase(c){localStorage.setItem(BASE,fp(c));localStorage.removeItem(I.configConflictKey);}
   function canonicalConfig(c){
-    const out=normalizeTaskConfig(copy(c));
+    const raw=copy(c);delete raw.cloudGameConfig;
+    const out=normalizeTaskConfig(raw);
     if(out.gameQuest){
       // Never create a second authoritative game routine catalog.
       out.gameQuest.boards={...out.gameQuest.boards,daily:{},weekly:{}};
@@ -61,9 +62,63 @@
     mergeGhTimeLogDeletes(execution.time_logs_deleted||{});
     mergeGhTimeLogs(execution.time_logs||[]);
   }
+  function strictStable(value){if(value===null||typeof value!=="object")return JSON.stringify(value);if(Array.isArray(value))return "["+value.map(strictStable).join(",")+"]";return "{"+Object.keys(value).sort().map(k=>JSON.stringify(k)+":"+strictStable(value[k])).join(",")+"}";}
   function equalState(a,b){
-    return Core.stableStringify({states:a.states||{},state_meta:a.state_meta||{},time_logs:a.time_logs||[],time_logs_deleted:a.time_logs_deleted||{}})===
-      Core.stableStringify({states:b.states||{},state_meta:b.state_meta||{},time_logs:b.time_logs||[],time_logs_deleted:b.time_logs_deleted||{}});
+    return strictStable({states:a.states||{},state_meta:a.state_meta||{},time_logs:a.time_logs||[],time_logs_deleted:a.time_logs_deleted||{}})===
+      strictStable({states:b.states||{},state_meta:b.state_meta||{},time_logs:b.time_logs||[],time_logs_deleted:b.time_logs_deleted||{}});
+  }
+  async function refreshGame(uid){
+    const data=await rpc("get_taskring_game_configuration");if(session().uid!==uid)throw Error("登录账号已变化");
+    if(!data||!Array.isArray(data.policies)||!Array.isArray(data.operations)||!data.routines)throw Error("游戏配置未完整读取");
+    gameCatalog=data;return data;
+  }
+  function projectConfig(raw){
+    if(!gameCatalog)return {...raw,gameQuest:cloud.routineView(raw.gameQuest)};
+    const gameQuest=cloud.routineView(raw.gameQuest,gameCatalog.routines);
+    const games=(gameQuest.games||[]).map(g=>({...g}));
+    for(const p of gameCatalog.policies){
+      let g=games.find(x=>x.id===p.game_key);
+      if(!g){g={id:p.game_key,name:p.game_name,short:p.game_name,icon:p.game_name.slice(0,1),accent:"slate",enabled:true};games.push(g);}
+      Object.assign(g,{name:p.game_name,playTier:p.play_tier,priority:p.sort_order,storyFocus:p.story_focus,gameKind:p.game_kind});
+    }
+    return {...raw,gameQuest:{...gameQuest,games},cloudGameConfig:{policies:copy(gameCatalog.policies),operations:copy(gameCatalog.operations)}};
+  }
+  const rowsBy=(rows,key)=>new Map((rows||[]).map(r=>[r[key],r]));
+  const policyFields=["game_key","game_name","play_tier","story_focus","game_kind","routine_policy","limited_event_policy","sort_order","effective_on"];
+  const opsFields=["task_key","game","server","task_name","task_type","period","open_at","deadline_at","gameplay_end_at","claim_end_at","lifecycle_status","priority","verification","source_level","source_url","notes","last_verified_at","open_date","deadline_date","last_verified_date"];
+  const pick=(row,fields)=>Object.fromEntries(fields.map(k=>[k,row?.[k]??null]));
+  function catalogChanges(before,after,{importing=false}={}){
+    const old=before.cloudGameConfig||{},next=after.cloudGameConfig;
+    const originalPolicies=rowsBy(old.policies,"game_key"),policies=rowsBy(next?.policies||old.policies,"game_key");
+    // In legacy imports, the embedded game tiers were only old local display
+    // metadata. Never overwrite the present policy with that stale metadata.
+    if(!importing||next){
+      const originalMeta=rowsBy(before.gameQuest?.games,"id");
+      for(const g of after.gameQuest?.games||[]){
+        const previous=originalMeta.get(g.id),base=policies.get(g.id)||originalPolicies.get(g.id);
+        if(!base&&!g.playTier)continue;
+        const patch={};
+        for(const [key,field] of [["name","game_name"],["playTier","play_tier"],["priority","sort_order"],["storyFocus","story_focus"],["gameKind","game_kind"]]){
+          if(g[key]==null||previous&&g[key]===previous[key])continue;
+          if(base&&originalPolicies.has(g.id)&&base[field]!==originalPolicies.get(g.id)[field]&&base[field]!==g[key])throw Error("游戏策略与游戏设置字段冲突："+g.id);
+          patch[field]=g[key];
+        }
+        if(!base||Object.keys(patch).length){
+          const tier=Number(patch.play_tier??base?.play_tier??g.playTier);
+          if(![1,2,3,4,5].includes(tier))throw Error("游戏等级无效："+g.id);
+          const row={game_key:g.id,game_name:g.name,play_tier:tier,story_focus:false,game_kind:"live_service",sort_order:Math.max(1,Number(g.priority)||999),...base,...patch};
+          if(!base||"play_tier" in patch){row.routine_policy=tier===1?"required":tier===2?"deferred":"none";row.limited_event_policy=tier===1?"priority":tier===5?"none":"deferred";}
+          policies.set(g.id,row);
+        }
+      }
+    }
+    const policyChanges=[];
+    for(const [key,row] of policies){const prior=originalPolicies.get(key)||null;if(strictStable(pick(row,policyFields))!==strictStable(pick(prior,policyFields)))policyChanges.push({op:"upsert",game_key:key,expected:prior,next:pick(row,policyFields)});}
+    // Omission does not physically delete a game policy. Use tier F to retire it.
+    const originalOps=rowsBy(old.operations,"task_key"),operations=rowsBy(next?.operations||old.operations,"task_key"),opsChanges=[];
+    for(const [key,row] of operations){const prior=originalOps.get(key)||null;if(strictStable(pick(row,opsFields))!==strictStable(pick(prior,opsFields)))opsChanges.push({op:"upsert",task_key:key,expected:prior,next:pick(row,opsFields)});}
+    for(const [key,row] of originalOps)if(!operations.has(key))opsChanges.push({op:"archive",task_key:key,expected:row});
+    return {policyChanges,opsChanges,routineChanges:cloud.routineChanges(before.gameQuest,after.gameQuest)};
   }
   async function readWorkspace(uid){
     const data=await rpc("get_taskring_workspace");
@@ -87,7 +142,7 @@
       const local=loadLocalTaskConfig();
       const decision=Core.decideConfig({local,remote:parsed.config,baseFingerprint:B.configBaseFingerprint()});
       let chosen=decision.source==="local"?local:parsed.config;
-      if(decision.source==="conflict"){
+      if(decision.source==="conflict"||local&&!B.configBaseFingerprint()&&fp(local)!==fp(parsed.config)){
         if(!interactive||!confirm("旧 Gist 与本机配置存在冲突。确认采用旧云端配置进行迁移？本机配置会完整保留在迁移备份中。"))throw Error("旧配置存在冲突，需在同步设置确认迁移");
         chosen=parsed.config;
       }
@@ -106,7 +161,7 @@
       });
       const reread=await rpc("get_taskring_workspace");
       if(!result||!reread||fp(reread.configuration)!==fp(config)||!equalState(reread.execution,merged))throw Error("迁移回读核验不一致，保留旧凭据并停止");
-      accept(reread,uid);bind(uid);
+      accept(reread,uid);bind(uid);await refreshGame(uid);
       applyConfig(config,"Supabase 迁移：保留旧本机配置");
       applyExecution(reread.execution);recordBase(config);
       localStorage.removeItem(GH_TOKEN_KEY);
@@ -128,7 +183,7 @@
     }
     throw Error("完成记录在其他设备同步中；本机记录已保留，稍后重试");
   }
-  async function writeConfig(c,{routineBefore=null,routineAfter=null,guard=null}={}){
+  async function writeConfig(c,{before=null,after=null,importing=false,guard=null}={}){
     const uid=trustedAccount();
     if(localStorage.getItem(OWNER)!==uid)throw Error("请先完成旧数据迁移或读取云端");
     if(!navigator.onLine)throw Error("离线：配置保留在本机，联网后同步");
@@ -142,14 +197,15 @@
       throw Error("云端配置已发生变化，保留本机草稿，未覆盖云端");
     }
     if(!base&&fp(candidate)!==remoteFp)throw Error("本机尚无共同版本，请先读取云端");
-    const changes=routineBefore&&routineAfter?cloud.routineChanges(routineBefore,routineAfter):[];
-    if(changes.length&&!cloud.routineState().active)throw Error("游戏任务尚未同步");
-    if(fp(candidate)===remoteFp&&!changes.length){recordBase(remote.configuration);return remote;}
-    const saved=await rpc("save_taskring_workspace_config",{p_expected_revision:remote.config_revision,p_configuration:candidate,p_routine_revision:routineBefore?.routineRevision??null,p_routine_changes:changes});
-    accept(saved,uid);recordBase(saved.configuration);
+    const delta=before&&after?catalogChanges(before,after,{importing}):{routineChanges:[],policyChanges:[],opsChanges:[]};
+    const gameChanged=delta.routineChanges.length||delta.policyChanges.length||delta.opsChanges.length;
+    if(gameChanged&&!gameCatalog)throw Error("游戏配置尚未同步");
+    if(fp(candidate)===remoteFp&&!gameChanged){recordBase(remote.configuration);return remote;}
+    const result=await rpc("save_taskring_workspace_config_v2",{p_expected_revision:remote.config_revision,p_configuration:candidate,p_routine_revision:before?.gameQuest?.routineRevision??null,p_routine_changes:delta.routineChanges,p_policy_changes:delta.policyChanges,p_ops_changes:delta.opsChanges});
+    const saved=result.workspace;accept(saved,uid);gameCatalog=result.game;recordBase(saved.configuration);
     // Never overwrite a newer local edit that occurred while the request was pending.
     if(fp(localConfig())===fp(current))applyConfig(saved.configuration,"Supabase 配置保存");
-    if(changes.length)await cloud.fetchRoutines();
+    if(gameChanged)await cloud.refresh();
     renderAll();return saved;
   }
   async function pull(options={}){
@@ -160,6 +216,7 @@
       if(options.migration||legacyGistToken()&&attemptedOwner!==uid){attemptedOwner=uid;return migrate(uid,!!options.interactive);}
       status("待迁移","off");ghLog("请通过同步设置启动一次旧数据迁移。");return;
     }
+    await refreshGame(uid);
     const bound=localStorage.getItem(OWNER);
     if(!bound){
       const existing=localConfig();
@@ -235,17 +292,19 @@
   ghFetchGistRevision=async()=>{throw Error("Gist 历史入口已停用");};
   document.getElementById("workspaceLogin")?.addEventListener("submit",async e=>{
     e.preventDefault();const values=Object.fromEntries(new FormData(e.currentTarget));
-    try{await cloud.workspaceSignIn(values.email,values.password);e.currentTarget.reset();ghPull({interactive:true});}
+    const form=e.currentTarget;
+    try{await cloud.workspaceSignIn(values.email,values.password);form.reset();ghPull({interactive:true});}
     catch(err){ghLog(message(err));showToast("Supabase 登录失败","warn");}
   });
   document.getElementById("workspaceMigrateBtn")?.addEventListener("click",()=>ghPull({migration:true,interactive:true}));
   window.addEventListener("taskring-workspace-auth",()=>{
-    if(session().uid!==owner){workspace=null;owner="";}
+    if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";}
     if(session().uid&&!document.body.classList.contains("locked"))ghPull();
   });
   window.addEventListener("online",()=>{if(ghToken())ghPull();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();});
   setInterval(()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();},60000);
   window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid,revision:()=>workspace?.config_revision??null,
+    projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
     saveConfiguration:(candidate,options={})=>guarded(()=>writeConfig(candidate,options),true),sync:ghPull};
 })();
