@@ -5,6 +5,7 @@
   const OWNER="taskring_workspace_owner_v1",BASE="taskring_workspace_config_base_v1",SYNC_CURSOR="taskring_execution_cursor_v2";
   const saveLocal=saveLocalTaskConfig,oldStatus=setGhStatus;
   let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false;
+  let autoPending=false, retryTimer, retryDelay=2000, connectionPhase="idle";
   const session=()=>cloud.workspaceSession();
   const copy=v=>JSON.parse(JSON.stringify(v));
   const fp=Core.configFingerprint;
@@ -276,7 +277,7 @@
       const localData=!!existing||Object.keys(collectGhLocalStates()).length>0||readTimeLogs().length>0;
       const needsConfirmation=localData&&(!existing||fp(existing)!==fp(remote.configuration));
       if(needsConfirmation&&!options.interactive){
-        status("需确认本机数据","err");ghLog("本机已有配置，需在同步设置明确确认采用 Supabase 云端，防止跨账号覆盖。");return;
+        connectionPhase="confirmation";status("需确认本机数据","err");ghLog("本机已有配置，需在同步设置明确确认采用 Supabase 云端，防止跨账号覆盖。");return;
       }
       if(needsConfirmation&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。"))return;
       bind(uid);recordBase(remote.configuration);
@@ -297,13 +298,15 @@
       }
     }
     await pushState(uid);
+    await cloud.refresh();
+    connectionPhase="ready";
     localStorage.removeItem(GH_TOKEN_KEY);
     if(!I.hasConfigConflict())status("已同步","on");
     renderAll();
   }
   function guarded(fn,interactive=false){
     return serial(async()=>{try{return await fn();}catch(e){
-      status("同步未完成","err");ghLog(message(e));if(interactive)showToast(message(e),"warn",4200);throw e;
+      connectionPhase="error";status("同步未完成","err");ghLog(message(e));if(interactive)showToast(message(e),"warn",4200);throw e;
     }});
   }
   // Retain old call names as UI compatibility shims, never as Gist writers.
@@ -339,7 +342,7 @@
     const connected=!!workspace&&owner===account.uid&&bound===account.uid;
     const foreign=!!account.uid&&!!bound&&bound!==account.uid;
     const panel=document.getElementById("workspaceAccountStatus");
-    if(panel)panel.textContent=!account.ready?"正在检查登录状态…":!account.uid?"未登录 Supabase":(account.email||"已登录 Supabase")+(foreign?" · 与本机账号不匹配":connected?" · 工作区已连接":" · 待连接工作区");
+    if(panel)panel.textContent=!account.ready?"正在检查登录状态…":!account.uid?"未登录 Supabase":(account.email||"已登录 Supabase")+(foreign?" · 与本机账号不匹配":connectionPhase==="connecting"?" · 正在连接工作区":connectionPhase==="confirmation"?" · 需要首次绑定确认":connectionPhase==="error"?" · 同步失败，等待重试":connected?" · 工作区已连接":" · 待连接工作区");
     const form=document.getElementById("workspaceLogin");
     if(form)form.hidden=!account.ready||!!account.uid;
     const actions=document.getElementById("workspaceSyncActions");
@@ -359,14 +362,24 @@
     try{await cloud.workspaceSignIn(values.email,values.password);form.reset();ghPull({interactive:true});}
     catch(err){ghLog(message(err));showToast("Supabase 登录失败","warn");}
   });
+  function autoConnect(){
+    if(autoPending||!session().uid||document.body.classList.contains("locked")||document.hidden||!navigator.onLine)return;
+    if(connectionPhase==="confirmation"&&!localStorage.getItem(OWNER))return;
+    clearTimeout(retryTimer);autoPending=true;connectionPhase="connecting";refreshSyncPanel();
+    guarded(()=>pull({})).then(()=>{retryDelay=2000;if(connectionPhase==="connecting")connectionPhase="idle";}).catch(()=>{
+      retryTimer=setTimeout(autoConnect,retryDelay);retryDelay=Math.min(retryDelay*2,60000);
+    }).finally(()=>{autoPending=false;refreshSyncPanel();});
+  }
+  new MutationObserver(()=>{if(!document.body.classList.contains("locked"))autoConnect();}).observe(document.body,{attributes:true,attributeFilter:["class"]});
   window.addEventListener("taskring-workspace-auth",()=>{
-    if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";}
+    if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";connectionPhase="idle";}
     refreshSyncPanel();
-    if(session().uid&&!document.body.classList.contains("locked"))ghPull();
+    autoConnect();
   });
-  window.addEventListener("online",()=>{if(ghToken())ghPull();});
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();});
-  setInterval(()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();},60000);
+  window.addEventListener("online",autoConnect);
+  document.addEventListener("visibilitychange",autoConnect);
+  setInterval(autoConnect,60000);
+  autoConnect();
   window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid&&localStorage.getItem(OWNER)===owner,revision:()=>workspace?.config_revision??null,
     projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
     exportExecution:()=>guarded(exportFullExecution,true),
