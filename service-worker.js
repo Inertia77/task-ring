@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261125-supabase-only";
+const CACHE_NAME = "taskring-shell-20261126-auto-reconnect";
 const APP_SHELL = [
   "./",
   "./index.html",
