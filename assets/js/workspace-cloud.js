@@ -3,7 +3,7 @@
 (function(){
   "use strict";
   const cloud=window.TaskRingGameOpsCloud,I=window.TaskRingIntegrity,B=I.workspaceBridge,Core=I.core;
-  const OWNER="taskring_workspace_owner_v1",BASE="taskring_workspace_config_base_v1";
+  const OWNER="taskring_workspace_owner_v1",BASE="taskring_workspace_config_base_v1",SYNC_CURSOR="taskring_execution_cursor_v2";
   const legacyFetch=ghFetchGist,legacyParse=ghParseConfig,legacyState=ghParseState;
   const saveLocal=saveLocalTaskConfig,oldStatus=setGhStatus;
   let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false,initializing=false,attemptedOwner="";
@@ -126,8 +126,8 @@
     for(const [key,row] of originalOps)if(!operations.has(key))opsChanges.push({op:"archive",task_key:key,expected:row});
     return {policyChanges,opsChanges,routineChanges:cloud.routineChanges(before.gameQuest,after.gameQuest)};
   }
-  async function readWorkspace(uid){
-    const data=await rpc("get_taskring_workspace");
+  async function readWorkspace(uid,full=false){
+    const data=await rpc(full?"get_taskring_workspace":"get_taskring_workspace_head");
     if(session().uid!==uid)throw Error("登录账号已变化");
     if(data)accept(data,uid);
     return data;
@@ -196,26 +196,96 @@
     accept(verified,uid);bind(uid);recordBase(normalized);applyConfig(normalized,"Supabase 完整备份迁移前");applyExecution(verified.execution);
     localStorage.removeItem(GH_TOKEN_KEY);status("已迁移","on");renderAll();return verified;
   }
+  // Acknowledged per-record versions are persisted with the server cursor.
+  // The browser retains its historical cache (needed for historical views and
+  // task-code collision protection), but never retransmits unchanged history.
+  function stateVersion(record){
+    return strictStable([record?.value,record?.updatedAt||record?.updated_at||"",record?.deviceId||record?.device_id||"",record?.sequence||null]);
+  }
+  function emptyCursor(uid){return {uid,revision:null,meta:{},logs:{},deleted:{}};}
+  function readCursor(uid){
+    try{
+      const data=JSON.parse(localStorage.getItem(SYNC_CURSOR)||"null");
+      if(data?.uid===uid&&Number.isSafeInteger(data.revision)&&data.revision>=0&&data.meta&&data.logs&&data.deleted&&localStorage.getItem(I.stateMetaKey))return data;
+    }catch(_){}
+    return emptyCursor(uid);
+  }
+  function persistCursor(cursor){
+    try{localStorage.setItem(SYNC_CURSOR,JSON.stringify(cursor));}
+    catch(_){/* quota or private mode: fall back to safe full bootstrap next time */}
+  }
+  function observeDelta(cursor,delta){
+    if(delta.full){cursor.meta={};cursor.logs={};cursor.deleted={};}
+    for(const [key,record] of Object.entries(delta.state_meta||{}))cursor.meta[key]=stateVersion(record);
+    // Explicit legacy removal is represented in the index. Keep local history;
+    // existing versioned tombstones, not absence, decide completion.
+    for(const key of delta.removed||[])delete cursor.meta[key];
+    if(Array.isArray(delta.time_logs)){
+      cursor.logs={};
+      for(const log of delta.time_logs)if(log?.id)cursor.logs[log.id]=strictStable(log);
+    }
+    if(delta.time_logs_deleted&&typeof delta.time_logs_deleted==="object")cursor.deleted={...delta.time_logs_deleted};
+    cursor.revision=Number(delta.revision);
+  }
+  function buildExecutionPatch(local,cursor){
+    const meta={},logs=[],deleted={};
+    for(const [key,record] of Object.entries(local.state_meta||{})){
+      if(stateVersion(record)!==cursor.meta[key])meta[key]=record;
+    }
+    for(const [id,stamp] of Object.entries(local.time_logs_deleted||{})){
+      if(!cursor.deleted[id]||String(stamp)>String(cursor.deleted[id]))deleted[id]=stamp;
+    }
+    for(const log of local.time_logs||[]){
+      if(log?.id&&!cursor.deleted[log.id]&&!deleted[log.id]&&strictStable(log)!==cursor.logs[log.id])logs.push(log);
+    }
+    return {meta,logs,deleted};
+  }
   async function pushState(uid,extra=null){
     migrateLegacyLocalStates();
-    // Compare-and-swap state and merge on conflict, retaining remote historical logs.
+    if(localStorage.getItem(OWNER)!==uid)throw Error("本机尚未绑定工作区");
     for(let attempt=0;attempt<3;attempt++){
-      const remote=await readWorkspace(uid);
-      if(!remote)throw Error("尚未迁移工作区");
-      const merged=snapshot(combineExecution(remote.execution,extra));applyExecution(merged);
-      if(equalState(remote.execution,merged))return remote;
+      const cursor=readCursor(uid);
+      const delta=await rpc("get_taskring_execution_delta",{p_since:cursor.revision});
+      if(!delta||!Number.isSafeInteger(Number(delta.revision)))throw Error("执行记录增量读取失败");
+      if(session().uid!==uid||localStorage.getItem(OWNER)!==uid)throw Error("登录账号已变化");
+      // Apply the delta before advancing the durable cursor. A crash before
+      // cursor persistence simply replays the same idempotent changes.
+      if(delta.full||Object.keys(delta.state_meta||{}).length||Object.keys(delta.states||{}).length||Array.isArray(delta.time_logs)||delta.time_logs_deleted)applyExecution(delta);
+      observeDelta(cursor,delta);
+      const local=extra?snapshot(combineExecution(snapshot({}),extra)):snapshot({});
+      if(extra)applyExecution(local);
+      // Persist metadata for legacy checked keys that lack a version; otherwise
+      // an unchanged legacy key would receive a new timestamp at every poll.
+      const localMeta=I.readStateMeta?.()||{};
+      if(Object.keys(local.state_meta||{}).some(key=>!localMeta[key]))B.applyMergedState(B.mergeWithRemoteState(local));
+      persistCursor(cursor);
+      const patch=buildExecutionPatch(local,cursor);
+      if(!Object.keys(patch.meta).length&&!patch.logs.length&&!Object.keys(patch.deleted).length)return workspace;
       try{
-        const saved=await rpc("save_taskring_workspace_state",{p_expected_revision:remote.state_revision,p_execution:merged});
-        accept(saved,uid);applyExecution(saved.execution);return saved;
-      }catch(e){if(e.code!=="40001"&&attempt===0)throw e;}
+        const saved=await rpc("save_taskring_execution_delta",{p_expected_revision:cursor.revision,p_state_meta:patch.meta,p_time_logs:patch.logs.length?patch.logs:null,p_time_logs_deleted:Object.keys(patch.deleted).length?patch.deleted:null});
+        if(!saved||!Number.isSafeInteger(Number(saved.revision)))throw Error("执行记录写入未确认");
+        if(session().uid!==uid||localStorage.getItem(OWNER)!==uid)throw Error("登录账号已变化");
+        // Keep the cursor at the observed revision until the next pull:
+        // the server's accepted records and any concurrent later changes
+        // will be acknowledged by that pull.
+        if(workspace)workspace={...workspace,state_revision:Number(saved.revision)};
+        return workspace;
+      }catch(e){if(e.code!=="40001")throw e;}
     }
     throw Error("完成记录在其他设备同步中；本机记录已保留，稍后重试");
+  }
+  async function exportFullExecution(){
+    const uid=trustedAccount();
+    if(localStorage.getItem(OWNER)!==uid)throw Error("请先连接 Supabase 工作区");
+    const remote=await readWorkspace(uid,true);
+    if(!remote?.execution)throw Error("完整历史读取失败；未导出不完整备份");
+    return snapshot(remote.execution);
   }
   async function writeConfig(c,{before=null,after=null,importing=false,guard=null,execution=null}={}){
     const uid=trustedAccount();
     if(localStorage.getItem(OWNER)!==uid)throw Error("请先完成旧数据迁移或读取云端");
     if(!navigator.onLine)throw Error("离线：配置保留在本机，联网后同步");
-    const remote=await readWorkspace(uid);
+    const remote=await readWorkspace(uid,!!execution);
     if(!remote)throw Error("尚未迁移工作区");
     const candidate=canonicalConfig(c),current=localConfig();
     const remoteFp=fp(remote.configuration),base=baseline();
@@ -230,7 +300,7 @@
     if(gameChanged&&!gameCatalog)throw Error("游戏配置尚未同步");
     if(fp(candidate)===remoteFp&&!gameChanged&&!execution){recordBase(remote.configuration);return remote;}
     const args={p_expected_revision:remote.config_revision,p_configuration:candidate,p_routine_revision:before?.gameQuest?.routineRevision??null,p_routine_changes:delta.routineChanges,p_policy_changes:delta.policyChanges,p_ops_changes:delta.opsChanges};
-    const result=execution?await rpc("import_taskring_workspace",{...args,p_expected_state_revision:remote.state_revision,p_execution:snapshot(combineExecution(remote.execution,execution))}):await rpc("save_taskring_workspace_config_v2",args);
+    const result=execution?await rpc("import_taskring_workspace",{...args,p_expected_state_revision:remote.state_revision,p_execution:snapshot(combineExecution(remote.execution,execution))}):await rpc("save_taskring_workspace_config_compact",args);
     const saved=result.workspace;accept(saved,uid);gameCatalog=result.game;recordBase(saved.configuration);
     // Never overwrite a newer local edit that occurred while the request was pending.
     if(fp(localConfig())===fp(current))applyConfig(saved.configuration,"Supabase 配置保存");
@@ -338,7 +408,7 @@
   setInterval(()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();},60000);
   window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid&&localStorage.getItem(OWNER)===owner,revision:()=>workspace?.config_revision??null,
     projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
-    exportExecution:()=>snapshot(workspace?.execution||{}),
+    exportExecution:()=>guarded(exportFullExecution,true),
     importExecution:execution=>guarded(()=>pushState(trustedAccount(),execution),true),
     initializeFromBackup:(config,execution)=>guarded(()=>initializeFromBackup(config,execution),true),
     saveConfiguration:(candidate,options={})=>guarded(()=>writeConfig(candidate,options),true),sync:ghPull};

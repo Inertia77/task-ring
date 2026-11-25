@@ -72,9 +72,9 @@ assert(appJs.includes('ghHydrateGistFile(gist,GITHUB_STATE_FILE,{alwaysRaw:true}
 assert(appJs.includes('async function ghPatchFiles(){throw new Error'),"legacy Gist writer must be physically disabled");
 assert(!/api\.github\.com\/gists\/[^\n]+method:\s*["']PATCH["']/.test(appJs),"Gist network writes must not remain");
 assert(workspaceJs.includes('initialize_taskring_workspace'),"migration must initialize the Supabase workspace");
-assert(workspaceJs.includes('save_taskring_workspace_config_v2'),"configuration writes must use atomic Supabase RPC");
+assert(workspaceJs.includes('save_taskring_workspace_config_compact'),"configuration writes must use atomic Supabase RPC");
 assert(workspaceJs.includes('import_taskring_workspace'),"full backup import must be atomic");
-assert(workspaceJs.includes('save_taskring_workspace_state'),"completion and time history must use versioned Supabase writes");
+assert(workspaceJs.includes('save_taskring_execution_delta'),"completion and time history must use versioned Supabase writes");
 assert(workspaceJs.includes('旧数据迁移')&&workspaceJs.includes('localStorage.removeItem(GH_TOKEN_KEY)'),"legacy credential is retired after verified migration");
 assert(dataIntegrityJs.includes('workspaceBridge:'),"existing state merge and conflict helpers must be preserved");
 assert(gameOpsV6Js.includes('data-gqv6-complete-daily="1"'),"GameQuest daily board must expose the one-tap complete-all action");

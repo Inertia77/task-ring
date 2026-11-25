@@ -254,12 +254,13 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
     cloud.workspaceRpc=async(name,args)=>{
       window.__workspaceCalls.push(name);
       if(name==="get_taskring_workspace")return remote&&JSON.parse(JSON.stringify(remote));
+      if(name==="get_taskring_workspace_head"){if(!remote)return null;const {execution,...head}=remote;return JSON.parse(JSON.stringify(head));}
       if(name==="get_taskring_game_configuration")return game;
       if(name==="initialize_taskring_workspace"){
         remote={configuration:args.p_configuration,execution:args.p_execution,config_revision:1,state_revision:1};
         return JSON.parse(JSON.stringify(remote));
       }
-      if(name==="save_taskring_workspace_config_v2"){
+      if(name==="save_taskring_workspace_config_compact"){
         if(args.p_expected_revision!==remote.config_revision)throw Error("revision");
         remote={...remote,configuration:args.p_configuration,config_revision:remote.config_revision+1};
         window.__workspaceSaved=remote.configuration;
@@ -280,5 +281,5 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
   await expect(page.locator("#taskWorkbench .wb-feedback")).toContainText("已保存到 Supabase");
   expect(await page.evaluate(()=>window.__workspaceSaved.tasks.some(t=>t.title==="Supabase 手动编辑专项测试"))).toBe(true);
   expect(await page.evaluate(()=>localStorage.getItem(window.__workspaceCompletionKey))).toBe("1");
-  expect(await page.evaluate(()=>window.__workspaceCalls.includes("save_taskring_workspace_config_v2"))).toBe(true);
+  expect(await page.evaluate(()=>window.__workspaceCalls.includes("save_taskring_workspace_config_compact"))).toBe(true);
 });
