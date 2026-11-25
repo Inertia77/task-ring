@@ -384,7 +384,7 @@
   }
   function workspaceSession(){return {ready:authReady,uid:user?.id||'',email:user?.email||''};}
   async function workspaceSignIn(email,password){const {error:e}=await client.auth.signInWithPassword({email,password});if(e)throw e;}
-  function workspaceNotify(){window.dispatchEvent(new Event('taskring-workspace-auth'));}
+  function workspaceNotify(){if(typeof window.dispatchEvent==='function'&&typeof Event==='function')window.dispatchEvent(new Event('taskring-workspace-auth'));}
   window.TaskRingGameOpsCloud={workspaceRpc,workspaceSession,workspaceSignIn,html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
     rememberFilterScroll,restoreFilterScroll,commandSnapshot,commandSetDone,refreshOverview,showTask};
 })();
