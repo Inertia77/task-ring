@@ -20,7 +20,7 @@
   const clone=value=>JSON.parse(JSON.stringify(value));
   const uuid=()=>crypto.randomUUID();
   const fingerprint=value=>window.TaskRingIntegrityCore.configFingerprint(value);
-  const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
+  const kindName={task:"统一任务",gameMeta:"游戏配置",gameTask:"游戏任务",gameOps:"限时 / 周期任务",lifeSection:"改善分区",lifeTask:"生活行动",studySettings:"轨道设置",studyItem:"学习内容",refGroup:"资料分组",refItem:"资料条目"};
   let draft=null,base="",expectedBase="",baseline=null,baselineItems=new Map();
   let domain="tasks",selected="",screen="list",keyword="",groupFilter="all",scope="all",visibility="all",notice="",busy=false,legacyBypass=false,returnFocus=null;
   let undoStack=[],redoStack=[],domainMemo=new Map(),treeOpen=new Map(),searchCollapsed=new Set(),listScrollMemo=new Map();
@@ -66,6 +66,10 @@
         (items||[]).forEach(item=>push("gameTask","game",gameName(gameId)+(board==="daily"?" · 日常":" · 周常"),item,items,gameId+":"+board));
       });
     });
+    for(const item of draft.cloudGameConfig?.operations||[]){
+      const gameId=window.TaskRingGamePlayPolicy?.forCode(item.game)?.key||String(item.game||"").toLowerCase();
+      push("gameOps","game",gameName(gameId)+" · 限时周期",item,draft.cloudGameConfig.operations,gameId+":ops");
+    }
     draft.fitness.sections.forEach(section=>push("lifeSection","fitness","分区管理",section,draft.fitness.sections,"life-section"));
     Object.entries(draft.fitness.days).forEach(([day,groups])=>{
       Object.entries(groups||{}).forEach(([sectionId,items])=>{
@@ -91,7 +95,7 @@
       if(item.domain!==domain)return false;
       if(visibility==="active"&&item.obj.enabled===false)return false;
       if(visibility==="disabled"&&item.obj.enabled!==false)return false;
-      const hay=[item.obj.title,item.obj.name,item.obj.note,item.group,item.obj.id,kindName[item.kind]].filter(Boolean).join(" ").toLocaleLowerCase();
+      const hay=[item.obj.title,item.obj.name,item.obj.task_name,item.obj.note,item.obj.notes,item.group,item.obj.id,kindName[item.kind]].filter(Boolean).join(" ").toLocaleLowerCase();
       if(query&&!hay.includes(query))return false;
       if(groupFilter!=="all"){
         if(domain==="learning"&&!item.group.startsWith(groupFilter==="LANGUAGE"?"语言":"知识"))return false;
@@ -99,7 +103,7 @@
         if(domain==="fitness"&&item.kind==="lifeTask"&&!item.identity.startsWith(groupFilter+":"))return false;
         if(domain==="refs"&&!(item.kind==="refGroup"?item.obj.id===groupFilter:item.identity===groupFilter))return false;
       }
-      if(domain==="game"&&scope!=="all"&&item.kind==="gameTask"&&!item.identity.endsWith(":"+scope))return false;
+      if(domain==="game"&&scope!=="all"&&["gameTask","gameOps"].includes(item.kind)&&!item.identity.endsWith(":"+scope))return false;
       return true;
     });
   }
@@ -190,6 +194,7 @@
       field("name","游戏名称",v.name)+field("short","简称",v.short)+
       '<h3 class="wb-form-section">02 / 显示与管理</h3>'+
       field("priority","显示顺序",v.priority||1,"number",'min="1"')+
+      (window.TaskRingWorkspace?.connected()?select("playTier","游戏等级",String(v.playTier||2),[["1","S · 核心"],["2","A · 余力"],["3","B · 自由"],["4","D · 待公测"],["5","F · 封存"]])+select("gameKind","游戏类型",v.gameKind||"live_service",[["live_service","运营游戏"],["single_player","单机游戏"]])+check("storyFocus","剧情重点",v.storyFocus===true):"")+
       check("enabled","启用游戏",v.enabled!==false);
     if(item.kind==="gameTask"){
       const weekly=item.group.endsWith("周常");
@@ -200,8 +205,20 @@
         check("enabled","启用此任务",v.enabled!==false)+
         '<h3 class="wb-form-section">02 / 条件与说明</h3>'+
         field("url","关联链接",v.url,"url")+(weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
+        field("active_from","生效日期",v.active_from||"","date")+field("active_until","结束日期",v.active_until||"","date")+
         textarea("note","说明 / 备注",v.note,4);
     }
+    if(item.kind==="gameOps")return '<h3 class="wb-form-section">01 / 运营任务（Supabase）</h3>'+
+      '<div class="wb-wide">'+field("task_name","任务名称",v.task_name,"text",'required maxlength="240"')+'</div>'+
+      select("task_type","类型",v.task_type,[["LIMITED_TIME","限时活动"],["RECURRING","周期任务"]])+
+      select("server","区服",v.server,[["CN","国服"],["GLOBAL","国际服"]])+field("period","版本 / 期次",v.period)+
+      select("priority","优先级",v.priority,[["HIGH","高"],["NORMAL","普通"],["LOW","低"]])+
+      select("verification","核验状态",v.verification,[["CONFIRMED","已确认"],["TO_VERIFY","待核验"],["ESTIMATED","估算"]])+
+      '<h3 class="wb-form-section">02 / 时间与来源</h3>'+
+      field("open_date","开始日期（JST）",v.open_date||"","date")+field("deadline_date","截止日期（JST）",v.deadline_date||"","date")+
+      field("open_at","精确开始（ISO 时刻）",v.open_at||"")+field("deadline_at","精确截止（ISO 时刻）",v.deadline_at||"")+
+      field("gameplay_end_at","游玩截止（ISO 时刻）",v.gameplay_end_at||"")+field("claim_end_at","领取截止（ISO 时刻）",v.claim_end_at||"")+
+      field("source_url","官方来源",v.source_url||"","url")+textarea("notes","说明 / 备注",v.notes,4);
     if(item.kind==="lifeSection")return field("name","分区名称",v.name)+field("short","分区简称",v.short)+select("accent","颜色",v.accent||"blue",["blue","violet","rose","cyan","slate","green","amber"].map(x=>[x,x]))+textarea("guide","分区指导说明",v.guide,6)+check("enabled","启用分区",v.enabled!==false);
     if(item.kind==="lifeTask")return field("title","行动内容",v.title,"text",'required maxlength="220"')+field("url","关联链接",v.url,"url")+textarea("note","行动说明",v.note,4)+check("optional","可选，不计入必做完成率",v.optional===true)+check("enabled","启用行动",v.enabled!==false);
     if(item.kind==="studySettings"){
@@ -241,7 +258,7 @@
     x+='<div class="wb-filters">';
     if(domain==="game"){
       x+=select("groupFilter","游戏",groupFilter,[["all","全部游戏"],...draft.gameQuest.games.map(g=>[g.id,g.name])])+
-        select("scope","类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"]]);
+        select("scope","类型",scope,[["all","全部"],["daily","日常"],["weekly","周常"],...(draft.cloudGameConfig?[["ops","限时周期"]]:[])]);
     }else if(domain==="learning")
       x+=select("groupFilter","学习轨道",groupFilter,[["all","全部轨道"],["LANGUAGE","语言"],["KNOWLEDGE","知识"]]);
     else if(domain==="fitness")
@@ -259,7 +276,7 @@
     return x;
   }
   function entryMarkup(item,nested=false){
-    const title=item.obj.title||item.obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
+    const title=item.obj.title||item.obj.name||item.obj.task_name||(item.kind==="studySettings"?"轨道设置":"未命名");
     return '<button type="button" class="wb-list-entry '+(nested?'wb-tree-item ':'')+
       (selected===item.key?"selected ":"")+(item.obj.enabled===false?"disabled ":"")+
       (recordChanged(item)?"is-changed":"")+'" data-wb-select="'+esc(item.key)+'" aria-current="'+
@@ -294,7 +311,7 @@
       [...new Set([...draft.gameQuest.games.map(g=>g.id),
         ...Object.keys(draft.gameQuest.boards.daily||{}),
         ...Object.keys(draft.gameQuest.boards.weekly||{})])].flatMap(id=>
-          ["game:"+id,"game:"+id+":daily","game:"+id+":weekly"]):
+          ["game:"+id,"game:"+id+":daily","game:"+id+":weekly","game:"+id+":ops"]):
       draft.refs.map(group=>"refs:"+group.id);
     keys.forEach(key=>{
       treeOpen.set(key,expanded);
@@ -326,8 +343,9 @@
       const meta=all.find(x=>x.domain==="game"&&x.kind==="gameMeta"&&x.obj.id===id);
       const daily=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":daily"&&set.has(x.key));
       const weekly=all.filter(x=>x.kind==="gameTask"&&x.identity===id+":weekly"&&set.has(x.key));
+      const ops=all.filter(x=>x.kind==="gameOps"&&x.identity===id+":ops"&&set.has(x.key));
       const showMeta=!!meta&&set.has(meta.key);
-      if(!showMeta&&!daily.length&&!weekly.length)return;
+      if(!showMeta&&!daily.length&&!weekly.length&&!ops.length)return;
       const game=games.find(x=>x.id===id);
       const name=game?.name||id+" · 未登记";
       const gameKey="game:"+id,expanded=treeExpanded(gameKey,idx===0);
@@ -364,11 +382,13 @@
           treePanel(laneKey,renderPriorityRows(board,items),open)+'</div>';
       };
       const d=renderLane("daily",daily),w=renderLane("weekly",weekly);
+      const opsKey=gameKey+":ops",opsOpen=treeExpanded(opsKey,false);
+      const o=draft.cloudGameConfig&&(scope==="all"||scope==="ops")?'<div class="wb-tree-lane"><div class="wb-tree-lane-head">'+treeHeader(opsKey,"限时 · 周期",ops.length+" 项",opsOpen,1)+'<button type="button" class="wb-tree-add" data-wb-add-game="'+esc(id)+'" data-wb-board="ops" aria-label="新增限时任务">＋</button></div>'+treePanel(opsKey,ops.map(item=>entryMarkup(item,true)).join("")||'<p class="wb-tree-empty">暂无当前任务</p>',opsOpen)+'</div>':"";
       let inner='<div class="wb-tree-settings"><div class="wb-tree-settings-label">游戏设置</div>'+
         (meta&&set.has(meta.key)?entryMarkup(meta,true):'<p class="wb-tree-empty">游戏设置不在当前筛选中</p>')+
-        '</div>'+d+w;
+        '</div>'+d+w+o;
       html+='<section class="wb-tree-group" data-wb-game="'+esc(id)+'"><div class="wb-tree-group-head">'+
-        treeHeader(gameKey,name,"日常 "+daily.length+" · 周常 "+weekly.length,expanded)+
+        treeHeader(gameKey,name,"日常 "+daily.length+" · 周常 "+weekly.length+(draft.cloudGameConfig?" · 限时 "+ops.length:""),expanded)+
         (meta?'<button type="button" class="wb-tree-edit" data-wb-select="'+esc(meta.key)+
           '" title="编辑'+esc(name)+'的游戏设置" aria-label="编辑'+esc(name)+'的游戏设置">⚙</button>':"")+
         '</div>'+treePanel(gameKey,inner,expanded)+'</section>';
@@ -466,7 +486,7 @@
       '<p>左侧选择已有条目，修改会保留在跨区域草稿中。<br>也可以新建一个项目，最后统一保存。</p>'+
       '<p class="wb-keytips">快捷键：Ctrl/⌘ + K 搜索 · Ctrl/⌘ + S 保存 · Ctrl/⌘ + Z 撤销</p></div>';
     const obj=item.obj,stable=item.kind!=="studySettings";
-    const title=obj.title||obj.name||(item.kind==="studySettings"?"轨道设置":"未命名");
+    const title=obj.title||obj.name||obj.task_name||(item.kind==="studySettings"?"轨道设置":"未命名");
     const raw=item.kind==="studySettings"?draft.sequences[obj.track]:obj;
     const all=filtered(),position=all.findIndex(row=>row.key===selected);
     return '<div class="wb-editor-top"><button type="button" class="wb-btn wb-back" data-wb-back>'+glyph("arrow-left")+'返回列表</button>'+
@@ -483,7 +503,7 @@
       '<textarea aria-label="此项原始 JSON" data-wb-raw spellcheck="false">'+esc(JSON.stringify(raw,null,2))+'</textarea>'+
       '<div class="wb-raw-actions"><button type="button" class="wb-btn wb-quiet" data-wb-apply-raw>应用 JSON 到草稿</button>'+
       '<button type="button" class="wb-btn wb-subtle" data-wb-discard-raw>恢复原始文本</button></div></details>'+
-      '<div class="wb-editor-actions">'+(stable?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制为新项</button>'+
+      '<div class="wb-editor-actions">'+(item.kind==="gameOps"?'<button type="button" class="wb-btn wb-warning" data-wb-archive-operation>归档此限时任务</button>':"")+(stable&&item.kind!=="gameOps"?'<button type="button" class="wb-btn wb-quiet" data-wb-duplicate>复制为新项</button>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-move="-1">↑ 上移</button>'+
       '<button type="button" class="wb-btn wb-quiet" data-wb-move="1">↓ 下移</button>':'')+
       ((stable&&"enabled" in obj)?'<button type="button" class="wb-btn wb-warning" data-wb-toggle-enabled>'+
@@ -592,13 +612,19 @@
     }else if(item.kind==="gameMeta"){
       set(v,"name","name",x=>x.trim());set(v,"short","short",x=>x.trim());
       set(v,"priority","priority",x=>Math.max(1,Number(x)||1));
+      if(window.TaskRingWorkspace?.connected()){set(v,"playTier","playTier",Number);set(v,"gameKind","gameKind");if(changed("storyFocus"))v.storyFocus=has("storyFocus");}
       if(changed("enabled"))v.enabled=has("enabled");
     }else if(item.kind==="gameTask"){
       set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());set(v,"note","note");
+      for(const key of ["active_from","active_until"]){if(changed(key)){if(text(key))v[key]=text(key);else delete v[key];}}
       if(changed("enabled"))v.enabled=has("enabled");
       if(item.group.endsWith("周常")){
         set(v,"weekly_lane","weekly_lane");set(v,"unlock_hint","unlock_hint");
       }else set(v,"daily_lane","daily_lane");
+    }else if(item.kind==="gameOps"){
+      for(const key of ["task_name","task_type","server","priority","verification","period","notes","source_url","open_date","deadline_date","open_at","deadline_at","gameplay_end_at","claim_end_at"])if(changed(key))v[key]=text(key).trim()||null;
+      if(changed("open_date")&&!changed("open_at"))v.open_at=null;
+      if(changed("deadline_date")&&!changed("deadline_at"))v.deadline_at=null;
     }else if(item.kind==="lifeSection"){
       set(v,"name","name",x=>x.trim());set(v,"short","short",x=>x.trim());
       set(v,"accent","accent");set(v,"guide","guide");
@@ -627,7 +653,7 @@
     checkpoint();
     let obj,parent,mod=domain;
     if(kind==="group"&&domain==="game"){
-      obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
+      obj={id:"game_"+uuid().replaceAll("-","_"),name:"新游戏",short:"NEW",enabled:true,playTier:2,gameKind:"live_service",priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
       parent=draft.gameQuest.games;parent.push(obj);draft.gameQuest.boards.daily[obj.id]=[];draft.gameQuest.boards.weekly[obj.id]=[];
     }else if(kind==="group"&&domain==="fitness"){
       obj={id:"life-"+uuid(),name:"新改善分区",short:"LIFE",icon:"＋",accent:"blue",locked:false,enabled:true};parent=draft.fitness.sections;parent.push(obj);
@@ -642,16 +668,24 @@
     }else if(domain==="game"){
       const selectedRow=refs.get(selected);
       const selectedId=selectedRow?.kind==="gameMeta"?selectedRow.obj.id:
-        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[0]:null;
+        ["gameTask","gameOps"].includes(selectedRow?.kind)?selectedRow.identity.split(":")[0]:null;
       const game=draft.gameQuest.games.find(g=>g.id===(context.gameId||groupFilter))||
         draft.gameQuest.games.find(g=>g.id===selectedId)||draft.gameQuest.games[0];
       if(!game){notice="请先新增一个游戏";render();return;}
-      const board=context.board||(["daily","weekly"].includes(scope)?scope:
-        selectedRow?.kind==="gameTask"?selectedRow.identity.split(":")[1]:"daily");
+      const board=context.board||(["daily","weekly","ops"].includes(scope)?scope:
+        ["gameTask","gameOps"].includes(selectedRow?.kind)?selectedRow.identity.split(":")[1]:"daily");
+      if(board==="ops"){
+        if(!draft.cloudGameConfig){notice="请先同步 Supabase 配置";render();return;}
+        if(game.playTier===5){notice="F 级游戏不新增运营任务";render();return;}
+        const code=window.TaskRingGamePlayPolicy?.allGames()?.find(p=>p.key===game.id)?.code||({endfield:"ENF"}[game.id])||game.id.toUpperCase();
+        obj={id:uuid(),task_key:"manual:"+uuid(),game:code,server:["ZZZ","WUWA","HSR"].includes(code)?"GLOBAL":"CN",task_name:"新限时任务",task_type:"LIMITED_TIME",priority:"NORMAL",verification:"TO_VERIFY",source_level:"MANUAL",lifecycle_status:"TO_VERIFY",user_action:"NONE"};
+        parent=draft.cloudGameConfig.operations;parent.push(obj);
+      }else{
       parent=draft.gameQuest.boards[board][game.id] ||= [];
       obj={id:"wb-game-"+uuid(),title:"新游戏任务",enabled:true,url:"",note:""};
       if(board==="daily")obj.daily_lane="must";else obj.weekly_lane="steady";
       parent.push(obj);
+      }
     }else if(domain==="fitness"){
       const section=draft.fitness.sections.find(s=>s.enabled!==false)||draft.fitness.sections[0];
       if(!section){notice="请先新增一个改善分区";render();return;}
@@ -676,16 +710,16 @@
       treeOpen.set((domain==="game"?"game:":"refs:")+obj.id,true);
     index();
     const row=[...refs.values()].find(item=>item.obj===obj);
-    if(domain==="game"&&row?.kind==="gameTask"){
+    if(domain==="game"&&["gameTask","gameOps"].includes(row?.kind)){
       treeOpen.set("game:"+row.identity.split(":")[0],true);
       treeOpen.set("game:"+row.identity,true);
     }
     if(domain==="refs"&&row?.kind==="refItem")treeOpen.set("refs:"+row.identity,true);
     selected=row?.key||"";screen="detail";keyword="";visibility="all";
     if(groupFilter!=="all"&&(
-      (domain==="game"&&row?.kind==="gameTask"&&row.identity.split(":")[0]!==groupFilter)||
+      (domain==="game"&&["gameTask","gameOps"].includes(row?.kind)&&row.identity.split(":")[0]!==groupFilter)||
       (domain==="refs"&&row?.kind==="refItem"&&row.identity!==groupFilter)))groupFilter="all";
-    if(domain==="game"&&row?.kind==="gameTask")scope=row.identity.split(":")[1];
+    if(domain==="game"&&["gameTask","gameOps"].includes(row?.kind))scope=row.identity.split(":")[1];
     notice="已加入草稿 · 尚未保存到正式配置";render();
     root.querySelector('[name="title"],[name="name"]')?.focus();
   }
@@ -732,7 +766,7 @@
       const saved=await window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
       const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();undoStack=[];redoStack=[];
-      notice=window.TaskRingGameOpsCloud?.routineState?.().active?"✓ 已保存；游戏日常/周常以 Supabase 为准，其他配置沿用原有同步":"✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
+      notice=window.TaskRingWorkspace?.connected()?"✓ 已保存到 Supabase；当前配置已回读确认":"✓ 已保存到本机缓存；未连接 Supabase 时不会覆盖云端";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
   }
@@ -762,6 +796,7 @@
       const used=new Set();copy.steps=(copy.steps||[]).map(s=>{const code=idCode("s",[...used],2);used.add(code);return {...s,id:code,code}});}
     if(item.kind==="refGroup")copy.items=(copy.items||[]).map(entry=>({...entry,id:"wb-ref-"+uuid()}));
     if(item.kind==="gameMeta"){
+      copy.id="game_"+uuid().replaceAll("-","_");
       for(const board of ["daily","weekly"]){
         draft.gameQuest.boards[board][copy.id]=(draft.gameQuest.boards[board][item.obj.id]||[]).map(task=>({...task,id:"wb-game-"+uuid()}));
       }
@@ -792,7 +827,7 @@
           draft.sequences[item.obj.track]={...draft.sequences[item.obj.track],end:next.end,paused:next.paused};
         }else throw Error("请输入完整轨道设置");
       }else{
-        if(next.id!==item.obj.id||("code" in item.obj&&next.code!==item.obj.code))throw Error("不能修改 ID 或状态编码");
+        if(next.id!==item.obj.id||("code" in item.obj&&next.code!==item.obj.code)||("task_key" in item.obj&&next.task_key!==item.obj.task_key))throw Error("不能修改 ID 或状态编码");
         if(item.kind==="gameMeta"&&next.priority!==item.obj.priority&&next.priority==null)throw Error("排序值无效");
         const parent=item.parent,index=parent?.indexOf(item.obj);
         if(index<0)throw Error("找不到原项目");
@@ -821,6 +856,7 @@
     else if(d.wbStep!==undefined)stepItem(Number(d.wbStep));
     else if(d.wbStatus!==undefined){flush();visibility=d.wbStatus;render();}
     else if(d.wbClose!==undefined)close();
+    else if(d.wbArchiveOperation!==undefined){flush();const item=current();if(item?.kind==="gameOps"&&confirm("归档此限时任务？不会删除历史记录。")){checkpoint();item.parent.splice(item.parent.indexOf(item.obj),1);selected="";screen="list";notice="已加入归档草稿，保存后生效";render();}}
     else if(d.wbDuplicate!==undefined)duplicate();
     else if(d.wbMove!==undefined)move(Number(d.wbMove));
     else if(d.wbToggleEnabled!==undefined){flush();const item=current();if(!item)return;checkpoint();item.obj.enabled=item.obj.enabled===false;notice="已更新启用状态（草稿）";render();}

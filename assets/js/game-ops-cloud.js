@@ -72,11 +72,11 @@
       if(token===routineRequest&&uid===user?.id)acceptRoutine(data,uid);
     }catch(e){if(token===routineRequest){routineError=e.message||String(e);console.warn('Game routines unavailable; retaining account cache',e);}}
   }
-  function routineView(config){
-    if(!routineCatalog)return config;
+  function routineView(config,catalog=routineCatalog){
+    if(!catalog)return config;
     const source=config||{},games=(source.games||[]).map(g=>({...g})),byId=new Map(games.map(g=>[g.id,g]));
     const known=P?.allGames()||[];
-    for(const row of routineCatalog.rows){
+    for(const row of catalog.rows){
       if(byId.has(row.game_key))continue;
       const policy=known.find(g=>g.key===row.game_key);
       const name=policy?.name||row.game_key;
@@ -91,13 +91,13 @@
     }
     const boards={...source.boards,daily:{},weekly:{}};
     for(const b of routineBoards)for(const g of games)boards[b][g.id]=[];
-    for(const r of routineCatalog.rows){
+    for(const r of catalog.rows){
       if(!routineBoards.includes(r.board)||!boards[r.board][r.game_key])continue;
       boards[r.board][r.game_key].push({id:r.task_key,title:r.title,note:r.note||'',url:r.url||'',enabled:r.enabled!==false,[r.board+'_lane']:r.lane,
         ...(r.unlock_hint?{unlock_hint:r.unlock_hint}:{}),...(r.active_from?{active_from:r.active_from}:{}),...(r.active_until?{active_until:r.active_until}:{}),
         ...(r.verification?{verification:r.verification}:{}),...(r.source_url?{source_url:r.source_url}:{})});
     }
-    return {...source,games,boards,routineRevision:Number(routineCatalog.revision)};
+    return {...source,games,boards,routineRevision:Number(catalog.revision)};
   }
   function routineMap(config){
     const out=new Map();
@@ -345,9 +345,10 @@
     if(changed){setRoutineOwner(user?.id);authGeneration++;request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
+    setTimeout(()=>workspaceNotify(),0);
     if(user)setTimeout(()=>{fetchTasks();fetchPolicy();fetchRoutines();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);
   });
-  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');setRoutineOwner(user?.id);if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();});
+  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');setRoutineOwner(user?.id);if(user)restore();render();setTimeout(()=>workspaceNotify(),0);return Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();setTimeout(()=>workspaceNotify(),0);});
   addEventListener('offline',()=>{request++;busy=false;status='离线缓存';error='';render();});
   const overviewActive=()=>typeof activeAppView!=='undefined'&&activeAppView==='overview';
   function refreshOverview(){return Promise.all([fetchTasks(true),fetchRecent()]);}
@@ -373,6 +374,17 @@
     if(history)fetchTasks();
     return [...document.querySelectorAll('[data-ops-card]')].find(card=>card.dataset.opsCard===id)||document.getElementById('gameOpsCloud');
   }
-  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
+  // One authenticated client for the entire TaskRing workspace.
+  async function workspaceRpc(name,args={}){
+    const uid=user?.id;if(!uid)throw Error('请登录 Supabase');
+    const {data,error:e}=await client.rpc(name,args);
+    if(e){const err=Error(e.message||String(e));err.code=e.code;throw err;}
+    if(user?.id!==uid)throw Error('云端账号已变化');
+    return data;
+  }
+  function workspaceSession(){return {ready:authReady,uid:user?.id||'',email:user?.email||''};}
+  async function workspaceSignIn(email,password){const {error:e}=await client.auth.signInWithPassword({email,password});if(e)throw e;}
+  function workspaceNotify(){if(typeof window.dispatchEvent==='function'&&typeof Event==='function')window.dispatchEvent(new Event('taskring-workspace-auth'));}
+  window.TaskRingGameOpsCloud={workspaceRpc,workspaceSession,workspaceSignIn,html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
     rememberFilterScroll,restoreFilterScroll,commandSnapshot,commandSetDone,refreshOverview,showTask};
 })();

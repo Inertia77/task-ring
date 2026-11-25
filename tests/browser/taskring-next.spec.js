@@ -240,3 +240,45 @@ for(const width of [390,1440]){
     await expect(must).not.toHaveCSS('background-color','rgb(36, 61, 80)');
   });
 }
+
+test("Supabase workspace cutover preserves completion codes and unified manual editor saves through the workspace RPC",async({page})=>{
+  await boot(page,"overview");
+  await page.evaluate(async()=>{
+    const cloud=window.TaskRingGameOpsCloud;
+    const cfg=JSON.parse(JSON.stringify(taskConfig));
+    const key="taskring_github_v2_"+cycleYmd+"_t100_d"+today;
+    const execution={states:{[key]:"1"},state_meta:{[key]:{value:"1",updatedAt:new Date().toISOString(),deviceId:"fixture"}},time_logs:[],time_logs_deleted:{}};
+    const game={policies:[],operations:[],routines:{revision:1,rows:[]}};
+    let remote=null;window.__workspaceCalls=[];
+    cloud.workspaceSession=()=>({uid:"fixture-workspace-owner",ready:true,email:""});
+    cloud.workspaceRpc=async(name,args)=>{
+      window.__workspaceCalls.push(name);
+      if(name==="get_taskring_workspace")return remote&&JSON.parse(JSON.stringify(remote));
+      if(name==="get_taskring_game_configuration")return game;
+      if(name==="initialize_taskring_workspace"){
+        remote={configuration:args.p_configuration,execution:args.p_execution,config_revision:1,state_revision:1};
+        return JSON.parse(JSON.stringify(remote));
+      }
+      if(name==="save_taskring_workspace_config_v2"){
+        if(args.p_expected_revision!==remote.config_revision)throw Error("revision");
+        remote={...remote,configuration:args.p_configuration,config_revision:remote.config_revision+1};
+        window.__workspaceSaved=remote.configuration;
+        return {workspace:JSON.parse(JSON.stringify(remote)),game};
+      }
+      if(name==="save_taskring_workspace_state"){remote={...remote,execution:args.p_execution,state_revision:remote.state_revision+1};return remote;}
+      throw Error("Unexpected RPC "+name);
+    };
+    await window.TaskRingWorkspace.initializeFromBackup(cfg,execution);
+    window.__workspaceCompletionKey=key;
+  });
+  expect(await page.evaluate(()=>window.TaskRingWorkspace.connected())).toBe(true);
+  expect(await page.evaluate(()=>localStorage.getItem(window.__workspaceCompletionKey))).toBe("1");
+  await page.evaluate(()=>window.TaskRingWorkbench.open("tasks"));
+  await page.locator("#taskWorkbench [data-wb-new]").click();
+  await page.locator('#taskWorkbench [name="title"]').fill("Supabase 手动编辑专项测试");
+  await page.locator("#taskWorkbench .wb-top [data-wb-save]").click();
+  await expect(page.locator("#taskWorkbench .wb-feedback")).toContainText("已保存到 Supabase");
+  expect(await page.evaluate(()=>window.__workspaceSaved.tasks.some(t=>t.title==="Supabase 手动编辑专项测试"))).toBe(true);
+  expect(await page.evaluate(()=>localStorage.getItem(window.__workspaceCompletionKey))).toBe("1");
+  expect(await page.evaluate(()=>window.__workspaceCalls.includes("save_taskring_workspace_config_v2"))).toBe(true);
+});

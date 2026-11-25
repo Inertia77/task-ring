@@ -137,10 +137,10 @@
     }
     return out;
   }
-  function normList(value,board){
+  function normList(value,board,includeDisabled=false){
     const list=Array.isArray(value)?value:(typeof value==="string"?value.split(/\n+/):[]);
     const used=new Set();
-    return list.map(function(x,i){return normTask(x,i,board,used)}).filter(function(x){return x&&x.enabled!==false});
+    return list.map(function(x,i){return normTask(x,i,board,used)}).filter(function(x){return x&&(includeDisabled||x.enabled!==false)});
   }
   function dedupePush(target,task,board){
     if(!task||!task.title)return;
@@ -239,11 +239,11 @@
     if(record(src.boards)){
       EDIT_BOARD_ORDER.forEach(function(board){
         const source=record(src.boards[board])?src.boards[board]:{};
-        games.forEach(function(g){boards[board][g.id]=normList(source[g.id]||[],board)});
+        games.forEach(function(g){boards[board][g.id]=normList(source[g.id]||[],board,true)});
       });
     }else{
       const migrated=migrateLegacy(src,games);
-      EDIT_BOARD_ORDER.forEach(function(board){games.forEach(function(g){boards[board][g.id]=normList(migrated[board][g.id]||[],board)})});
+      EDIT_BOARD_ORDER.forEach(function(board){games.forEach(function(g){boards[board][g.id]=normList(migrated[board][g.id]||[],board,true)})});
     }
     games.forEach(function(g){boards.cycle[g.id]=[];boards.version[g.id]=[]});
     return {...(record(src.boards)?src:{}),version:VERSION,updatedAt:String(src.updatedAt||""),priorityOrder:PRIORITY_ORDER.slice(),games:games,boards:{...src.boards,...boards}};

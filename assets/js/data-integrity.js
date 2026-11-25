@@ -16,10 +16,6 @@
   const baseNormalizeTaskConfig=normalizeTaskConfig;
   const baseApplyTaskConfig=applyTaskConfig;
   const baseSaveLocalTaskConfig=saveLocalTaskConfig;
-  const baseGhPatchConfig=ghPatchConfig;
-  let pushQueued=false;
-  let activePushPromise=null;
-  let configWrites=Promise.resolve();
 
   function nowIso(){return new Date().toISOString()}
   function readJson(key,fallback={}){
@@ -251,219 +247,10 @@
     writeStateMeta(meta);
     scheduleGhSave();
   };
-  scheduleGhSave=function(){
-    if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}
-    if(ghReadOnlyFallback){setGhStatus("GitHub：只读模式","sync");return}
-    setGhStatus("GitHub：等待保存","sync");
-    clearTimeout(ghSaveTimer);
-    ghSaveTimer=setTimeout(()=>ghPush(true),900);
-  };
-  void baseScheduleGhSave; // kept only so older debug tooling can see that the function was intentionally replaced.
-
-  function patchConfigSafely(config,options={}){
-    const operation=configWrites.then(()=>writeConfig(config,options));
-    configWrites=operation.catch(()=>{});
-    return operation;
-  }
-  async function writeConfig(config,{interactive=false,preloadedGist=null}={}){
-    const candidate={...normalizeTaskConfig(config),updatedAt:nowIso()};
-    const localBefore=loadLocalTaskConfig();
-    const beforeFingerprint=Core.configFingerprint(localBefore);
-    const gist=await ghFetchGist();
-    const current=loadLocalTaskConfig();
-    if(beforeFingerprint!==Core.configFingerprint(current))throw new Error("本机配置刚有新修改，请对最新版本重新同步。");
-    const remoteResult=await ghParseConfig(gist);
-    const remote=remoteResult.config;
-    const baseFingerprint=configBaseFingerprint();
-    const decision=Core.decideConfig({local:candidate,remote,baseFingerprint});
-    if(remoteResult.mode==="error")throw new Error("云端配置暂时不可读取，本机配置未上传。");
-    if(decision.source==="conflict"||decision.source==="remote"||
-      (preloadedGist&&gistRevision(preloadedGist)!==gistRevision(gist)&&decision.source!=="same"&&decision.source!=="local")){
-      rememberConflict(candidate,remote,gist,decision.reason);
-      const message="云端配置在本机编辑期间也发生了变化。为防止覆盖，TaskRing 已保留本机并记录云端冲突副本。";
-      if(!interactive||!confirm(`${message}\n\n继续保存会用当前本机配置覆盖云端。确认继续？`))throw new Error(message);
-    }
-    const updated=await baseGhPatchConfig(candidate);
-    if(Core.configFingerprint(loadLocalTaskConfig())===Core.configFingerprint(current))baseSaveLocalTaskConfig(candidate,"云端写入后统一本机时间戳");
-    recordConfigBaseline(candidate,updated);
-    return updated;
-  }
-
-  ghPatchConfig=async function(config){return patchConfigSafely(config,{interactive:true})};
-
-  ghPush=async function(silent=false){
-    if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}
-    if(ghSaving){pushQueued=true;return activePushPromise}
-    ghSaving=true;
-    activePushPromise=(async()=>{
-      try{
-        setGhStatus("GitHub：安全合并中","sync");
-        migrateLegacyLocalStates();
-        const gist=await ghFetchGist();
-        const remoteState=ghParseState(gist);
-        const merged=mergeWithRemoteState(remoteState);
-        applyMergedState(merged);
-        mergeGhTimeLogDeletes(remoteState.time_logs_deleted||remoteState.deleted_time_logs||{});
-        mergeGhTimeLogs(remoteState.time_logs||[]);
-        const deletedLogs=collectGhDeletedTimeLogs();
-        const data={
-          version:4,
-          privacy:"coded-state-keys + timestamped-state-meta + tombstones + time-logs + weekly-plan",
-          updatedAt:nowIso(),
-          states:merged.states,
-          state_meta:merged.stateMeta,
-          time_logs:collectGhTimeLogs(),
-          time_logs_deleted:deletedLogs,
-          time_logs_meta:{limit:TIME_GH_LOG_LIMIT,deleted_limit:TIME_GH_DELETED_LIMIT,active_timer:"local-only"}
-        };
-        const updated=await ghPatchState(data);
-        const rev=gistRevision(updated);if(rev)localStorage.setItem(CLOUD_REV_KEY,rev);
-        if(hasConfigConflict())setGhStatus("GitHub：配置冲突","err");else setGhStatus("GitHub：已同步","on");
-        ghLog(`安全保存成功：${Object.keys(data.states).length} 项完成状态；${Object.keys(data.state_meta).length} 项状态元数据；时间记录 ${data.time_logs.length} 条`);
-        unlockApp();renderAll();
-      }catch(err){
-        console.error(err);setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err));
-        if(!silent)showToast("GitHub 安全同步失败；本机数据已保留","warn",3000);
-      }finally{
-        ghSaving=false;
-        if(pushQueued){pushQueued=false;setTimeout(()=>ghPush(true),0)}
-      }
-    })();
-    return activePushPromise;
-  };
-
-  ghPull=async function(options={}){
-    const preferRemote=options?.preferRemote===true;
-    const interactive=options?.interactive===true;
-    const allowReadOnly=preferRemote===true;
-    if(!ghToken()&&!allowReadOnly){
-      enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
-      return;
-    }
-    try{
-      unlockApp();setGhStatus("GitHub：安全读取中","sync");migrateLegacyLocalStates();
-      const gist=await ghFetchGist();
-      const readOnlyPull=ghReadOnlyFallback===true||!ghToken();
-      if(readOnlyPull)ghLog(ghReadOnlyReason||"未设置可写 GitHub Token：本次只读取云端，不会写回 Gist。");
-      const cfgResult=await ghParseConfig(gist);
-      const localCfg=loadLocalTaskConfig();
-      const baseFingerprint=configBaseFingerprint();
-      const decision=Core.decideConfig({local:localCfg,remote:cfgResult.config,baseFingerprint});
-      let configToUse=localCfg||cfgResult.config||buildDefaultConfig();
-      let pushLocalConfig=false;
-      let configConflict=false;
-      let remotePreferenceFailed=false;
-
-      if(preferRemote&&cfgResult.config){
-        const sameConfig=!!localCfg&&Core.configFingerprint(localCfg)===Core.configFingerprint(cfgResult.config);
-        if(localCfg&&!sameConfig&&interactive){
-          const accepted=confirm("本机配置与云端配置不同。\n\n继续后将以云端配置为准；当前本机配置会先自动备份。是否继续？");
-          if(!accepted){
-            if(hasConfigConflict())setGhStatus("GitHub：配置冲突","err");
-            else setGhStatus("GitHub：已同步","on");
-            ghLog("已取消手动云端优先读取，本机配置未修改。");
-            showToast("已取消从云端覆盖本机","warn",2400);
-            unlockApp();renderAll();
-            return;
-          }
-        }
-        if(localCfg&&!sameConfig){
-          try{pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")}catch(err){console.warn("manual cloud pull local backup failed",err)}
-        }
-        configToUse=cfgResult.config;
-        baseSaveLocalTaskConfig(configToUse,"手动从云端读取：接受云端配置");
-        recordConfigBaseline(configToUse,gist);
-        ghLog(sameConfig?"手动从云端读取：本机与云端配置一致，已刷新同步基线。":"手动从云端读取：已明确采用云端配置，本机旧配置已进入备份池。");
-        if(!sameConfig)showToast("已采用云端配置；本机旧配置已自动备份","ok",3200);
-      }else if(preferRemote&&!cfgResult.config){
-        remotePreferenceFailed=true;
-        configToUse=localCfg||buildDefaultConfig();
-        const message=cfgResult.mode==="error"?"云端配置读取或解密失败，未改动本机配置。":"云端没有可用配置，未改动本机配置。";
-        ghLog(message);
-        showToast(message,"warn",3600);
-      }else if(decision.source==="remote"){
-        configToUse=cfgResult.config;
-        if(configToUse)baseSaveLocalTaskConfig(configToUse,"安全同步：接受更新的云端配置");
-        if(configToUse)recordConfigBaseline(configToUse,gist);
-        ghLog("配置判定：云端有新修改，本机未修改，已安全采用云端配置。");
-      }else if(decision.source==="local"){
-        configToUse=localCfg;
-        pushLocalConfig=!!localCfg;
-        ghLog("配置判定：本机有未同步修改，云端没有对应新修改；保留本机并准备上传。");
-      }else if(decision.source==="same"){
-        configToUse=localCfg||cfgResult.config;
-        if(!localCfg&&configToUse)baseSaveLocalTaskConfig(configToUse,"首次同步：保存云端配置到本机");
-        if(configToUse)recordConfigBaseline(configToUse,gist);
-      }else if(decision.source==="conflict"){
-        configConflict=true;
-        configToUse=localCfg||cfgResult.config||buildDefaultConfig();
-        rememberConflict(localCfg,cfgResult.config,gist,decision.reason);
-        ghLog("检测到配置冲突：本机和云端都从上次共同版本发生过修改。已保留本机，云端没有被覆盖。");
-        showToast("检测到本机/云端配置冲突：已保留本机，不会静默覆盖","warn",4200);
-      }
-
-      applyTaskConfig(configToUse,false);
-      if((cfgResult.mode==="plaintext"||cfgResult.legacyCategory)&&!configConflict&&!pushLocalConfig&&!remotePreferenceFailed&&!readOnlyPull&&cfgResult.config){
-        if(cfgResult.legacyCategory)ghLog("检测到旧三分类字段，正在迁移为唯一分类字段并安全写回云端…");
-        else ghLog("检测到旧版明文配置，正在安全迁移为加密配置…");
-        await patchConfigSafely(cfgResult.config,{interactive:false,preloadedGist:gist});
-      }
-
-      let stateReadError=null;
-      let merged=null;
-      let timeResult={count:collectGhTimeLogs().length,changed:false};
-      let deletedResult={count:0,changed:false};
-      let stateNeedsPush=false;
-      try{
-        const remoteState=ghParseState(gist);
-        const remoteStates=normalizeRemoteStates(remoteState.states||{});
-        const remoteMeta=normalizeRemoteMeta(remoteState.state_meta||remoteState.stateMeta||{});
-        const beforeSignature=stateSignature(remoteStates,remoteMeta);
-        merged=mergeWithRemoteState(remoteState);
-        applyMergedState(merged);
-        // 完成状态到齐后再检查一次，换设备时也能识别任务 code 的历史继承问题。
-        applyTaskConfig(taskConfig,false);
-        deletedResult=mergeGhTimeLogDeletes(remoteState.time_logs_deleted||remoteState.deleted_time_logs||{});
-        timeResult=mergeGhTimeLogs(remoteState.time_logs||[]);
-        const afterSignature=stateSignature(merged.states,merged.stateMeta);
-        stateNeedsPush=beforeSignature!==afterSignature||timeResult.changed||deletedResult.changed||!remoteState.state_meta;
-      }catch(err){
-        stateReadError=err;
-        ghLog("云端配置已读取，但状态文件不可解析；已保留本机完成状态/时间记录："+String(err.message||err));
-      }
-
-      if(pushLocalConfig&&!configConflict&&!remotePreferenceFailed&&!readOnlyPull){
-        await patchConfigSafely(configToUse,{interactive:false,preloadedGist:gist});
-      }
-
-      if(stateNeedsPush&&!readOnlyPull&&!stateReadError)await ghPush(true);
-
-      if(remotePreferenceFailed)setGhStatus("GitHub：云端配置不可用","err");
-      else if(configConflict)setGhStatus("GitHub：配置冲突","err");
-      else if(stateReadError){
-        setGhStatus("GitHub：配置已读取·状态异常","err");
-        showToast("云端配置已读取；状态文件异常，已保留本机完成状态","warn",4400);
-      }else if(readOnlyPull){
-        setGhStatus("GitHub：只读已读取","sync");
-        if(preferRemote)showToast("云端读取成功；当前 Token 不可写，上传需在同步设置更新 Token","warn",4200);
-      }else setGhStatus("GitHub：已同步","on");
-      if(merged)ghLog(`安全读取完成：状态 ${Object.keys(merged.states).length} 项；状态迁移 ${merged.stats.migrated} 项；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
-      else ghLog("安全读取完成：配置已应用；云端状态未应用，本机状态保持不变。");
-      unlockApp();renderAll();
-    }catch(err){
-      console.error(err);
-      const detail=String(err.message||err);
-      setGhStatus("GitHub：读取失败","err");
-      ghLog(detail);
-      enterLocalMode(false,"Gist 安全同步失败，已继续使用本机/内置数据；不会用失败或旧云端清空本机数据。");
-      const authProblem=/HTTP (401|403)|Token|鉴权|写权限/.test(detail);
-      showToast(authProblem?"Gist 读取失败：GitHub Token 可能已失效，请打开「同步设置」更新 Token":"Gist 读取失败；本机数据已保留。打开「同步设置」可查看具体错误","warn",4200);
-    }
-  };
-
-  window.addEventListener("online",()=>{
-    if(ghToken()&&!document.body.classList.contains("locked"))ghPull();
-  });
+  // Workspace transport installs the only online synchronization handlers.
+  // Do not fall back to the migration source when the new module is unavailable.
+  scheduleGhSave=function(){setGhStatus("Supabase：本机缓存","off")};
+  void baseScheduleGhSave;
   migrateStoredTimeCategories();
   try{
     const local=loadLocalTaskConfig();
@@ -478,7 +265,8 @@
     configConflictKey:CONFIG_CONFLICT_KEY,
     hasConfigConflict,
     readStateMeta,
-    patchConfig:config=>patchConfigSafely(config,{interactive:false}),
+    workspaceBridge:{mergeWithRemoteState,applyMergedState,stateSignature,deviceId,recordConfigBaseline,configBaseFingerprint,rememberConflict},
+    patchConfig:async()=>{throw new Error("Supabase 工作区同步尚未初始化")},
     importState(snapshot){applyMergedState(mergeWithRemoteState(snapshot));renderAll()}
   };
 })();

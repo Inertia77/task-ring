@@ -66,19 +66,17 @@ assert(shell.has("assets/css/visual-polish.css"),"service worker must cache visu
 assert(visualCss.includes(".viewDockBtn[data-view-target=\"tasks\"]:not(.active)"),"visual polish must keep inactive navigation surfaces quiet");
 assert(visualCss.includes("@media (prefers-contrast: more)"),"visual polish must retain a higher-contrast fallback");
 
-assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cloud pull buttons must explicitly request cloud-wins conflict resolution");
-assert(appJs.includes('ghReadOnlyFallback=false'),"Gist sync must track authenticated vs read-only fallback mode");
-assert(appJs.includes('request(false)'),"Gist read must retry anonymously after token auth failure");
-assert(appJs.includes('ghHydrateGistFile(gist,GITHUB_STATE_FILE,{alwaysRaw:true})'),"large Gist state files must be hydrated from raw_url before parsing");
-assert(appJs.includes('taskring-state.json 解析失败'),"state parse errors must include file diagnostics");
-assert(dataIntegrityJs.includes('配置已读取·状态异常'),"a malformed state file must not prevent an accepted cloud config from remaining applied");
-assert(appJs.includes('Token 已失效、被撤销或缺少 Gist 写权限'),"Gist writes must surface actionable token failures");
-assert(dataIntegrityJs.includes('const readOnlyPull=ghReadOnlyFallback===true||!ghToken()'),"manual pull must recognize read-only Gist fallback");
-assert(dataIntegrityJs.includes('stateNeedsPush&&!readOnlyPull'),"read-only pulls must never write merged state back to Gist");
-
-assert(dataIntegrityJs.includes("preferRemote&&cfgResult.config"),"data-integrity layer must support explicit cloud-wins config resolution");
-assert(dataIntegrityJs.includes('pushLocalConfigBackup(localCfg,"手动从云端读取前自动备份")'),"manual cloud-wins resolution must back up the replaced local config");
-assert(dataIntegrityJs.includes("recordConfigBaseline(configToUse,gist)"),"manual cloud-wins resolution must reset the shared config baseline");
+const workspaceJs=read("assets/js/workspace-cloud.js");
+assert(appJs.includes('ghPull({preferRemote:true,interactive:true})'),"manual cloud pull must explicitly request cloud-wins conflict resolution");
+assert(appJs.includes('ghHydrateGistFile(gist,GITHUB_STATE_FILE,{alwaysRaw:true})'),"one-time migration must read full legacy state file");
+assert(appJs.includes('async function ghPatchFiles(){throw new Error'),"legacy Gist writer must be physically disabled");
+assert(!/api\.github\.com\/gists\/[^\n]+method:\s*["']PATCH["']/.test(appJs),"Gist network writes must not remain");
+assert(workspaceJs.includes('initialize_taskring_workspace'),"migration must initialize the Supabase workspace");
+assert(workspaceJs.includes('save_taskring_workspace_config_v2'),"configuration writes must use atomic Supabase RPC");
+assert(workspaceJs.includes('import_taskring_workspace'),"full backup import must be atomic");
+assert(workspaceJs.includes('save_taskring_workspace_state'),"completion and time history must use versioned Supabase writes");
+assert(workspaceJs.includes('旧数据迁移')&&workspaceJs.includes('localStorage.removeItem(GH_TOKEN_KEY)'),"legacy credential is retired after verified migration");
+assert(dataIntegrityJs.includes('workspaceBridge:'),"existing state merge and conflict helpers must be preserved");
 assert(gameOpsV6Js.includes('data-gqv6-complete-daily="1"'),"GameQuest daily board must expose the one-tap complete-all action");
 assert(gameOpsV6Js.includes("function completeDailyBoard"),"GameQuest daily complete-all handler is missing");
 assert(gameOpsV6Js.includes('role="tablist"'),"GameQuest lanes must render separate accessible tabs");

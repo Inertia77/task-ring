@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>TASK RING｜任务指挥中心</title>
-<meta name="description" content="TASK RING — 个人任务环：每日、周计划、生活改善、游戏、时间账本与资料库。本机软锁进门，GitHub Gist 跨设备同步，Token 只保存在本机。"/>
+<meta name="description" content="TASK RING — 个人任务环：每日、周计划、生活改善、游戏、时间账本与资料库。本机软锁进门，Supabase 跨设备同步，保留本地离线缓存。"/>
 <meta name="application-name" content="TaskRing"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.png"/>
 <meta name="theme-color" content="#f4f1e9"/>
 <meta property="og:title" content="TASK RING｜任务指挥中心"/>
-<meta property="og:description" content="个人任务环：每日 / 周计划 / 生活改善 / 游戏 / 时间账本 / 资料库。软锁进门，Gist 同步，Token 只保存在本机。"/>
+<meta property="og:description" content="个人任务环：每日 / 周计划 / 生活改善 / 游戏 / 时间账本 / 资料库。软锁进门，Supabase 云端同步。"/>
 <meta property="og:type" content="website"/>
 <meta property="og:image" content="assets/icons/favicon.png"/>
 <meta name="twitter:card" content="summary"/>
@@ -34,7 +34,7 @@
   <div class="lockCard">
     <div class="lockBadge"><span>TR</span> 本机访问验证</div>
     <h1 class="lockTitle" id="lockTitle">TaskRing 已锁定</h1>
-    <p class="lockSub">输入本机解锁码继续。解锁与 GitHub 同步相互独立。</p>
+    <p class="lockSub">输入本机解锁码继续。解锁与 Supabase 账号登录相互独立。</p>
     <div class="lockForm" role="form" aria-label="TASK RING 本机软锁">
       <label class="srOnly" for="lockCodeInput">本机解锁码</label>
       <input id="lockCodeInput" class="lockInput" type="password" autocomplete="current-password" placeholder="输入解锁码" aria-describedby="lockError">
@@ -65,8 +65,8 @@
   </div>
   <div class="toolbar inertiaToolbar globalToolbar" aria-label="全局操作">
     <button id="controlCenterBtn" class="controlCenterBtn" aria-expanded="false" aria-controls="controlCenterMenu"><span class="trHeaderIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span>总控</button>
-    <button id="githubSetupBtn" class="ghSetupBtn"><span class="headerLabelDesktop">GitHub同步</span><span class="headerLabelMobile">同步</span></button>
-    <span class="githubInlineState off" id="githubStatus" title="GitHub：未设置" role="status" aria-live="polite"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span>
+    <button id="githubSetupBtn" class="ghSetupBtn"><span class="headerLabelDesktop">云端同步</span><span class="headerLabelMobile">同步</span></button>
+    <span class="githubInlineState off" id="githubStatus" title="Supabase：未登录" role="status" aria-live="polite"><span class="ghInlineDot" aria-hidden="true"></span><span class="ghInlineText">未设置</span></span>
     <span class="pill todayPill" id="todayLabel">今天：识别中</span>
     <button type="button" id="returnTodayBtn" class="returnTodayBtn" hidden>返回今天</button>
     <span class="pill cyclePill" id="cycleLabel">周期：计算中</span>
@@ -106,7 +106,7 @@
         <div class="controlUtilityGrid">
           <button type="button" id="controlGithubBtn" class="controlUtilityBtn">
             <span class="controlUtilityIcon" data-task-ui-icon="settings-2" aria-hidden="true"></span>
-            <span><b>同步设置</b><em>Token 与 Gist</em></span>
+            <span><b>同步设置</b><em>Supabase 账号</em></span>
           </button>
           <button type="button" id="controlPullBtn" class="controlUtilityBtn">
             <span class="controlUtilityIcon" data-task-ui-icon="cloud-download" aria-hidden="true"></span>
@@ -208,15 +208,15 @@
 <section class="dailyReminder auxReminder viewPanel" data-view-panel="library"><div class="dailyReminderTop"><div class="dailyIcon" aria-hidden="true">+</div><div><div class="dailyTitle">辅助确认</div><div class="dailyText">Calendar / To-Do 只做日程确认，不并入主任务环。</div></div></div><div class="quickLinks"><a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener noreferrer">Google Calendar</a><a href="https://to-do.office.com/tasks/" target="_blank" rel="noopener noreferrer">Microsoft To-Do</a></div></section>
 <div class="commandMotto viewPanel" data-view-panel="library"><span>TR / NOTE</span><p>Avance avec intention — chaque petite victoire construit la suivante.</p></div>
 <div id="timerFloatDock" class="timerFloatDock hidden" aria-live="polite"></div>
-<div class="footer">TASK RING｜本机软锁 / Gist 同步 / 可离线使用；Token 仅保存在本机</div>
+<div class="footer">TASK RING｜本机软锁 / Supabase 云同步 / 可离线使用</div>
 </div>
 
 <div id="ghModal" class="ghModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ghModalTitle">
   <div class="ghModalCard">
     <div class="ghModalHead">
       <div>
-        <div class="ghModalTitle" id="ghModalTitle">GitHub Gist 同步设置</div>
-        <div class="ghModalSub">软锁只负责进门；Token 只负责 Gist 云同步，并且只保存在当前设备浏览器里。</div>
+        <div class="ghModalTitle" id="ghModalTitle">Supabase 同步设置</div>
+        <div class="ghModalSub">软锁负责本机解锁；Supabase 账号负责云端任务、执行记录与跨设备同步。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -224,17 +224,21 @@
       </div>
     </div>
     <div id="ghGistPanel" class="ghSecretPanel">
-      <div class="ghSecretTitle">Gist ID</div>
-      <div id="ghGistMasked" class="ghSecretText">未解锁不显示；已内置到同步引擎。</div>
+      <div class="ghSecretTitle">工作区账号</div>
+      <div id="ghGistMasked" class="ghSecretText">正在读取 Supabase 登录状态。</div>
     </div>
-    <label class="ghLabel" for="ghTokenInput">GitHub Token（classic token，只勾 gist 权限）</label>
-    <input id="ghTokenInput" class="ghInput" type="password" placeholder="ghp_... 或 github_pat_...">
-    <div class="ghHint">页面地址：https://inertia77.github.io/task-ring/<br>状态文件：taskring-state.json｜配置文件：taskring-config.json（自动加密同步，无需额外口令）<br>没有 Token 也可以本机使用；需要跨设备同步时再填写。</div>
+    <form id="workspaceLogin">
+      <label class="ghLabel" for="workspaceEmail">邮箱</label>
+      <input id="workspaceEmail" class="ghInput" name="email" type="email" autocomplete="username" required>
+      <label class="ghLabel" for="workspacePassword">密码</label>
+      <input id="workspacePassword" class="ghInput" name="password" type="password" autocomplete="current-password" required>
+      <div class="ghActions"><button type="submit">登录 Supabase</button></div>
+    </form>
+    <div class="ghHint">所有正式配置及完成状态均保存到 Supabase；离线操作保留在本机缓存。旧数据首次迁移时只读旧 Gist 并核验，绝不写回。也可通过统一 JSON 导入最新完整备份。</div>
     <div class="ghActions">
-      <button id="ghSaveTokenBtn">保存 Token 并同步</button>
-      <button id="ghPullBtn">从云端读取</button>
-      <button id="ghPushBtn">上传本机状态</button>
-      <button id="ghClearTokenBtn" class="ghDangerBtn">清除 Token</button>
+      <button id="workspaceMigrateBtn" type="button">一次性迁移旧数据</button>
+      <button id="ghPullBtn" type="button">从云端读取</button>
+      <button id="ghPushBtn" type="button">同步本机修改</button>
     </div>
     <pre id="ghLog" class="ghLog">等待设置。</pre>
   </div>
@@ -306,7 +310,7 @@
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle" id="taskEditorTitle">任务编辑器</div>
-        <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会自动加密写入 Gist 并跨设备同步。不同设备可用不同 Token，仍能读取同一套任务配置。</div>
+        <div class="taskEditorSub">普通模式不会显示任务 ID；任务配置会写入 Supabase 并跨设备同步。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -341,7 +345,7 @@
     <div class="taskEditorHead">
       <div>
         <div class="taskEditorTitle" id="refEditorTitle">资料库编辑器</div>
-        <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起加密写入 Gist 并跨设备同步。</div>
+        <div class="taskEditorSub">资料库不进入任务环，只做入口/链接管理；保存后会和任务配置一起写入 Supabase 并跨设备同步。</div>
       </div>
       <div class="editorHeadActions">
         <button type="button" class="returnControlBtn" data-return-control><span aria-hidden="true">←</span> 返回总控</button>
@@ -372,9 +376,9 @@
 <dialog id="commandDialog" class="commandDialog" aria-label="TaskRing 任务管理"></dialog>
 <div id="taskWorkbench" class="taskWorkbench" role="dialog" aria-modal="true" aria-labelledby="wbTitle" hidden></div>
 <script src="assets/js/tasks/engine.js?v=20261117.1"></script>
-<script src="assets/js/app.js?v=20261124.5"></script>
+<script src="assets/js/app.js?v=20261125.2"></script>
 <script src="assets/js/data/integrity-core.js?v=20261117.1"></script>
-<script src="assets/js/data-integrity.js?v=20261117.1"></script>
+<script src="assets/js/data-integrity.js?v=20261125.2"></script>
 <script src="assets/js/views/completion-effects.js?v=20260711.1"></script>
 <script src="assets/js/views/time-ledger-view.js?v=20261104.2"></script>
 <script src="assets/js/views/editor-ux.js?v=20261117.1"></script>
@@ -386,12 +390,13 @@
 <script src="assets/js/game-ops-config.js?v=20261007.1"></script>
 <script src="assets/js/game-ops-core.js?v=20261105.1"></script>
 <script src="assets/js/game-play-policy.js?v=20261124.3"></script>
-  <script src="assets/js/game-ops-cloud.js?v=20261124.5"></script>
-<script src="assets/js/game-ops-v6.js?v=20261125.1"></script>
-<script src="assets/js/tasks/config.js?v=20261117.1"></script>
+  <script src="assets/js/game-ops-cloud.js?v=20261125.2"></script>
+<script src="assets/js/game-ops-v6.js?v=20261125.2"></script>
+<script src="assets/js/tasks/config.js?v=20261125.2"></script>
 <script src="assets/js/tasks/sources.js?v=20261124.3"></script>
-<script src="assets/js/tasks/command.js?v=20261124.5"></script>
-<script src="assets/js/tasks/workbench.js?v=20261124.5"></script>
+<script src="assets/js/tasks/command.js?v=20261125.2"></script>
+<script src="assets/js/tasks/workbench.js?v=20261125.2"></script>
+<script src="assets/js/workspace-cloud.js?v=20261125.2"></script>
 <script src="assets/js/pwa.js?v=20261118.2"></script>
 </body>
 </html>
