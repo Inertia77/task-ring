@@ -114,7 +114,7 @@
           </button>
           <button type="button" id="controlPushBtn" class="controlUtilityBtn">
             <span class="controlUtilityIcon" data-task-ui-icon="cloud-upload" aria-hidden="true"></span>
-            <span><b>上传本机状态</b><em>合并后保存至云端</em></span>
+            <span><b>同步本机修改</b><em>合并后保存至云端</em></span>
           </button>
           <button type="button" id="controlInstallAppBtn" class="controlUtilityBtn pwaInstallBtn" hidden>
             <span class="controlUtilityIcon" data-task-ui-icon="plus" aria-hidden="true"></span>
@@ -223,20 +223,19 @@
         <button id="ghCloseBtn" class="ghCloseBtn" type="button" aria-label="关闭">×</button>
       </div>
     </div>
-    <div id="ghGistPanel" class="ghSecretPanel">
+    <div id="workspaceAccountPanel" class="ghSecretPanel">
       <div class="ghSecretTitle">工作区账号</div>
-      <div id="ghGistMasked" class="ghSecretText">正在读取 Supabase 登录状态。</div>
+      <div id="workspaceAccountStatus" class="ghSecretText">正在读取 Supabase 登录状态。</div>
     </div>
-    <form id="workspaceLogin">
+    <form id="workspaceLogin" hidden>
       <label class="ghLabel" for="workspaceEmail">邮箱</label>
       <input id="workspaceEmail" class="ghInput" name="email" type="email" autocomplete="username" required>
       <label class="ghLabel" for="workspacePassword">密码</label>
       <input id="workspacePassword" class="ghInput" name="password" type="password" autocomplete="current-password" required>
       <div class="ghActions"><button type="submit">登录 Supabase</button></div>
     </form>
-    <div class="ghHint">所有正式配置及完成状态均保存到 Supabase；离线操作保留在本机缓存。旧数据首次迁移时只读旧 Gist 并核验，绝不写回。也可通过统一 JSON 导入最新完整备份。</div>
-    <div class="ghActions">
-      <button id="workspaceMigrateBtn" type="button">一次性迁移旧数据</button>
+    <div id="workspaceSyncHint" class="ghHint">正在检查工作区。</div>
+    <div id="workspaceSyncActions" class="ghActions" hidden>
       <button id="ghPullBtn" type="button">从云端读取</button>
       <button id="ghPushBtn" type="button">同步本机修改</button>
     </div>
@@ -396,7 +395,7 @@
 <script src="assets/js/tasks/sources.js?v=20261124.3"></script>
 <script src="assets/js/tasks/command.js?v=20261125.3"></script>
 <script src="assets/js/tasks/workbench.js?v=20261125.2"></script>
-<script src="assets/js/workspace-cloud.js?v=20261125.3"></script>
+<script src="assets/js/workspace-cloud.js?v=20261125.4"></script>
 <script src="assets/js/pwa.js?v=20261118.2"></script>
 </body>
 </html>
