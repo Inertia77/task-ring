@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261125-optional-neutral";
+const CACHE_NAME = "taskring-shell-20261125-supabase-workspace";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -70,6 +70,7 @@ const APP_SHELL = [
   "./assets/js/tasks/sources.js",
   "./assets/js/tasks/command.js",
   "./assets/js/tasks/workbench.js",
+  "./assets/js/workspace-cloud.js",
   "./assets/css/command-center.css",
   "./assets/css/task-workbench.css",
   "./assets/css/visual-system-v4.css",
