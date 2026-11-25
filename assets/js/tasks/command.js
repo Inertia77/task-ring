@@ -408,8 +408,9 @@
   }
 
   function snapshot(){
+    const ws=window.TaskRingWorkspace;
     return {kind:"taskring-backup",schemaVersion:C.VERSION,createdAt:new Date().toISOString(),configuration:C.exportConfig(workbenchConfig()),
-      execution:{states:collectGhLocalStates(),state_meta:window.TaskRingIntegrity.readStateMeta(),
+      execution:ws?.connected()?ws.exportExecution():{states:collectGhLocalStates(),state_meta:window.TaskRingIntegrity.readStateMeta(),
         time_logs:readTimeLogs(),time_logs_deleted:readDeletedTimeLogMap()}};
   }
   function jsonManager(){
@@ -476,16 +477,20 @@
       try{
         await ws.saveConfiguration(preview.config,{before:current,after:preview.config,importing:true});
         if(preview.execution){
-          window.TaskRingIntegrity.importState(preview.execution);
-          mergeGhTimeLogDeletes(preview.execution.time_logs_deleted);
-          mergeGhTimeLogs(preview.execution.time_logs);
-          await ghPush(false);
+          await ws.importExecution(preview.execution);
         }
         dialog.close();showToast("已应用 JSON 至 Supabase","ok",2600);
       }catch(err){dialogError(String(err.message||err));if(button)button.disabled=false;}
       return;
     }
-    if(ws&&!LOCAL_PREVIEW_UNLOCK&&window.TaskRingGameOpsCloud?.workspaceSession?.().uid)throw Error("请先完成 Supabase 工作区迁移，避免导入未同步配置");
+    if(ws&&!LOCAL_PREVIEW_UNLOCK&&window.TaskRingGameOpsCloud?.workspaceSession?.().uid){
+      if(!importPreview.execution)throw Error("请先完成 Supabase 工作区迁移；首次迁移也可使用完整备份（必须包含执行历史）");
+      if(!confirm("使用这个完整备份初始化 Supabase 工作区？请确认它是最新完整备份。现有云端游戏任务定义不会被迁移覆盖。"))return;
+      const button=dialog.querySelector("[data-command-apply-import]");if(button)button.disabled=true;
+      try{await ws.initializeFromBackup(importPreview.config,importPreview.execution);dialog.close();showToast("完整备份已迁入 Supabase","ok",2600);}
+      catch(e){dialogError(String(e.message||e));if(button)button.disabled=false;}
+      return;
+    }
     const {execution}=importPreview;
     if(execution&&!confirm("此操作会按记录版本合并完成历史与时间账本。应用前可下载当前完整备份。继续导入？"))return;
     const protectedKey=key=>key.startsWith(GH_PREFIX)||[
