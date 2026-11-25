@@ -47,7 +47,8 @@
   }
   function snapshot(remote={}){
     const m=B.mergeWithRemoteState(remote);
-    const deleted={...(remote.time_logs_deleted||remote.deleted_time_logs||{})};
+    const rawDeleted=remote.time_logs_deleted||remote.deleted_time_logs||{};
+    const deleted=Array.isArray(rawDeleted)?Object.fromEntries(rawDeleted.map(id=>[id,new Date(0).toISOString()])):{...rawDeleted};
     for(const [id,ts] of Object.entries(readDeletedTimeLogMap()))if(!deleted[id]||String(ts)>String(deleted[id]))deleted[id]=ts;
     const logs=new Map();
     for(const raw of [...(remote.time_logs||[]),...readTimeLogs()]){
@@ -144,6 +145,7 @@
       if(!parsed.config||parsed.mode==="error")throw Error("旧配置无法解密，不能迁移");
       const execution=legacyState(gist);
       if(!execution||typeof execution.states!=="object"||!execution.states)throw Error("旧执行记录不可用");
+      migrateLegacyLocalStates();
       const local=loadLocalTaskConfig();
       const decision=Core.decideConfig({local,remote:parsed.config,baseFingerprint:B.configBaseFingerprint()});
       let chosen=decision.source==="local"?local:parsed.config;
@@ -195,6 +197,7 @@
     localStorage.removeItem(GH_TOKEN_KEY);status("已迁移","on");renderAll();return verified;
   }
   async function pushState(uid,extra=null){
+    migrateLegacyLocalStates();
     // Compare-and-swap state and merge on conflict, retaining remote historical logs.
     for(let attempt=0;attempt<3;attempt++){
       const remote=await readWorkspace(uid);
@@ -333,7 +336,7 @@
   window.addEventListener("online",()=>{if(ghToken())ghPull();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();});
   setInterval(()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();},60000);
-  window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid,revision:()=>workspace?.config_revision??null,
+  window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid&&localStorage.getItem(OWNER)===owner,revision:()=>workspace?.config_revision??null,
     projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
     exportExecution:()=>snapshot(workspace?.execution||{}),
     importExecution:execution=>guarded(()=>pushState(trustedAccount(),execution),true),
