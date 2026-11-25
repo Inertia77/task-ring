@@ -273,6 +273,14 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
     window.__workspaceCompletionKey=key;
   });
   expect(await page.evaluate(()=>window.TaskRingWorkspace.connected())).toBe(true);
+  // Signed-in devices must never see an unnecessary login form or Gist migration control.
+  await page.evaluate(()=>openGhModal());
+  await expect(page.locator("#workspaceAccountStatus")).toContainText("工作区已连接");
+  await expect(page.locator("#workspaceLogin")).toBeHidden();
+  await expect(page.locator("#workspaceMigrateBtn")).toHaveCount(0);
+  await expect(page.locator("#workspaceSyncActions")).toBeVisible();
+  await page.locator("#ghCloseBtn").click();
+
   expect(await page.evaluate(()=>localStorage.getItem(window.__workspaceCompletionKey))).toBe("1");
   await page.evaluate(()=>window.TaskRingWorkbench.open("tasks"));
   await page.locator("#taskWorkbench [data-wb-new]").click();

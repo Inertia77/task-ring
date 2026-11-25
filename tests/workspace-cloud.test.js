@@ -62,9 +62,9 @@ function harness({missing=false}={}){
   vm.runInNewContext(src,ctx);
   return {ctx,api:window.TaskRingWorkspace,calls,storage,get row(){return row},get local(){return local},get gistReads(){return gistReads},get legacyWrites(){return legacyWrites},switchUser(id){uid=id},setLocal(k,value,stamp){localMeta[k]={value,updatedAt:stamp,deviceId:"device"};if(value==="1")localStates[k]="1";else delete localStates[k];storage.set("fixture-meta",JSON.stringify(localMeta));},setRemote(k,value,stamp){row.state_revision++;row.execution.state_meta[k]={value,updatedAt:stamp,deviceId:"other"};if(value==="1")row.execution.states[k]="1";else delete row.execution.states[k];journal.set(k,row.state_revision);},get localStates(){return localStates}};
 }
-test("verified legacy migration copies config, checks, logs, tombstones and never writes Gist",async()=>{
+test("verified backup initialization preserves all execution data and retires the old token without reading Gist",async()=>{
   const h=harness();
-  await h.ctx.ghPull({migration:true,interactive:true});
+  await h.api.initializeFromBackup(config,execution);
   assert.equal(h.api.connected(),true);
   assert.equal(h.row.configuration.tasks[0].code,"t001");
   assert.equal(h.row.configuration.gameQuest.boards.daily.zzz.length,0);
@@ -72,21 +72,32 @@ test("verified legacy migration copies config, checks, logs, tombstones and neve
   assert.equal(h.row.execution.time_logs[0].id,"old-log");
   assert.equal(h.row.execution.time_logs_deleted.removed,"2026-11-23T00:00:00Z");
   assert.equal(h.storage.has("token"),false);
-  assert.equal(h.gistReads,1);
   await h.ctx.ghPull();
-  assert.equal(h.gistReads,1);
+  assert.equal(h.gistReads,0);
   await assert.rejects(h.ctx.ghPatchFiles(),/停用/);
   assert.equal(h.legacyWrites,0);
 });
-test("missing legacy state cannot initialize the workspace",async()=>{
+test("missing workspace never attempts Gist migration or creates an empty workspace",async()=>{
   const h=harness({missing:true});
   await h.ctx.ghPull({migration:true,interactive:true});
   assert.equal(h.row,null);
   assert.equal(h.api.connected(),false);
+  assert.equal(h.gistReads,0);
   assert.equal(h.storage.has("token"),true);
 });
+test("another device adopts existing cloud data and retires old token without a Gist read",async()=>{
+  const h=harness();
+  await h.api.initializeFromBackup(config,execution);
+  h.storage.delete("taskring_workspace_owner_v1");
+  h.storage.set("token","old-device-token");
+  await h.ctx.ghPull({interactive:true});
+  assert.equal(h.api.connected(),true);
+  assert.equal(h.gistReads,0);
+  assert.equal(h.storage.has("token"),false);
+  assert.equal(h.localStates[key],"1");
+});
 test("one configuration RPC carries manual and JSON changes across game tables",async()=>{
-  const h=harness();await h.ctx.ghPull({migration:true,interactive:true});
+  const h=harness();await h.api.initializeFromBackup(config,execution);
   const before=h.api.projectConfig(h.local),after=clone(before);
   after.tasks[0].title="Edited";
   after.gameQuest.boards.daily.zzz[0].title="Changed routine";
@@ -105,14 +116,14 @@ test("one configuration RPC carries manual and JSON changes across game tables",
   assert.equal(call.args.p_execution.time_logs.length,2);
 });
 test("account change blocks any write from an already bound device",async()=>{
-  const h=harness();await h.ctx.ghPull({migration:true,interactive:true});
+  const h=harness();await h.api.initializeFromBackup(config,execution);
   h.switchUser("different-owner");
   await assert.rejects(h.api.saveConfiguration(h.local),/其他账号/);
   assert.equal(h.api.connected(),false);
 });
 
 test("incremental sync bootstraps once and writes only the changed record, including uncheck",async()=>{
- const h=harness();await h.ctx.ghPull({migration:true,interactive:true});await h.ctx.ghPull();
+ const h=harness();await h.api.initializeFromBackup(config,execution);await h.ctx.ghPull();
  assert.equal(h.calls.filter(x=>x.name==="get_taskring_execution_delta").at(-1).args.p_since,null);
  h.calls.length=0;await h.ctx.ghPull();
  assert.equal(h.calls.find(x=>x.name==="get_taskring_execution_delta").args.p_since,1);
@@ -127,7 +138,7 @@ test("incremental sync bootstraps once and writes only the changed record, inclu
  assert.equal(h.calls.some(x=>x.name==="save_taskring_execution_delta"),false);
 });
 test("remote delta preserves historical cache and full backup reads all history",async()=>{
- const h=harness();await h.ctx.ghPull({migration:true,interactive:true});await h.ctx.ghPull();
+ const h=harness();await h.api.initializeFromBackup(config,execution);await h.ctx.ghPull();
  const newKey="taskring_github_v2_2026-11-23_t002_d1";
  h.setRemote(newKey,"1","2026-11-25T04:01:00Z");await h.ctx.ghPull();
  assert.equal(h.localStates[newKey],"1");assert.equal(h.localStates[key],"1");

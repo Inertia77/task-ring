@@ -66,7 +66,7 @@
 
   // v21: `time_category` is the only persisted task classification.
   // The old three-way `cat` value is generated only as a temporary adapter while the
-  // legacy normalizer runs, then removed before config reaches memory/storage/Gist.
+  // legacy normalizer runs, then removed before config reaches memory/storage/Supabase.
   function legacyCatForCategory(category){
     const key=normalizeTimeCategory(category,"life");
     if(key==="game"||key==="creator")return "gamecreate";
@@ -124,25 +124,6 @@
     });
   }
   installUnifiedCategoryPresentation();
-
-  function hasLegacyTaskCategory(config){
-    return Array.isArray(config?.tasks)&&config.tasks.some(task=>task&&Object.prototype.hasOwnProperty.call(task,"cat"));
-  }
-  ghParseConfig=async function(gist){
-    const file=gist.files&&gist.files[CONFIG_FILE];
-    if(!file||!file.content)return {config:null,mode:"missing",legacyCategory:false};
-    try{
-      const raw=JSON.parse(file.content);
-      if(raw&&raw.encrypted===true){
-        const decrypted=await decryptConfigObject(raw);
-        return {config:normalizeTaskConfig(decrypted),mode:"encrypted",legacyCategory:hasLegacyTaskCategory(decrypted)};
-      }
-      return {config:normalizeTaskConfig(raw),mode:"plaintext",legacyCategory:hasLegacyTaskCategory(raw)};
-    }catch(e){
-      ghLog("任务配置读取失败，已使用内置默认配置："+e.message);
-      return {config:null,mode:"error",legacyCategory:false,error:e};
-    }
-  };
 
   function migrateStoredTimeCategories(){
     try{

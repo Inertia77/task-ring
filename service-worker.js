@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261125-incremental-execution";
+const CACHE_NAME = "taskring-shell-20261125-supabase-only";
 const APP_SHELL = [
   "./",
   "./index.html",
