@@ -190,6 +190,7 @@
       field("name","游戏名称",v.name)+field("short","简称",v.short)+
       '<h3 class="wb-form-section">02 / 显示与管理</h3>'+
       field("priority","显示顺序",v.priority||1,"number",'min="1"')+
+      (window.TaskRingWorkspace?.connected()?select("playTier","游戏等级",String(v.playTier||2),[["1","S · 核心"],["2","A · 余力"],["3","B · 自由"],["4","D · 待公测"],["5","F · 封存"]])+select("gameKind","游戏类型",v.gameKind||"live_service",[["live_service","运营游戏"],["single_player","单机游戏"]])+check("storyFocus","剧情重点",v.storyFocus===true):"")+
       check("enabled","启用游戏",v.enabled!==false);
     if(item.kind==="gameTask"){
       const weekly=item.group.endsWith("周常");
@@ -200,6 +201,7 @@
         check("enabled","启用此任务",v.enabled!==false)+
         '<h3 class="wb-form-section">02 / 条件与说明</h3>'+
         field("url","关联链接",v.url,"url")+(weekly?field("unlock_hint","解锁条件",v.unlock_hint):"")+
+        field("active_from","生效日期",v.active_from||"","date")+field("active_until","结束日期",v.active_until||"","date")+
         textarea("note","说明 / 备注",v.note,4);
     }
     if(item.kind==="lifeSection")return field("name","分区名称",v.name)+field("short","分区简称",v.short)+select("accent","颜色",v.accent||"blue",["blue","violet","rose","cyan","slate","green","amber"].map(x=>[x,x]))+textarea("guide","分区指导说明",v.guide,6)+check("enabled","启用分区",v.enabled!==false);
@@ -592,9 +594,11 @@
     }else if(item.kind==="gameMeta"){
       set(v,"name","name",x=>x.trim());set(v,"short","short",x=>x.trim());
       set(v,"priority","priority",x=>Math.max(1,Number(x)||1));
+      if(window.TaskRingWorkspace?.connected()){set(v,"playTier","playTier",Number);set(v,"gameKind","gameKind");if(changed("storyFocus"))v.storyFocus=has("storyFocus");}
       if(changed("enabled"))v.enabled=has("enabled");
     }else if(item.kind==="gameTask"){
       set(v,"title","title",x=>x.trim());set(v,"url","url",x=>x.trim());set(v,"note","note");
+      for(const key of ["active_from","active_until"]){if(changed(key)){if(text(key))v[key]=text(key);else delete v[key];}}
       if(changed("enabled"))v.enabled=has("enabled");
       if(item.group.endsWith("周常")){
         set(v,"weekly_lane","weekly_lane");set(v,"unlock_hint","unlock_hint");
@@ -627,7 +631,7 @@
     checkpoint();
     let obj,parent,mod=domain;
     if(kind==="group"&&domain==="game"){
-      obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
+      obj={id:"game-"+uuid(),name:"新游戏",short:"NEW",enabled:true,playTier:2,gameKind:"live_service",priority:draft.gameQuest.games.length+1,accent:"cyan",icon:"GQ"};
       parent=draft.gameQuest.games;parent.push(obj);draft.gameQuest.boards.daily[obj.id]=[];draft.gameQuest.boards.weekly[obj.id]=[];
     }else if(kind==="group"&&domain==="fitness"){
       obj={id:"life-"+uuid(),name:"新改善分区",short:"LIFE",icon:"＋",accent:"blue",locked:false,enabled:true};parent=draft.fitness.sections;parent.push(obj);
@@ -732,7 +736,7 @@
       const saved=await window.TaskRingCommand?.saveWorkbenchConfig?.(clone(draft),expectedBase);
       if(!saved)throw Error("统一保存接口暂不可用");
       const current=storedConfig()||saved;expectedBase=fingerprint(current);draft=clone(current);ensure();prepareBaseline();undoStack=[];redoStack=[];
-      notice=window.TaskRingGameOpsCloud?.routineState?.().active?"✓ 已保存；游戏日常/周常以 Supabase 为准，其他配置沿用原有同步":"✓ 已保存到本机配置；如已连接 Gist，将沿用原有同步与冲突保护机制";
+      notice=window.TaskRingWorkspace?.connected()?"✓ 已保存到 Supabase；当前配置已回读确认":"✓ 已保存到本机缓存；未连接 Supabase 时不会覆盖云端";
       busy=false;render();
     }catch(error){busy=false;notice="保存失败："+String(error?.message||error);render();}
   }
