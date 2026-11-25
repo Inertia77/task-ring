@@ -425,6 +425,7 @@
   function previewJson(value){
     const input=C.decode(value);
     const candidate=normalizeTaskConfig(input.config);
+    if(input.config.cloudGameConfig&&input.config.gameQuest?.boards)candidate.gameQuest=input.config.gameQuest;
     const current=workbenchConfig(),existing=Object.fromEntries(current.tasks.map(task=>[task.id,task.code]));
     const currentByCode=new Map(current.tasks.map(task=>[task.code,task.id]));
     if(candidate.tasks.some(task=>(Object.hasOwn(existing,task.id)&&existing[task.id]!==task.code)||
@@ -475,10 +476,7 @@
       if(!pushLocalConfigBackup(config(),"Supabase JSON 导入前"))throw Error("无法建立本机回滚点");
       const button=dialog.querySelector("[data-command-apply-import]");if(button)button.disabled=true;
       try{
-        await ws.saveConfiguration(preview.config,{before:current,after:preview.config,importing:true});
-        if(preview.execution){
-          await ws.importExecution(preview.execution);
-        }
+        await ws.saveConfiguration(preview.config,{before:current,after:preview.config,importing:true,execution:preview.execution});
         dialog.close();showToast("已应用 JSON 至 Supabase","ok",2600);
       }catch(err){dialogError(String(err.message||err));if(button)button.disabled=false;}
       return;
