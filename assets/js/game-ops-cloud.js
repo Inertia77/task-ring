@@ -72,11 +72,11 @@
       if(token===routineRequest&&uid===user?.id)acceptRoutine(data,uid);
     }catch(e){if(token===routineRequest){routineError=e.message||String(e);console.warn('Game routines unavailable; retaining account cache',e);}}
   }
-  function routineView(config){
-    if(!routineCatalog)return config;
+  function routineView(config,catalog=routineCatalog){
+    if(!catalog)return config;
     const source=config||{},games=(source.games||[]).map(g=>({...g})),byId=new Map(games.map(g=>[g.id,g]));
     const known=P?.allGames()||[];
-    for(const row of routineCatalog.rows){
+    for(const row of catalog.rows){
       if(byId.has(row.game_key))continue;
       const policy=known.find(g=>g.key===row.game_key);
       const name=policy?.name||row.game_key;
@@ -91,13 +91,13 @@
     }
     const boards={...source.boards,daily:{},weekly:{}};
     for(const b of routineBoards)for(const g of games)boards[b][g.id]=[];
-    for(const r of routineCatalog.rows){
+    for(const r of catalog.rows){
       if(!routineBoards.includes(r.board)||!boards[r.board][r.game_key])continue;
       boards[r.board][r.game_key].push({id:r.task_key,title:r.title,note:r.note||'',url:r.url||'',enabled:r.enabled!==false,[r.board+'_lane']:r.lane,
         ...(r.unlock_hint?{unlock_hint:r.unlock_hint}:{}),...(r.active_from?{active_from:r.active_from}:{}),...(r.active_until?{active_until:r.active_until}:{}),
         ...(r.verification?{verification:r.verification}:{}),...(r.source_url?{source_url:r.source_url}:{})});
     }
-    return {...source,games,boards,routineRevision:Number(routineCatalog.revision)};
+    return {...source,games,boards,routineRevision:Number(catalog.revision)};
   }
   function routineMap(config){
     const out=new Map();
