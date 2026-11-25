@@ -273,15 +273,24 @@
     if(sync)syncConfiguration(saved);
     return saved;
   }
-  // Workbench sees the cloud projection; the encrypted Gist keeps only its legacy
-  // routine snapshot for backward compatibility. Normal JSON import never writes the catalog.
+  // Both interactive editing and JSON use the same authoritative projection.
   function workbenchConfig(){
-    const raw=config(),cloud=window.TaskRingGameOpsCloud;
-    return {...raw,gameQuest:cloud?.routineView?.(raw.gameQuest)||raw.gameQuest};
+    const raw=config(),cloud=window.TaskRingGameOpsCloud,workspace=window.TaskRingWorkspace;
+    return workspace?.gameReady()?workspace.projectConfig(raw):{...raw,gameQuest:cloud?.routineView?.(raw.gameQuest)||raw.gameQuest};
   }
   function saveWorkbenchConfig(candidate,expectedFingerprint){
     const before=workbenchConfig(),raw=config(),cloud=window.TaskRingGameOpsCloud;
     if(expectedFingerprint&&expectedFingerprint!==fingerprint(before))throw Error("配置在编辑期间发生变化，请重新打开编辑台。");
+    const ws=window.TaskRingWorkspace;
+    if(ws?.connected()){
+      C.validateConfig(candidate);
+      if(!ws.gameReady())throw Error("游戏配置尚未同步，请刷新后重试");
+      const latest=loadLocalTaskConfig();
+      if(latest&&fingerprint(latest)!==fingerprint(raw))throw Error("另一标签页已修改配置，请刷新后再应用");
+      if(!pushLocalConfigBackup(raw,"统一编辑台 Supabase 保存前"))throw Error("无法建立本机回滚点");
+      return ws.saveConfiguration(candidate,{before,after:candidate}).then(result=>result.configuration);
+    }
+    if(ws&&!LOCAL_PREVIEW_UNLOCK&&cloud?.workspaceSession?.().uid)throw Error("请先在同步设置完成工作区迁移，再保存编辑台");
     const active=cloud?.routineState?.().active;
     if(!active){
       // Migrated accounts must not silently save edits to an obsolete JSON while the
@@ -406,7 +415,7 @@
   function jsonManager(){
     importPreview=null;
     openDialog("统一 JSON",'<div class="commandManagerActions"><button type="button" data-command-export="config">导出配置</button><button type="button" data-command-export="backup">导出完整备份</button></div>'+
-      '<p>配置包含所有本机模块。完整备份另含本机完成状态和时间账本。游戏限时与周期任务由 Supabase 管理。</p>'+
+      '<p>配置导出包含普通任务、学习、生活、资料、游戏日常周常、游戏分级与当前限时任务。完整备份另含完成状态和时间账本。导入预览后确认，将按模块统一保存至 Supabase；缺失的旧版游戏分级/限时分区不会覆盖云端。</p>'+
       label("选择配置或备份",'<input type="file" accept=".json,application/json" data-command-import>')+
       '<p data-command-import-summary role="status"></p>'+
       '<button type="button" data-command-apply-import disabled>应用导入</button>'+
@@ -415,16 +424,24 @@
   function previewJson(value){
     const input=C.decode(value);
     const candidate=normalizeTaskConfig(input.config);
-    const current=config(),existing=Object.fromEntries(current.tasks.map(task=>[task.id,task.code]));
+    const current=workbenchConfig(),existing=Object.fromEntries(current.tasks.map(task=>[task.id,task.code]));
     const currentByCode=new Map(current.tasks.map(task=>[task.code,task.id]));
     if(candidate.tasks.some(task=>(Object.hasOwn(existing,task.id)&&existing[task.id]!==task.code)||
       (currentByCode.has(task.code)&&currentByCode.get(task.code)!==task.id)))throw new Error("配置的任务 ID 与本机状态编码冲突。");
     const diff=C.difference(current,candidate,window.TaskRingIntegrityCore.stableStringify);
-    importPreview={...input,config:candidate};
+    importPreview={...input,config:candidate,baseline:fingerprint(current),current};
     const stateCount=input.execution?Object.keys(input.execution.state_meta).length:0;
     const summary=dialog.querySelector("[data-command-import-summary]");
     summary.textContent="任务 "+diff.before+" → "+diff.after+" · 新增 "+diff.added.length+" · 修改 "+diff.changed.length+" · 移出配置 "+diff.removed.length+
       (input.execution?" · 合并 "+stateCount+" 条状态记录与 "+input.execution.time_logs.length+" 条时间日志":" · 现有完成记录继续保留");
+    const ws=window.TaskRingWorkspace;
+    if(ws?.connected()&&ws.gameReady()){
+      const delta=ws.catalogChanges(current,candidate,{importing:true});
+      importPreview.delta=delta;
+      const extra=document.createElement("p");
+      extra.textContent="Supabase 游戏变更：日常/周常 "+delta.routineChanges.length+" 项（归档 "+delta.routineChanges.filter(x=>x.op==="archive").length+"） · 分级 "+delta.policyChanges.length+" 项 · 限时 "+delta.opsChanges.length+" 项（归档 "+delta.opsChanges.filter(x=>x.op==="archive").length+"）";
+      summary.append(extra);
+    }
     for(const [title,keys,data] of [["新增",diff.added,C.inventory(candidate)],["修改",diff.changed,C.inventory(candidate)],["移出",diff.removed,C.inventory(current)]]){
       if(!keys.length)continue;
       const details=document.createElement("details"),heading=document.createElement("summary"),list=document.createElement("ul");
@@ -445,8 +462,30 @@
     const value=JSON.parse(await file.text());
     if(input.isConnected&&dialog.open)previewJson(value);
   }
-  function applyImport(){
+  async function applyImport(){
     if(!importPreview)return;
+    const ws=window.TaskRingWorkspace;
+    if(ws?.connected()){
+      const preview=importPreview,current=workbenchConfig();
+      if(preview.baseline!==fingerprint(current))throw Error("导入预览后云端或本机配置已发生变化，请重新选择文件");
+      if(!ws.gameReady())throw Error("游戏配置尚未同步，请刷新后重试");
+      const delta=ws.catalogChanges(current,preview.config,{importing:true});
+      if(!confirm("将配置统一保存至 Supabase。日常/周常归档 "+delta.routineChanges.filter(x=>x.op==="archive").length+" 项；限时任务归档 "+delta.opsChanges.filter(x=>x.op==="archive").length+" 项。配置历史保留，已有完成记录不会被配置导入清空。确认应用？"))return;
+      if(!pushLocalConfigBackup(config(),"Supabase JSON 导入前"))throw Error("无法建立本机回滚点");
+      const button=dialog.querySelector("[data-command-apply-import]");if(button)button.disabled=true;
+      try{
+        await ws.saveConfiguration(preview.config,{before:current,after:preview.config,importing:true});
+        if(preview.execution){
+          window.TaskRingIntegrity.importState(preview.execution);
+          mergeGhTimeLogDeletes(preview.execution.time_logs_deleted);
+          mergeGhTimeLogs(preview.execution.time_logs);
+          await ghPush(false);
+        }
+        dialog.close();showToast("已应用 JSON 至 Supabase","ok",2600);
+      }catch(err){dialogError(String(err.message||err));if(button)button.disabled=false;}
+      return;
+    }
+    if(ws&&!LOCAL_PREVIEW_UNLOCK&&window.TaskRingGameOpsCloud?.workspaceSession?.().uid)throw Error("请先完成 Supabase 工作区迁移，避免导入未同步配置");
     const {execution}=importPreview;
     if(execution&&!confirm("此操作会按记录版本合并完成历史与时间账本。应用前可下载当前完整备份。继续导入？"))return;
     const protectedKey=key=>key.startsWith(GH_PREFIX)||[
@@ -539,7 +578,7 @@
     else if(d.commandJson!==undefined){closeControlCenter();jsonManager();}
     else if(d.commandDismiss!==undefined)dismiss();
     else if(d.commandExport){const value=d.commandExport==="backup"?snapshot():C.exportConfig(workbenchConfig());downloadJsonBackupFile("taskring-"+d.commandExport+"-"+date()+".json",value);}
-    else if(d.commandApplyImport!==undefined)applyImport();
+    else if(d.commandApplyImport!==undefined)applyImport().catch(e=>dialogError(String(e.message||e)));
     else if(d.commandRollback!==undefined)showRollback();
     else if(d.commandRestore!==undefined)restorePreview(Number(d.commandRestore));
     else if(d.commandDomain){
