@@ -250,12 +250,14 @@
       if(session().uid!==uid||localStorage.getItem(OWNER)!==uid)throw Error("登录账号已变化");
       // Apply the delta before advancing the durable cursor. A crash before
       // cursor persistence simply replays the same idempotent changes.
-      applyExecution(delta);
+      if(delta.full||Object.keys(delta.state_meta||{}).length||Object.keys(delta.states||{}).length||Array.isArray(delta.time_logs)||delta.time_logs_deleted)applyExecution(delta);
       observeDelta(cursor,delta);
       const local=extra?snapshot(combineExecution(snapshot({}),extra)):snapshot({});
       if(extra)applyExecution(local);
-      // Persist any newly normalized legacy keys before sending the patch.
-      B.applyMergedState(B.mergeWithRemoteState(local));
+      // Persist metadata for legacy checked keys that lack a version; otherwise
+      // an unchanged legacy key would receive a new timestamp at every poll.
+      const localMeta=I.readStateMeta?.()||{};
+      if(Object.keys(local.state_meta||{}).some(key=>!localMeta[key]))B.applyMergedState(B.mergeWithRemoteState(local));
       persistCursor(cursor);
       const patch=buildExecutionPatch(local,cursor);
       if(!Object.keys(patch.meta).length&&!patch.logs.length&&!Object.keys(patch.deleted).length)return workspace;
