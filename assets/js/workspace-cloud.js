@@ -343,7 +343,7 @@
     const form=document.getElementById("workspaceLogin");
     if(form)form.hidden=!account.ready||!!account.uid;
     const actions=document.getElementById("workspaceSyncActions");
-    if(actions)actions.hidden=!account.uid||foreign;
+    if(actions){actions.hidden=!account.uid||foreign;actions.style.display=actions.hidden?"none":"";}
     const hint=document.getElementById("workspaceSyncHint");
     if(hint)hint.textContent=foreign?"请使用原账号，不会跨账号上传本机记录。":connected?"自动同步已启用。勾选、撤销及配置保存会自动同步；离线时保留本机修改，重新联网后同步。":account.uid?"如尚未连接，请从云端读取并确认本机工作区。首次初始化可使用统一 JSON 的完整备份。":"登录已有 Supabase 账号即可连接云端工作区。";
   }
