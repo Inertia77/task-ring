@@ -208,7 +208,7 @@
     }
     throw Error("完成记录在其他设备同步中；本机记录已保留，稍后重试");
   }
-  async function writeConfig(c,{before=null,after=null,importing=false,guard=null}={}){
+  async function writeConfig(c,{before=null,after=null,importing=false,guard=null,execution=null}={}){
     const uid=trustedAccount();
     if(localStorage.getItem(OWNER)!==uid)throw Error("请先完成旧数据迁移或读取云端");
     if(!navigator.onLine)throw Error("离线：配置保留在本机，联网后同步");
@@ -225,11 +225,13 @@
     const delta=before&&after?catalogChanges(before,after,{importing}):{routineChanges:[],policyChanges:[],opsChanges:[]};
     const gameChanged=delta.routineChanges.length||delta.policyChanges.length||delta.opsChanges.length;
     if(gameChanged&&!gameCatalog)throw Error("游戏配置尚未同步");
-    if(fp(candidate)===remoteFp&&!gameChanged){recordBase(remote.configuration);return remote;}
-    const result=await rpc("save_taskring_workspace_config_v2",{p_expected_revision:remote.config_revision,p_configuration:candidate,p_routine_revision:before?.gameQuest?.routineRevision??null,p_routine_changes:delta.routineChanges,p_policy_changes:delta.policyChanges,p_ops_changes:delta.opsChanges});
+    if(fp(candidate)===remoteFp&&!gameChanged&&!execution){recordBase(remote.configuration);return remote;}
+    const args={p_expected_revision:remote.config_revision,p_configuration:candidate,p_routine_revision:before?.gameQuest?.routineRevision??null,p_routine_changes:delta.routineChanges,p_policy_changes:delta.policyChanges,p_ops_changes:delta.opsChanges};
+    const result=execution?await rpc("import_taskring_workspace",{...args,p_expected_state_revision:remote.state_revision,p_execution:snapshot(combineExecution(remote.execution,execution))}):await rpc("save_taskring_workspace_config_v2",args);
     const saved=result.workspace;accept(saved,uid);gameCatalog=result.game;recordBase(saved.configuration);
     // Never overwrite a newer local edit that occurred while the request was pending.
     if(fp(localConfig())===fp(current))applyConfig(saved.configuration,"Supabase 配置保存");
+    if(execution)applyExecution(saved.execution);
     if(gameChanged)await cloud.refresh();
     renderAll();return saved;
   }
