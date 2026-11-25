@@ -1,19 +1,17 @@
-// Supabase is the sole writable workspace backend. Legacy Gist is read once for
-// verified cutover, never patched. Existing completion keys stay unchanged.
+// Supabase is the sole workspace backend. Existing completion keys stay unchanged.
 (function(){
   "use strict";
   const cloud=window.TaskRingGameOpsCloud,I=window.TaskRingIntegrity,B=I.workspaceBridge,Core=I.core;
   const OWNER="taskring_workspace_owner_v1",BASE="taskring_workspace_config_base_v1",SYNC_CURSOR="taskring_execution_cursor_v2";
-  const legacyFetch=ghFetchGist,legacyParse=ghParseConfig,legacyState=ghParseState;
   const saveLocal=saveLocalTaskConfig,oldStatus=setGhStatus;
-  let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false,initializing=false,attemptedOwner="";
+  let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false;
   const session=()=>cloud.workspaceSession();
   const copy=v=>JSON.parse(JSON.stringify(v));
   const fp=Core.configFingerprint;
   const rpc=(name,args)=>cloud.workspaceRpc(name,args);
   const serial=fn=>{const result=queue.then(fn);queue=result.catch(()=>{});return result;};
   const message=e=>String(e?.message||e);
-  function status(label,kind="sync"){setGhStatus("Supabase："+label,kind);}
+  function status(label,kind="sync"){setGhStatus("Supabase："+label,kind);refreshSyncPanel();}
   setGhStatus=(label,kind="")=>oldStatus(String(label).replace(/^GitHub：?/,"Supabase：").replace(/^Supabase：/,""),kind);
   function trustedAccount(){
     const uid=session().uid,bound=localStorage.getItem(OWNER);
@@ -131,50 +129,6 @@
     if(session().uid!==uid)throw Error("登录账号已变化");
     if(data)accept(data,uid);
     return data;
-  }
-  async function migrate(uid,interactive=false){
-    if(initializing)throw Error("迁移正在执行");
-    if(!legacyGistToken()&&!interactive)throw Error("请从同步设置启动旧数据迁移");
-    initializing=true;
-    try{
-      status("核验旧数据");
-      // Read only. Missing, truncated or undecipherable files never initialize a workspace.
-      const gist=await legacyFetch();
-      if(!gist?.files?.[CONFIG_FILE]?.content||!gist?.files?.[GITHUB_STATE_FILE]?.content)throw Error("旧配置或执行记录不完整，不能迁移");
-      const parsed=await legacyParse(gist);
-      if(!parsed.config||parsed.mode==="error")throw Error("旧配置无法解密，不能迁移");
-      const execution=legacyState(gist);
-      if(!execution||typeof execution.states!=="object"||!execution.states)throw Error("旧执行记录不可用");
-      migrateLegacyLocalStates();
-      const local=loadLocalTaskConfig();
-      const decision=Core.decideConfig({local,remote:parsed.config,baseFingerprint:B.configBaseFingerprint()});
-      let chosen=decision.source==="local"?local:parsed.config;
-      if(decision.source==="conflict"||local&&!B.configBaseFingerprint()&&fp(local)!==fp(parsed.config)){
-        if(!interactive||!confirm("旧 Gist 与本机配置存在冲突。确认采用旧云端配置进行迁移？本机配置会完整保留在迁移备份中。"))throw Error("旧配置存在冲突，需在同步设置确认迁移");
-        chosen=parsed.config;
-      }
-      // Do not migrate an account which has no existing game catalog.
-      const routine=await rpc("get_game_routine_catalog");
-      if(!routine||!Array.isArray(routine.rows))throw Error("当前 Supabase 账号与现有游戏工作区不匹配");
-      const sourceRevision=String(gist.history?.[0]?.version||gist.updated_at||"");
-      if(!sourceRevision)throw Error("无法确认旧云端版本");
-      const config=canonicalConfig(chosen);
-      const merged=snapshot(execution);
-      const result=await rpc("initialize_taskring_workspace",{
-        p_configuration:config,p_execution:merged,p_source:"legacy_gist",
-        p_source_config:{cloud:JSON.parse(gist.files[CONFIG_FILE].content),local},
-        p_source_execution:{cloud:execution,local:snapshot({})},
-        p_source_revision:sourceRevision
-      });
-      const reread=await rpc("get_taskring_workspace");
-      if(!result||!reread||fp(reread.configuration)!==fp(config)||!equalState(reread.execution,merged))throw Error("迁移回读核验不一致，保留旧凭据并停止");
-      accept(reread,uid);bind(uid);await refreshGame(uid);
-      applyConfig(config,"Supabase 迁移：保留旧本机配置");
-      applyExecution(reread.execution);recordBase(config);
-      localStorage.removeItem(GH_TOKEN_KEY);
-      status("已迁移","on");ghLog("Supabase 迁移完成：配置与执行记录已回读核验，旧 Gist 写入已停用。");
-      renderAll();return reread;
-    }finally{initializing=false;}
   }
   function combineExecution(a,b){
     if(!b)return a;
@@ -313,8 +267,7 @@
     const uid=trustedAccount();
     const remote=await readWorkspace(uid);
     if(!remote){
-      if(options.migration||legacyGistToken()&&attemptedOwner!==uid){attemptedOwner=uid;return migrate(uid,!!options.interactive);}
-      status("待迁移","off");ghLog("请通过同步设置启动一次旧数据迁移。");return;
+      status("工作区未初始化","off");ghLog("当前账号没有工作区。请确认账号，或通过统一 JSON 导入完整备份。");return;
     }
     await refreshGame(uid);
     const bound=localStorage.getItem(OWNER);
@@ -328,7 +281,7 @@
       if(needsConfirmation&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。"))return;
       bind(uid);recordBase(remote.configuration);
       applyConfig(remote.configuration,"绑定 Supabase 工作区前备份");
-      if(legacyGistToken())localStorage.removeItem(GH_TOKEN_KEY);
+      localStorage.removeItem(GH_TOKEN_KEY);
     }else{
       const current=localConfig(),decision=Core.decideConfig({local:current,remote:remote.configuration,baseFingerprint:baseline()});
       if(options.preferRemote){
@@ -344,6 +297,7 @@
       }
     }
     await pushState(uid);
+    localStorage.removeItem(GH_TOKEN_KEY);
     if(!I.hasConfigConflict())status("已同步","on");
     renderAll();
   }
@@ -354,7 +308,6 @@
   }
   // Retain old call names as UI compatibility shims, never as Gist writers.
   ghToken=()=>session().uid&&(!localStorage.getItem(OWNER)||localStorage.getItem(OWNER)===session().uid)?"supabase-session":"";
-  ghFetchGist=async()=>{throw Error("Gist 已停用，仅允许一次性迁移");};
   ghPatchFiles=async()=>{throw Error("Gist 写入已永久停用");};
   ghPatchState=async()=>{throw Error("Gist 写入已永久停用");};
   ghPatchConfig=c=>guarded(()=>writeConfig(c));
@@ -381,26 +334,34 @@
     }
     return saved;
   };
+  function refreshSyncPanel(){
+    const account=session(),bound=localStorage.getItem(OWNER);
+    const connected=!!workspace&&owner===account.uid&&bound===account.uid;
+    const foreign=!!account.uid&&!!bound&&bound!==account.uid;
+    const panel=document.getElementById("workspaceAccountStatus");
+    if(panel)panel.textContent=!account.ready?"正在检查登录状态…":!account.uid?"未登录 Supabase":(account.email||"已登录 Supabase")+(foreign?" · 与本机账号不匹配":connected?" · 工作区已连接":" · 待连接工作区");
+    const form=document.getElementById("workspaceLogin");
+    if(form)form.hidden=!account.ready||!!account.uid;
+    const actions=document.getElementById("workspaceSyncActions");
+    if(actions)actions.hidden=!account.uid||foreign;
+    const hint=document.getElementById("workspaceSyncHint");
+    if(hint)hint.textContent=foreign?"请使用原账号，不会跨账号上传本机记录。":connected?"自动同步已启用。勾选、撤销及配置保存会自动同步；离线时保留本机修改，重新联网后同步。":account.uid?"如尚未连接，请从云端读取并确认本机工作区。首次初始化可使用统一 JSON 的完整备份。":"登录已有 Supabase 账号即可连接云端工作区。";
+  }
   openGhModal=function(){
     const modal=document.getElementById("ghModal");if(!modal)return;
-    closeControlCenter();
-    const panel=document.getElementById("ghGistMasked");
-    if(panel)panel.textContent=session().uid?(session().email||"已登录 Supabase")+(workspace?" · 工作区已连接":" · 待迁移/读取"):"未登录 Supabase";
+    closeControlCenter();refreshSyncPanel();
     modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");
   };
   restorePreviousCloudConfig=async()=>showToast("请使用统一 JSON 的配置回滚点；云端历史已在 Supabase 保存。","warn");
-  // Old history endpoints are unreachable from the replacement UI.
-  ghFetchGistCommits=async()=>{throw Error("Gist 历史入口已停用");};
-  ghFetchGistRevision=async()=>{throw Error("Gist 历史入口已停用");};
   document.getElementById("workspaceLogin")?.addEventListener("submit",async e=>{
     e.preventDefault();const values=Object.fromEntries(new FormData(e.currentTarget));
     const form=e.currentTarget;
     try{await cloud.workspaceSignIn(values.email,values.password);form.reset();ghPull({interactive:true});}
     catch(err){ghLog(message(err));showToast("Supabase 登录失败","warn");}
   });
-  document.getElementById("workspaceMigrateBtn")?.addEventListener("click",()=>ghPull({migration:true,interactive:true}));
   window.addEventListener("taskring-workspace-auth",()=>{
     if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";}
+    refreshSyncPanel();
     if(session().uid&&!document.body.classList.contains("locked"))ghPull();
   });
   window.addEventListener("online",()=>{if(ghToken())ghPull();});
