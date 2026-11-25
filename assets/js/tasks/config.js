@@ -53,6 +53,14 @@
         Object.values(config.gameQuest.boards[board]||{}).forEach(items=>records(items,"游戏 "+board,null,{legacy}));
       });
     }
+    if(config.cloudGameConfig!=null){
+      if(!record(config.cloudGameConfig))fail("游戏云端配置格式无效");
+      for(const [name,key] of [["policies","game_key"],["operations","task_key"]]){
+        const rows=config.cloudGameConfig[name];if(rows==null)continue;
+        if(!Array.isArray(rows)||rows.some(r=>!record(r)||!nonempty(r[key])))fail("游戏云端 "+name+" 格式无效");
+        if(new Set(rows.map(r=>r[key])).size!==rows.length)fail("游戏云端 "+name+" 存在重复 ID");
+      }
+    }
     if(config.fitness!=null&&!record(config.fitness))fail("生活改善配置无效");
     if(config.fitness?.sections!=null)records(config.fitness.sections,"生活分区",null,{legacy});
     Object.values(config.fitness?.days||{}).forEach(day=>Object.values(day||{}).forEach(items=>{
@@ -63,10 +71,10 @@
   }
 
   function exportConfig(config){
-    const {tasks,refs,gameQuest,fitness,sequences,settings,schedules,schemaVersion,...compatibility}=copy(config);
+    const {tasks,refs,gameQuest,fitness,sequences,settings,schedules,schemaVersion,cloudGameConfig,...compatibility}=copy(config);
     return {kind:"taskring-config",schemaVersion:VERSION,tasks,modules:{gameQuest,fitness},
       schedules:schedules||{},sequences:sequences||{},references:refs||[],settings:settings||{},
-      sourceMappings:{local:"taskring-gist",gameOps:"supabase:public.game_ops_tasks"},compatibility};
+      sourceMappings:{local:"supabase:public.taskring_workspace",gameRoutines:"supabase:public.game_routine_tasks",gamePolicies:"supabase:public.game_play_policies",gameOps:"supabase:public.game_ops_tasks"},...(cloudGameConfig?{cloudGameConfig}:{}),compatibility};
   }
 
   function decode(input){
@@ -82,7 +90,7 @@
       if(envelope.sourceMappings?.gameOps&&envelope.sourceMappings.gameOps!=="supabase:public.game_ops_tasks")fail("游戏云端数据源和当前站点不一致");
       config={...envelope.compatibility,schemaVersion:VERSION,tasks:envelope.tasks,
         gameQuest:envelope.modules.gameQuest,fitness:envelope.modules.fitness,refs:envelope.references,
-        sequences:envelope.sequences,settings:envelope.settings,schedules:envelope.schedules};
+        sequences:envelope.sequences,settings:envelope.settings,schedules:envelope.schedules,...(envelope.cloudGameConfig?{cloudGameConfig:envelope.cloudGameConfig}:{})};
     }else if(!envelope.kind&&[1,2,3,4].includes(envelope.version)&&Array.isArray(envelope.tasks)
       &&record(envelope.gameQuest)&&record(envelope.fitness)&&Array.isArray(envelope.refs)){
       config=copy(envelope);
