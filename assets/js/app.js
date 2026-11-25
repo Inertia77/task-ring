@@ -964,7 +964,7 @@ function trustSoftLock(remember=true){
 }
 function clearSoftLockTrust(){localStorage.removeItem(SOFT_LOCK_TRUST_KEY);localStorage.removeItem(SOFT_LOCK_TRUST_UNTIL_KEY);sessionStorage.removeItem(SOFT_LOCK_SESSION_KEY)}
 function applyLocalConfigIfAny(){const localCfg=loadLocalTaskConfig();if(localCfg)applyTaskConfig(localCfg,false);return !!localCfg}
-function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本机/内置数据。需要云同步时请设置 Gist Token。"){
+function enterLocalMode(promptToken=false,msg="本机已解锁；当前使用本机/内置数据。需要云同步时请登录 Supabase。"){
   unlockApp();
   applyLocalConfigIfAny();
   renderAll();
@@ -990,7 +990,7 @@ async function handleSoftUnlock(){
     unlockApp();
     applyLocalConfigIfAny();
     renderAll();
-    if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未设置 Gist Token，当前使用本机/内置数据。")
+    if(ghToken())ghPull();else enterLocalMode(true,"软锁已解锁；未登录 Supabase，当前使用本机缓存。")
   }catch(err){
     console.error(err);
     setLockError(String(err.message||err));
@@ -1004,7 +1004,7 @@ function setGhStatus(text,cls=""){const el=document.getElementById("githubStatus
 let ghReadOnlyFallback=false;
 let ghReadOnlyReason="";
 function legacyGistToken(){return localStorage.getItem(GH_TOKEN_KEY)||""}
-function ghToken(){return legacyGistToken()}
+function ghToken(){return ""}
 function setGhToken(v){
   if(v)localStorage.setItem(GH_TOKEN_KEY,v.trim());else localStorage.removeItem(GH_TOKEN_KEY);
   ghReadOnlyFallback=false;
@@ -1186,27 +1186,10 @@ async function ghParseConfig(gist){
     return {config:null, mode:"error", error:e};
   }
 }
-async function ghPatchFiles(files){
-  if(!ghToken())throw new Error("未设置 GitHub Token；当前只能读取云端，不能上传。");
-  const body={files:{}};
-  Object.keys(files).forEach(name=>{body.files[name]={content:files[name]}});
-  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`,{method:"PATCH",headers:{...ghHeaders(true),"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!res.ok){
-    const responseText=await res.text();
-    if(res.status===401||res.status===403){
-      throw new Error(`Gist 上传失败（HTTP ${res.status}）：GitHub Token 已失效、被撤销或缺少 Gist 写权限。请在「同步设置」更新 Token。本机数据未丢失。响应：${responseText.slice(0,280)}`);
-    }
-    throw new Error(`Gist 上传失败（HTTP ${res.status}）：${responseText.slice(0,420)}`);
-  }
-  ghReadOnlyFallback=false;
-  ghReadOnlyReason="";
-  return await res.json();
-}
-async function ghPatchState(data){return await ghPatchFiles({[GITHUB_STATE_FILE]:JSON.stringify(data,null,2)})}
-async function ghPatchConfig(config){
-  const encrypted=await encryptConfigObject(config);
-  return await ghPatchFiles({[CONFIG_FILE]:JSON.stringify(encrypted,null,2)});
-}
+// Gist is migration input only. There is no legacy network write transport.
+async function ghPatchFiles(){throw new Error("旧 Gist 写入已停用");}
+async function ghPatchState(){throw new Error("工作区同步尚未初始化");}
+async function ghPatchConfig(){throw new Error("工作区同步尚未初始化");}
 function migrateLegacyKey(key){
   if(!String(key).startsWith(LEGACY_GH_PREFIX))return null;
   const rest=String(key).slice(LEGACY_GH_PREFIX.length);
@@ -1248,53 +1231,10 @@ function applyGhStates(states){
   });
   return {applied,migrated};
 }
-async function ghPull(){
-  if(!ghToken()){
-    enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"未设置 Gist Token，当前使用本机/内置数据；需要跨设备同步时请填写 Token。");
-    return;
-  }
-  try{
-    unlockApp();
-    setGhStatus("GitHub：读取中","sync");
-    migrateLegacyLocalStates();
-    const gist=await ghFetchGist();
-    const cfgResult=await ghParseConfig(gist);
-    const localCfg=loadLocalTaskConfig();
-    const cfgToUse=cfgResult.config||localCfg||buildDefaultConfig();
-    if(cfgResult.config){saveLocalTaskConfig(cfgResult.config);ghLog("任务配置已从云端加密配置读取。")}
-    applyTaskConfig(cfgToUse,false);
-    if(cfgResult.mode==="plaintext"){
-      ghLog("检测到旧版明文配置，正在自动转为加密配置…");
-      try{await ghPatchConfig(cfgResult.config)}catch(e){ghLog("自动加密配置失败："+e.message)}
-    }
-    if(cfgResult.mode==="error"&&localCfg){
-      ghLog("云端配置无法解密，已使用本机缓存配置；请在保存了正确配置的设备上点「保存配置并同步」修复云端配置。");
-    }
-    const state=ghParseState(gist);
-    const localStates=collectGhLocalStates();
-    const localCount=Object.keys(localStates).length;
-    const result=applyGhStates(state.states||{});
-    // 完成状态到齐后再检查一次，换设备时也能识别新任务继承的历史打钩。
-    applyTaskConfig(taskConfig,false);
-    const deletedResult=mergeGhTimeLogDeletes(state.time_logs_deleted||state.deleted_time_logs||{});
-    const timeResult=mergeGhTimeLogs(state.time_logs||[]);
-    if(result.applied===0&&localCount>0){ghLog(`云端为空，本机有 ${localCount} 项，先上传本机状态`);await ghPush(true);unlockApp();return}
-    setGhStatus("GitHub：已同步","on");
-    ghLog(`读取成功：${result.applied} 项${result.migrated?`；已迁移旧Key ${result.migrated} 项`:""}；时间记录 ${timeResult.count} 条${deletedResult.count?`；删除记录 ${deletedResult.count} 条`:""}`);
-    unlockApp();
-    renderAll();
-    if(result.migrated>0||timeResult.changed||deletedResult.changed)setTimeout(()=>ghPush(true),1200)
-  }catch(err){
-    console.error(err);
-    setGhStatus("GitHub：读取失败","err");
-    ghLog(String(err.message||err));
-    enterLocalMode(false,"Gist 同步失败，已继续使用本机/内置数据。Token 可能失效、权限不足，或网络读取失败。");
-    showToast("Gist 同步失败；需要时请更新 Token","warn",3000);
-    setTimeout(openGhModal,360);
-  }
-}
-async function ghPush(silent=false){if(!ghToken()){setGhStatus("GitHub：未设置","off");if(!silent)openGhModal();return}try{ghSaving=true;setGhStatus("GitHub：保存中","sync");const deletedLogs=collectGhDeletedTimeLogs();const data={version:3,privacy:"coded-state-keys + time-logs + weekly-plan",updatedAt:new Date().toISOString(),states:collectGhLocalStates(),time_logs:collectGhTimeLogs(),time_logs_deleted:deletedLogs,time_logs_meta:{limit:TIME_GH_LOG_LIMIT,deleted_limit:TIME_GH_DELETED_LIMIT,active_timer:"local-only"}};await ghPatchState(data);ghSaving=false;setGhStatus("GitHub：已同步","on");ghLog(`保存成功：${Object.keys(data.states).length} 项；时间记录 ${data.time_logs.length} 条；删除记录 ${Object.keys(deletedLogs).length} 条`);unlockApp();renderAll()}catch(err){console.error(err);ghSaving=false;setGhStatus("GitHub：保存失败","err");ghLog(String(err.message||err))}}
-function scheduleGhSave(){if(!ghToken()){setGhStatus(LOCAL_PREVIEW_UNLOCK?"GitHub：本地预览":"GitHub：未设置","off");return}setGhStatus("GitHub：等待保存","sync");clearTimeout(ghSaveTimer);ghSaveTimer=setTimeout(()=>ghPush(true),900)}
+// The real sync implementations are installed by workspace-cloud.js before boot.
+async function ghPull(){enterLocalMode(false,"Supabase 工作区模块尚未加载；本机缓存已保留。");}
+async function ghPush(){throw new Error("Supabase 工作区模块尚未加载");}
+function scheduleGhSave(){setGhStatus("Supabase：本机缓存","off")}
 function syncSetItem(key,val){if(val)localStorage.setItem(key,"1");else localStorage.removeItem(key);scheduleGhSave()}
 function syncRemoveCycle(cycle=cycleYmd){clearGhLocalCycle(cycle);scheduleGhSave()}
 function updateGistPrivacyPanel(){const panel=document.getElementById("ghGistMasked");if(!panel)return;panel.textContent=ghToken()?"已内置到同步引擎；为避免误传截图，这里不显示原始 Gist ID。":"未输入 Token 时不显示 Gist ID。"}
@@ -1420,7 +1360,7 @@ function initGithubSyncUI(){
     else enterLocalMode(true,LOCAL_PREVIEW_UNLOCK?"本地预览模式：未连接云端，只使用内置/本机缓存数据。":"本机已记住解锁；未设置 Gist Token，当前使用本机/内置数据。");
   }else{
     setGhStatus(isManualSoftLocked()?"GitHub：已手动上锁":"GitHub：等待解锁","off");
-    lockApp(isManualSoftLocked()?"已手动上锁。输入本机解锁码才能重新进入。":"输入本机解锁码进入任务环。GitHub Token 只用于云同步，不再用于开门。");
+    lockApp(isManualSoftLocked()?"已手动上锁。输入本机解锁码才能重新进入。":"输入本机解锁码进入任务环。Supabase 账号用于云同步，不用于本机解锁。");
   }
 }
 
@@ -1755,65 +1695,9 @@ async function restoreLocalBackupConfig(){
     setBtnBusy(btn,false);
   }
 }
-async function ghFetchGistCommits(){
-  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}/commits`,{headers:ghHeaders(),cache:"no-store"});
-  if(!res.ok)throw new Error(`GET gist commits failed ${res.status}: ${await res.text()}`);
-  return await res.json();
-}
-async function ghFetchGistRevision(version){
-  const res=await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}/${version}`,{headers:ghHeaders(),cache:"no-store"});
-  if(!res.ok)throw new Error(`GET gist revision failed ${res.status}: ${await res.text()}`);
-  return await res.json();
-}
-async function restorePreviousCloudConfig(){
-  const btn=document.getElementById("restoreCloudPreviousBtn");
-  if(!ghToken()){openGhModal();taskEditorLog("请先设置 GitHub Token，才能读取 Gist 历史版本。");showToast("请先设置 GitHub Token","warn");return}
-  try{
-    setBtnBusy(btn,true,"查找中…");
-    setGhStatus("GitHub：查找历史版本","sync");
-    const current=normalizeTaskConfig(taskConfig||loadLocalTaskConfig()||buildDefaultConfig());
-    const cur=configCounts(current);
-    const commits=await ghFetchGistCommits();
-    let picked=null;
-    let fallback=null;
-    for(const item of commits.slice(1,16)){
-      const version=item.version||item.sha;
-      if(!version)continue;
-      try{
-        const gist=await ghFetchGistRevision(version);
-        const parsed=await ghParseConfig(gist);
-        if(!parsed.config)continue;
-        const counts=configCounts(parsed.config);
-        const candidate={version,committedAt:item.committed_at||item.committedAt||"",config:parsed.config,counts};
-        if(!fallback)fallback=candidate;
-        if(counts.total>cur.total||counts.enabled>cur.enabled){picked=candidate;break}
-      }catch(err){
-        console.warn("skip gist revision",version,err);
-      }
-    }
-    picked=picked||fallback;
-    if(!picked){throw new Error("没有找到可读取的上一版 taskring-config.json")}
-    const when=picked.committedAt?new Date(picked.committedAt).toLocaleString():"未知时间";
-    const ok=confirm(`找到云端历史配置：\n\n历史版：${configCountsText(picked.config)}\n时间：${when}\n当前：${configCountsText(current)}\n\n确认恢复并同步回云端？`);
-    if(!ok){taskEditorLog("已取消云端历史恢复。");showToast("已取消恢复","warn");return}
-    setBtnBusy(btn,true,"恢复中…");
-    const cfg=saveLocalTaskConfig(picked.config,"恢复云端上一版前");
-    applyTaskConfig(cfg,true);
-    renderTaskEditor(true);
-    await ghPatchConfig(cfg);
-    setGhStatus("GitHub：已同步","on");
-    ghLog(`已从 Gist 历史版本恢复配置：${picked.version}`);
-    taskEditorLog(`已恢复云端上一版并同步：${configCountsText(cfg)}。`);
-    showToast("已恢复云端上一版并同步","ok",3000);
-  }catch(err){
-    console.error(err);
-    setGhStatus("GitHub：恢复失败","err");
-    taskEditorLog("恢复云端上一版失败："+String(err.message||err));
-    showToast("恢复失败，请看日志","err",3200);
-  }finally{
-    setBtnBusy(btn,false);
-  }
-}
+async function ghFetchGistCommits(){throw new Error("旧 Gist 历史入口已停用");}
+async function ghFetchGistRevision(){throw new Error("旧 Gist 历史入口已停用");}
+async function restorePreviousCloudConfig(){showToast("请使用统一 JSON 的配置回滚点","warn");}
 function initTaskEditorUI(){
   document.getElementById("taskEditorBtn")?.addEventListener("click",()=>{closeGhModal();openTaskEditor()});
   document.getElementById("taskEditorCloseBtn")?.addEventListener("click",closeTaskEditor);
