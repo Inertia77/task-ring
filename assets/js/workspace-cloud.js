@@ -113,7 +113,12 @@
       }
     }
     const policyChanges=[];
-    for(const [key,row] of policies){const prior=originalPolicies.get(key)||null;if(strictStable(pick(row,policyFields))!==strictStable(pick(prior,policyFields)))policyChanges.push({op:"upsert",game_key:key,expected:prior,next:pick(row,policyFields)});}
+    for(const [key,row] of policies){const prior=originalPolicies.get(key)||null;
+      if(prior&&Number(row.play_tier)!==Number(prior.play_tier)){
+        const tier=Number(row.play_tier);if(![1,2,3,4,5].includes(tier))throw Error("游戏等级无效："+key);
+        row.routine_policy=tier===1?"required":tier===2?"deferred":"none";
+        row.limited_event_policy=tier===1?"priority":tier===5?"none":"deferred";
+      }if(strictStable(pick(row,policyFields))!==strictStable(pick(prior,policyFields)))policyChanges.push({op:"upsert",game_key:key,expected:prior,next:pick(row,policyFields)});}
     // Omission does not physically delete a game policy. Use tier F to retire it.
     const originalOps=rowsBy(old.operations,"task_key"),operations=rowsBy(next?.operations||old.operations,"task_key"),opsChanges=[];
     for(const [key,row] of operations){const prior=originalOps.get(key)||null;if(strictStable(pick(row,opsFields))!==strictStable(pick(prior,opsFields)))opsChanges.push({op:"upsert",task_key:key,expected:prior,next:pick(row,opsFields)});}
@@ -169,12 +174,32 @@
       renderAll();return reread;
     }finally{initializing=false;}
   }
-  async function pushState(uid){
+  function combineExecution(a,b){
+    if(!b)return a;
+    const merged=Core.mergeStateRecords({localStates:a.states||{},localMeta:a.state_meta||{},remoteStates:b.states||{},remoteMeta:b.state_meta||{},migrationTime:new Date().toISOString(),deviceId:B.deviceId()});
+    const deleted={...(a.time_logs_deleted||{})};
+    for(const [id,ts] of Object.entries(b.time_logs_deleted||{}))if(!deleted[id]||String(ts)>String(deleted[id]))deleted[id]=ts;
+    const logs=new Map();
+    for(const log of [...(a.time_logs||[]),...(b.time_logs||[])])if(log?.id&&!deleted[log.id]&&(!logs.has(log.id)||String(log.ended_at||"")>=String(logs.get(log.id).ended_at||"")))logs.set(log.id,log);
+    return {version:4,states:merged.states,state_meta:merged.stateMeta,time_logs:[...logs.values()].sort((x,y)=>String(x.ended_at||"").localeCompare(String(y.ended_at||""))),time_logs_deleted:deleted};
+  }
+  async function initializeFromBackup(config,execution){
+    const uid=trustedAccount();
+    if(await readWorkspace(uid))throw Error("工作区已存在，请使用正常导入");
+    await refreshGame(uid);
+    const normalized=canonicalConfig(config),merged=snapshot(execution);
+    const saved=await rpc("initialize_taskring_workspace",{p_configuration:normalized,p_execution:merged,p_source:"verified_backup",p_source_config:{backup:config,local:loadLocalTaskConfig()},p_source_execution:{backup:execution,local:snapshot({})},p_source_revision:"backup-"+fp(config)});
+    const verified=await rpc("get_taskring_workspace");
+    if(!saved||!verified||fp(verified.configuration)!==fp(normalized)||!equalState(verified.execution,merged))throw Error("备份迁移回读核验失败");
+    accept(verified,uid);bind(uid);recordBase(normalized);applyConfig(normalized,"Supabase 完整备份迁移前");applyExecution(verified.execution);
+    localStorage.removeItem(GH_TOKEN_KEY);status("已迁移","on");renderAll();return verified;
+  }
+  async function pushState(uid,extra=null){
     // Compare-and-swap state and merge on conflict, retaining remote historical logs.
     for(let attempt=0;attempt<3;attempt++){
       const remote=await readWorkspace(uid);
       if(!remote)throw Error("尚未迁移工作区");
-      const merged=snapshot(remote.execution);applyExecution(merged);
+      const merged=snapshot(combineExecution(remote.execution,extra));applyExecution(merged);
       if(equalState(remote.execution,merged))return remote;
       try{
         const saved=await rpc("save_taskring_workspace_state",{p_expected_revision:remote.state_revision,p_execution:merged});
@@ -220,10 +245,12 @@
     const bound=localStorage.getItem(OWNER);
     if(!bound){
       const existing=localConfig();
-      if(existing&&fp(existing)!==fp(remote.configuration)&&!options.interactive){
+      const localData=!!existing||Object.keys(collectGhLocalStates()).length>0||readTimeLogs().length>0;
+      const needsConfirmation=localData&&(!existing||fp(existing)!==fp(remote.configuration));
+      if(needsConfirmation&&!options.interactive){
         status("需确认本机数据","err");ghLog("本机已有配置，需在同步设置明确确认采用 Supabase 云端，防止跨账号覆盖。");return;
       }
-      if(existing&&fp(existing)!==fp(remote.configuration)&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。"))return;
+      if(needsConfirmation&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。"))return;
       bind(uid);recordBase(remote.configuration);
       applyConfig(remote.configuration,"绑定 Supabase 工作区前备份");
       if(legacyGistToken())localStorage.removeItem(GH_TOKEN_KEY);
@@ -306,5 +333,8 @@
   setInterval(()=>{if(!document.hidden&&ghToken()&&!document.body.classList.contains("locked"))ghPull();},60000);
   window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid,revision:()=>workspace?.config_revision??null,
     projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
+    exportExecution:()=>snapshot(workspace?.execution||{}),
+    importExecution:execution=>guarded(()=>pushState(trustedAccount(),execution),true),
+    initializeFromBackup:(config,execution)=>guarded(()=>initializeFromBackup(config,execution),true),
     saveConfiguration:(candidate,options={})=>guarded(()=>writeConfig(candidate,options),true),sync:ghPull};
 })();
