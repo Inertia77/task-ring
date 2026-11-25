@@ -345,9 +345,10 @@
     if(changed){setRoutineOwner(user?.id);authGeneration++;request++;recentRequest++;mutationId=null;busy=false;rows=[];archive=[];recentDone=[];loaded=false;page=0;lastSync=null;manualOpen=false;manualDraft={};P?.setOwner(user?.id||'');if(user)restore();}
     status=navigator.onLine?'同步中':'离线缓存';render();
     // Supabase recommends leaving the auth callback before issuing queries.
+    setTimeout(()=>workspaceNotify(),0);
     if(user)setTimeout(()=>{fetchTasks();fetchPolicy();fetchRoutines();if(typeof activeAppView!=='undefined'&&activeAppView==='overview')fetchRecent();},0);
   });
-  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');setRoutineOwner(user?.id);if(user)restore();render();return Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();});
+  client.auth.getSession().then(({data,error:e})=>{authReady=true;if(e)error=e.message;user=data.session?.user||null;P?.setOwner(user?.id||'');setRoutineOwner(user?.id);if(user)restore();render();setTimeout(()=>workspaceNotify(),0);return Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines(),typeof activeAppView!=='undefined'&&activeAppView==='overview'&&fetchRecent()]);}).catch(e=>{authReady=true;error=e.message;render();setTimeout(()=>workspaceNotify(),0);});
   addEventListener('offline',()=>{request++;busy=false;status='离线缓存';error='';render();});
   const overviewActive=()=>typeof activeAppView!=='undefined'&&activeAppView==='overview';
   function refreshOverview(){return Promise.all([fetchTasks(true),fetchRecent()]);}
@@ -373,6 +374,17 @@
     if(history)fetchTasks();
     return [...document.querySelectorAll('[data-ops-card]')].find(card=>card.dataset.opsCard===id)||document.getElementById('gameOpsCloud');
   }
-  window.TaskRingGameOpsCloud={html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
+  // One authenticated client for the entire TaskRing workspace.
+  async function workspaceRpc(name,args={}){
+    const uid=user?.id;if(!uid)throw Error('请登录 Supabase');
+    const {data,error:e}=await client.rpc(name,args);
+    if(e){const err=Error(e.message||String(e));err.code=e.code;throw err;}
+    if(user?.id!==uid)throw Error('云端账号已变化');
+    return data;
+  }
+  function workspaceSession(){return {ready:authReady,uid:user?.id||'',email:user?.email||''};}
+  async function workspaceSignIn(email,password){const {error:e}=await client.auth.signInWithPassword({email,password});if(e)throw e;}
+  function workspaceNotify(){window.dispatchEvent(new Event('taskring-workspace-auth'));}
+  window.TaskRingGameOpsCloud={workspaceRpc,workspaceSession,workspaceSignIn,html,summary,summaryHtml,setScope,refresh:()=>Promise.all([fetchTasks(),fetchPolicy(),fetchRoutines()]),routineView,routineState,routineChanges,saveRoutines,fetchRoutines,
     rememberFilterScroll,restoreFilterScroll,commandSnapshot,commandSetDone,refreshOverview,showTask};
 })();
