@@ -239,7 +239,8 @@
       <button id="ghPullBtn" type="button">从云端读取</button>
       <button id="ghPushBtn" type="button">同步本机修改</button>
     </div>
-    <pre id="ghLog" class="ghLog">等待设置。</pre>
+    <pre id="workspaceLiveStatus" class="ghLog" role="status" aria-live="polite">正在检查工作区。</pre>
+    <details class="ghHint"><summary>历史连接与同步日志（非当前状态）</summary><pre id="ghLog" class="ghLog">暂无历史记录。</pre></details>
   </div>
 </div>
 
@@ -395,7 +396,7 @@
 <script src="assets/js/tasks/sources.js?v=20261124.3"></script>
 <script src="assets/js/tasks/command.js?v=20261125.3"></script>
 <script src="assets/js/tasks/workbench.js?v=20261125.2"></script>
-<script src="assets/js/workspace-cloud.js?v=20261126.1"></script>
+<script src="assets/js/workspace-cloud.js?v=20261126.2"></script>
 <script src="assets/js/pwa.js?v=20261118.2"></script>
 </body>
 </html>
