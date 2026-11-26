@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskring-shell-20261126-auto-reconnect";
+const CACHE_NAME = "taskring-shell-20261126-live-sync-status";
 const APP_SHELL = [
   "./",
   "./index.html",
