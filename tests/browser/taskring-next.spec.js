@@ -256,6 +256,16 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
       if(name==="get_taskring_workspace")return remote&&JSON.parse(JSON.stringify(remote));
       if(name==="get_taskring_workspace_head"){if(!remote)return null;const {execution,...head}=remote;return JSON.parse(JSON.stringify(head));}
       if(name==="get_taskring_game_configuration")return game;
+      if(name==="get_taskring_execution_delta"){
+        const full=args.p_since===null;
+        return {revision:remote.state_revision,full,state_meta:full?remote.execution.state_meta:{},states:full?remote.execution.states:{},removed:[],...(full?{time_logs:remote.execution.time_logs,time_logs_deleted:remote.execution.time_logs_deleted}:{})};
+      }
+      if(name==="save_taskring_execution_delta"){
+        if(args.p_expected_revision!==remote.state_revision)throw Error("revision");
+        for(const [k,v] of Object.entries(args.p_state_meta||{})){remote.execution.state_meta[k]=v;if(v.value==="1")remote.execution.states[k]="1";else delete remote.execution.states[k];}
+        remote.state_revision++;
+        return {revision:remote.state_revision};
+      }
       if(name==="initialize_taskring_workspace"){
         remote={configuration:args.p_configuration,execution:args.p_execution,config_revision:1,state_revision:1};
         return JSON.parse(JSON.stringify(remote));
@@ -273,6 +283,9 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
     window.__workspaceCompletionKey=key;
   });
   expect(await page.evaluate(()=>window.TaskRingWorkspace.connected())).toBe(true);
+  // A restored session triggers automatic sync against the same incremental RPC as production.
+  await page.evaluate(()=>window.dispatchEvent(new Event("taskring-workspace-auth")));
+  await expect.poll(()=>page.evaluate(()=>window.__workspaceCalls.includes("get_taskring_execution_delta"))).toBe(true);
   // Signed-in devices must never see an unnecessary login form or Gist migration control.
   await page.evaluate(()=>openGhModal());
   await expect(page.locator("#workspaceAccountStatus")).toContainText("工作区已连接");
