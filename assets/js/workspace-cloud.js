@@ -6,6 +6,12 @@
   const saveLocal=saveLocalTaskConfig,oldStatus=setGhStatus;
   let workspace=null,gameCatalog=null,owner="",queue=Promise.resolve(),stateTimer,configTimer,applying=false;
   let autoPending=false, retryTimer, retryDelay=2000, connectionPhase="idle";
+  let lastSyncAt=null,lastSyncOwner="",lastSyncError="";
+  function markSynced(uid,label="工作区、任务配置与执行记录已同步"){
+    if(session().uid!==uid||localStorage.getItem(OWNER)!==uid)return;
+    if(lastSyncOwner!==uid||!lastSyncAt||lastSyncError)ghLog(label+"（自动同步已启用）");
+    lastSyncOwner=uid;lastSyncAt=new Date();lastSyncError="";connectionPhase="ready";status("已同步","on");
+  }
   const session=()=>cloud.workspaceSession();
   const copy=v=>JSON.parse(JSON.stringify(v));
   const fp=Core.configFingerprint;
@@ -149,7 +155,7 @@
     const verified=await rpc("get_taskring_workspace");
     if(!saved||!verified||fp(verified.configuration)!==fp(normalized)||!equalState(verified.execution,merged))throw Error("备份迁移回读核验失败");
     accept(verified,uid);bind(uid);recordBase(normalized);applyConfig(normalized,"Supabase 完整备份迁移前");applyExecution(verified.execution);
-    localStorage.removeItem(GH_TOKEN_KEY);connectionPhase="ready";status("已迁移","on");renderAll();return verified;
+    localStorage.removeItem(GH_TOKEN_KEY);markSynced(uid,"工作区初始化与执行记录核验成功");renderAll();return verified;
   }
   // Acknowledged per-record versions are persisted with the server cursor.
   // The browser retains its historical cache (needed for historical views and
@@ -268,7 +274,7 @@
     const uid=trustedAccount();
     const remote=await readWorkspace(uid);
     if(!remote){
-      status("工作区未初始化","off");ghLog("当前账号没有工作区。请确认账号，或通过统一 JSON 导入完整备份。");return;
+      connectionPhase="uninitialized";status("工作区未初始化","off");ghLog("当前账号没有工作区。请确认账号，或通过统一 JSON 导入完整备份。");return;
     }
     await refreshGame(uid);
     const bound=localStorage.getItem(OWNER);
@@ -279,14 +285,14 @@
       if(needsConfirmation&&!options.interactive){
         connectionPhase="confirmation";status("需确认本机数据","err");ghLog("本机已有配置，需在同步设置明确确认采用 Supabase 云端，防止跨账号覆盖。");return;
       }
-      if(needsConfirmation&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。"))return;
+      if(needsConfirmation&&!confirm("采用 Supabase 云端工作区？本机旧配置将备份，完成状态按版本合并。")){connectionPhase="confirmation";refreshSyncPanel();return;}
       bind(uid);recordBase(remote.configuration);
       applyConfig(remote.configuration,"绑定 Supabase 工作区前备份");
       localStorage.removeItem(GH_TOKEN_KEY);
     }else{
       const current=localConfig(),decision=Core.decideConfig({local:current,remote:remote.configuration,baseFingerprint:baseline()});
       if(options.preferRemote){
-        if(current&&fp(current)!==fp(remote.configuration)&&options.interactive&&!confirm("采用 Supabase 云端配置？本机旧配置会自动备份。"))return;
+        if(current&&fp(current)!==fp(remote.configuration)&&options.interactive&&!confirm("采用 Supabase 云端配置？本机旧配置会自动备份。")){connectionPhase="idle";refreshSyncPanel();return;}
         applyConfig(remote.configuration,"手动读取 Supabase 云端前备份");recordBase(remote.configuration);
       }else if(decision.source==="conflict"){
         B.rememberConflict(current,remote.configuration,{updated_at:remote.config_updated_at},"supabase-both-changed");
@@ -299,14 +305,14 @@
     }
     await pushState(uid);
     await cloud.refresh();
-    connectionPhase="ready";
     localStorage.removeItem(GH_TOKEN_KEY);
-    if(!I.hasConfigConflict())status("已同步","on");
+    if(!I.hasConfigConflict())markSynced(uid);
+    else {connectionPhase="conflict";status("配置冲突","err");}
     renderAll();
   }
   function guarded(fn,interactive=false){
     return serial(async()=>{try{return await fn();}catch(e){
-      connectionPhase="error";status("同步未完成","err");ghLog(message(e));if(interactive)showToast(message(e),"warn",4200);throw e;
+      connectionPhase="error";lastSyncError=message(e);status("同步未完成","err");ghLog(lastSyncError);if(interactive)showToast(message(e),"warn",4200);throw e;
     }});
   }
   // Retain old call names as UI compatibility shims, never as Gist writers.
@@ -322,7 +328,11 @@
     await pushState(uid);
     const current=localConfig();
     if(current&&fp(current)!==baseline())await writeConfig(current);
-    status("已同步","on");renderAll();
+    if(I.hasConfigConflict()){connectionPhase="conflict";status("配置冲突","err");}
+    else if(connectionPhase==="ready"&&lastSyncOwner===uid&&lastSyncAt)status("已同步","on");
+    else if(connectionPhase!=="error")status("执行记录已同步","on");
+    else refreshSyncPanel();
+    renderAll();
   },!silent).catch(()=>{});
   scheduleGhSave=()=>{
     clearTimeout(stateTimer);if(!ghToken()){status("本机缓存","off");return;}
@@ -341,14 +351,21 @@
     const account=session(),bound=localStorage.getItem(OWNER);
     const connected=!!workspace&&owner===account.uid&&bound===account.uid;
     const foreign=!!account.uid&&!!bound&&bound!==account.uid;
+    const offline=navigator.onLine===false;
     const panel=document.getElementById("workspaceAccountStatus");
-    if(panel)panel.textContent=!account.ready?"正在检查登录状态…":!account.uid?"未登录 Supabase":(account.email||"已登录 Supabase")+(foreign?" · 与本机账号不匹配":connectionPhase==="connecting"?" · 正在连接工作区":connectionPhase==="confirmation"?" · 需要首次绑定确认":connectionPhase==="error"?" · 同步失败，等待重试":connected?" · 工作区已连接":" · 待连接工作区");
+    if(panel)panel.textContent=!account.ready?"正在检查登录状态…":!account.uid?"未登录 Supabase":(account.email||"已登录 Supabase")+(foreign?" · 与本机账号不匹配":offline?" · 离线缓存":connectionPhase==="uninitialized"?" · 工作区未初始化":connectionPhase==="conflict"?" · 配置冲突":connectionPhase==="connecting"?" · 正在连接工作区":connectionPhase==="confirmation"?" · 需要首次绑定确认":connectionPhase==="error"?" · 同步失败，等待重试":connected?" · 工作区已连接":" · 待连接工作区");
     const form=document.getElementById("workspaceLogin");
     if(form)form.hidden=!account.ready||!!account.uid;
     const actions=document.getElementById("workspaceSyncActions");
     if(actions){actions.hidden=!account.uid||foreign;actions.style.display=actions.hidden?"none":"";}
     const hint=document.getElementById("workspaceSyncHint");
-    if(hint)hint.textContent=foreign?"请使用原账号，不会跨账号上传本机记录。":connected?"自动同步已启用。勾选、撤销及配置保存会自动同步；离线时保留本机修改，重新联网后同步。":account.uid?"如尚未连接，请从云端读取并确认本机工作区。首次初始化可使用统一 JSON 的完整备份。":"登录已有 Supabase 账号即可连接云端工作区。";
+    if(hint)hint.textContent=foreign?"请使用原账号，不会跨账号上传本机记录。":offline?"当前离线，使用本机缓存；联网后自动重连。":connectionPhase==="error"?"同步未完成，本机数据已保留；联网后自动重试。":connectionPhase==="conflict"?"本机与云端配置均有修改，未覆盖任何一方，请处理冲突。":connectionPhase==="confirmation"?"仅首次绑定需要确认：从云端读取并确认采用工作区。":connectionPhase==="connecting"?"正在自动连接并同步，无需手动点击。":connected?"自动同步已启用。勾选、撤销及配置保存会自动同步；离线时保留本机修改，重新联网后同步。":account.uid?"如尚未连接，请从云端读取并确认本机工作区。首次初始化可使用统一 JSON 的完整备份。":"登录已有 Supabase 账号即可连接云端工作区。";
+    const live=document.getElementById("workspaceLiveStatus");
+    if(live){
+      const state=!account.ready?"正在恢复登录":!account.uid?"未登录":foreign?"账号不匹配":offline?"离线 · 本机缓存":connectionPhase==="connecting"?"正在自动同步":connectionPhase==="confirmation"?"等待首次绑定确认":connectionPhase==="uninitialized"?"工作区未初始化":connectionPhase==="conflict"?"配置冲突 · 未覆盖云端":connectionPhase==="error"?"同步失败 · 等待重试":connected&&lastSyncOwner===account.uid&&lastSyncAt?"已同步 · 自动同步已启用":connected?"已连接 · 等待完整同步":"等待连接";
+      const stamp=account.uid&&lastSyncOwner===account.uid&&lastSyncAt?new Intl.DateTimeFormat("zh-CN",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(lastSyncAt)+" JST":"本次启动尚未完成同步";
+      live.textContent="当前状态："+state+"\n最近成功同步："+stamp+(connectionPhase==="error"&&!foreign&&lastSyncError?"\n错误："+lastSyncError:"");
+    }
   }
   openGhModal=function(){
     const modal=document.getElementById("ghModal");if(!modal)return;
@@ -381,11 +398,12 @@
     }).observe(document.body,{attributes:true,attributeFilter:["class"]});
   }
   window.addEventListener("taskring-workspace-auth",()=>{
-    if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";connectionPhase="idle";}
+    if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";connectionPhase="idle";lastSyncAt=null;lastSyncOwner="";lastSyncError="";}
     refreshSyncPanel();
     autoConnect();
   });
-  window.addEventListener("online",autoConnect);
+  window.addEventListener("online",()=>{refreshSyncPanel();autoConnect();});
+  window.addEventListener("offline",refreshSyncPanel);
   document.addEventListener("visibilitychange",autoConnect);
   setInterval(autoConnect,60000);
   setTimeout(autoConnect,0);

@@ -289,6 +289,12 @@ test("Supabase workspace cutover preserves completion codes and unified manual e
   // Signed-in devices must never see an unnecessary login form or Gist migration control.
   await page.evaluate(()=>openGhModal());
   await expect(page.locator("#workspaceAccountStatus")).toContainText("工作区已连接");
+  await expect(page.locator("#workspaceLiveStatus")).toContainText("当前状态：已同步");
+  await expect(page.locator("#workspaceLiveStatus")).toContainText("JST");
+  await expect(page.locator("#ghLog")).toBeHidden();
+  await page.locator("summary").filter({hasText:"历史连接与同步日志"}).click();
+  await expect(page.locator("#ghLog")).toContainText("核验成功");
+  await page.locator("summary").filter({hasText:"历史连接与同步日志"}).click();
   await expect(page.locator("#workspaceLogin")).toBeHidden();
   await expect(page.locator("#workspaceMigrateBtn")).toHaveCount(0);
   await expect(page.locator("#workspaceSyncActions")).toBeVisible();
