@@ -149,7 +149,7 @@
     const verified=await rpc("get_taskring_workspace");
     if(!saved||!verified||fp(verified.configuration)!==fp(normalized)||!equalState(verified.execution,merged))throw Error("备份迁移回读核验失败");
     accept(verified,uid);bind(uid);recordBase(normalized);applyConfig(normalized,"Supabase 完整备份迁移前");applyExecution(verified.execution);
-    localStorage.removeItem(GH_TOKEN_KEY);status("已迁移","on");renderAll();return verified;
+    localStorage.removeItem(GH_TOKEN_KEY);connectionPhase="ready";status("已迁移","on");renderAll();return verified;
   }
   // Acknowledged per-record versions are persisted with the server cursor.
   // The browser retains its historical cache (needed for historical views and
@@ -363,14 +363,23 @@
     catch(err){ghLog(message(err));showToast("Supabase 登录失败","warn");}
   });
   function autoConnect(){
-    if(autoPending||!session().uid||document.body.classList.contains("locked")||document.hidden||!navigator.onLine)return;
+    const account=session(),bound=localStorage.getItem(OWNER);
+    if(autoPending||!account.ready||!account.uid||(bound&&bound!==account.uid)||document.body.classList.contains("locked")||document.hidden||!navigator.onLine)return;
     if(connectionPhase==="confirmation"&&!localStorage.getItem(OWNER))return;
     clearTimeout(retryTimer);autoPending=true;connectionPhase="connecting";refreshSyncPanel();
     guarded(()=>pull({})).then(()=>{retryDelay=2000;if(connectionPhase==="connecting")connectionPhase="idle";}).catch(()=>{
       retryTimer=setTimeout(autoConnect,retryDelay);retryDelay=Math.min(retryDelay*2,60000);
     }).finally(()=>{autoPending=false;refreshSyncPanel();});
   }
-  new MutationObserver(()=>{if(!document.body.classList.contains("locked"))autoConnect();}).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  // Observe only an actual locked -> unlocked transition, not unrelated UI class changes.
+  if(typeof window.MutationObserver==="function"){
+    let wasLocked=document.body.classList.contains("locked");
+    new window.MutationObserver(()=>{
+      const locked=document.body.classList.contains("locked");
+      const unlocked=wasLocked&&!locked;wasLocked=locked;
+      if(unlocked)autoConnect();
+    }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  }
   window.addEventListener("taskring-workspace-auth",()=>{
     if(session().uid!==owner){workspace=null;gameCatalog=null;owner="";connectionPhase="idle";}
     refreshSyncPanel();
@@ -379,7 +388,7 @@
   window.addEventListener("online",autoConnect);
   document.addEventListener("visibilitychange",autoConnect);
   setInterval(autoConnect,60000);
-  autoConnect();
+  setTimeout(autoConnect,0);
   window.TaskRingWorkspace={connected:()=>!!workspace&&owner===session().uid&&localStorage.getItem(OWNER)===owner,revision:()=>workspace?.config_revision??null,
     projectConfig,gameReady:()=>!!gameCatalog,catalogChanges,
     exportExecution:()=>guarded(exportFullExecution,true),
