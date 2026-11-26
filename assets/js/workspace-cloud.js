@@ -329,8 +329,9 @@
     const current=localConfig();
     if(current&&fp(current)!==baseline())await writeConfig(current);
     if(I.hasConfigConflict()){connectionPhase="conflict";status("配置冲突","err");}
-    else if(lastSyncOwner===uid&&lastSyncAt){connectionPhase="ready";lastSyncError="";status("已同步","on");}
-    else status("执行记录已同步","on");
+    else if(connectionPhase==="ready"&&lastSyncOwner===uid&&lastSyncAt)status("已同步","on");
+    else if(connectionPhase!=="error")status("执行记录已同步","on");
+    else refreshSyncPanel();
     renderAll();
   },!silent).catch(()=>{});
   scheduleGhSave=()=>{
